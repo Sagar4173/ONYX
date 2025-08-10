@@ -18,15 +18,18 @@ class Settings(BaseSettings):
     host: str = Field(default="0.0.0.0", env="HOST")
     port: int = Field(default=8000, env="PORT")
     workers: int = Field(default=4, env="WORKERS")
+    environment: str = Field(default="development", env="ENVIRONMENT")
     
     # Database
     mongodb_uri: str = Field(..., env="MONGODB_URI")
     database_name: str = Field(default="securedevops", env="DATABASE_NAME")
+    mongo_password: Optional[str] = Field(default=None, env="MONGO_PASSWORD")
     
     # Security
     secret_key: str = Field(..., env="SECRET_KEY")
     algorithm: str = Field(default="HS256", env="ALGORITHM")
     access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    force_https: bool = Field(default=False, env="FORCE_HTTPS")
     
     # OpenAI
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
@@ -36,16 +39,32 @@ class Settings(BaseSettings):
     # Notifications
     slack_webhook_url: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
     teams_webhook_url: Optional[str] = Field(default=None, env="TEAMS_WEBHOOK_URL")
+    slack_channel: str = Field(default="#dev-alerts", env="SLACK_CHANNEL")
     
     # Rate Limiting
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     rate_limit_window: int = Field(default=3600, env="RATE_LIMIT_WINDOW")  # 1 hour
+    rate_limit_per_minute: int = Field(default=1000, env="RATE_LIMIT_PER_MINUTE")
+    rate_limit_burst: int = Field(default=100, env="RATE_LIMIT_BURST")
     
     # CORS
     cors_origins: list[str] = Field(
         default=["http://localhost:3000", "http://localhost:8080"], 
         env="CORS_ORIGINS"
     )
+    allowed_origins: str = Field(default="http://localhost:3000,http://localhost:8080", env="ALLOWED_ORIGINS")
+    
+    # Scanner configuration
+    enable_semgrep: bool = Field(default=False, env="ENABLE_SEMGREP")
+    enable_trivy: bool = Field(default=False, env="ENABLE_TRIVY")
+    enable_gitleaks: bool = Field(default=False, env="ENABLE_GITLEAKS")
+    enable_lynis: bool = Field(default=False, env="ENABLE_LYNIS")
+    scan_timeout: int = Field(default=300, env="SCAN_TIMEOUT")
+    max_concurrent_scans: int = Field(default=3, env="MAX_CONCURRENT_SCANS")
+    
+    # Redis
+    redis_url: str = Field(default="redis://localhost:6379", env="REDIS_URL")
+    redis_db: int = Field(default=0, env="REDIS_DB")
     
     # Logging
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
@@ -70,10 +89,7 @@ class Settings(BaseSettings):
     temp_dir: str = Field(default="/tmp/securedevops", env="TEMP_DIR")
     cleanup_after_scan: bool = Field(default=True, env="CLEANUP_AFTER_SCAN")
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = {"extra": "ignore", "env_file": ".env", "env_file_encoding": "utf-8", "case_sensitive": False}
 
 
 def get_log_level() -> int:

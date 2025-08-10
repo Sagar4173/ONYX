@@ -1,0 +1,15 @@
+{
+  "id": "6898e23d015b6e416444701a",
+  "project_name": "Sagar4173",
+  "scan_id": "0dedc92f-5f47-4d9c-86d9-ec93f93a73a1",
+  "status": "completed",
+  "created_at": "2025-08-10T18:17:33.532000",
+  "total_findings": 8,
+  "findings_by_severity": {
+    "critical": 0,
+    "high": 2,
+    "medium": 3,
+    "low": 3,
+    "info": 0
+  }
+}

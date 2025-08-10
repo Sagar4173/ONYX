@@ -149,44 +149,44 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl transform rounded-3xl bg-gray-900/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transition-all">
+        <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto transform rounded-2xl lg:rounded-3xl bg-gray-900/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transition-all">
           {/* Gradient Background */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+          <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10" />
 
           {/* Content */}
-          <div className="relative p-8">
+          <div className="relative p-4 sm:p-6 lg:p-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
-                  <SparklesSolid className="h-6 w-6 text-white" />
+            <div className="flex items-start sm:items-center justify-between mb-6 lg:mb-8 gap-4">
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex-shrink-0">
+                  <SparklesSolid className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">
+                <div className="min-w-0">
+                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
                     Start Security Scan
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-gray-400 text-sm lg:text-base">
                     AI-powered vulnerability detection
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all flex-shrink-0"
               >
-                <XIcon className="h-6 w-6" />
+                <XIcon className="h-5 w-5 lg:h-6 lg:w-6" />
               </button>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
               {/* Repository URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-gray-300 mb-2 lg:mb-3">
                   Repository URL
                 </label>
                 <div className="relative">
-                  <GlobeAltIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <GlobeAltIcon className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
                   <input
                     type="url"
                     value={formData.repository_url}
@@ -197,7 +197,7 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
                       }))
                     }
                     placeholder="https://github.com/username/repository"
-                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-3 lg:py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl lg:rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm lg:text-base"
                     required
                   />
                 </div>
@@ -341,27 +341,27 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex space-x-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-4 px-6 rounded-2xl border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all"
+                  className="flex-1 py-3 lg:py-4 px-4 lg:px-6 rounded-xl lg:rounded-2xl border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all text-sm lg:text-base font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 py-3 lg:py-4 px-4 lg:px-6 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all flex items-center justify-center space-x-2 text-sm lg:text-base"
                 >
                   {isSubmitting ? (
                     <>
-                      <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                      <ArrowPathIcon className="h-4 w-4 lg:h-5 lg:w-5 animate-spin" />
                       <span>Starting Scan...</span>
                     </>
                   ) : (
                     <>
-                      <PlayIcon className="h-5 w-5" />
+                      <PlayIcon className="h-4 w-4 lg:h-5 lg:w-5" />
                       <span>Start Scan</span>
                     </>
                   )}
@@ -385,12 +385,17 @@ function AppContent() {
   // Scan mutation for repository submission
   const scanMutation = useMutation({
     mutationFn: async (scanData) => {
-      const response = await fetch("/api/scan", {
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const response = await fetch(`${API_BASE_URL}/webhook/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scanData),
       });
-      if (!response.ok) throw new Error("Failed to start scan");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to start scan");
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -479,7 +484,7 @@ function AppContent() {
 
   // Modern Sidebar with Glassmorphism
   const ModernSidebar = () => (
-    <div className="fixed inset-y-0 left-0 z-40 w-72 transform bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 transition-transform lg:translate-x-0 lg:static lg:inset-0">
+    <div className="fixed inset-y-0 left-0 z-40 w-72 transform bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 translate-x-0">
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-purple-500/5 to-pink-500/5" />
 
@@ -611,61 +616,64 @@ function AppContent() {
 
   // Modern Header with Glassmorphism
   const ModernHeader = () => (
-    <div className="lg:pl-72">
-      <div className="sticky top-0 z-30 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
-        <div className="flex h-20 items-center justify-between px-8">
-          {/* Mobile menu button */}
-          <button
-            type="button"
-            className="lg:hidden p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <MenuIcon className="h-6 w-6" />
+    <div className="sticky top-0 z-30 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
+      <div className="flex h-16 lg:h-20 items-center justify-between px-4 lg:px-8">
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          className="lg:hidden p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+          onClick={() => setSidebarOpen(true)}
+        >
+          <MenuIcon className="h-6 w-6" />
+        </button>
+
+        {/* Enhanced Search Bar */}
+        <div className="flex-1 max-w-lg mx-4 lg:mx-8 hidden sm:block">
+          <div className="relative group">
+            <MagnifyingGlassIcon className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
+            <input
+              type="text"
+              placeholder="Search repositories, scans, vulnerabilities..."
+              className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl lg:rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800/70 transition-all hover:bg-gray-800/60 text-sm lg:text-base"
+            />
+            <div className="absolute inset-0 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-focus-within:from-blue-500/10 group-focus-within:via-purple-500/5 group-focus-within:to-pink-500/10 transition-all pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Enhanced Right side actions */}
+        <div className="flex items-center space-x-2 lg:space-x-4">
+          {/* Mobile search button */}
+          <button className="sm:hidden p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+            <MagnifyingGlassIcon className="h-5 w-5 lg:h-6 lg:w-6" />
           </button>
 
-          {/* Enhanced Search Bar */}
-          <div className="flex-1 max-w-lg mx-8">
-            <div className="relative group">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search repositories, scans, vulnerabilities..."
-                className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800/70 transition-all hover:bg-gray-800/60"
-              />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-focus-within:from-blue-500/10 group-focus-within:via-purple-500/5 group-focus-within:to-pink-500/10 transition-all pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Enhanced Right side actions */}
-          <div className="flex items-center space-x-4">
-            {/* Enhanced Notifications */}
-            <div className="relative group">
-              <button className="relative p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all group-hover:scale-105">
-                <BellIcon className="h-6 w-6" />
-                {notifications.length > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse shadow-lg">
-                    {notifications.length > 9 ? "9+" : notifications.length}
-                  </span>
-                )}
-              </button>
-
-              {/* Tooltip */}
-              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
-                {notifications.length} notifications
-              </div>
-            </div>
-
-            {/* User Profile */}
-            <button className="flex items-center space-x-3 p-2 rounded-2xl hover:bg-gray-800/50 transition-all">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                <UserCircleIcon className="h-6 w-6 text-white" />
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-white">Security Admin</p>
-                <p className="text-xs text-gray-400">admin@securedevops.ai</p>
-              </div>
+          {/* Enhanced Notifications */}
+          <div className="relative group">
+            <button className="relative p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all group-hover:scale-105">
+              <BellIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 lg:h-5 lg:w-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse shadow-lg">
+                  {notifications.length > 9 ? "9+" : notifications.length}
+                </span>
+              )}
             </button>
+
+            {/* Tooltip */}
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
+              {notifications.length} notifications
+            </div>
           </div>
+
+          {/* User Profile */}
+          <button className="flex items-center space-x-2 lg:space-x-3 p-2 rounded-xl lg:rounded-2xl hover:bg-gray-800/50 transition-all">
+            <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+              <UserCircleIcon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+            </div>
+            <div className="hidden md:block text-left">
+              <p className="text-sm font-medium text-white">Security Admin</p>
+              <p className="text-xs text-gray-400">admin@securedevops.ai</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>
@@ -726,13 +734,13 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
         {/* Hero Section */}
-        <div className="relative px-8 py-12">
+        <div className="relative px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl" />
           <div className="relative">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
               Security Command Center
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl">
               AI-powered security insights and vulnerability management for your
               entire codebase
             </p>
@@ -740,26 +748,26 @@ function AppContent() {
         </div>
 
         {/* Stats Grid */}
-        <div className="px-8 mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="px-4 sm:px-6 lg:px-8 mb-8 lg:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {stats.map((stat, index) => (
               <div
                 key={stat.title}
-                className="relative group"
+                className="relative group cursor-pointer animate-fade-in-up"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl group-hover:blur-2xl group-hover:scale-105 transition-all duration-300" />
                 <div
-                  className={`relative p-6 rounded-3xl border border-gray-800/50 bg-gradient-to-br ${stat.bgGradient} backdrop-blur-xl hover:border-gray-700/50 transition-all`}
+                  className={`relative p-4 sm:p-6 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gradient-to-br ${stat.bgGradient} backdrop-blur-xl hover:border-gray-700/50 hover:scale-105 transition-all duration-300`}
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3 lg:mb-4">
                     <div
-                      className={`p-3 rounded-2xl bg-gradient-to-r ${stat.gradient} shadow-lg`}
+                      className={`p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r ${stat.gradient} shadow-lg group-hover:shadow-xl transition-all`}
                     >
-                      <stat.icon className="h-6 w-6 text-white" />
+                      <stat.icon className="h-4 w-4 lg:h-6 lg:w-6 text-white" />
                     </div>
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-xs lg:text-sm font-medium ${
                         stat.change.startsWith("+")
                           ? "text-green-400"
                           : stat.change.startsWith("-")
@@ -770,10 +778,12 @@ function AppContent() {
                       {stat.change}
                     </span>
                   </div>
-                  <h3 className="text-3xl font-bold text-white mb-2">
+                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
                     {stat.value}
                   </h3>
-                  <p className="text-gray-400 font-medium">{stat.title}</p>
+                  <p className="text-gray-400 font-medium text-xs lg:text-sm">
+                    {stat.title}
+                  </p>
                 </div>
               </div>
             ))}
@@ -892,53 +902,88 @@ function AppContent() {
       <div className="min-h-screen bg-gray-900">
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-            <div className="fixed inset-y-0 left-0 w-72 bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50">
-              <div className="flex items-center justify-between p-6">
+          <div
+            className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <div
+              className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
                 <div className="flex items-center space-x-3">
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
-                    <ShieldCheckSolid className="h-6 w-6 text-white" />
+                  <div className="p-2 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                    <ShieldCheckSolid className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-lg font-bold text-white">
+                  <span className="text-base font-bold text-white">
                     SecureDevOps AI
                   </span>
                 </div>
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50"
+                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
                 >
-                  <XIcon className="h-6 w-6" />
+                  <XIcon className="h-5 w-5" />
                 </button>
               </div>
-              <nav className="px-6 space-y-2">
-                {navigation.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex items-center px-4 py-3 rounded-2xl text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all"
-                  >
-                    <div
-                      className={`p-2 rounded-xl bg-gradient-to-r ${item.gradient} mr-3`}
+
+              {/* Mobile Quick Scan Button */}
+              <div className="p-4 border-b border-gray-800/50">
+                <button
+                  onClick={() => {
+                    setScanModalOpen(true);
+                    setSidebarOpen(false);
+                  }}
+                  className="w-full p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center space-x-2"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  <span className="text-sm">Start New Scan</span>
+                </button>
+              </div>
+
+              <nav className="px-4 py-4 space-y-2">
+                {navigation.map((item) => {
+                  const isActive = window.location.pathname === item.href;
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center px-3 py-3 rounded-2xl transition-all ${
+                        isActive
+                          ? "bg-gray-800/50 text-white border border-blue-500/20"
+                          : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                      }`}
                     >
-                      <item.icon className="h-4 w-4 text-white" />
-                    </div>
-                    {item.name}
-                  </a>
-                ))}
+                      <div
+                        className={`p-2 rounded-xl bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
+                      >
+                        <item.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="font-medium text-sm">{item.name}</span>
+                      {item.badge && (
+                        <span className="ml-auto px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </a>
+                  );
+                })}
               </nav>
             </div>
           </div>
         )}
 
         {/* Desktop Sidebar */}
-        <ModernSidebar />
+        <div className="hidden lg:block">
+          <ModernSidebar />
+        </div>
 
         {/* Main Content */}
         <div className="lg:pl-72">
           <ModernHeader />
 
-          <main className="relative">
+          <main className="relative min-h-screen">
             <Routes>
               <Route
                 path="/"
@@ -947,10 +992,10 @@ function AppContent() {
               <Route
                 path="/reports"
                 element={
-                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
                     <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
-                      <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
                         <ProjectList />
                       </div>
                     </div>
@@ -969,14 +1014,14 @@ function AppContent() {
               <Route
                 path="/settings"
                 element={
-                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
                     <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
-                      <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                        <h1 className="text-3xl font-bold text-white mb-8">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 lg:mb-8">
                           Settings
                         </h1>
-                        <p className="text-gray-400">
+                        <p className="text-gray-400 text-sm lg:text-base">
                           Settings panel coming soon...
                         </p>
                       </div>

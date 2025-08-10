@@ -4,7 +4,7 @@ MongoDB models for SecureDevOps Platform
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from beanie import Document
 from bson import ObjectId
 
@@ -124,6 +124,8 @@ class NotificationStatus(BaseModel):
 class ScanReport(Document):
     """Main scan report document"""
     
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
     # Identifiers
     project_name: str = Field(..., description="Project/repository name")
     scan_id: str = Field(..., description="Unique scan identifier")
@@ -201,6 +203,8 @@ class ScanReport(Document):
 class WebhookEvent(Document):
     """Webhook event tracking"""
     
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
     event_id: str = Field(..., description="Unique event identifier")
     event_type: str = Field(..., description="Event type")
     repository_url: str = Field(..., description="Repository URL")
@@ -211,7 +215,7 @@ class WebhookEvent(Document):
     # Processing status
     status: str = Field(default="received")  # received, processing, completed, failed
     processed_at: Optional[datetime] = Field(None)
-    scan_report_id: Optional[ObjectId] = Field(None)
+    scan_report_id: Optional[str] = Field(None)  # String reference instead of ObjectId
     
     # Raw webhook data
     headers: Dict[str, str] = Field(default_factory=dict)

@@ -8,6 +8,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ServerSelectionTimeoutError, DuplicateKeyError
+from beanie import init_beanie
 import logging
 
 logger = logging.getLogger(__name__)
@@ -280,8 +281,46 @@ class DatabaseManager:
 db_manager = DatabaseManager()
 
 async def init_database():
-    """Initialize database connection"""
-    return await db_manager.connect()
+    """Initialize database connection and Beanie ODM"""
+    # Initialize the custom database manager
+    manager_connected = await db_manager.connect()
+    
+    # Initialize Beanie ODM
+    beanie_connected = False
+    try:
+        # Get MongoDB URI from environment
+        mongodb_uri = os.getenv('MONGODB_URI')
+        if not mongodb_uri:
+            logger.warning("No MongoDB URI found for Beanie initialization")
+            return manager_connected
+            
+        # Replace placeholder with actual password if needed
+        if '<db_password>' in mongodb_uri:
+            db_password = os.getenv('MONGO_PASSWORD', 'your-password')
+            mongodb_uri = mongodb_uri.replace('<db_password>', db_password)
+        
+        # Create client for Beanie
+        beanie_client = AsyncIOMotorClient(mongodb_uri)
+        db_name = os.getenv('DATABASE_NAME', 'securedevops')
+        beanie_db = beanie_client[db_name]
+        
+        # Import document models
+        from models.report import ScanReport, WebhookEvent
+        
+        # Initialize Beanie with document models
+        await init_beanie(
+            database=beanie_db,
+            document_models=[ScanReport, WebhookEvent]
+        )
+        
+        beanie_connected = True
+        logger.info("✅ Beanie ODM initialized successfully")
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize Beanie ODM: {e}")
+        beanie_connected = False
+    
+    return manager_connected and beanie_connected
 
 async def close_database():
     """Close database connection"""

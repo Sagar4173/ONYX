@@ -326,57 +326,106 @@ const ReportDetails = () => {
     const showCode = showCodeContext.has(finding.id);
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="group card card-hover overflow-hidden transition-all duration-300 hover:scale-[1.01]">
+        {/* Gradient overlay for severity */}
         <div
-          className="p-6 cursor-pointer hover:bg-gray-50"
+          className={`absolute top-0 left-0 w-1 h-full ${
+            finding.severity === "critical"
+              ? "bg-gradient-to-b from-red-500 to-red-600"
+              : finding.severity === "high"
+              ? "bg-gradient-to-b from-orange-500 to-orange-600"
+              : finding.severity === "medium"
+              ? "bg-gradient-to-b from-yellow-500 to-yellow-600"
+              : "bg-gradient-to-b from-green-500 to-green-600"
+          } opacity-70 group-hover:opacity-100 transition-opacity`}
+        />
+
+        <div
+          className="relative p-6 cursor-pointer hover:bg-gray-800/30 transition-all duration-300"
           onClick={() => toggleFinding(finding.id)}
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-2">
+              <div className="flex items-center space-x-3 mb-3">
                 <SeverityBadge severity={finding.severity} />
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-400 px-2 py-1 bg-gray-800/50 rounded-lg">
                   {finding.scanner_type || "Security Scanner"}
                 </span>
+                {finding.confidence && (
+                  <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20">
+                    {finding.confidence}% confidence
+                  </span>
+                )}
               </div>
 
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-300 transition-colors">
                 {finding.title || finding.rule_id}
               </h3>
 
-              <div className="flex items-center text-sm text-gray-500 space-x-4">
-                <span>Line {finding.line_number || "N/A"}</span>
-                <span>CWE-{finding.cwe_id || "N/A"}</span>
-                {finding.confidence && (
-                  <span>Confidence: {finding.confidence}</span>
+              <div className="flex items-center text-sm text-gray-400 space-x-4 mb-2">
+                <div className="flex items-center">
+                  <CodeIcon className="h-4 w-4 mr-1" />
+                  <span>Line {finding.line_number || "N/A"}</span>
+                </div>
+                <div className="flex items-center">
+                  <ShieldCheckIcon className="h-4 w-4 mr-1" />
+                  <span>CWE-{finding.cwe_id || "N/A"}</span>
+                </div>
+                {finding.owasp_category && (
+                  <div className="flex items-center">
+                    <FireIcon className="h-4 w-4 mr-1" />
+                    <span>{finding.owasp_category}</span>
+                  </div>
                 )}
               </div>
+
+              {/* Quick preview of description */}
+              <p className="text-sm text-gray-300 line-clamp-2">
+                {finding.description}
+              </p>
             </div>
 
-            <ChevronDownIcon
-              className={`h-5 w-5 text-gray-400 transform transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-            />
+            <div className="flex items-center space-x-2 ml-4">
+              {/* Priority indicator */}
+              {finding.severity === "critical" && (
+                <div className="animate-pulse">
+                  <FireIcon className="h-5 w-5 text-red-400" />
+                </div>
+              )}
+
+              {/* Expand/Collapse button */}
+              <button className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors">
+                <ChevronDownIcon
+                  className={`h-5 w-5 text-gray-400 transform transition-transform duration-300 ${
+                    isExpanded ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* Enhanced Expanded Content */}
         {isExpanded && (
-          <div className="border-t border-gray-200 p-6 bg-gray-50">
-            <div className="space-y-6">
-              {/* Description */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  Description
+          <div className="border-t border-gray-700/50 bg-gray-800/30 backdrop-blur-sm animate-fade-in-up">
+            <div className="p-6 space-y-6">
+              {/* Enhanced Description */}
+              <div className="glass-light rounded-xl p-4">
+                <h4 className="text-sm font-medium text-blue-300 mb-2 flex items-center">
+                  <InformationCircleIcon className="h-4 w-4 mr-2" />
+                  Vulnerability Details
                 </h4>
-                <p className="text-sm text-gray-700">{finding.description}</p>
+                <p className="text-sm text-gray-300 leading-relaxed">
+                  {finding.description}
+                </p>
               </div>
 
-              {/* Code snippet */}
+              {/* Enhanced Code snippet */}
               {finding.code_snippet && (
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-gray-900">
+                <div className="glass-light rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-red-300 flex items-center">
+                      <CodeIcon className="h-4 w-4 mr-2" />
                       Vulnerable Code
                     </h4>
                     <button
@@ -384,38 +433,41 @@ const ReportDetails = () => {
                         e.stopPropagation();
                         toggleCodeContext(finding.id);
                       }}
-                      className="text-sm text-blue-600 hover:text-blue-700"
+                      className="btn-secondary text-xs py-1 px-3"
                     >
                       {showCode ? "Hide" : "Show"} Context
                     </button>
                   </div>
 
                   {showCode && (
-                    <CodeBlock
-                      code={finding.code_snippet}
-                      language={utils.getLanguageFromFile(finding.file_path)}
-                      title={`${finding.file_path}:${finding.line_number}`}
-                    />
+                    <div className="mt-3 animate-fade-in-up">
+                      <CodeBlock
+                        code={finding.code_snippet}
+                        language={utils.getLanguageFromFile(finding.file_path)}
+                        title={`${finding.file_path}:${finding.line_number}`}
+                      />
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* AI Analysis */}
+              {/* Enhanced AI Analysis */}
               {aiAnalysis?.findings_analysis?.[finding.id] && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="glass-light rounded-xl p-4 border border-blue-500/20">
                   <div className="flex items-center mb-3">
-                    <LightBulbIcon className="h-5 w-5 text-blue-500 mr-2" />
-                    <h4 className="text-sm font-medium text-blue-900">
-                      AI Analysis
+                    <LightBulbIcon className="h-5 w-5 text-yellow-400 mr-2" />
+                    <h4 className="text-sm font-medium text-blue-300">
+                      AI Security Analysis
                     </h4>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <h5 className="text-sm font-medium text-blue-900 mb-1">
+                      <h5 className="text-sm font-medium text-yellow-300 mb-2 flex items-center">
+                        <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
                         Impact Assessment
                       </h5>
-                      <p className="text-sm text-blue-800">
+                      <p className="text-sm text-gray-300 bg-gray-800/50 p-3 rounded-lg">
                         {
                           aiAnalysis.findings_analysis[finding.id]
                             .impact_assessment
@@ -424,65 +476,73 @@ const ReportDetails = () => {
                     </div>
 
                     <div>
-                      <h5 className="text-sm font-medium text-blue-900 mb-1">
+                      <h5 className="text-sm font-medium text-green-300 mb-2 flex items-center">
+                        <CheckCircleIcon className="h-4 w-4 mr-1" />
                         Remediation Steps
                       </h5>
-                      <div className="text-sm text-blue-800">
+                      <div className="bg-gray-800/50 p-3 rounded-lg">
                         {aiAnalysis.findings_analysis[
                           finding.id
                         ].remediation_steps.map((step, index) => (
-                          <div key={index} className="flex items-start mb-1">
-                            <span className="text-blue-600 mr-2">
+                          <div
+                            key={index}
+                            className="flex items-start mb-2 last:mb-0"
+                          >
+                            <span className="text-blue-400 mr-2 mt-1">
                               {index + 1}.
                             </span>
-                            <span>{step}</span>
+                            <span className="text-sm text-gray-300">
+                              {step}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
-
-                    {aiAnalysis.findings_analysis[finding.id].code_fix && (
-                      <div>
-                        <h5 className="text-sm font-medium text-blue-900 mb-2">
-                          Suggested Fix
-                        </h5>
-                        <CodeBlock
-                          code={
-                            aiAnalysis.findings_analysis[finding.id].code_fix
-                          }
-                          language={utils.getLanguageFromFile(
-                            finding.file_path
-                          )}
-                          title="Suggested fix"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
 
-              {/* References */}
-              {finding.references && finding.references.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">
-                    References
-                  </h4>
-                  <div className="space-y-1">
-                    {finding.references.map((ref, index) => (
-                      <a
-                        key={index}
-                        href={ref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700"
-                      >
-                        <ExternalLinkIcon className="h-4 w-4 mr-1" />
-                        {ref}
-                      </a>
-                    ))}
-                  </div>
+              {/* Enhanced Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyToClipboard(finding.code_snippet);
+                    }}
+                    className="btn-secondary text-xs py-2 px-3 flex items-center"
+                  >
+                    <ClipboardCopyIcon className="h-3 w-3 mr-1" />
+                    Copy Code
+                  </button>
+
+                  {finding.external_references?.[0] && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(finding.external_references[0], "_blank");
+                      }}
+                      className="btn-secondary text-xs py-2 px-3 flex items-center"
+                    >
+                      <ExternalLinkIcon className="h-3 w-3 mr-1" />
+                      Learn More
+                    </button>
+                  )}
                 </div>
-              )}
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Mark as resolved/false positive functionality
+                      toast.success("Finding marked for review");
+                    }}
+                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                  >
+                    Mark Resolved
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -1,6 +1,6 @@
 """
-SecureDevOps AI Platform - Main FastAPI Application
-Production-ready application with MongoDB Atlas integration and realistic security scanning
+SecureDevOps AI Platform - Local Development Server
+A simplified version for running without Docker dependencies
 """
 import asyncio
 import os
@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import List, Dict, Any
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,10 +28,6 @@ else:
 
 # Import database manager
 from database import db_manager, init_database, close_database
-
-# Import route modules
-from routes.reports import router as reports_router
-from routes.webhook import router as webhook_router
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -69,63 +64,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(reports_router, prefix="/api")
-app.include_router(webhook_router)
-
-@app.get("/api/analytics/overview")
-async def get_analytics_overview(days_back: int = 30):
-    """Get analytics overview from database"""
-    try:
-        from database import db_manager
-        analytics_data = await db_manager.get_analytics()
-        
-        # Enhance with additional computed fields
-        enhanced_analytics = {
-            **analytics_data,
-            "total_findings": sum(analytics_data.get("severity_distribution", {}).values()),
-            "scans_last_24h": 3,  # Would be calculated from recent scans
-            "avg_scan_time": "2.1 minutes",
-            "projects_change": "+15.3%",
-            "critical_change": "-8.1%", 
-            "score_change": "+12.4%",
-            "scans_change": "+25.7%",
-            "trends": {
-                "last_7_days": {
-                    "scans": analytics_data.get("total_scans", 0) // 4,
-                    "findings": analytics_data.get("total_findings", 0) // 3
-                },
-                "last_30_days": {
-                    "scans": analytics_data.get("total_scans", 0),
-                    "findings": analytics_data.get("total_findings", 0)
-                }
-            }
-        }
-        
-        return enhanced_analytics
-        
-    except Exception as e:
-        logger.error(f"Error getting analytics: {e}")
-        # Fallback to mock data
-        return {
-            "total_scans": 12,
-            "total_findings": 45,
-            "severity_distribution": {
-                "critical": 3,
-                "high": 8,
-                "medium": 18,
-                "low": 16
-            },
-            "projects_scanned": 5,
-            "average_security_score": 78.2,
-            "scans_last_24h": 2,
-            "avg_scan_time": "1.8 minutes",
-            "projects_change": "+25%",
-            "critical_change": "-12%",
-            "score_change": "+8.5%",
-            "scans_change": "+50%"
-        }
-
 # Pydantic models
 class ScanRequest(BaseModel):
     repository_url: str
@@ -158,6 +96,39 @@ class ReportModel(BaseModel):
     created_at: str
     findings: List[FindingModel]
 
+# Mock data for demonstration
+mock_reports = [
+    {
+        "id": "report-001",
+        "project_name": "demo-project",
+        "repository_url": "https://github.com/user/demo-repo",
+        "branch": "main",
+        "status": "completed",
+        "findings_count": 5,
+        "created_at": "2025-08-10T10:00:00Z",
+        "findings": [
+            {
+                "id": "finding-001",
+                "severity": "high",
+                "title": "SQL Injection Vulnerability",
+                "description": "Potential SQL injection in user input handling",
+                "file_path": "src/database.py",
+                "line_number": 42,
+                "scanner": "semgrep"
+            },
+            {
+                "id": "finding-002",
+                "severity": "medium",
+                "title": "Hardcoded API Key",
+                "description": "API key found in source code",
+                "file_path": "config/settings.py",
+                "line_number": 15,
+                "scanner": "gitleaks"
+            }
+        ]
+    }
+]
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -171,13 +142,143 @@ async def health_check():
         "environment": "development",
         "services": {
             "api": "running",
-            "database": await db_manager.test_connection(),
-            "scanners": "available"
+            "database": "mock",
+            "scanners": "disabled"
         },
-        "timestamp": datetime.now().isoformat()
+        "timestamp": "2025-08-10T10:00:00Z"
     }
 
+@app.get("/api/reports")
+async def get_reports(skip: int = 0, limit: int = 10):
+    """Get security scan reports from database"""
+    try:
+        reports = await db_manager.get_scans(limit=limit, skip=skip)
+        
+        # Format for frontend compatibility
+        formatted_reports = []
+        for report in reports:
+            formatted_report = {
+                "id": report.get("scan_id", report.get("_id")),
+                "project_name": report.get("repository_url", "").split("/")[-1] or "Unknown Project",
+                "repository_url": report.get("repository_url", ""),
+                "branch": report.get("branch", "main"),
+                "status": report.get("status", "unknown"),
+                "findings_count": report.get("findings_count", 0),
+                "created_at": report.get("created_at", ""),
+                "commit_hash": None,  # Would be populated in real implementation
+                "duration_seconds": 120,  # Mock duration
+                "findings_by_severity": {
+                    "critical": 1,
+                    "high": 2,
+                    "medium": 3,
+                    "low": 4
+                }
+            }
+            formatted_reports.append(formatted_report)
+        
+        return {
+            "reports": formatted_reports,
+            "pagination": {
+                "total": len(formatted_reports),
+                "skip": skip,
+                "limit": limit,
+                "has_more": len(formatted_reports) == limit
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting reports: {e}")
+        return {"reports": [], "pagination": {"total": 0, "skip": 0, "limit": limit, "has_more": False}}
 
+@app.get("/api/reports/{report_id}")
+async def get_report(report_id: str):
+    """Get a specific report"""
+    logger.info(f"🔍 Getting report: '{report_id}' (type: {type(report_id)})")
+    
+    # Check for invalid or undefined report IDs
+    if not report_id or report_id == "undefined" or report_id == "null":
+        logger.warning(f"⚠️ Invalid report ID received: '{report_id}'")
+        raise HTTPException(status_code=400, detail="Invalid report ID")
+    
+    try:
+        # Try to get from database first
+        report = await db_manager.get_scan_by_id(report_id)
+        if report:
+            logger.info(f"✅ Found report in database: {report_id}")
+            return report
+        
+        # Fall back to mock data if not in database
+        mock_report = next((r for r in mock_reports if r["id"] == report_id), None)
+        if mock_report:
+            logger.info(f"✅ Found report in mock data: {report_id}")
+            return mock_report
+            
+        # Report not found in either database or mock data
+        logger.warning(f"❌ Report not found anywhere: {report_id}")
+        raise HTTPException(status_code=404, detail=f"Report not found: {report_id}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"💥 Error getting report {report_id}: {e}")
+        # Still try mock data as fallback
+        mock_report = next((r for r in mock_reports if r["id"] == report_id), None)
+        if mock_report:
+            logger.info(f"✅ Fallback to mock data successful: {report_id}")
+            return mock_report
+        raise HTTPException(status_code=404, detail="Report not found")
+
+@app.post("/api/scan")
+async def trigger_scan(scan_request: ScanRequest):
+    """Trigger a new security scan"""
+    import uuid
+    scan_id = str(uuid.uuid4())
+    
+    # Check if access token is provided for private repositories
+    auth_method = "public repository"
+    if scan_request.access_token:
+        auth_method = "private repository (user token provided)"
+        logger.info(f"Using user-provided access token for private repository")
+    
+    logger.info(f"Triggering scan for {scan_request.repository_url} ({auth_method})")
+    logger.info(f"Branch: {scan_request.branch}, Scan types: {scan_request.scan_types}")
+    
+    # Extract project name from repository URL
+    project_name = scan_request.repository_url.split("/")[-1] if scan_request.repository_url else "Unknown Project"
+    
+    # Prepare scan data for database
+    scan_data = {
+        "scan_id": scan_id,
+        "repository_url": scan_request.repository_url,
+        "branch": scan_request.branch,
+        "scan_types": scan_request.scan_types,
+        "status": "initiated",
+        "progress": 0,
+        "auth_method": auth_method,
+        "findings_count": 0,
+        "project_name": project_name
+    }
+    
+    # Save to database
+    await db_manager.save_scan(scan_data)
+    
+    # In a real implementation, this would:
+    # 1. Clone the repository using the access token if provided
+    # 2. Run the selected security scanners
+    # 3. Store results in database
+    # 4. Send real-time updates via WebSocket
+    
+    # Simulate scan progress (in real app, this would be background task)
+    asyncio.create_task(simulate_scan_progress(scan_id))
+    
+    return {
+        "scan_id": scan_id,
+        "status": "initiated",
+        "message": f"Scan started for {scan_request.repository_url}",
+        "repository_url": scan_request.repository_url,
+        "branch": scan_request.branch,
+        "scan_types": scan_request.scan_types,
+        "auth_method": auth_method
+    }
 
 def generate_realistic_findings(scan_id: str, repository_url: str, scan_types: list):
     """Generate realistic security findings based on repository and scan types"""
@@ -306,7 +407,68 @@ async def simulate_scan_progress(scan_id: str):
         logger.error(f"Error in scan simulation: {e}")
         await db_manager.update_scan_status(scan_id, "failed", 0)
 
+@app.get("/api/scan/{scan_id}/status")
+async def get_scan_status(scan_id: str):
+    """Get scan status"""
+    # Mock scan progress
+    return {
+        "scan_id": scan_id,
+        "status": "completed",
+        "progress": 100,
+        "message": "Scan completed successfully"
+    }
 
+@app.get("/api/analytics/overview")
+async def get_analytics_overview():
+    """Get analytics overview from database"""
+    try:
+        analytics_data = await db_manager.get_analytics()
+        
+        # Enhance with additional computed fields
+        enhanced_analytics = {
+            **analytics_data,
+            "total_findings": sum(analytics_data.get("severity_distribution", {}).values()),
+            "scans_last_24h": 3,  # Would be calculated from recent scans
+            "avg_scan_time": "2.1 minutes",
+            "projects_change": "+15.3%",
+            "critical_change": "-8.1%", 
+            "score_change": "+12.4%",
+            "scans_change": "+25.7%",
+            "trends": {
+                "last_7_days": {
+                    "scans": analytics_data.get("total_scans", 0) // 4,
+                    "findings": analytics_data.get("total_findings", 0) // 3
+                },
+                "last_30_days": {
+                    "scans": analytics_data.get("total_scans", 0),
+                    "findings": analytics_data.get("total_findings", 0)
+                }
+            }
+        }
+        
+        return enhanced_analytics
+        
+    except Exception as e:
+        logger.error(f"Error getting analytics: {e}")
+        # Fallback to mock data
+        return {
+            "total_scans": 5,
+            "total_findings": 27,
+            "severity_distribution": {
+                "critical": 2,
+                "high": 5,
+                "medium": 12,
+                "low": 8
+            },
+            "projects_scanned": 3,
+            "average_security_score": 82.5,
+            "scans_last_24h": 2,
+            "avg_scan_time": "1.8 minutes",
+            "projects_change": "+100%",
+            "critical_change": "0%",
+            "score_change": "+5.0%",
+            "scans_change": "+200%"
+        }
 
 @app.get("/api/scanners/health")
 async def get_scanners_health():
@@ -326,28 +488,17 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
     await websocket.accept()
     try:
-        # Send initial connection message
-        await websocket.send_json({
-            "type": "connection",
-            "data": {
-                "message": "Connected to SecureDevOps Platform",
-                "timestamp": datetime.now().isoformat()
-            }
-        })
-        
-        # Send periodic heartbeat (less frequent)
         while True:
+            # Send periodic updates
             await websocket.send_json({
                 "type": "scan_progress",
                 "data": {
                     "scan_id": "demo-scan",
-                    "progress": 75,
-                    "message": "Demo scan progress update",
-                    "timestamp": datetime.now().isoformat()
+                    "progress": 50,
+                    "message": "Scanning in progress..."
                 }
             })
-            # Increased interval to reduce spam
-            await asyncio.sleep(30)  # Send updates every 30 seconds instead of 5
+            await asyncio.sleep(5)
     except WebSocketDisconnect:
         logger.info("WebSocket client disconnected")
     except Exception as e:
@@ -355,13 +506,13 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close()
 
 if __name__ == "__main__":
-    print("🛡️ Starting SecureDevOps AI Platform - Production Server")
+    print("🛡️ Starting SecureDevOps AI Platform - Local Development Server")
     print("📖 API Documentation: http://localhost:8000/docs")
     print("🏥 Health Check: http://localhost:8000/health")
     print("🔧 Frontend should run on: http://localhost:3000 or http://localhost:5173")
     
     uvicorn.run(
-        "app:app",
+        "app_local:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

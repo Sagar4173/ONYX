@@ -1,6 +1,3 @@
-/**
- * ProjectList Component - Lists projects with security scores and reports
- */
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -17,8 +14,60 @@ import {
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { reportsAPI, utils } from "../services/api";
 import toast from "react-hot-toast";
+import { reportsAPI, utils } from "../services/api";
+
+// Additional utility functions specific to ProjectList
+const projectUtils = {
+  calculateSecurityScore: (findings) => {
+    if (!findings) return 100;
+    const { critical = 0, high = 0, medium = 0, low = 0 } = findings;
+    const total = critical + high + medium + low;
+    if (total === 0) return 100;
+
+    const weightedScore = critical * 25 + high * 10 + medium * 5 + low * 1;
+    return Math.max(0, Math.min(100, 100 - Math.min(weightedScore, 100)));
+  },
+
+  getScoreColor: (score) => {
+    if (score >= 80) return "text-green-400";
+    if (score >= 60) return "text-yellow-400";
+    if (score >= 40) return "text-orange-400";
+    return "text-red-400";
+  },
+
+  getStatusColor: (status) => {
+    const colors = {
+      completed: "text-green-400 bg-green-400/10 border-green-400/30",
+      running: "text-blue-400 bg-blue-400/10 border-blue-400/30",
+      pending: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+      failed: "text-red-400 bg-red-400/10 border-red-400/30",
+    };
+    return colors[status] || colors.pending;
+  },
+
+  getSeverityColor: (severity) => {
+    const colors = {
+      critical: "text-red-400 bg-red-400/10 border-red-400/30",
+      high: "text-orange-400 bg-orange-400/10 border-orange-400/30",
+      medium: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+      low: "text-blue-400 bg-blue-400/10 border-blue-400/30",
+    };
+    return colors[severity] || colors.low;
+  },
+
+  formatRelativeDate: (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  },
+};
 
 const ProjectList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,6 +124,50 @@ const ProjectList = () => {
     setCurrentPage(1);
   }, 300);
 
+  // Handle report download
+  const handleDownloadReport = async (reportId, format = 'pdf') => {
+    try {
+      toast.loading("Preparing download...", { id: "download" });
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const response = await fetch(
+        `${API_BASE_URL}/api/reports/${reportId}/download?format=${format}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': format === 'pdf' ? 'application/pdf' : 
+                     format === 'csv' ? 'text/csv' : 'application/json'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Download failed: ${errorText}`);
+      }
+
+      const blob = await response.blob();
+      
+      // Verify blob type for PDF
+      if (format === 'pdf' && !blob.type.includes('pdf')) {
+        console.warn('Downloaded blob type:', blob.type);
+        // Force PDF MIME type
+        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+        utils.downloadFile(pdfBlob, `security-report-${reportId}.pdf`);
+      } else {
+        const extension = format === 'csv' ? 'csv' : format === 'json' ? 'json' : 'pdf';
+        utils.downloadFile(blob, `security-report-${reportId}.${extension}`);
+      }
+      
+      toast.success("Download started successfully!", { id: "download" });
+    } catch (error) {
+      toast.error("Failed to download report. Please try again.", {
+        id: "download",
+      });
+      console.error("Download error:", error);
+    }
+  };
+
   // Filter options
   const statusOptions = [
     { value: "all", label: "All Status" },
@@ -100,12 +193,12 @@ const ProjectList = () => {
   ];
 
   const SecurityScoreBadge = ({ findingsBySeverity }) => {
-    const score = utils.calculateSecurityScore(findingsBySeverity);
-    const colorClass = utils.getScoreColor(score);
+    const score = projectUtils.calculateSecurityScore(findingsBySeverity);
+    const colorClass = projectUtils.getScoreColor(score);
 
     return (
       <div
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} bg-opacity-10 border`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} bg-opacity-10 border border-current`}
       >
         <span
           className={`h-2 w-2 rounded-full ${colorClass.replace(
@@ -119,7 +212,7 @@ const ProjectList = () => {
   };
 
   const StatusBadge = ({ status }) => {
-    const colorClass = utils.getStatusColor(status);
+    const colorClass = projectUtils.getStatusColor(status);
     const statusIcons = {
       completed: CheckCircleIcon,
       running: RefreshIcon,
@@ -131,7 +224,7 @@ const ProjectList = () => {
 
     return (
       <div
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} border`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}
       >
         <Icon className="h-3 w-3 mr-1" />
         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -147,7 +240,7 @@ const ProjectList = () => {
 
     if (!hasFindings) {
       return (
-        <div className="flex items-center text-green-600">
+        <div className="flex items-center text-green-400">
           <CheckCircleIcon className="h-4 w-4 mr-1" />
           <span className="text-sm">No issues</span>
         </div>
@@ -160,11 +253,11 @@ const ProjectList = () => {
           const count = findingsBySeverity?.[severity] || 0;
           if (count === 0) return null;
 
-          const colorClass = utils.getSeverityColor(severity);
+          const colorClass = projectUtils.getSeverityColor(severity);
           return (
             <span
               key={severity}
-              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colorClass} border`}
+              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${colorClass}`}
               title={`${count} ${severity} issue${count !== 1 ? "s" : ""}`}
             >
               {count}
@@ -192,8 +285,8 @@ const ProjectList = () => {
     }
 
     return (
-      <div className="flex items-center justify-between px-6 py-3 bg-white border-t border-gray-200">
-        <div className="flex items-center text-sm text-gray-700">
+      <div className="flex items-center justify-between px-6 py-3 bg-gray-900 border-t border-gray-700 rounded-b-2xl">
+        <div className="flex items-center text-sm text-gray-400">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
           {Math.min(currentPage * itemsPerPage, totalReports)} of {totalReports}{" "}
           results
@@ -202,7 +295,7 @@ const ProjectList = () => {
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm font-medium text-gray-400 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Previous
           </button>
@@ -211,10 +304,10 @@ const ProjectList = () => {
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-3 py-1 text-sm font-medium rounded-md ${
+              className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${
                 page === currentPage
-                  ? "text-blue-600 bg-blue-50 border border-blue-300"
-                  : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+                  ? "text-blue-400 bg-blue-500/20 border border-blue-500/30"
+                  : "text-gray-400 bg-gray-800 border border-gray-600 hover:bg-gray-700 hover:text-white"
               }`}
             >
               {page}
@@ -226,7 +319,7 @@ const ProjectList = () => {
               setCurrentPage(Math.min(totalPages, currentPage + 1))
             }
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm font-medium text-gray-400 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Next
           </button>
@@ -237,23 +330,25 @@ const ProjectList = () => {
 
   if (isError) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <XCircleIcon className="h-5 w-5 text-red-400" />
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                Error loading reports
-              </h3>
-              <p className="mt-2 text-sm text-red-700">
-                {error?.message || "Failed to fetch reports"}
-              </p>
-              <button
-                onClick={() => refetch()}
-                className="mt-3 text-sm text-red-800 underline hover:text-red-900"
-              >
-                Try again
-              </button>
+      <div className="min-h-screen bg-gray-900 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6">
+            <div className="flex">
+              <XCircleIcon className="h-5 w-5 text-red-400" />
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-400">
+                  Error loading reports
+                </h3>
+                <p className="mt-2 text-sm text-red-300">
+                  {error?.message || "Failed to fetch reports"}
+                </p>
+                <button
+                  onClick={() => refetch()}
+                  className="mt-3 text-sm text-red-400 underline hover:text-red-300 transition-colors"
+                >
+                  Try again
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -262,133 +357,160 @@ const ProjectList = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Security Reports</h1>
-        <p className="mt-2 text-gray-600">
-          Monitor and analyze security scan results across all projects
-        </p>
-      </div>
-
-      {/* Quick Stats */}
-      {analytics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex items-center">
-              <DocumentIcon className="h-8 w-8 text-blue-500" />
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.scan_summary?.total_scans || 0}
-                </p>
-                <p className="text-sm text-gray-600">Total Scans</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex items-center">
-              <ExclamationTriangleIcon className="h-8 w-8 text-red-500" />
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.vulnerability_summary?.critical || 0}
-                </p>
-                <p className="text-sm text-gray-600">Critical Issues</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex items-center">
-              <CheckCircleIcon className="h-8 w-8 text-green-500" />
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.scan_summary?.success_rate?.toFixed(1) || 0}%
-                </p>
-                <p className="text-sm text-gray-600">Success Rate</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <div className="flex items-center">
-              <ClockIcon className="h-8 w-8 text-blue-500" />
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">
-                  {analytics.top_projects?.length || 0}
-                </p>
-                <p className="text-sm text-gray-600">Active Projects</p>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Security Dashboard
+          </h1>
+          <p className="mt-2 text-gray-400">
+            Monitor and analyze security scan results across all projects
+          </p>
         </div>
-      )}
 
-      {/* Filters and Search */}
-      <div className="bg-white shadow rounded-lg mb-6">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+        {/* Quick Stats */}
+        {analytics && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:bg-gray-800/70 transition-all duration-300">
+              <div className="flex items-center">
+                <div className="p-3 rounded-xl bg-blue-500/20 border border-blue-500/30">
+                  <DocumentIcon className="h-8 w-8 text-blue-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-2xl font-bold text-white">
+                    {analytics.scan_summary?.total_scans || 0}
+                  </p>
+                  <p className="text-sm text-gray-400">Total Scans</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:bg-gray-800/70 transition-all duration-300">
+              <div className="flex items-center">
+                <div className="p-3 rounded-xl bg-red-500/20 border border-red-500/30">
+                  <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-2xl font-bold text-white">
+                    {analytics.vulnerability_summary?.critical || 0}
+                  </p>
+                  <p className="text-sm text-gray-400">Critical Issues</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:bg-gray-800/70 transition-all duration-300">
+              <div className="flex items-center">
+                <div className="p-3 rounded-xl bg-green-500/20 border border-green-500/30">
+                  <CheckCircleIcon className="h-8 w-8 text-green-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-2xl font-bold text-white">
+                    {analytics.scan_summary?.success_rate?.toFixed(1) || 0}%
+                  </p>
+                  <p className="text-sm text-gray-400">Success Rate</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:bg-gray-800/70 transition-all duration-300">
+              <div className="flex items-center">
+                <div className="p-3 rounded-xl bg-purple-500/20 border border-purple-500/30">
+                  <ClockIcon className="h-8 w-8 text-purple-400" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-2xl font-bold text-white">
+                    {analytics.top_projects?.length || 0}
+                  </p>
+                  <p className="text-sm text-gray-400">Active Projects</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filters and Search */}
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search */}
             <div className="relative max-w-md">
               <SearchIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search projects..."
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="pl-10 pr-4 py-3 w-full bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-4">
               {/* Filters */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={severityFilter}
-                onChange={(e) => setSeverityFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-              >
-                {severityOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={`${sortBy}:${sortOrder}`}
-                onChange={(e) => {
-                  const [field, order] = e.target.value.split(":");
-                  setSortBy(field);
-                  setSortOrder(order);
-                }}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-              >
-                {sortOptions.map((option) => (
-                  <React.Fragment key={option.value}>
-                    <option value={`${option.value}:desc`}>
-                      {option.label} (Newest)
+              <div className="flex items-center space-x-2">
+                <FilterIcon className="h-5 w-5 text-gray-400" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                >
+                  {statusOptions.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      className="bg-gray-800 text-white"
+                    >
+                      {option.label}
                     </option>
-                    <option value={`${option.value}:asc`}>
-                      {option.label} (Oldest)
+                  ))}
+                </select>
+
+                <select
+                  value={severityFilter}
+                  onChange={(e) => setSeverityFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                >
+                  {severityOptions.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      className="bg-gray-800 text-white"
+                    >
+                      {option.label}
                     </option>
-                  </React.Fragment>
-                ))}
-              </select>
+                  ))}
+                </select>
+
+                <select
+                  value={`${sortBy}:${sortOrder}`}
+                  onChange={(e) => {
+                    const [field, order] = e.target.value.split(":");
+                    setSortBy(field);
+                    setSortOrder(order);
+                  }}
+                  className="px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                >
+                  {sortOptions.map((option) => (
+                    <React.Fragment key={option.value}>
+                      <option
+                        value={`${option.value}:desc`}
+                        className="bg-gray-800 text-white"
+                      >
+                        {option.label} (Newest)
+                      </option>
+                      <option
+                        value={`${option.value}:asc`}
+                        className="bg-gray-800 text-white"
+                      >
+                        {option.label} (Oldest)
+                      </option>
+                    </React.Fragment>
+                  ))}
+                </select>
+              </div>
 
               <button
                 onClick={() => refetch()}
-                className="p-2 text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="p-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 transition-all duration-300"
                 title="Refresh"
               >
                 <RefreshIcon className="h-5 w-5" />
@@ -398,30 +520,60 @@ const ProjectList = () => {
         </div>
 
         {/* Reports List */}
-        <div className="divide-y divide-gray-200">
+        <div className="space-y-4">
           {isLoading ? (
-            <div className="p-8 text-center">
-              <RefreshIcon className="h-8 w-8 text-gray-400 animate-spin mx-auto mb-4" />
-              <p className="text-gray-500">Loading reports...</p>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 animate-pulse"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="h-6 bg-gray-700 rounded-lg w-1/2 mb-3"></div>
+                      <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+                    </div>
+                    <div className="ml-4">
+                      <div className="h-8 bg-gray-700 rounded-lg w-20"></div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex space-x-2">
+                    <div className="h-6 bg-gray-700 rounded w-16"></div>
+                    <div className="h-6 bg-gray-700 rounded w-16"></div>
+                    <div className="h-6 bg-gray-700 rounded w-16"></div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : reports.length === 0 ? (
-            <div className="p-8 text-center">
-              <DocumentIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No reports found</p>
-              <p className="text-sm text-gray-400">
-                Try adjusting your search criteria
-              </p>
+            <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-12 text-center">
+              <div className="max-w-sm mx-auto">
+                <div className="mx-auto h-20 w-20 text-gray-600 mb-6">
+                  <DocumentIcon className="h-full w-full" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No security scans found
+                </h3>
+                <p className="text-gray-400 mb-6">
+                  {searchTerm ||
+                  statusFilter !== "all" ||
+                  severityFilter !== "all"
+                    ? "No scans match your current filters. Try adjusting your search criteria."
+                    : "Get started by running your first security scan on a repository."}
+                </p>
+              </div>
             </div>
           ) : (
-            reports.map((report) => (
+            reports.map((report, index) => (
               <div
                 key={report.id}
-                className="p-6 hover:bg-gray-50 transition-colors duration-200"
+                className="group bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:bg-gray-800/70 hover:border-gray-600/50 transition-all duration-300 hover:scale-[1.01]"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-3">
-                      <h3 className="text-lg font-medium text-gray-900 truncate">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <h3 className="text-lg font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
                         {report.project_name}
                       </h3>
                       <StatusBadge status={report.status} />
@@ -430,12 +582,15 @@ const ProjectList = () => {
                       />
                     </div>
 
-                    <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
+                    <div className="flex items-center space-x-4 text-sm text-gray-400 mb-3">
+                      <div className="flex items-center">
+                        <ClockIcon className="h-4 w-4 mr-1" />
+                        {projectUtils.formatRelativeDate(report.created_at)}
+                      </div>
                       <span>Branch: {report.branch || "main"}</span>
                       <span>
                         Commit: {report.commit_hash?.substring(0, 8) || "N/A"}
                       </span>
-                      <span>{utils.formatDate(report.created_at)}</span>
                       {report.duration_seconds && (
                         <span>
                           Duration:{" "}
@@ -444,40 +599,32 @@ const ProjectList = () => {
                       )}
                     </div>
 
-                    <div className="mt-3">
+                    <div className="mb-4">
                       <FindingsSummary
                         findingsBySeverity={report.findings_by_severity}
                       />
                     </div>
-
-                    {report.has_ai_analysis && (
-                      <div className="mt-2 flex items-center text-sm text-blue-600">
-                        <CheckCircleIcon className="h-4 w-4 mr-1" />
-                        AI Analysis Available
-                      </div>
-                    )}
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center space-x-3 ml-6">
                     <Link
                       to={`/report/${report.id}`}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 transition-all duration-300 group/btn"
                     >
-                      <EyeIcon className="h-4 w-4 mr-1.5" />
-                      View Details
+                      <EyeIcon className="h-4 w-4 mr-2 group-hover/btn:scale-110 transition-transform" />
+                      View Report
+                      <ChevronRightIcon className="h-4 w-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
                     </Link>
 
-                    <Link
-                      to={`/compliance/${report.id}`}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <DownloadIcon className="h-4 w-4 mr-1.5" />
-                      Export PDF
-                    </Link>
-
-                    <button className="p-2 text-gray-400 hover:text-gray-500">
-                      <ChevronRightIcon className="h-5 w-5" />
-                    </button>
+                    {report.status === "completed" && (
+                      <button
+                        onClick={() => handleDownloadReport(report.id)}
+                        className="inline-flex items-center px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600/50 text-gray-300 hover:bg-gray-600/50 hover:border-gray-500/50 hover:text-white transition-all duration-300 group/btn"
+                      >
+                        <DownloadIcon className="h-4 w-4 mr-2 group-hover/btn:scale-110 transition-transform" />
+                        Download
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -486,7 +633,7 @@ const ProjectList = () => {
         </div>
 
         {/* Pagination */}
-        <Pagination />
+        {reports.length > 0 && <Pagination />}
       </div>
     </div>
   );

@@ -29,6 +29,18 @@ GitPython==3.1.40
 # OpenAI API
 openai==1.3.7
 
+# PDF generation
+reportlab==4.0.7
+
+# Real Security Scanning Tools
+bandit==1.7.5           # Python SAST scanner
+safety==2.3.5           # Python dependency vulnerability scanner
+semgrep==1.45.0         # Multi-language SAST scanner
+gitpython==3.1.40       # Git operations (already exists but ensuring latest)
+detect-secrets==1.4.0   # Secrets detection
+truffleHog==3.63.2      # Secrets scanning
+requests==2.31.0        # HTTP requests for API calls
+
 # Notifications
 slack-sdk==3.26.1
 
