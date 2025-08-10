@@ -1,2 +1,0 @@
-Project,Scan ID,Status,Created At,Total Findings,Critical,High,Medium,Low,Info,Repository,Branch
-SecureDevOps-Platform,scan-001,completed,2025-08-10T18:04:59.273919+00:00,5,0,1,2,2,0,https://github.com/example/securedevopsplatform,main

@@ -106,18 +106,18 @@ async def get_analytics_overview(days_back: int = 30):
         
     except Exception as e:
         logger.error(f"Error getting analytics: {e}")
-        # Fallback to mock data
+        # Return empty analytics on error
         return {
-            "total_scans": 12,
-            "total_findings": 45,
+            "total_scans": 0,
+            "total_findings": 0,
             "severity_distribution": {
-                "critical": 3,
-                "high": 8,
-                "medium": 18,
-                "low": 16
+                "critical": 0,
+                "high": 0,
+                "medium": 0,
+                "low": 0
             },
-            "projects_scanned": 5,
-            "average_security_score": 78.2,
+            "projects_scanned": 0,
+            "average_security_score": 0.0,
             "scans_last_24h": 2,
             "avg_scan_time": "1.8 minutes",
             "projects_change": "+25%",
@@ -176,135 +176,6 @@ async def health_check():
         },
         "timestamp": datetime.now().isoformat()
     }
-
-
-
-def generate_realistic_findings(scan_id: str, repository_url: str, scan_types: list):
-    """Generate realistic security findings based on repository and scan types"""
-    import random
-    
-    # Extract project name for more realistic findings
-    project_name = repository_url.split("/")[-1] if repository_url else "unknown"
-    
-    findings = []
-    finding_templates = {
-        "sast": [
-            {
-                "severity": "high",
-                "title": "Potential SQL Injection Vulnerability",
-                "description": "User input not properly sanitized before database query",
-                "file_path": f"src/{project_name}/database.py",
-                "scanner": "semgrep"
-            },
-            {
-                "severity": "medium", 
-                "title": "Cross-Site Scripting (XSS) Risk",
-                "description": "User input rendered without proper escaping",
-                "file_path": f"src/{project_name}/views.py",
-                "scanner": "bandit"
-            },
-            {
-                "severity": "low",
-                "title": "Insecure Random Number Generation",
-                "description": "Using predictable random number generator",
-                "file_path": f"src/{project_name}/utils.py",
-                "scanner": "semgrep"
-            }
-        ],
-        "secrets": [
-            {
-                "severity": "critical",
-                "title": "Hardcoded API Key Detected",
-                "description": "API key found in source code - should use environment variables",
-                "file_path": f"config/{project_name}_config.py",
-                "scanner": "gitleaks"
-            },
-            {
-                "severity": "high",
-                "title": "Database Password in Plain Text",
-                "description": "Database credentials stored without encryption",
-                "file_path": f"config/database.yaml",
-                "scanner": "truffleHog"
-            },
-            {
-                "severity": "medium",
-                "title": "AWS Access Key Pattern",
-                "description": "Potential AWS access key found in configuration",
-                "file_path": f".env.{project_name}",
-                "scanner": "gitleaks"
-            }
-        ],
-        "container": [
-            {
-                "severity": "high",
-                "title": "Container Running as Root",
-                "description": "Container configured to run with root privileges",
-                "file_path": "Dockerfile",
-                "scanner": "trivy"
-            },
-            {
-                "severity": "medium",
-                "title": "Outdated Base Image",
-                "description": "Base image contains known vulnerabilities",
-                "file_path": "Dockerfile",
-                "scanner": "clair"
-            }
-        ],
-        "infrastructure": [
-            {
-                "severity": "medium",
-                "title": "S3 Bucket Public Read Access",
-                "description": "S3 bucket configured with public read permissions",
-                "file_path": "terraform/storage.tf",
-                "scanner": "checkov"
-            }
-        ]
-    }
-    
-    # Generate findings based on scan types
-    for scan_type in scan_types:
-        if scan_type in finding_templates:
-            # Select 1-2 random findings from each scan type
-            selected_findings = random.sample(
-                finding_templates[scan_type], 
-                min(random.randint(1, 2), len(finding_templates[scan_type]))
-            )
-            
-            for i, template in enumerate(selected_findings):
-                finding = template.copy()
-                finding["finding_id"] = f"finding-{scan_id}-{scan_type}-{i+1}"
-                finding["line_number"] = random.randint(10, 150)
-                findings.append(finding)
-    
-    return findings
-
-async def simulate_scan_progress(scan_id: str):
-    """Simulate scan progress for demo purposes"""
-    try:
-        # Update to running
-        await asyncio.sleep(2)
-        await db_manager.update_scan_status(scan_id, "running", 25)
-        
-        # Update to analyzing  
-        await asyncio.sleep(3)
-        await db_manager.update_scan_status(scan_id, "analyzing", 75)
-        
-        # Complete scan
-        await asyncio.sleep(2)
-        await db_manager.update_scan_status(scan_id, "completed", 100)
-        
-        # Get scan data for findings generation
-        scan_record = await db_manager.get_scan_by_id(scan_id)
-        if scan_record:
-            # Generate repository-specific findings
-            mock_findings = generate_realistic_findings(scan_id, scan_record["repository_url"], scan_record["scan_types"])
-            await db_manager.save_findings(scan_id, mock_findings)
-        
-        logger.info(f"✅ Scan completed: {scan_id}")
-        
-    except Exception as e:
-        logger.error(f"Error in scan simulation: {e}")
-        await db_manager.update_scan_status(scan_id, "failed", 0)
 
 
 

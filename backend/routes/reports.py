@@ -118,87 +118,20 @@ async def list_reports(
                     }
                 }
             else:
-                logger.info("📭 No reports found in database, using fallback data")
+                logger.info("📭 No reports found in database")
                 
         except Exception as db_error:
-            logger.warning(f"Database error, falling back to sample data: {db_error}")
-            logger.exception("Full database error traceback:")  # This will show the full error
+            logger.warning(f"Database error: {db_error}")
+            logger.exception("Full database error traceback:")
         
-        # Fallback: Create some sample data if database is empty or error occurs
-        logger.info("Using fallback sample data for demonstration")
-        
-        # Create sample reports that would realistically exist
-        from datetime import datetime, timezone, timedelta
-        import random
-        
-        now = datetime.now(timezone.utc)
-        sample_reports = []
-        
-        # Generate realistic sample data
-        projects = [
-            ("SecureDevOps-Platform", "main", "completed"),
-            ("E-Commerce-API", "develop", "completed"), 
-            ("Mobile-Banking-App", "feature/security-updates", "completed"),
-            ("Payment-Gateway", "main", "running"),
-            ("User-Management-Service", "hotfix/security-patch", "failed")
-        ]
-        
-        for i, (proj_name, branch_name, status_val) in enumerate(projects):
-            if i >= limit:  # Respect pagination limit
-                break
-                
-            # Create realistic findings distribution based on project type
-            if "banking" in proj_name.lower() or "payment" in proj_name.lower():
-                # High-security projects should have more findings
-                findings = {"critical": random.randint(1, 3), "high": random.randint(2, 6), 
-                           "medium": random.randint(4, 10), "low": random.randint(2, 8), "info": 0}
-            else:
-                findings = {"critical": random.randint(0, 2), "high": random.randint(1, 4),
-                           "medium": random.randint(2, 6), "low": random.randint(1, 5), "info": 0}
-            
-            report = {
-                "id": f"report-{str(i+1).zfill(3)}",
-                "project_name": proj_name,
-                "scan_id": f"scan-{str(i+1).zfill(3)}",
-                "repository_url": f"https://github.com/example/{proj_name.lower().replace('-', '')}",
-                "branch": branch_name,
-                "status": status_val,
-                "created_at": (now - timedelta(days=i)).isoformat(),
-                "total_findings": sum(findings.values()),
-                "findings_by_severity": findings,
-                "duration_seconds": random.randint(60, 300) if status_val == "completed" else 0,
-                "commit_hash": f"{''.join(random.choices('abcdef0123456789', k=12))}" if status_val != "failed" else "error"
-            }
-            sample_reports.append(report)
-        
-        # Apply status filter to sample data if provided
-        if status:
-            sample_reports = [r for r in sample_reports if r["status"] == (status.value if hasattr(status, 'value') else status)]
-        
-        # Apply project name filter to sample data if provided
-        if project_name:
-            sample_reports = [r for r in sample_reports if project_name.lower() in r["project_name"].lower()]
-        
-        # Apply branch filter to sample data if provided
-        if branch:
-            sample_reports = [r for r in sample_reports if r["branch"] == branch]
-        
-        # Apply severity filter to sample data if provided
-        if severity_filter:
-            severity_key = severity_filter.value if hasattr(severity_filter, 'value') else severity_filter
-            sample_reports = [r for r in sample_reports if r["findings_by_severity"].get(severity_key, 0) > 0]
-        
-        # Apply pagination to sample data
-        total = len(sample_reports)
-        paginated_reports = sample_reports[skip:skip + limit]
-        
+        # Return empty results if no data found
         return {
-            "reports": paginated_reports,
+            "reports": [],
             "pagination": {
-                "total": total,
+                "total": 0,
                 "skip": skip,
                 "limit": limit,
-                "has_more": skip + len(paginated_reports) < total
+                "has_more": False
             },
             "filters": {
                 "project_name": project_name,
@@ -242,94 +175,9 @@ async def get_report(report_id: str) -> Dict[str, Any]:
             except Exception as db_error:
                 logger.warning(f"Database error when fetching report {report_id}: {db_error}")
         
-        # If not found in database or not valid ObjectId, check fallback sample data
+        # If not found in database, return 404
         if not report:
-            logger.info(f"Report {report_id} not found in database, checking sample data")
-            
-            # Generate the same sample data as in list endpoint for consistency
-            from datetime import datetime, timezone, timedelta
-            import random
-            
-            now = datetime.now(timezone.utc)
-            projects = [
-                ("SecureDevOps-Platform", "main", "completed"),
-                ("E-Commerce-API", "develop", "completed"), 
-                ("Mobile-Banking-App", "feature/security-updates", "completed"),
-                ("Payment-Gateway", "main", "running"),
-                ("User-Management-Service", "hotfix/security-patch", "failed")
-            ]
-            
-            # Find matching sample report
-            for i, (proj_name, branch_name, status_val) in enumerate(projects):
-                sample_id = f"report-{str(i+1).zfill(3)}"
-                if sample_id == report_id:
-                    # Create realistic findings distribution
-                    if "banking" in proj_name.lower() or "payment" in proj_name.lower():
-                        findings = {"critical": random.randint(1, 3), "high": random.randint(2, 6), 
-                                   "medium": random.randint(4, 10), "low": random.randint(2, 8), "info": 0}
-                    else:
-                        findings = {"critical": random.randint(0, 2), "high": random.randint(1, 4),
-                                   "medium": random.randint(2, 6), "low": random.randint(1, 5), "info": 0}
-                    
-                    # Return detailed sample report
-                    return {
-                        "id": sample_id,
-                        "project_name": proj_name,
-                        "scan_id": f"scan-{str(i+1).zfill(3)}",
-                        "status": status_val,
-                        "created_at": (now - timedelta(days=i)).isoformat(),
-                        "started_at": (now - timedelta(days=i, hours=1)).isoformat() if status_val != "failed" else None,
-                        "completed_at": (now - timedelta(days=i, minutes=30)).isoformat() if status_val == "completed" else None,
-                        "duration_seconds": random.randint(60, 300) if status_val == "completed" else 0,
-                        "git_metadata": {
-                            "repository_url": f"https://github.com/example/{proj_name.lower().replace('-', '')}",
-                            "branch": branch_name,
-                            "commit_hash": f"{''.join(random.choices('abcdef0123456789', k=40))}" if status_val != "failed" else "error",
-                            "commit_message": f"feat: update security configurations for {proj_name}",
-                            "commit_author": "developer@company.com",
-                            "commit_timestamp": (now - timedelta(days=i, hours=2)).isoformat(),
-                            "pr_number": random.randint(100, 999) if branch_name != "main" else None,
-                            "event_type": "push" if branch_name == "main" else "pull_request"
-                        },
-                        "summary": {
-                            "total_findings": sum(findings.values()),
-                            "findings_by_severity": findings,
-                            "scanners_run": 3 if status_val == "completed" else 1,
-                            "successful_scans": 3 if status_val == "completed" else 0,
-                            "failed_scans": 0 if status_val == "completed" else 1
-                        },
-                        "scan_results": [
-                            {
-                                "scanner": "bandit",
-                                "status": "completed" if status_val == "completed" else "failed",
-                                "duration_seconds": random.randint(20, 60),
-                                "findings_count": findings.get("high", 0) + findings.get("medium", 0),
-                                "summary": "Python security analysis completed" if status_val == "completed" else "Scanner failed to execute"
-                            },
-                            {
-                                "scanner": "semgrep", 
-                                "status": "completed" if status_val == "completed" else "failed",
-                                "duration_seconds": random.randint(30, 90),
-                                "findings_count": findings.get("critical", 0) + findings.get("high", 0),
-                                "summary": "Static analysis completed" if status_val == "completed" else "Analysis timeout"
-                            },
-                            {
-                                "scanner": "safety",
-                                "status": "completed" if status_val == "completed" else "failed", 
-                                "duration_seconds": random.randint(10, 30),
-                                "findings_count": findings.get("low", 0),
-                                "summary": "Dependency analysis completed" if status_val == "completed" else "Package scan failed"
-                            }
-                        ],
-                        "tags": [proj_name.lower().replace('-', '_'), branch_name.replace('/', '_')],
-                        "metadata": {
-                            "source": "sample_data",
-                            "environment": "development",
-                            "scan_initiated_by": "webhook"
-                        }
-                    }
-            
-            # Report not found in sample data either
+            logger.info(f"Report {report_id} not found in database")
             raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
         
         # If we have a real database report, format it properly
@@ -469,47 +317,7 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
             except Exception as db_error:
                 logger.warning(f"Database error when fetching report {report_id}: {db_error}")
         
-        # If not found in database, check sample data
-        if not report_data:
-            # Generate the same sample data as in get_report endpoint
-            import random
-            
-            now = datetime.now(timezone.utc)
-            projects = [
-                ("SecureDevOps-Platform", "main", "completed"),
-                ("E-Commerce-API", "develop", "completed"), 
-                ("Mobile-Banking-App", "feature/security-updates", "completed"),
-                ("Payment-Gateway", "main", "running"),
-                ("User-Management-Service", "hotfix/security-patch", "failed")
-            ]
-            
-            # Find matching sample report
-            for i, (proj_name, branch_name, status_val) in enumerate(projects):
-                sample_id = f"report-{str(i+1).zfill(3)}"
-                if sample_id == report_id:
-                    if "banking" in proj_name.lower() or "payment" in proj_name.lower():
-                        findings = {"critical": random.randint(1, 3), "high": random.randint(2, 6), 
-                                   "medium": random.randint(4, 10), "low": random.randint(2, 8), "info": 0}
-                    else:
-                        findings = {"critical": random.randint(0, 2), "high": random.randint(1, 4),
-                                   "medium": random.randint(2, 6), "low": random.randint(1, 5), "info": 0}
-                    
-                    report_data = {
-                        "id": sample_id,
-                        "project_name": proj_name,
-                        "scan_id": f"scan-{str(i+1).zfill(3)}",
-                        "status": status_val,
-                        "created_at": (now - timedelta(days=i)).isoformat(),
-                        "total_findings": sum(findings.values()),
-                        "findings_by_severity": findings,
-                        "git_metadata": {
-                            "repository_url": f"https://github.com/example/{proj_name.lower().replace('-', '')}",
-                            "branch": branch_name,
-                            "commit_hash": f"{''.join(random.choices('abcdef0123456789', k=40))}" if status_val != "failed" else "error"
-                        }
-                    }
-                    break
-        
+        # If not found in database, return 404
         if not report_data:
             raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
         

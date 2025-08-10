@@ -125,7 +125,7 @@ const ProjectList = () => {
   }, 300);
 
   // Handle report download
-  const handleDownloadReport = async (reportId, format = 'pdf') => {
+  const handleDownloadReport = async (reportId, format = "pdf") => {
     try {
       toast.loading("Preparing download...", { id: "download" });
       const API_BASE_URL =
@@ -133,32 +133,37 @@ const ProjectList = () => {
       const response = await fetch(
         `${API_BASE_URL}/api/reports/${reportId}/download?format=${format}`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Accept': format === 'pdf' ? 'application/pdf' : 
-                     format === 'csv' ? 'text/csv' : 'application/json'
-          }
+            Accept:
+              format === "pdf"
+                ? "application/pdf"
+                : format === "csv"
+                ? "text/csv"
+                : "application/json",
+          },
         }
       );
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Download failed: ${errorText}`);
       }
 
       const blob = await response.blob();
-      
+
       // Verify blob type for PDF
-      if (format === 'pdf' && !blob.type.includes('pdf')) {
-        console.warn('Downloaded blob type:', blob.type);
+      if (format === "pdf" && !blob.type.includes("pdf")) {
+        console.warn("Downloaded blob type:", blob.type);
         // Force PDF MIME type
-        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+        const pdfBlob = new Blob([blob], { type: "application/pdf" });
         utils.downloadFile(pdfBlob, `security-report-${reportId}.pdf`);
       } else {
-        const extension = format === 'csv' ? 'csv' : format === 'json' ? 'json' : 'pdf';
+        const extension =
+          format === "csv" ? "csv" : format === "json" ? "json" : "pdf";
         utils.downloadFile(blob, `security-report-${reportId}.${extension}`);
       }
-      
+
       toast.success("Download started successfully!", { id: "download" });
     } catch (error) {
       toast.error("Failed to download report. Please try again.", {

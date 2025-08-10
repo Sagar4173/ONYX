@@ -25,7 +25,7 @@ class DatabaseManager:
             # Get MongoDB URI from environment
             mongodb_uri = os.getenv('MONGODB_URI')
             if not mongodb_uri:
-                logger.warning("No MongoDB URI found, using mock data")
+                logger.warning("No MongoDB URI found, database will not be available")
                 return False
                 
             # Replace placeholder with actual password if needed
@@ -57,11 +57,11 @@ class DatabaseManager:
             return True
             
         except ServerSelectionTimeoutError:
-            logger.error("❌ MongoDB connection timeout - using mock data")
+            logger.error("❌ MongoDB connection timeout - database will not be available")
             self.connected = False
             return False
         except Exception as e:
-            logger.error(f"❌ MongoDB connection error: {e} - using mock data")
+            logger.error(f"❌ MongoDB connection error: {e} - database will not be available")
             self.connected = False
             return False
     
@@ -92,7 +92,7 @@ class DatabaseManager:
         """Save scan data to database"""
         if not self.connected:
             logger.warning("Database not connected, scan data not saved")
-            return scan_data.get('scan_id', 'mock-id')
+            return scan_data.get('scan_id', '')
         
         try:
             # Add timestamp
@@ -111,7 +111,7 @@ class DatabaseManager:
     async def get_scans(self, limit: int = 10, skip: int = 0) -> List[Dict[str, Any]]:
         """Get scans from database"""
         if not self.connected:
-            return self._get_mock_scans()
+            return []
         
         try:
             cursor = self.db.scans.find().sort("created_at", -1).skip(skip).limit(limit)
@@ -129,7 +129,7 @@ class DatabaseManager:
             
         except Exception as e:
             logger.error(f"Error getting scans: {e}")
-            return self._get_mock_scans()
+            return []
     
     async def get_scan_by_id(self, scan_id: str) -> Optional[Dict[str, Any]]:
         """Get specific scan by ID with findings"""
@@ -218,7 +218,13 @@ class DatabaseManager:
     async def get_analytics(self) -> Dict[str, Any]:
         """Get analytics data from database"""
         if not self.connected:
-            return self._get_mock_analytics()
+            return {
+                "total_scans": 0,
+                "completed_scans": 0,
+                "severity_distribution": {},
+                "projects_scanned": 0,
+                "average_security_score": 0.0
+            }
         
         try:
             # Get total scans
@@ -246,37 +252,14 @@ class DatabaseManager:
             
         except Exception as e:
             logger.error(f"Error getting analytics: {e}")
-            return self._get_mock_analytics()
-    
-    def _get_mock_scans(self) -> List[Dict[str, Any]]:
-        """Fallback mock data when database is not available"""
-        return [
-            {
-                "scan_id": "mock-scan-001",
-                "repository_url": "https://github.com/example/demo",
-                "branch": "main",
-                "status": "completed",
-                "progress": 100,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "scan_types": ["sast", "secrets"]
+            return {
+                "total_scans": 0,
+                "completed_scans": 0,
+                "severity_distribution": {},
+                "projects_scanned": 0,
+                "average_security_score": 0.0
             }
-        ]
-    
-    def _get_mock_analytics(self) -> Dict[str, Any]:
-        """Fallback mock analytics when database is not available"""
-        return {
-            "total_scans": 15,
-            "completed_scans": 12,
-            "severity_distribution": {
-                "critical": 3,
-                "high": 8,
-                "medium": 25,
-                "low": 45
-            },
-            "projects_scanned": 8,
-            "average_security_score": 78.5
-        }
-
+            
 # Global database manager instance
 db_manager = DatabaseManager()
 
