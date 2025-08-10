@@ -1,0 +1,325 @@
+# Docker Compose for Production Deployment
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: "3.8"
+
+services:
+  # Production backend configuration
+  backend:
+    restart: always
+
+    environment:
+      # Production settings
+      ENVIRONMENT: production
+      DEBUG: "false"
+      LOG_LEVEL: INFO
+      WORKERS: "4"
+
+      # Security hardening
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+
+      # Production database
+      MONGODB_URI: mongodb://admin:${MONGO_PASSWORD}@mongodb:27017/securedevops?authSource=admin&ssl=false&retryWrites=true&w=majority
+
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+        reservations:
+          memory: 1G
+          cpus: "0.5"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Production frontend with SSL termination
+  frontend:
+    restart: always
+
+    environment:
+      # Production frontend settings
+      NODE_ENV: production
+
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      # SSL certificates
+      - ./ssl:/etc/nginx/ssl:ro
+      # Custom nginx config for production
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Production MongoDB with authentication and SSL
+  mongodb:
+    restart: always
+
+    environment:
+      # Production database configuration
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: securedevops
+
+    command: >
+      mongod --auth 
+             --bind_ip_all 
+             --replSet rs0 
+             --keyFile /etc/mongodb/keyfile 
+             --oplogSize 1024
+
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./mongodb/keyfile:/etc/mongodb/keyfile:ro
+      - ./mongodb/mongod.conf:/etc/mongod.conf:ro
+
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+        reservations:
+          memory: 1G
+          cpus: "0.5"
+
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # Production Redis with persistence and clustering
+  redis:
+    restart: always
+
+    command: >
+      redis-server 
+      --appendonly yes 
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 60
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Add nginx load balancer for production
+  nginx-lb:
+    image: nginx:alpine
+    container_name: securedevops-nginx-lb
+    restart: always
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - ./nginx/nginx-lb.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+
+    depends_on:
+      - frontend
+
+    networks:
+      - securedevops-network
+
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Production monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: securedevops-prometheus
+    restart: always
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+
+    networks:
+      - securedevops-network
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # Production log aggregation with Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: securedevops-grafana
+    restart: always
+
+    ports:
+      - "3001:3000"
+
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3001/
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+
+    networks:
+      - securedevops-network
+
+    depends_on:
+      - prometheus
+
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+networks:
+  securedevops-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: securedevops-br0
+
+volumes:
+  mongodb_data:
+    driver: local
+    name: securedevops_mongodb_data
+  mongodb_config:
+    driver: local
+    name: securedevops_mongodb_config
+  redis_data:
+    driver: local
+    name: securedevops_redis_data
+  scan_workspace:
+    driver: local
+    name: securedevops_scan_workspace
+  scanner_cache:
+    driver: local
+    name: securedevops_scanner_cache
+  backend_logs:
+    driver: local
+    name: securedevops_backend_logs
+  prometheus_data:
+    driver: local
+    name: securedevops_prometheus_data
+  grafana_data:
+    driver: local
+    name: securedevops_grafana_data

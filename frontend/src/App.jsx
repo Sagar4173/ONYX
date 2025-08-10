@@ -1,0 +1,1047 @@
+/**
+ * SecureDevOps AI Platform - Next-Level UI/UX Design
+ * Modern Dark Theme with Glassmorphism & Advanced Animations
+ */
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+  useMutation,
+} from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
+import {
+  ShieldCheckIcon,
+  HomeIcon,
+  DocumentTextIcon as DocumentReportIcon,
+  CogIcon,
+  BellIcon,
+  UserCircleIcon,
+  Bars3Icon as MenuIcon,
+  XMarkIcon as XIcon,
+  ChartBarIcon as AnalyticsIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  PlusIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
+  CommandLineIcon,
+  GlobeAltIcon,
+  CodeBracketIcon,
+  BoltIcon,
+  EyeIcon,
+  ArrowPathIcon,
+  PlayIcon,
+} from "@heroicons/react/24/outline";
+import {
+  ChartBarIcon,
+  ShieldCheckIcon as ShieldCheckSolid,
+  SparklesIcon as SparklesSolid,
+} from "@heroicons/react/24/solid";
+
+// Components
+import ProjectList from "./components/ProjectList";
+import ReportDetails from "./components/ReportDetails";
+import ComplianceReport from "./components/ComplianceReport";
+import { websocketService, reportsAPI } from "./services/api";
+import toast from "react-hot-toast";
+
+// Create a client for React Query with enhanced settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchInterval: 30000, // Real-time updates every 30s
+    },
+  },
+});
+
+// Modern Scan Submission Modal with Glassmorphism
+const ScanModal = ({ isOpen, onClose, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    repository_url: "",
+    branch: "main",
+    scan_types: ["sast", "secrets", "container"],
+    access_token: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const scanTypes = [
+    {
+      id: "sast",
+      label: "Static Analysis",
+      icon: CodeBracketIcon,
+      color: "from-blue-500 to-cyan-500",
+    },
+    {
+      id: "secrets",
+      label: "Secret Detection",
+      icon: EyeIcon,
+      color: "from-purple-500 to-pink-500",
+    },
+    {
+      id: "container",
+      label: "Container Scan",
+      icon: CommandLineIcon,
+      color: "from-green-500 to-emerald-500",
+    },
+    {
+      id: "infrastructure",
+      label: "Infrastructure",
+      icon: GlobeAltIcon,
+      color: "from-orange-500 to-red-500",
+    },
+  ];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.repository_url.trim()) {
+      toast.error("Please enter a repository URL");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+      setFormData({
+        repository_url: "",
+        branch: "main",
+        scan_types: ["sast", "secrets", "container"],
+        access_token: "",
+      });
+      onClose();
+      toast.success("🚀 Scan initiated successfully!");
+    } catch (error) {
+      toast.error("Failed to start scan. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleScanType = (type) => {
+    setFormData((prev) => ({
+      ...prev,
+      scan_types: prev.scan_types.includes(type)
+        ? prev.scan_types.filter((t) => t !== type)
+        : [...prev.scan_types, type],
+    }));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop with Blur */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative w-full max-w-2xl transform rounded-3xl bg-gray-900/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transition-all">
+          {/* Gradient Background */}
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+
+          {/* Content */}
+          <div className="relative p-8">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                  <SparklesSolid className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">
+                    Start Security Scan
+                  </h3>
+                  <p className="text-gray-400">
+                    AI-powered vulnerability detection
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+              >
+                <XIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Repository URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Repository URL
+                </label>
+                <div className="relative">
+                  <GlobeAltIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="url"
+                    value={formData.repository_url}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        repository_url: e.target.value,
+                      }))
+                    }
+                    placeholder="https://github.com/username/repository"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Access Token for Private Repositories */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Access Token (Optional - for private repositories)
+                </label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    type="password"
+                    value={formData.access_token || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        access_token: e.target.value,
+                      }))
+                    }
+                    placeholder="ghp_xxxxxxxxxxxx (GitHub) or glpat-xxxxxxxxxxxx (GitLab)"
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                </div>
+                <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <div className="flex items-start space-x-2">
+                    <svg
+                      className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div className="text-xs text-blue-300">
+                      <p className="font-medium mb-1">
+                        For Private Repositories:
+                      </p>
+                      <p>
+                        • GitHub: Generate token at Settings → Developer
+                        settings → Personal access tokens
+                      </p>
+                      <p>
+                        • GitLab: Generate token at User Settings → Access
+                        Tokens
+                      </p>
+                      <p>
+                        • Required permissions:{" "}
+                        <span className="font-medium">repo</span> (GitHub) or{" "}
+                        <span className="font-medium">read_repository</span>{" "}
+                        (GitLab)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Branch */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Branch
+                </label>
+                <input
+                  type="text"
+                  value={formData.branch}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, branch: e.target.value }))
+                  }
+                  placeholder="main"
+                  className="w-full px-4 py-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                />
+              </div>
+
+              {/* Enhanced Scan Types with better visual feedback */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-4">
+                  Scan Types
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {scanTypes.map((type, index) => (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => toggleScanType(type.id)}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                      className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 animate-fade-in-up hover:scale-105 ${
+                        formData.scan_types.includes(type.id)
+                          ? "border-blue-500/70 bg-blue-500/20 shadow-lg shadow-blue-500/20"
+                          : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50 hover:bg-gray-700/40"
+                      }`}
+                    >
+                      {formData.scan_types.includes(type.id) && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl animate-glow" />
+                      )}
+                      <div className="relative flex items-center space-x-3">
+                        <div
+                          className={`p-2 rounded-xl bg-gradient-to-r ${type.color} shadow-lg group-hover:shadow-xl transition-all`}
+                        >
+                          <type.icon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="text-left">
+                          <span className="text-white font-medium block">
+                            {type.label}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {type.id === "sast" && "Static analysis"}
+                            {type.id === "secrets" && "Secret detection"}
+                            {type.id === "container" && "Container security"}
+                            {type.id === "infrastructure" && "IaC scanning"}
+                          </span>
+                        </div>
+                      </div>
+                      {formData.scan_types.includes(type.id) && (
+                        <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                          <CheckCircleIcon className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-4 px-6 rounded-2xl border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all flex items-center justify-center space-x-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                      <span>Starting Scan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <PlayIcon className="h-5 w-5" />
+                      <span>Start Scan</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Separate AppContent component that uses QueryClient hooks
+function AppContent() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [scanModalOpen, setScanModalOpen] = useState(false);
+
+  // Scan mutation for repository submission
+  const scanMutation = useMutation({
+    mutationFn: async (scanData) => {
+      const response = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(scanData),
+      });
+      if (!response.ok) throw new Error("Failed to start scan");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Add notification for successful scan start
+      setNotifications((prev) => [
+        {
+          id: Date.now(),
+          type: "scan_started",
+          message: `Security scan initiated for repository`,
+          timestamp: new Date(),
+          data: data,
+        },
+        ...prev.slice(0, 9),
+      ]);
+      queryClient.invalidateQueries(["reports"]);
+    },
+  });
+
+  // Enhanced WebSocket connection with better error handling
+  useEffect(() => {
+    websocketService.connect();
+
+    websocketService.on("connected", (connected) => {
+      setIsConnected(connected);
+      if (connected) {
+        toast.success("🔗 Real-time connection established");
+      }
+    });
+
+    websocketService.on("disconnected", () => {
+      setIsConnected(false);
+      toast.error("🔴 Connection lost");
+    });
+
+    websocketService.on("scan_update", (data) => {
+      setNotifications((prev) => [
+        {
+          id: Date.now(),
+          type: "scan_update",
+          message: `Scan ${data.data.status} for ${data.data.project_name}`,
+          timestamp: new Date(),
+          data: data.data,
+        },
+        ...prev.slice(0, 9),
+      ]);
+
+      // Show toast for important updates
+      if (data.data.status === "completed") {
+        toast.success(`✅ Scan completed for ${data.data.project_name}`);
+      } else if (data.data.status === "failed") {
+        toast.error(`❌ Scan failed for ${data.data.project_name}`);
+      }
+    });
+
+    return () => {
+      websocketService.disconnect();
+    };
+  }, []);
+
+  const navigation = [
+    {
+      name: "Dashboard",
+      href: "/",
+      icon: HomeIcon,
+      gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      name: "Reports",
+      href: "/reports",
+      icon: DocumentReportIcon,
+      gradient: "from-purple-500 to-pink-500",
+    },
+    {
+      name: "Analytics",
+      href: "/analytics",
+      icon: ChartBarIcon,
+      gradient: "from-green-500 to-emerald-500",
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: CogIcon,
+      gradient: "from-orange-500 to-red-500",
+    },
+  ];
+
+  // Modern Sidebar with Glassmorphism
+  const ModernSidebar = () => (
+    <div className="fixed inset-y-0 left-0 z-40 w-72 transform bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 transition-transform lg:translate-x-0 lg:static lg:inset-0">
+      {/* Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-purple-500/5 to-pink-500/5" />
+
+      <div className="relative flex flex-col h-full">
+        {/* Brand Header */}
+        <div className="flex items-center px-6 py-8">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
+              <ShieldCheckSolid className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                SecureDevOps AI
+              </h1>
+              <p className="text-xs text-gray-400">
+                Advanced Security Platform
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Quick Scan Button */}
+        <div className="px-6 mb-8">
+          <button
+            onClick={() => setScanModalOpen(true)}
+            className="relative w-full p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-2xl flex items-center justify-center space-x-2 group overflow-hidden transform hover:scale-105"
+          >
+            {/* Animated background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+
+            <div className="relative flex items-center space-x-2">
+              <PlusIcon className="h-5 w-5 group-hover:rotate-90 transition-all duration-300" />
+              <span className="font-semibold">Start New Scan</span>
+              <ArrowPathIcon className="h-4 w-4 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-all" />
+            </div>
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-6 space-y-3">
+          {navigation.map((item) => {
+            const isActive = window.location.pathname === item.href;
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                className={`flex items-center px-4 py-4 rounded-2xl transition-all group ${
+                  isActive
+                    ? "bg-gray-800/50 text-white shadow-lg"
+                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-xl bg-gradient-to-r ${
+                    item.gradient
+                  } ${
+                    isActive
+                      ? "shadow-lg"
+                      : "opacity-60 group-hover:opacity-100"
+                  }`}
+                >
+                  <item.icon className="h-5 w-5 text-white" />
+                </div>
+                <span className="ml-3 font-medium">{item.name}</span>
+                {isActive && (
+                  <div className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                )}
+              </a>
+            );
+          })}
+        </nav>
+
+        {/* Enhanced Connection Status */}
+        <div className="p-6 border-t border-gray-800/50">
+          <div
+            className={`relative flex items-center p-4 rounded-2xl transition-all duration-500 ${
+              isConnected
+                ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30"
+                : "bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/30"
+            }`}
+          >
+            {/* Animated background glow */}
+            <div
+              className={`absolute inset-0 rounded-2xl blur-xl transition-all ${
+                isConnected ? "bg-green-500/20 animate-glow" : "bg-red-500/20"
+              }`}
+            />
+
+            <div className="relative flex items-center">
+              <div className="relative mr-3">
+                <div
+                  className={`h-3 w-3 rounded-full ${
+                    isConnected ? "bg-green-400" : "bg-red-400"
+                  } animate-pulse`}
+                />
+                {isConnected && (
+                  <div className="absolute inset-0 h-3 w-3 rounded-full bg-green-400 animate-ping" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white flex items-center">
+                  {isConnected ? (
+                    <>
+                      <span>Real-time Active</span>
+                      <CheckCircleIcon className="h-4 w-4 text-green-400 ml-1" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Disconnected</span>
+                      <ArrowPathIcon className="h-4 w-4 text-red-400 ml-1 animate-spin" />
+                    </>
+                  )}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {isConnected
+                    ? "Live monitoring & notifications"
+                    : "Attempting to reconnect..."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Modern Header with Glassmorphism
+  const ModernHeader = () => (
+    <div className="lg:pl-72">
+      <div className="sticky top-0 z-30 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
+        <div className="flex h-20 items-center justify-between px-8">
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            className="lg:hidden p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <MenuIcon className="h-6 w-6" />
+          </button>
+
+          {/* Enhanced Search Bar */}
+          <div className="flex-1 max-w-lg mx-8">
+            <div className="relative group">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search repositories, scans, vulnerabilities..."
+                className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800/70 transition-all hover:bg-gray-800/60"
+              />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-focus-within:from-blue-500/10 group-focus-within:via-purple-500/5 group-focus-within:to-pink-500/10 transition-all pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Enhanced Right side actions */}
+          <div className="flex items-center space-x-4">
+            {/* Enhanced Notifications */}
+            <div className="relative group">
+              <button className="relative p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all group-hover:scale-105">
+                <BellIcon className="h-6 w-6" />
+                {notifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse shadow-lg">
+                    {notifications.length > 9 ? "9+" : notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Tooltip */}
+              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
+                {notifications.length} notifications
+              </div>
+            </div>
+
+            {/* User Profile */}
+            <button className="flex items-center space-x-3 p-2 rounded-2xl hover:bg-gray-800/50 transition-all">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <UserCircleIcon className="h-6 w-6 text-white" />
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-white">Security Admin</p>
+                <p className="text-xs text-gray-400">admin@securedevops.ai</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Enhanced Modern Dashboard
+  const ModernDashboard = ({ notifications }) => {
+    const { data: analytics, isLoading: analyticsLoading } = useQuery({
+      queryKey: ["analytics"],
+      queryFn: () => reportsAPI.getAnalyticsOverview(30),
+    });
+
+    const { data: reportsData } = useQuery({
+      queryKey: ["reports", { limit: 1000 }],
+      queryFn: () => reportsAPI.getReports({ limit: 1000 }),
+    });
+
+    const totalProjects = reportsData?.pagination?.total || 0;
+    const criticalIssues = analytics?.severity_distribution?.critical || 0;
+    const avgSecurityScore = analytics?.average_security_score || 0;
+    const scansToday = analytics?.scans_last_24h || 0;
+
+    const stats = [
+      {
+        title: "Total Projects",
+        value: analyticsLoading ? "..." : totalProjects.toString(),
+        change: analytics?.projects_change || "+0%",
+        icon: DocumentReportIcon,
+        gradient: "from-blue-500 to-cyan-500",
+        bgGradient: "from-blue-500/10 to-cyan-500/10",
+      },
+      {
+        title: "Critical Issues",
+        value: analyticsLoading ? "..." : criticalIssues.toString(),
+        change: analytics?.critical_change || "0%",
+        icon: ExclamationTriangleIcon,
+        gradient: "from-red-500 to-pink-500",
+        bgGradient: "from-red-500/10 to-pink-500/10",
+      },
+      {
+        title: "Security Score",
+        value: analyticsLoading ? "..." : `${Math.round(avgSecurityScore)}/100`,
+        change: analytics?.score_change || "+0%",
+        icon: ShieldCheckIcon,
+        gradient: "from-green-500 to-emerald-500",
+        bgGradient: "from-green-500/10 to-emerald-500/10",
+      },
+      {
+        title: "Scans Today",
+        value: analyticsLoading ? "..." : scansToday.toString(),
+        change: analytics?.scans_change || "+0%",
+        icon: BoltIcon,
+        gradient: "from-purple-500 to-violet-500",
+        bgGradient: "from-purple-500/10 to-violet-500/10",
+      },
+    ];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+        {/* Hero Section */}
+        <div className="relative px-8 py-12">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl" />
+          <div className="relative">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
+              Security Command Center
+            </h1>
+            <p className="text-xl text-gray-400 max-w-2xl">
+              AI-powered security insights and vulnerability management for your
+              entire codebase
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="px-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, index) => (
+              <div
+                key={stat.title}
+                className="relative group"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div
+                  className={`relative p-6 rounded-3xl border border-gray-800/50 bg-gradient-to-br ${stat.bgGradient} backdrop-blur-xl hover:border-gray-700/50 transition-all`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-2xl bg-gradient-to-r ${stat.gradient} shadow-lg`}
+                    >
+                      <stat.icon className="h-6 w-6 text-white" />
+                    </div>
+                    <span
+                      className={`text-sm font-medium ${
+                        stat.change.startsWith("+")
+                          ? "text-green-400"
+                          : stat.change.startsWith("-")
+                          ? "text-red-400"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {stat.change}
+                    </span>
+                  </div>
+                  <h3 className="text-3xl font-bold text-white mb-2">
+                    {stat.value}
+                  </h3>
+                  <p className="text-gray-400 font-medium">{stat.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Activity and Trends */}
+        <div className="px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Recent Activity */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
+            <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">
+                  Recent Activity
+                </h3>
+                <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20">
+                  <BoltIcon className="h-5 w-5 text-blue-400" />
+                </div>
+              </div>
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="p-4 rounded-2xl bg-gray-800/50 inline-block mb-4">
+                      <SparklesIcon className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-400">No recent activity</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Start a scan to see activity here
+                    </p>
+                  </div>
+                ) : (
+                  notifications.slice(0, 5).map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="flex items-center space-x-4 p-4 rounded-2xl bg-gray-800/30 hover:bg-gray-800/50 transition-all"
+                    >
+                      <div className="p-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
+                        <CheckCircleIcon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-white">
+                          {notification.data?.project_name || "Unknown Project"}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {notification.message}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {notification.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Security Trends Chart Placeholder */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
+            <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">
+                  Security Trends
+                </h3>
+                <div className="p-2 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20">
+                  <ChartBarIcon className="h-5 w-5 text-purple-400" />
+                </div>
+              </div>
+              <div className="text-center py-16">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 inline-block mb-4">
+                  <ChartBarIcon className="h-12 w-12 text-purple-400" />
+                </div>
+                <p className="text-gray-400 mb-2">
+                  Advanced Analytics Dashboard
+                </p>
+                <p className="text-sm text-gray-500">
+                  Interactive charts and trend analysis coming soon
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Projects */}
+        <div className="px-8 pb-8">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
+            <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Your Projects</h3>
+                <button
+                  onClick={() => setScanModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all"
+                >
+                  Add Project
+                </button>
+              </div>
+              <ProjectList />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // AppContent Return
+  return (
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <div className="min-h-screen bg-gray-900">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+            <div className="fixed inset-y-0 left-0 w-72 bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50">
+              <div className="flex items-center justify-between p-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                    <ShieldCheckSolid className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-lg font-bold text-white">
+                    SecureDevOps AI
+                  </span>
+                </div>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50"
+                >
+                  <XIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <nav className="px-6 space-y-2">
+                {navigation.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-2xl text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all"
+                  >
+                    <div
+                      className={`p-2 rounded-xl bg-gradient-to-r ${item.gradient} mr-3`}
+                    >
+                      <item.icon className="h-4 w-4 text-white" />
+                    </div>
+                    {item.name}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Sidebar */}
+        <ModernSidebar />
+
+        {/* Main Content */}
+        <div className="lg:pl-72">
+          <ModernHeader />
+
+          <main className="relative">
+            <Routes>
+              <Route
+                path="/"
+                element={<ModernDashboard notifications={notifications} />}
+              />
+              <Route
+                path="/reports"
+                element={
+                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
+                      <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                        <ProjectList />
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+              <Route path="/report/:reportId" element={<ReportDetails />} />
+              <Route
+                path="/compliance/:reportId"
+                element={<ComplianceReport />}
+              />
+              <Route
+                path="/analytics"
+                element={<ModernDashboard notifications={notifications} />}
+              />
+              <Route
+                path="/settings"
+                element={
+                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
+                      <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                        <h1 className="text-3xl font-bold text-white mb-8">
+                          Settings
+                        </h1>
+                        <p className="text-gray-400">
+                          Settings panel coming soon...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+
+        {/* Scan Modal */}
+        <ScanModal
+          isOpen={scanModalOpen}
+          onClose={() => setScanModalOpen(false)}
+          onSubmit={scanMutation.mutateAsync}
+        />
+
+        {/* Enhanced Toast Notifications */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 6000,
+            style: {
+              background:
+                "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
+              color: "#fff",
+              border: "1px solid rgba(75, 85, 99, 0.3)",
+              borderRadius: "1rem",
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            },
+            success: {
+              iconTheme: {
+                primary: "#10b981",
+                secondary: "#fff",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "#ef4444",
+                secondary: "#fff",
+              },
+            },
+            loading: {
+              iconTheme: {
+                primary: "#3b82f6",
+                secondary: "#fff",
+              },
+            },
+          }}
+        />
+      </div>
+    </Router>
+  );
+}
+
+// Main App function that provides QueryClient context
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
+  );
+}
+
+export default App;

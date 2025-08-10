@@ -1,0 +1,48 @@
+# Backend Python Application - Git Ignore
+# =========================================
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment (if created locally)
+venv/
+.venv/
+env/
+
+# Database files (if using local SQLite for testing)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables (critical for security)
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+
+# FastAPI/Uvicorn cache
+.pytest_cache/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+temp/
+uploads/
+
+# Security scanner results (if saved locally)
+scan-results/
+security-reports/
