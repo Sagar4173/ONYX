@@ -88,6 +88,19 @@ class DatabaseManager:
             self.connected = False
             logger.info("🔌 Disconnected from MongoDB")
     
+    async def test_connection(self) -> str:
+        """Test database connection for health checks"""
+        try:
+            if not self.client:
+                return "disconnected"
+            
+            # Ping the database
+            await self.client.admin.command('ping')
+            return "connected" if self.connected else "connecting"
+        except Exception as e:
+            logger.warning(f"Database connection test failed: {e}")
+            return "error"
+    
     async def save_scan(self, scan_data: Dict[str, Any]) -> str:
         """Save scan data to database"""
         if not self.connected:

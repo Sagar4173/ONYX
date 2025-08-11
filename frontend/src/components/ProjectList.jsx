@@ -17,58 +17,6 @@ import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { reportsAPI, utils } from "../services/api";
 
-// Additional utility functions specific to ProjectList
-const projectUtils = {
-  calculateSecurityScore: (findings) => {
-    if (!findings) return 100;
-    const { critical = 0, high = 0, medium = 0, low = 0 } = findings;
-    const total = critical + high + medium + low;
-    if (total === 0) return 100;
-
-    const weightedScore = critical * 25 + high * 10 + medium * 5 + low * 1;
-    return Math.max(0, Math.min(100, 100 - Math.min(weightedScore, 100)));
-  },
-
-  getScoreColor: (score) => {
-    if (score >= 80) return "text-green-400";
-    if (score >= 60) return "text-yellow-400";
-    if (score >= 40) return "text-orange-400";
-    return "text-red-400";
-  },
-
-  getStatusColor: (status) => {
-    const colors = {
-      completed: "text-green-400 bg-green-400/10 border-green-400/30",
-      running: "text-blue-400 bg-blue-400/10 border-blue-400/30",
-      pending: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-      failed: "text-red-400 bg-red-400/10 border-red-400/30",
-    };
-    return colors[status] || colors.pending;
-  },
-
-  getSeverityColor: (severity) => {
-    const colors = {
-      critical: "text-red-400 bg-red-400/10 border-red-400/30",
-      high: "text-orange-400 bg-orange-400/10 border-orange-400/30",
-      medium: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-      low: "text-blue-400 bg-blue-400/10 border-blue-400/30",
-    };
-    return colors[severity] || colors.low;
-  },
-
-  formatRelativeDate: (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  },
-};
-
 const ProjectList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -198,8 +146,8 @@ const ProjectList = () => {
   ];
 
   const SecurityScoreBadge = ({ findingsBySeverity }) => {
-    const score = projectUtils.calculateSecurityScore(findingsBySeverity);
-    const colorClass = projectUtils.getScoreColor(score);
+    const score = utils.calculateSecurityScore(findingsBySeverity);
+    const colorClass = utils.getScoreColor(score);
 
     return (
       <div
@@ -217,7 +165,7 @@ const ProjectList = () => {
   };
 
   const StatusBadge = ({ status }) => {
-    const colorClass = projectUtils.getStatusColor(status);
+    const colorClass = utils.getStatusColor(status);
     const statusIcons = {
       completed: CheckCircleIcon,
       running: RefreshIcon,
@@ -258,7 +206,7 @@ const ProjectList = () => {
           const count = findingsBySeverity?.[severity] || 0;
           if (count === 0) return null;
 
-          const colorClass = projectUtils.getSeverityColor(severity);
+          const colorClass = utils.getSeverityColor(severity);
           return (
             <span
               key={severity}
@@ -590,7 +538,7 @@ const ProjectList = () => {
                     <div className="flex items-center space-x-4 text-sm text-gray-400 mb-3">
                       <div className="flex items-center">
                         <ClockIcon className="h-4 w-4 mr-1" />
-                        {projectUtils.formatRelativeDate(report.created_at)}
+                        {utils.formatRelativeDate(report.created_at)}
                       </div>
                       <span>Branch: {report.branch || "main"}</span>
                       <span>

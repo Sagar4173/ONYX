@@ -58,11 +58,12 @@ setup_environment() {
     mkdir -p /app/workspace
     mkdir -p /app/.cache
     
-    # Set proper permissions
-    chown -R securedevops:securedevops /app/logs
-    chown -R securedevops:securedevops /app/temp
-    chown -R securedevops:securedevops /app/workspace
-    chown -R securedevops:securedevops /app/.cache
+    # Set proper permissions (only for directories we can control)
+    chown -R securedevops:securedevops /app/logs 2>/dev/null || true
+    chown -R securedevops:securedevops /app/temp 2>/dev/null || true
+    # Skip workspace and cache permissions for Docker volumes
+    # chown -R securedevops:securedevops /app/workspace
+    # chown -R securedevops:securedevops /app/.cache
     
     # Verify scanner installations
     log "Verifying security scanners..."
@@ -154,8 +155,8 @@ start_application() {
     log "  Environment: ${ENVIRONMENT:-development}"
     log "  Log Level: ${LOG_LEVEL:-INFO}"
     
-    # Switch to non-root user and start gunicorn
-    exec gosu securedevops gunicorn \
+    # Start gunicorn (already running as securedevops user from Dockerfile)
+    exec gunicorn \
         --worker-class uvicorn.workers.UvicornWorker \
         --workers "$WORKERS" \
         --bind "$HOST:$PORT" \

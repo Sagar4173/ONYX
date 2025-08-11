@@ -25,7 +25,7 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/reports", tags=["reports"])
+router = APIRouter(tags=["reports"])
 
 
 @router.get("/")

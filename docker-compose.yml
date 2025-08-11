@@ -1,30 +1,5 @@
 # Docker Compose for SecureDevOps AI Platform
-version: "3.8"
-
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: securedevops-mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-securepass123}
-      MONGO_INITDB_DATABASE: securedevops
-    volumes:
-      - mongodb_data:/data/db
-      - ./backend/scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    ports:
-      - "27017:27017"
-    networks:
-      - securedevops-network
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
   # Backend API with Gunicorn + Uvicorn Workers
   backend:
     build:
@@ -33,8 +8,9 @@ services:
     container_name: securedevops-backend
     restart: unless-stopped
     environment:
-      # Database
-      MONGODB_URI: mongodb://admin:${MONGO_PASSWORD:-securepass123}@mongodb:27017/securedevops?authSource=admin
+      # Database - Use MongoDB Atlas instead of local container
+      MONGODB_URI: ${MONGODB_URI:-mongodb://admin:${MONGO_PASSWORD:-securepass123}@mongodb:27017/securedevops?authSource=admin}
+      DATABASE_NAME: ${DATABASE_NAME:-securedevops}
 
       # Security
       SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
@@ -70,9 +46,6 @@ services:
       - "8000:8000"
     networks:
       - securedevops-network
-    depends_on:
-      mongodb:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -136,9 +109,6 @@ networks:
     driver: bridge
 
 volumes:
-  mongodb_data:
-    driver: local
-    name: securedevops_mongodb_data
   redis_data:
     driver: local
     name: securedevops_redis_data

@@ -43,19 +43,18 @@ RUN wget https://github.com/zricethezav/gitleaks/releases/download/v8.18.0/gitle
     && chmod +x /usr/local/bin/gitleaks \
     && rm gitleaks_8.18.0_linux_x64.tar.gz
 
-# Install Lynis
-RUN wget https://downloads.cisofy.com/lynis/lynis-3.0.8.tar.gz \
-    && tar -xzf lynis-3.0.8.tar.gz \
-    && mv lynis /opt/lynis \
-    && ln -s /opt/lynis/lynis /usr/local/bin/lynis \
-    && chmod +x /opt/lynis/lynis \
-    && rm lynis-3.0.8.tar.gz
+# Install Lynis (commented out due to download issues)
+# RUN wget https://downloads.cisofy.com/lynis/lynis-3.0.8.tar.gz \
+#     && tar -xzf lynis-3.0.8.tar.gz \
+#     && mv lynis /opt/lynis \
+#     && ln -s /opt/lynis/lynis /usr/local/bin/lynis \
+#     && chmod +x /opt/lynis/lynis \
+#     && rm lynis-3.0.8.tar.gz
 
 # Verify scanner installations
 RUN semgrep --version && \
     trivy --version && \
-    gitleaks version && \
-    lynis --version
+    gitleaks version
 
 # Application stage
 FROM scanners as app

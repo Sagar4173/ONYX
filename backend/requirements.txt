@@ -38,7 +38,7 @@ safety==2.3.5           # Python dependency vulnerability scanner
 semgrep==1.45.0         # Multi-language SAST scanner
 gitpython==3.1.40       # Git operations (already exists but ensuring latest)
 detect-secrets==1.4.0   # Secrets detection
-truffleHog==3.63.2      # Secrets scanning
+# truffleHog==3.63.2      # Secrets scanning (commented out due to version issues)
 requests==2.31.0        # HTTP requests for API calls
 
 # Notifications
@@ -63,8 +63,8 @@ asyncio-mqtt==0.16.1
 # Rate limiting
 limits==3.7.0
 
-# CORS
-python-cors==1.7.0
+# CORS (handled by FastAPI built-in)
+# python-cors==1.7.0  # Not needed - FastAPI has built-in CORS support
 
 # Security headers
 secure==0.3.0
@@ -76,4 +76,4 @@ websockets==12.0
 psutil==5.9.6
 
 # Subprocess utilities
-asyncio-subprocess==0.1.2
+# asyncio-subprocess==0.1.2  # Package not found - commenting out

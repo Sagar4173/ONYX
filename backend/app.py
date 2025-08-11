@@ -70,7 +70,7 @@ app.add_middleware(
 )
 
 # Include API routers
-app.include_router(reports_router, prefix="/api")
+app.include_router(reports_router, prefix="/api/reports")
 app.include_router(webhook_router)
 
 @app.get("/api/analytics/overview")
