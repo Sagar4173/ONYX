@@ -1,0 +1,13 @@
+# Railway Python Backend Deployment
+#
+# This is a Python FastAPI backend project
+# Frontend is deployed separately on Vercel
+#
+# Railway should detect this as a Python project and ignore frontend/
+
+[build]
+provider = "python"
+python_version = "3.11"
+
+[deploy]
+start_command = "cd backend && python -m uvicorn app:app --host 0.0.0.0 --port $PORT"

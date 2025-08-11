@@ -1,0 +1,16 @@
+# Ignore frontend folder for Railway Python backend deployment
+frontend/
+node_modules/
+.git/
+.env
+.env.local
+.env.development
+.env.production
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+Thumbs.db

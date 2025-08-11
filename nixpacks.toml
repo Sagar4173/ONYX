@@ -1,14 +1,20 @@
 [providers]
 python = "3.11"
 
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.11"
+
 [phases.setup]
-nixPkgs = ['python311', 'pip']
+nixPkgs = ['python311', 'pip', 'gcc']
 
 [phases.install]
-cmds = ['pip install -r backend/requirements.railway.txt']
+cmds = [
+  'pip install --upgrade pip',
+  'pip install -r backend/requirements.railway.txt'
+]
 
 [phases.build]
-cmds = ['echo "No build step needed for FastAPI"']
+cmds = ['echo "FastAPI backend - no build step required"']
 
 [start]
-cmd = 'cd backend && python -m uvicorn app:app --host 0.0.0.0 --port $PORT'
+cmd = 'python main.py'
