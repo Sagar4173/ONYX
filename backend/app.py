@@ -105,15 +105,8 @@ async def redirect_trailing_slash(request: Request, call_next):
     url = str(request.url)
     path = request.url.path
     
-    # Special handling for /api/reports without trailing slash
-    if path == "/api/reports" and request.method == "GET":
-        # Redirect to the route with trailing slash
-        query_string = request.url.query
-        redirect_url = "/api/reports/" + ("?" + query_string if query_string else "")
-        return RedirectResponse(url=redirect_url, status_code=307)
-    
-    # Don't redirect if it's already a proper API call or WebSocket
-    if "/api/" in url or "/ws" in url or "/health" in url:
+    # Don't redirect API calls - let FastAPI handle them
+    if "/api/" in path or "/ws" in path or "/health" in path:
         response = await call_next(request)
         return response
     

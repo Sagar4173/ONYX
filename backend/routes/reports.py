@@ -29,6 +29,7 @@ router = APIRouter(tags=["reports"])
 
 
 @router.get("/")
+@router.get("")  # Handle both /api/reports/ and /api/reports
 async def list_reports(
     limit: int = Query(50, ge=1, le=1000, description="Number of reports to return"),
     skip: int = Query(0, ge=0, description="Number of reports to skip"),
