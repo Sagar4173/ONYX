@@ -76,10 +76,15 @@ const ProjectList = () => {
   const handleDownloadReport = async (reportId, format = "pdf") => {
     try {
       toast.loading("Preparing download...", { id: "download" });
+
+      // Use the configured API base URL from environment variables
       const API_BASE_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:8000";
+        import.meta.env.VITE_API_URL ||
+        import.meta.env.VITE_API_BASE_URL ||
+        "/api";
+
       const response = await fetch(
-        `${API_BASE_URL}/api/reports/${reportId}/download?format=${format}`,
+        `${API_BASE_URL}/reports/${reportId}/download?format=${format}`,
         {
           method: "GET",
           headers: {

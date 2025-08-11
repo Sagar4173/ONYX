@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     workers: int = Field(default=4, env="WORKERS")
     environment: str = Field(default="development", env="ENVIRONMENT")
     
+    # URLs
+    backend_url: Optional[str] = Field(default=None, env="BACKEND_URL")
+    frontend_url: Optional[str] = Field(default=None, env="FRONTEND_URL")
+    api_base_url: Optional[str] = Field(default=None, env="API_BASE_URL")
+    websocket_url: Optional[str] = Field(default=None, env="WEBSOCKET_URL")
+    
     # Database
     mongodb_uri: str = Field(..., env="MONGODB_URI")
     database_name: str = Field(default="securedevops", env="DATABASE_NAME")
@@ -49,10 +55,10 @@ class Settings(BaseSettings):
     
     # CORS
     cors_origins: list[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8080"], 
+        default=[], 
         env="CORS_ORIGINS"
     )
-    allowed_origins: str = Field(default="http://localhost:3000,http://localhost:8080", env="ALLOWED_ORIGINS")
+    allowed_origins: str = Field(default="", env="ALLOWED_ORIGINS")
     
     # Scanner configuration
     enable_semgrep: bool = Field(default=False, env="ENABLE_SEMGREP")
@@ -63,7 +69,7 @@ class Settings(BaseSettings):
     max_concurrent_scans: int = Field(default=3, env="MAX_CONCURRENT_SCANS")
     
     # Redis
-    redis_url: str = Field(default="redis://localhost:6379", env="REDIS_URL")
+    redis_url: str = Field(default="redis://redis:6379", env="REDIS_URL")
     redis_db: int = Field(default=0, env="REDIS_DB")
     
     # Logging
@@ -89,7 +95,7 @@ class Settings(BaseSettings):
     temp_dir: str = Field(default="/tmp/securedevops", env="TEMP_DIR")
     cleanup_after_scan: bool = Field(default=True, env="CLEANUP_AFTER_SCAN")
     
-    model_config = {"extra": "ignore", "env_file": ".env", "env_file_encoding": "utf-8", "case_sensitive": False}
+    model_config = {"extra": "ignore", "env_file": "../.env", "env_file_encoding": "utf-8", "case_sensitive": False}
 
 
 def get_log_level() -> int:

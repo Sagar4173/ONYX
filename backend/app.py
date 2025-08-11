@@ -34,6 +34,9 @@ from database import db_manager, init_database, close_database
 from routes.reports import router as reports_router
 from routes.webhook import router as webhook_router
 
+# Import configuration
+from config import settings
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,10 +63,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS settings for local development
+# CORS settings from environment variables
+allowed_origins = []
+if settings.allowed_origins:
+    allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(',') if origin.strip()]
+
+# Fallback to wildcard only in development
+if not allowed_origins and settings.debug:
+    allowed_origins = ["*"]
+    logger.warning("⚠️  Using wildcard CORS in development mode. Configure ALLOWED_ORIGINS for production!")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -195,8 +207,13 @@ async def get_scanners_health():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time updates"""
-    await websocket.accept()
+    client_host = websocket.client.host if websocket.client else "unknown"
+    logger.info(f"WebSocket connection attempt from {client_host}")
+    
     try:
+        await websocket.accept()
+        logger.info(f"WebSocket connection accepted from {client_host}")
+        
         # Send initial connection message
         await websocket.send_json({
             "type": "connection",
@@ -206,35 +223,65 @@ async def websocket_endpoint(websocket: WebSocket):
             }
         })
         
-        # Send periodic heartbeat (less frequent)
+        # Send periodic heartbeat with better error handling
+        heartbeat_count = 0
         while True:
-            await websocket.send_json({
-                "type": "scan_progress",
-                "data": {
-                    "scan_id": "demo-scan",
-                    "progress": 75,
-                    "message": "Demo scan progress update",
-                    "timestamp": datetime.now().isoformat()
-                }
-            })
-            # Increased interval to reduce spam
-            await asyncio.sleep(30)  # Send updates every 30 seconds instead of 5
+            try:
+                heartbeat_count += 1
+                await websocket.send_json({
+                    "type": "heartbeat",
+                    "data": {
+                        "count": heartbeat_count,
+                        "timestamp": datetime.now().isoformat(),
+                        "status": "active"
+                    }
+                })
+                
+                # Send demo scan progress less frequently
+                if heartbeat_count % 6 == 0:  # Every 3 minutes
+                    await websocket.send_json({
+                        "type": "scan_progress",
+                        "data": {
+                            "scan_id": "demo-scan",
+                            "progress": min(75 + (heartbeat_count % 25), 100),
+                            "message": "Demo scan progress update",
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    })
+                
+                await asyncio.sleep(30)  # Send heartbeat every 30 seconds
+                
+            except ConnectionResetError:
+                logger.info(f"WebSocket connection reset by client {client_host}")
+                break
+            except Exception as send_error:
+                logger.warning(f"Error sending WebSocket message to {client_host}: {send_error}")
+                break
+                
     except WebSocketDisconnect:
-        logger.info("WebSocket client disconnected")
+        logger.info(f"WebSocket client {client_host} disconnected normally")
+    except ConnectionResetError:
+        logger.info(f"WebSocket connection reset by client {client_host}")
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
-        await websocket.close()
+        logger.error(f"WebSocket error with client {client_host}: {e}")
+    finally:
+        try:
+            if not websocket.client_state.name == "DISCONNECTED":
+                await websocket.close()
+        except Exception as close_error:
+            logger.debug(f"Error closing WebSocket for {client_host}: {close_error}")
+        logger.info(f"WebSocket connection with {client_host} closed")
 
 if __name__ == "__main__":
     print("🛡️ Starting SecureDevOps AI Platform - Production Server")
-    print("📖 API Documentation: http://localhost:8000/docs")
-    print("🏥 Health Check: http://localhost:8000/health")
-    print("🔧 Frontend should run on: http://localhost:3000 or http://localhost:5173")
+    print(f"📖 API Documentation: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/docs")
+    print(f"🏥 Health Check: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/health")
+    print(f"🔧 Frontend should run on: {settings.frontend_url or 'Frontend URL not configured'}")
     
     uvicorn.run(
         "app:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
+        host=settings.host,
+        port=settings.port,
+        reload=settings.debug,
+        log_level=settings.log_level.lower()
     )

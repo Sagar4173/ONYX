@@ -5,17 +5,30 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+// API Configuration - Production ready with environment variable support
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
-// Debug: Log the configuration values
-console.log("🔧 API Configuration:", {
-  API_BASE_URL,
-  WS_BASE_URL,
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  VITE_WS_URL: import.meta.env.VITE_WS_URL,
-});
+// WebSocket URL - Connect directly to backend in development
+const WS_BASE_URL = import.meta.env.DEV
+  ? "ws://127.0.0.1:8000" // Direct connection in development
+  : import.meta.env.VITE_WS_URL ||
+    import.meta.env.VITE_WEBSOCKET_URL ||
+    (window.location.protocol === "https:" ? "wss:" : "ws:") +
+      "//" +
+      window.location.host;
+
+// Debug: Log the configuration values (only in development)
+if (import.meta.env.DEV) {
+  console.log("🔧 API Configuration:", {
+    API_BASE_URL,
+    WS_BASE_URL,
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    VITE_WS_URL: import.meta.env.VITE_WS_URL,
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    VITE_WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL,
+  });
+}
 
 // Create axios instance with default config
 const api = axios.create({
@@ -233,12 +246,20 @@ class WebSocketService {
         return;
       }
 
+      // Close existing connection if it's in a bad state
+      if (this.ws && this.ws.readyState === WebSocket.CLOSING) {
+        this.ws = null;
+      }
+
+      console.log(
+        "🔌 Attempting WebSocket connection to:",
+        `${WS_BASE_URL}/ws`
+      );
       this.ws = new WebSocket(`${WS_BASE_URL}/ws`);
 
       this.ws.onopen = () => {
-        console.log("🔌 WebSocket connected");
+        console.log("🔌 WebSocket connected successfully");
         this.reconnectAttempts = 0;
-        // Don't show toast here - let the App component handle it
 
         // Emit connected event
         this.listeners.forEach((callback, type) => {
@@ -301,26 +322,30 @@ class WebSocketService {
 
         // Attempt to reconnect if not intentionally closed
         if (
-          event.code !== 1000 &&
+          event.code !== 1000 && // Normal closure
+          event.code !== 1001 && // Going away
           this.reconnectAttempts < this.maxReconnectAttempts
         ) {
           this.reconnectAttempts++;
           console.log(
-            `🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+            `🔄 Attempting to reconnect (${this.reconnectAttempts}/${
+              this.maxReconnectAttempts
+            }) in ${this.reconnectInterval / 1000}s...`
           );
 
           setTimeout(() => {
             this.connect();
           }, this.reconnectInterval);
         } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-          toast.error("Lost connection to real-time updates");
+          console.warn("❌ Max reconnection attempts reached");
+          // Don't show toast here - let the App component handle it
         }
       };
 
       this.ws.onerror = (error) => {
-        // Only log errors if we're actually trying to maintain a connection
-        if (this.reconnectAttempts > 0) {
-          console.error("❌ WebSocket error:", error);
+        // Only log significant errors
+        if (this.reconnectAttempts === 0) {
+          console.error("❌ WebSocket connection error:", error);
         }
       };
     } catch (error) {
