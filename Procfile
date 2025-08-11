@@ -1,1 +1,1 @@
-web: bash start.sh
+web: /opt/venv/bin/python main.py

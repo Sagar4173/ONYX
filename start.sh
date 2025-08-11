@@ -1,16 +1,15 @@
 #!/bin/bash
-# Railway startup script
+# Railway startup script with virtual environment
 
 echo "🚀 Starting SecureDevOps AI Platform Backend"
 echo "📁 Current directory: $(pwd)"
+
+# Activate virtual environment
+source /opt/venv/bin/activate
+
 echo "🐍 Python version: $(python --version)"
 echo "📦 Pip version: $(pip --version)"
 
-# Install dependencies
-echo "📦 Installing Python dependencies..."
-pip install -r requirements.txt
-
 # Start the application
 echo "🚀 Starting FastAPI application..."
-cd backend
-python -m uvicorn app:app --host 0.0.0.0 --port $PORT
+python main.py
