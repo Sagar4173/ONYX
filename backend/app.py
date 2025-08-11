@@ -76,17 +76,46 @@ allowed_origins = list(set(allowed_origins))
 
 logger.info(f"🌐 CORS allowed origins: {allowed_origins}")
 
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Include API routers
+# Handle OPTIONS requests explicitly
+@app.options("/{full_path:path}")
+async def options_handler():
+    return {"message": "OK"}
+
+# Include API routers with explicit trailing slash handling
 app.include_router(reports_router, prefix="/api/reports")
 app.include_router(webhook_router)
+
+# Add trailing slash redirect middleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi import Request, Response
+from fastapi.responses import RedirectResponse
+
+@app.middleware("http")
+async def redirect_trailing_slash(request: Request, call_next):
+    """Handle trailing slash redirects properly"""
+    url = str(request.url)
+    
+    # Don't redirect if it's already a proper API call or WebSocket
+    if "/api/" in url or "/ws" in url or "/health" in url:
+        response = await call_next(request)
+        return response
+    
+    # Handle other redirects
+    if url.endswith("/") and len(url) > 1:
+        url = url[:-1]
+        return RedirectResponse(url=url, status_code=301)
+    
+    response = await call_next(request)
+    return response
 
 @app.get("/api/analytics/overview")
 async def get_analytics_overview(days_back: int = 30):
