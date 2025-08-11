@@ -256,9 +256,9 @@ class WebSocketService {
 
       console.log(
         "🔌 Attempting WebSocket connection to:",
-        `${WS_BASE_URL}/ws`
+        WS_BASE_URL.endsWith('/ws') ? WS_BASE_URL : `${WS_BASE_URL}/ws`
       );
-      this.ws = new WebSocket(`${WS_BASE_URL}/ws`);
+      this.ws = new WebSocket(WS_BASE_URL.endsWith('/ws') ? WS_BASE_URL : `${WS_BASE_URL}/ws`);
 
       this.ws.onopen = () => {
         console.log("🔌 WebSocket connected successfully");
