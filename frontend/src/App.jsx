@@ -391,7 +391,9 @@ function AppContent() {
         import.meta.env.VITE_API_BASE_URL ||
         "/api";
 
-      const response = await fetch(`${API_BASE_URL}/webhook/scan`, {
+      // Webhook endpoints are not under /api prefix
+      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const response = await fetch(`${backendBaseUrl}/webhook/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scanData),
