@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
   "framework": null,
   "rewrites": [
     {
@@ -29,7 +26,7 @@
       ]
     },
     {
-      "source": "/static/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
