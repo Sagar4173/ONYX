@@ -1,0 +1,17 @@
+.git
+.gitignore
+.vscode
+frontend/
+*.md
+.env
+.env.local
+.env.development
+.env.production
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.coverage
+.pytest_cache/
+.mypy_cache/
