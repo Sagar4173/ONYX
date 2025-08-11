@@ -420,14 +420,18 @@ function AppContent() {
 
     websocketService.on("connected", (connected) => {
       setIsConnected(connected);
-      if (connected) {
-        toast.success("🔗 Real-time connection established");
+      // Only show toast on reconnection, not initial connection
+      if (connected && isConnected === false) {
+        toast.success("🔗 Real-time connection restored");
       }
     });
 
     websocketService.on("disconnected", () => {
       setIsConnected(false);
-      toast.error("🔴 Connection lost");
+      // Only show error if we were previously connected
+      if (isConnected) {
+        toast.error("🔴 Connection lost");
+      }
     });
 
     websocketService.on("scan_update", (data) => {

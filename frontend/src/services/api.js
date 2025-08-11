@@ -7,7 +7,15 @@ import toast from "react-hot-toast";
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost";
+const WS_BASE_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8000";
+
+// Debug: Log the configuration values
+console.log("🔧 API Configuration:", {
+  API_BASE_URL,
+  WS_BASE_URL,
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  VITE_WS_URL: import.meta.env.VITE_WS_URL,
+});
 
 // Create axios instance with default config
 const api = axios.create({
@@ -216,12 +224,21 @@ class WebSocketService {
 
   connect() {
     try {
+      // Don't create a new connection if one already exists and is connecting/open
+      if (
+        this.ws &&
+        (this.ws.readyState === WebSocket.CONNECTING ||
+          this.ws.readyState === WebSocket.OPEN)
+      ) {
+        return;
+      }
+
       this.ws = new WebSocket(`${WS_BASE_URL}/ws`);
 
       this.ws.onopen = () => {
         console.log("🔌 WebSocket connected");
         this.reconnectAttempts = 0;
-        toast.success("Connected to real-time updates");
+        // Don't show toast here - let the App component handle it
 
         // Emit connected event
         this.listeners.forEach((callback, type) => {
@@ -301,7 +318,10 @@ class WebSocketService {
       };
 
       this.ws.onerror = (error) => {
-        console.error("❌ WebSocket error:", error);
+        // Only log errors if we're actually trying to maintain a connection
+        if (this.reconnectAttempts > 0) {
+          console.error("❌ WebSocket error:", error);
+        }
       };
     } catch (error) {
       console.error("Failed to connect WebSocket:", error);
