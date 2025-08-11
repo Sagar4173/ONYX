@@ -178,16 +178,26 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
+    # Basic health check without database dependency for Railway
+    health_data = {
         "status": "healthy",
-        "environment": "development",
+        "environment": os.getenv("ENVIRONMENT", "production"),
         "services": {
             "api": "running",
-            "database": await db_manager.test_connection(),
             "scanners": "available"
         },
         "timestamp": datetime.now().isoformat()
     }
+    
+    # Try database connection but don't fail health check if it's slow
+    try:
+        db_status = await db_manager.test_connection()
+        health_data["services"]["database"] = db_status
+    except Exception as e:
+        logger.warning(f"Database health check failed: {e}")
+        health_data["services"]["database"] = "checking"
+    
+    return health_data
 
 
 

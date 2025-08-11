@@ -15,12 +15,28 @@ os.chdir(str(backend_path))
 
 # Import and run the backend application
 if __name__ == "__main__":
-    # Import the FastAPI app
-    from app import app
-    import uvicorn
-    
-    port = int(os.environ.get("PORT", 8000))
-    host = "0.0.0.0"
-    
-    print(f"🚀 Starting server on {host}:{port}")
-    uvicorn.run(app, host=host, port=port)
+    try:
+        # Import the FastAPI app
+        from app import app
+        import uvicorn
+        
+        port = int(os.environ.get("PORT", 8000))
+        host = "0.0.0.0"
+        
+        print(f"🚀 Starting server on {host}:{port}")
+        print(f"📍 Working directory: {os.getcwd()}")
+        print(f"🏥 Health check will be available at: http://{host}:{port}/health")
+        
+        # Start with minimal configuration for Railway
+        uvicorn.run(
+            app, 
+            host=host, 
+            port=port,
+            log_level="info",
+            access_log=True
+        )
+    except Exception as e:
+        print(f"❌ Failed to start application: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
