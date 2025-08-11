@@ -1,3 +1,0 @@
-# This file helps Railway detect this as a Python project
-# The actual requirements are in backend/requirements.railway.txt
--r backend/requirements.railway.txt

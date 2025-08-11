@@ -58,7 +58,7 @@ python-dateutil==2.8.2
 jsonschema==4.20.0
 
 # Async utilities
-asyncio-mqtt==0.16.1
+# asyncio-mqtt==0.16.1  # Commented out - not needed for basic deployment
 
 # Rate limiting
 limits==3.7.0
