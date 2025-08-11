@@ -64,14 +64,17 @@ app = FastAPI(
 )
 
 # CORS settings from environment variables
-allowed_origins = []
-if settings.allowed_origins:
-    allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(',') if origin.strip()]
+allowed_origins = settings.cors_origins_list
 
-# Fallback to wildcard only in development
-if not allowed_origins and settings.debug:
-    allowed_origins = ["*"]
-    logger.warning("⚠️  Using wildcard CORS in development mode. Configure ALLOWED_ORIGINS for production!")
+# Also check ALLOWED_ORIGINS for backward compatibility
+if settings.allowed_origins:
+    additional_origins = [origin.strip() for origin in settings.allowed_origins.split(',') if origin.strip()]
+    allowed_origins.extend(additional_origins)
+
+# Remove duplicates
+allowed_origins = list(set(allowed_origins))
+
+logger.info(f"🌐 CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,

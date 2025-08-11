@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     force_https: bool = Field(default=False, env="FORCE_HTTPS")
     
     # OpenAI
-    openai_api_key: str = Field(..., env="OPENAI_API_KEY")
+    openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     openai_model: str = Field(default="gpt-4", env="OPENAI_MODEL")
     openai_max_tokens: int = Field(default=2000, env="OPENAI_MAX_TOKENS")
     
@@ -54,8 +54,8 @@ class Settings(BaseSettings):
     rate_limit_burst: int = Field(default=100, env="RATE_LIMIT_BURST")
     
     # CORS
-    cors_origins: list[str] = Field(
-        default=[], 
+    cors_origins: str = Field(
+        default="", 
         env="CORS_ORIGINS"
     )
     allowed_origins: str = Field(default="", env="ALLOWED_ORIGINS")
@@ -94,6 +94,15 @@ class Settings(BaseSettings):
     # Storage
     temp_dir: str = Field(default="/tmp/securedevops", env="TEMP_DIR")
     cleanup_after_scan: bool = Field(default=True, env="CLEANUP_AFTER_SCAN")
+    
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Convert CORS_ORIGINS string to list"""
+        if not self.cors_origins:
+            return ["*"]  # Default to allow all origins
+        # Split by comma and clean up whitespace
+        origins = [origin.strip() for origin in self.cors_origins.split(",")]
+        return [origin for origin in origins if origin]  # Remove empty strings
     
     model_config = {"extra": "ignore", "env_file": "../.env", "env_file_encoding": "utf-8", "case_sensitive": False}
 
