@@ -1,7 +1,6 @@
 # 🛡️ SecureDevOps AI Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangion.com/)
@@ -41,11 +40,11 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 - **REST API** for custom integrations
 - **WebSocket** real-time updates
 
-### 🚀 **Enterprise Ready**
+### 🚀 **Development Ready**
 
-- **Scalable Architecture** with Docker and Kubernetes support
-- **High Availability** with load balancing and clustering
-- **Audit Logging** with comprehensive security trails
+- **Modular Architecture** for easy development and testing
+- **Comprehensive Logging** with detailed error tracking
+- **Development Tools** for debugging and monitoring
 - **Role-Based Access Control** (planned)
 - **SSO Integration** (planned)
 
@@ -93,10 +92,11 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 - **Recharts** - Composable charting library
 - **React Router** - Client-side routing
 
-### **Database & Caching**
+### **Database & Infrastructure**
 
 - **MongoDB 7.0** - Document database with advanced indexing
-- **Redis 7** - In-memory data structure store for caching
+- **Local Development** - Direct installation and configuration
+- **Production Deployment** - Manual server setup and configuration
 
 ### **Security Tools**
 
@@ -105,20 +105,13 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 - **GitLeaks** - Secret detection tool
 - **Lynis** - Security auditing tool
 
-### **Infrastructure**
-
-- **Docker** - Containerization platform
-- **Docker Compose** - Multi-container orchestration
-- **Nginx** - Reverse proxy and static file serving
-- **Prometheus** - Metrics collection (production)
-- **Grafana** - Monitoring dashboards (production)
-
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-- **Docker** (version 20.10 or later)
-- **Docker Compose** (version 2.0 or later)
+- **Python 3.11+** with pip
+- **Node.js 18+** with npm
+- **MongoDB 7.0+** (installed locally or accessible instance)
 - **Git** (for cloning the repository)
 
 ### System Requirements
@@ -126,7 +119,7 @@ Before you begin, ensure you have the following installed:
 - **CPU**: 2+ cores recommended
 - **Memory**: 4GB+ RAM (8GB recommended for production)
 - **Disk**: 10GB+ free space
-- **Network**: Internet connection for pulling images and AI services
+- **Network**: Internet connection for AI services and package downloads
 
 ## 🚀 Quick Start
 
@@ -137,57 +130,56 @@ git clone https://github.com/yourusername/securedevops-platform.git
 cd securedevops-platform
 ```
 
-### 2. Configure Environment
+### 2. Setup Backend
 
 ```bash
-# Copy the example environment file
+# Navigate to backend directory
+cd backend
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
 cp .env.example .env
-
-# Edit the configuration
-nano .env  # or your preferred editor
+# Edit .env with your OpenAI API key and other settings
 ```
 
-**Required Configuration:**
+### 3. Setup Frontend
 
 ```bash
-# OpenAI API Key (required for AI analysis)
-OPENAI_API_KEY=sk-your-openai-api-key-here
+# Navigate to frontend directory
+cd frontend
 
-# Security
-SECRET_KEY=your-super-secret-key-change-in-production
+# Install dependencies
+npm install
 
-# Database
-MONGO_PASSWORD=your-secure-mongo-password
+# Build for production
+npm run build
 ```
 
-### 3. Deploy with Docker Compose
-
-#### **For Development:**
+### 4. Setup Database
 
 ```bash
-# Linux/macOS
-./deploy.sh deploy
+# Ensure MongoDB is running locally on port 27017
+# Or update the MONGODB_URI in your .env file
 
-# Windows PowerShell
-.\deploy.ps1
+# Initialize database (if needed)
+# The application will create collections automatically
 ```
 
-#### **Manual Deployment:**
+### 5. Start the Application
 
 ```bash
-# Start all services
-docker-compose up -d
+# Start backend (from backend directory)
+python app.py
 
-# View logs
-docker-compose logs -f
-
-# Check status
-docker-compose ps
+# In another terminal, serve frontend (from frontend directory)
+npm run preview
 ```
 
-### 4. Access the Platform
+### 6. Access the Platform
 
-- **Web Interface**: http://localhost
+- **Web Interface**: http://localhost:4173 (or the port shown by Vite)
 - **API Documentation**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/health
 
@@ -202,9 +194,28 @@ docker-compose ps
    cd securedevops-platform
    ```
 
-2. **Environment Configuration**
+2. **Backend Setup**
 
    ```bash
+   cd backend
+
+   # Create virtual environment
+   python -m venv venv
+
+   # Activate virtual environment
+   # Windows
+   venv\Scripts\activate
+   # Linux/macOS
+   source venv/bin/activate
+
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+
+3. **Environment Configuration**
+
+   ```bash
+   # Copy example environment file
    cp .env.example .env
    ```
 
@@ -214,28 +225,40 @@ docker-compose ps
    # Required
    OPENAI_API_KEY=sk-your-api-key
    SECRET_KEY=generate-a-secure-key
-   MONGO_PASSWORD=secure-password
+   MONGODB_URI=mongodb://localhost:27017/securedevops
 
    # Optional
    SLACK_WEBHOOK_URL=https://hooks.slack.com/...
    TEAMS_WEBHOOK_URL=https://outlook.office.com/...
    ```
 
-3. **Start Development Environment**
+4. **Frontend Setup**
 
    ```bash
-   # Use development overrides for hot reload
-   docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+   cd frontend
+
+   # Install dependencies
+   npm install
+
+   # Start development server
+   npm run dev
    ```
 
-4. **Verify Installation**
+5. **Database Setup**
 
    ```bash
-   # Check all services are running
-   docker-compose ps
+   # Ensure MongoDB is running
+   # The application will create necessary collections automatically
+   ```
 
-   # Test the API
-   curl http://localhost:8000/health
+6. **Start Application**
+
+   ```bash
+   # Backend (from backend directory)
+   python app.py
+
+   # Frontend will be available at http://localhost:5173 (development)
+   # or http://localhost:4173 (preview mode)
    ```
 
 ### Production Setup
@@ -243,40 +266,39 @@ docker-compose ps
 1. **Prepare Production Environment**
 
    ```bash
-   # Use production configuration
-   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+   # Setup production environment variables
+   export ENVIRONMENT=production
+   export DEBUG=false
    ```
 
-2. **Configure SSL (Recommended)**
+2. **Build Frontend for Production**
 
    ```bash
-   # Place your SSL certificates in ./ssl/
-   mkdir -p ssl
-   cp your-cert.pem ssl/
-   cp your-key.pem ssl/
+   cd frontend
+   npm run build
    ```
 
-3. **Setup Monitoring** (Optional)
-   ```bash
-   # Enable Prometheus and Grafana
-   docker-compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.monitoring.yml up -d
-   ```
+3. **Configure Web Server**
+
+   Setup Nginx or Apache to serve the built frontend files and proxy API requests to the backend.
+
+4. **Setup Process Management**
+
+   Use a process manager like PM2, systemd, or supervisord to manage the backend application.
 
 ## ⚙️ Configuration
 
 ### Environment Variables
 
-| Variable                | Description                    | Default            | Required |
-| ----------------------- | ------------------------------ | ------------------ | -------- |
-| `OPENAI_API_KEY`        | OpenAI API key for AI analysis | -                  | ✅       |
-| `SECRET_KEY`            | JWT signing key                | -                  | ✅       |
-| `MONGO_PASSWORD`        | MongoDB admin password         | `securepass123`    | ✅       |
-| `MONGODB_URI`           | MongoDB connection string      | Auto-generated     | ❌       |
-| `REDIS_PASSWORD`        | Redis password                 | `redispass123`     | ❌       |
-| `ALLOWED_ORIGINS`       | CORS allowed origins           | `http://localhost` | ❌       |
-| `ENVIRONMENT`           | Runtime environment            | `development`      | ❌       |
-| `LOG_LEVEL`             | Logging level                  | `INFO`             | ❌       |
-| `RATE_LIMIT_PER_MINUTE` | API rate limit                 | `100`              | ❌       |
+| Variable                | Description                    | Default                                  | Required |
+| ----------------------- | ------------------------------ | ---------------------------------------- | -------- |
+| `OPENAI_API_KEY`        | OpenAI API key for AI analysis | -                                        | ✅       |
+| `SECRET_KEY`            | JWT signing key                | -                                        | ✅       |
+| `MONGODB_URI`           | MongoDB connection string      | `mongodb://localhost:27017/securedevops` | ❌       |
+| `ALLOWED_ORIGINS`       | CORS allowed origins           | `http://localhost:5173`                  | ❌       |
+| `ENVIRONMENT`           | Runtime environment            | `development`                            | ❌       |
+| `LOG_LEVEL`             | Logging level                  | `INFO`                                   | ❌       |
+| `RATE_LIMIT_PER_MINUTE` | API rate limit                 | `100`                                    | ❌       |
 
 ### Security Configuration
 
@@ -288,8 +310,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # HTTPS (Production)
 FORCE_HTTPS=true
-SSL_CERT_PATH=/ssl/cert.pem
-SSL_KEY_PATH=/ssl/key.pem
 
 # Rate Limiting
 RATE_LIMIT_PER_MINUTE=100
@@ -334,7 +354,7 @@ SMTP_PASSWORD=your-app-password
    ```
 
 3. **View Results**
-   - Web UI: http://localhost/reports
+   - Web UI: http://localhost:5173/reports (development) or configured port
    - API: http://localhost:8000/reports
 
 ### API Usage Examples
@@ -368,8 +388,6 @@ response = requests.post("http://localhost:8000/api/scan", json=payload)
 
    ```bash
    # Use strong, unique passwords
-   MONGO_PASSWORD=$(openssl rand -base64 32)
-   REDIS_PASSWORD=$(openssl rand -base64 32)
    SECRET_KEY=$(openssl rand -hex 64)
    ```
 
@@ -381,32 +399,23 @@ response = requests.post("http://localhost:8000/api/scan", json=payload)
    sudo ufw allow 80    # HTTP
    sudo ufw allow 443   # HTTPS
    sudo ufw deny 27017  # MongoDB (internal only)
-   sudo ufw deny 6379   # Redis (internal only)
    sudo ufw deny 8000   # Backend API (internal only)
    ```
 
 3. **SSL/TLS Configuration**
 
-   ```yaml
-   # docker-compose.prod.yml
-   nginx:
-     volumes:
-       - ./ssl/cert.pem:/ssl/cert.pem:ro
-       - ./ssl/key.pem:/ssl/key.pem:ro
-     environment:
-       - SSL_ENABLED=true
+   ```bash
+   # Configure your web server (Nginx/Apache) with SSL certificates
+   # Use Let's Encrypt or commercial certificates
    ```
 
-4. **Container Security**
+4. **Application Security**
 
    ```bash
-   # Run containers as non-root
-   # Enable Docker content trust
-   export DOCKER_CONTENT_TRUST=1
-
+   # Run with non-privileged user
+   # Enable virtual environment
    # Regular security updates
-   docker-compose pull
-   docker-compose up -d
+   pip install --upgrade -r requirements.txt
    ```
 
 ### Data Protection
@@ -439,28 +448,28 @@ response = requests.post("http://localhost:8000/api/scan", json=payload)
    # Check service health
    curl http://localhost:8000/health
 
-   # Monitor container resources
-   docker stats
+   # Monitor application process
+   ps aux | grep python
    ```
 
 2. **Log Monitoring**
 
    ```bash
    # Application logs
-   docker-compose logs -f backend
+   tail -f backend/logs/app.log
 
    # Security events
-   docker-compose logs -f | grep "SECURITY"
+   grep "SECURITY" backend/logs/app.log
    ```
 
 3. **Backup Strategy**
 
    ```bash
-   # Automated daily backups
-   ./deploy.sh backup
+   # Manual database backup
+   mongodump --uri="mongodb://localhost:27017/securedevops"
 
    # Restore from backup
-   ./deploy.sh restore backup-2025-08-10.tar.gz
+   mongorestore --uri="mongodb://localhost:27017/securedevops" dump/
    ```
 
 ## 📊 Monitoring and Maintenance
@@ -473,22 +482,24 @@ The platform includes comprehensive health checks:
 # Overall platform health
 curl http://localhost:8000/health
 
-# Individual service health
-docker-compose ps
-docker-compose exec backend python -c "import asyncio; asyncio.run(check_health())"
+# Check backend process
+ps aux | grep "python.*app.py"
+
+# Check database connectivity
+mongosh --eval "db.adminCommand('ping')"
 ```
 
 ### Backup and Recovery
 
 ```bash
-# Create backup
-./deploy.sh backup
+# Create database backup
+mongodump --uri="mongodb://localhost:27017/securedevops" --out=backup-$(date +%Y-%m-%d)
 
 # List backups
-ls -la backups/
+ls -la backup-*/
 
 # Restore from backup
-./deploy.sh restore backups/backup-2025-08-10.tar.gz
+mongorestore --uri="mongodb://localhost:27017/securedevops" backup-2025-08-10/securedevops/
 ```
 
 ### Performance Tuning
@@ -502,16 +513,18 @@ ls -la backups/
    db.scanreports.createIndex({ "findings.severity": 1 });
    ```
 
-2. **Resource Limits**
-   ```yaml
-   # docker-compose.prod.yml
-   services:
-     backend:
-       deploy:
-         resources:
-           limits:
-             memory: 1G
-             cpus: "0.5"
+2. **Resource Management**
+
+   ```bash
+   # Monitor system resources
+   top
+   htop
+   free -h
+   df -h
+
+   # Optimize Python application
+   # Use production WSGI server like Gunicorn
+   gunicorn -w 4 -k uvicorn.workers.UvicornWorker app:app
    ```
 
 ## 🐛 Troubleshooting
@@ -522,28 +535,29 @@ ls -la backups/
 
    ```bash
    # Check logs
-   docker-compose logs
+   tail -f backend/logs/app.log
 
    # Check system resources
-   docker system df
-   docker system prune  # Clean up if needed
+   free -h
+   df -h
    ```
 
 2. **Database Connection Issues**
 
    ```bash
    # Verify MongoDB is running
-   docker-compose exec mongodb mongosh --eval "db.adminCommand('ping')"
+   sudo systemctl status mongod
+   mongosh --eval "db.adminCommand('ping')"
 
    # Check environment variables
-   docker-compose exec backend env | grep MONGO
+   echo $MONGODB_URI
    ```
 
 3. **AI Analysis Not Working**
 
    ```bash
    # Verify OpenAI API key
-   docker-compose exec backend python -c "
+   python -c "
    import os
    print('API Key configured:', bool(os.getenv('OPENAI_API_KEY')))
    "
@@ -552,11 +566,11 @@ ls -la backups/
 4. **Frontend Access Issues**
 
    ```bash
-   # Check nginx configuration
-   docker-compose exec frontend nginx -t
+   # Check if frontend is built
+   ls -la frontend/dist/
 
-   # Verify build
-   docker-compose logs frontend
+   # Rebuild frontend
+   cd frontend && npm run build
    ```
 
 ### Performance Issues
@@ -565,10 +579,11 @@ ls -la backups/
 
    ```bash
    # Monitor resource usage
-   docker stats
+   top
+   htop
 
-   # Adjust memory limits
-   # Edit docker-compose.yml memory limits
+   # Optimize application settings
+   # Adjust worker processes or memory limits
    ```
 
 2. **Slow Scans**
@@ -577,8 +592,8 @@ ls -la backups/
    # Check scanner health
    curl http://localhost:8000/health/scanners
 
-   # Monitor scan queue
-   curl http://localhost:8000/admin/queue-status
+   # Monitor scan processes
+   ps aux | grep -E "(semgrep|trivy|gitleaks|lynis)"
    ```
 
 ## 🤝 Contributing
@@ -599,12 +614,21 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 # Clone your fork
 git clone https://github.com/yourusername/securedevops-platform.git
 
-# Create development environment
-docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+# Setup development environment
+cd backend
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+
+cd ../frontend
+npm install
 
 # Run tests
-docker-compose exec backend pytest
-docker-compose exec frontend npm test
+cd ../backend
+python -m pytest
+cd ../frontend
+npm test
 ```
 
 ## 📝 License
