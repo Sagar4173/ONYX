@@ -163,8 +163,21 @@ export const reportsAPI = {
   // Start a new scan
   startScan: async (scanData) => {
     try {
-      const response = await api.post("/webhook/scan", scanData);
-      return response.data;
+      // Webhook endpoints are not under /api prefix, so use direct fetch
+      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const response = await fetch(`${backendBaseUrl}/webhook/scan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(scanData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error("Error starting scan:", error);
       throw error;
@@ -179,8 +192,17 @@ export const webhookAPI = {
   // Get webhook events
   getWebhookEvents: async (params = {}) => {
     try {
-      const response = await api.get("/webhook/events", { params });
-      return response.data;
+      // Webhook endpoints are not under /api prefix
+      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const queryParams = new URLSearchParams(params).toString();
+      const url = `${backendBaseUrl}/webhook/events${queryParams ? '?' + queryParams : ''}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error("Error fetching webhook events:", error);
       throw error;
@@ -190,8 +212,21 @@ export const webhookAPI = {
   // Trigger webhook
   triggerWebhook: async (webhookData) => {
     try {
-      const response = await api.post("/webhook", webhookData);
-      return response.data;
+      // Webhook endpoints are not under /api prefix
+      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const response = await fetch(`${backendBaseUrl}/webhook`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error("Error triggering webhook:", error);
       throw error;
