@@ -164,19 +164,19 @@ export const reportsAPI = {
   startScan: async (scanData) => {
     try {
       // Webhook endpoints are not under /api prefix, so use direct fetch
-      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const backendBaseUrl = API_BASE_URL.replace("/api", "");
       const response = await fetch(`${backendBaseUrl}/webhook/scan`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(scanData)
+        body: JSON.stringify(scanData),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Error starting scan:", error);
@@ -193,15 +193,17 @@ export const webhookAPI = {
   getWebhookEvents: async (params = {}) => {
     try {
       // Webhook endpoints are not under /api prefix
-      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const backendBaseUrl = API_BASE_URL.replace("/api", "");
       const queryParams = new URLSearchParams(params).toString();
-      const url = `${backendBaseUrl}/webhook/events${queryParams ? '?' + queryParams : ''}`;
-      
+      const url = `${backendBaseUrl}/webhook/events${
+        queryParams ? "?" + queryParams : ""
+      }`;
+
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Error fetching webhook events:", error);
@@ -213,19 +215,19 @@ export const webhookAPI = {
   triggerWebhook: async (webhookData) => {
     try {
       // Webhook endpoints are not under /api prefix
-      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const backendBaseUrl = API_BASE_URL.replace("/api", "");
       const response = await fetch(`${backendBaseUrl}/webhook`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(webhookData)
+        body: JSON.stringify(webhookData),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error("Error triggering webhook:", error);
@@ -291,9 +293,11 @@ class WebSocketService {
 
       console.log(
         "🔌 Attempting WebSocket connection to:",
-        WS_BASE_URL.endsWith('/ws') ? WS_BASE_URL : `${WS_BASE_URL}/ws`
+        WS_BASE_URL.endsWith("/ws") ? WS_BASE_URL : `${WS_BASE_URL}/ws`
       );
-      this.ws = new WebSocket(WS_BASE_URL.endsWith('/ws') ? WS_BASE_URL : `${WS_BASE_URL}/ws`);
+      this.ws = new WebSocket(
+        WS_BASE_URL.endsWith("/ws") ? WS_BASE_URL : `${WS_BASE_URL}/ws`
+      );
 
       this.ws.onopen = () => {
         console.log("🔌 WebSocket connected successfully");

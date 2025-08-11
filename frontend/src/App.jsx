@@ -392,7 +392,7 @@ function AppContent() {
         "/api";
 
       // Webhook endpoints are not under /api prefix
-      const backendBaseUrl = API_BASE_URL.replace('/api', '');
+      const backendBaseUrl = API_BASE_URL.replace("/api", "");
       const response = await fetch(`${backendBaseUrl}/webhook/scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
