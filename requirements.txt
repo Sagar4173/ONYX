@@ -1,0 +1,73 @@
+# This file is for Railway deployment
+# The actual requirements are in backend/requirements.txt
+# Including them here for Railway auto-detection
+
+# FastAPI and ASGI server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# Database
+motor==3.3.2
+pymongo==4.6.0
+beanie==1.23.3
+
+# Security and middleware
+python-jose[cryptography]==3.3.0
+python-multipart==0.0.6
+slowapi==0.1.9
+bcrypt==4.1.2
+
+# Environment and configuration
+python-dotenv==1.0.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# HTTP client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Git operations
+GitPython==3.1.40
+
+# OpenAI API
+openai==1.3.7
+
+# PDF generation
+reportlab==4.0.7
+
+# Real Security Scanning Tools
+bandit==1.7.5
+safety==2.3.5
+semgrep==1.45.0
+gitpython==3.1.40
+detect-secrets==1.4.0
+requests==2.31.0
+
+# Notifications
+slack-sdk==3.26.1
+
+# Logging and monitoring
+structlog==23.2.0
+colorama==0.4.6
+
+# File operations
+aiofiles==23.2.1
+
+# Date/time utilities
+python-dateutil==2.8.2
+
+# JSON schema validation
+jsonschema==4.20.0
+
+# Rate limiting
+limits==3.7.0
+
+# Security headers
+secure==0.3.0
+
+# WebSocket support
+websockets==12.0
+
+# Process management
+psutil==5.9.6
