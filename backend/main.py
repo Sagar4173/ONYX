@@ -1,17 +1,12 @@
 # Railway deployment entry point
-# This file helps Railway detect this as a Python project
-# The actual application is in backend/app.py
+# This file is now in the backend directory
 
 import os
 import sys
 from pathlib import Path
 
-# Add backend directory to Python path
-backend_path = Path(__file__).parent / 'backend'
-sys.path.insert(0, str(backend_path))
-
-# Change working directory to backend for relative imports
-os.chdir(str(backend_path))
+# We're already in the backend directory, so add current directory to Python path
+sys.path.insert(0, str(Path(__file__).parent))
 
 # Import and run the backend application
 if __name__ == "__main__":
