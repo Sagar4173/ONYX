@@ -222,7 +222,7 @@ class WebSocketService {
         console.log("🔌 WebSocket connected");
         this.reconnectAttempts = 0;
         toast.success("Connected to real-time updates");
-        
+
         // Emit connected event
         this.listeners.forEach((callback, type) => {
           if (type === "connected") {
@@ -239,7 +239,7 @@ class WebSocketService {
         try {
           const data = JSON.parse(event.data);
           console.log("📨 WebSocket message:", data);
-          
+
           // Notify all listeners
           this.listeners.forEach((callback, type) => {
             if (!type || data.type === type || type === "message") {
@@ -270,7 +270,7 @@ class WebSocketService {
 
       this.ws.onclose = (event) => {
         console.log("🔌 WebSocket disconnected:", event.code, event.reason);
-        
+
         // Emit disconnected event
         this.listeners.forEach((callback, type) => {
           if (type === "disconnected") {
@@ -281,12 +281,17 @@ class WebSocketService {
             }
           }
         });
-        
+
         // Attempt to reconnect if not intentionally closed
-        if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+        if (
+          event.code !== 1000 &&
+          this.reconnectAttempts < this.maxReconnectAttempts
+        ) {
           this.reconnectAttempts++;
-          console.log(`🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-          
+          console.log(
+            `🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+          );
+
           setTimeout(() => {
             this.connect();
           }, this.reconnectInterval);
@@ -298,7 +303,6 @@ class WebSocketService {
       this.ws.onerror = (error) => {
         console.error("❌ WebSocket error:", error);
       };
-
     } catch (error) {
       console.error("Failed to connect WebSocket:", error);
     }
@@ -366,11 +370,11 @@ export const utils = {
   // Format duration from seconds to human readable format
   formatDuration: (seconds) => {
     if (!seconds || seconds < 0) return "0s";
-    
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m ${secs}s`;
     } else if (minutes > 0) {
@@ -431,7 +435,8 @@ export const utils = {
 
   // Validate repository URL
   validateRepoUrl: (url) => {
-    const gitUrlPattern = /^https?:\/\/(github\.com|gitlab\.com|bitbucket\.org)\/.+\/.+/;
+    const gitUrlPattern =
+      /^https?:\/\/(github\.com|gitlab\.com|bitbucket\.org)\/.+\/.+/;
     return gitUrlPattern.test(url);
   },
 
@@ -439,13 +444,13 @@ export const utils = {
   getProjectNameFromUrl: (url) => {
     try {
       const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split('/').filter(Boolean);
+      const pathParts = urlObj.pathname.split("/").filter(Boolean);
       if (pathParts.length >= 2) {
-        return pathParts[1].replace(/\.git$/, '');
+        return pathParts[1].replace(/\.git$/, "");
       }
-      return 'Unknown Project';
+      return "Unknown Project";
     } catch {
-      return 'Unknown Project';
+      return "Unknown Project";
     }
   },
 
