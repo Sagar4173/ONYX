@@ -159,7 +159,9 @@ export const authAPI = {
   // Refresh token
   refreshToken: async (refreshToken) => {
     try {
-      const response = await api.post("/auth/refresh", { refresh_token: refreshToken });
+      const response = await api.post("/auth/refresh", {
+        refresh_token: refreshToken,
+      });
       return response.data;
     } catch (error) {
       console.error("Token refresh error:", error);
@@ -203,7 +205,9 @@ export const authAPI = {
   // Request password reset
   requestPasswordReset: async (email) => {
     try {
-      const response = await api.post("/auth/password-reset-request", { email });
+      const response = await api.post("/auth/password-reset-request", {
+        email,
+      });
       return response.data;
     } catch (error) {
       console.error("Password reset request error:", error);
@@ -214,7 +218,10 @@ export const authAPI = {
   // Confirm password reset
   confirmPasswordReset: async (resetData) => {
     try {
-      const response = await api.post("/auth/password-reset-confirm", resetData);
+      const response = await api.post(
+        "/auth/password-reset-confirm",
+        resetData
+      );
       return response.data;
     } catch (error) {
       console.error("Password reset confirm error:", error);
@@ -400,7 +407,9 @@ export const projectsAPI = {
   // Get project analytics overview
   getAnalyticsOverview: async (params = {}) => {
     try {
-      const response = await api.get("/projects/analytics/overview", { params });
+      const response = await api.get("/projects/analytics/overview", {
+        params,
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching analytics overview:", error);
@@ -411,7 +420,10 @@ export const projectsAPI = {
   // Add member to project
   addMember: async (projectId, memberData) => {
     try {
-      const response = await api.post(`/projects/${projectId}/members`, memberData);
+      const response = await api.post(
+        `/projects/${projectId}/members`,
+        memberData
+      );
       return response.data;
     } catch (error) {
       console.error("Error adding project member:", error);
@@ -422,7 +434,9 @@ export const projectsAPI = {
   // Remove member from project
   removeMember: async (projectId, memberId) => {
     try {
-      const response = await api.delete(`/projects/${projectId}/members/${memberId}`);
+      const response = await api.delete(
+        `/projects/${projectId}/members/${memberId}`
+      );
       return response.data;
     } catch (error) {
       console.error("Error removing project member:", error);
@@ -433,7 +447,10 @@ export const projectsAPI = {
   // Update member role
   updateMemberRole: async (projectId, memberId, roleData) => {
     try {
-      const response = await api.put(`/projects/${projectId}/members/${memberId}`, roleData);
+      const response = await api.put(
+        `/projects/${projectId}/members/${memberId}`,
+        roleData
+      );
       return response.data;
     } catch (error) {
       console.error("Error updating member role:", error);

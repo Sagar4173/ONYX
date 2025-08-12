@@ -90,7 +90,8 @@ export const AuthProvider = ({ children }) => {
       );
       return data;
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || error.message || "Registration failed";
+      const errorMessage =
+        error.response?.data?.detail || error.message || "Registration failed";
       toast.error(errorMessage);
       throw error;
     }
@@ -125,7 +126,10 @@ export const AuthProvider = ({ children }) => {
       toast.success("Profile updated successfully!");
       return data;
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || error.message || "Profile update failed";
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.message ||
+        "Profile update failed";
       toast.error(errorMessage);
       throw error;
     }
@@ -137,7 +141,10 @@ export const AuthProvider = ({ children }) => {
       toast.success("Password changed successfully! Please log in again.");
       logout();
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || error.message || "Password change failed";
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.message ||
+        "Password change failed";
       toast.error(errorMessage);
       throw error;
     }
