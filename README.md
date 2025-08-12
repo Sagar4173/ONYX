@@ -27,6 +27,22 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 
 > **Test Credentials**: Contact us for demo access or deploy your own instance using the guides below.
 
+## 👥 **Meet the Team**
+
+**SecureDevOps AI Platform** is proudly developed by a dedicated team of three specialists:
+
+### **🧑‍💻 Core Team**
+
+| **Role**               | **Name**             | **Expertise**                                | **GitHub**                                           | **Contribution**                                                           |
+| ---------------------- | -------------------- | -------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| **💻 Lead Developer**  | **Sagar Wavhal**     | Full-Stack Development, AI Integration       | [@Sagar4173](https://github.com/Sagar4173)           | Platform architecture, backend/frontend development, AI implementation     |
+| **🔒 Security Expert** | **Piyush More**      | Cybersecurity, Vulnerability Assessment      | [@MorePiyush55](https://github.com/MorePiyush55)     | Security scanner integration, threat analysis, compliance frameworks       |
+| **⚙️ DevOps Engineer** | **Rushikesh Phalke** | DevOps, Linux Administration, Infrastructure | [@rushiphalke247](https://github.com/rushiphalke247) | Deployment automation, infrastructure management, scalability optimization |
+
+### **🎯 Our Mission**
+
+We combine our diverse expertise to create a comprehensive, AI-powered security platform that makes enterprise-grade security scanning accessible to organizations of all sizes.
+
 ![SecureDevOps Platform Dashboard](docs/images/dashboard.png)
 
 ## 🌟 Why Choose SecureDevOps AI Platform?
@@ -685,8 +701,40 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Security Tools**: Semgrep, Trivy, GitLeaks, Lynis
+- **Security Tools**: Semgrep, Trivy, GitLeaks, Lynis, Safety, Bandit
 - **AI Provider**: OpenAI for GPT-4 analysis
+- **Infrastructure**: Railway (Backend), Vercel (Frontend)
+- **Open Source Community**: All contributors who help improve this platform
+
+## 👥 Development Team
+
+**SecureDevOps AI Platform** is proudly built by:
+
+- **🧑‍💻 Sagar Wavhal** ([@Sagar4173](https://github.com/Sagar4173)) - Lead Developer & AI Integration Specialist
+- **🔒 Piyush More** ([@MorePiyush55](https://github.com/MorePiyush55)) - Cybersecurity Expert & Vulnerability Assessment
+- **⚙️ Rushikesh Phalke** ([@RushiPhalke247](https://github.com/RushiPhalke247)) - DevOps Engineer & Linux Administrator
+
+---
+
+## 📞 Support & Contact
+
+- **🐛 Issues**: [GitHub Issues](https://github.com/Sagar4173/SecureDevOpsAI-Platform/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions)
+- **📧 Email**: Contact us through GitHub for business inquiries
+- **🌐 Live Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
+
+---
+
+<div align="center">
+
+**⭐ Star this repository if you find it helpful!**
+
+[![GitHub stars](https://img.shields.io/github/stars/Sagar4173/SecureDevOpsAI-Platform?style=social)](https://github.com/Sagar4173/SecureDevOpsAI-Platform/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Sagar4173/SecureDevOpsAI-Platform?style=social)](https://github.com/Sagar4173/SecureDevOpsAI-Platform/network/members)
+
+**Made with ❤️ by the SecureDevOps AI Team**
+
+</div>
 - **Open Source Libraries**: FastAPI, React, MongoDB, and many others
 
 ## 📞 Support

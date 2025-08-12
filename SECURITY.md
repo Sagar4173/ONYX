@@ -8,8 +8,10 @@ If you discover a security vulnerability within SecureDevOps AI Platform, please
 
 ### 📧 Contact Information
 
-- **Email**: security@securedevops.ai
-- **PGP Key**: [Download our PGP key](https://securedevops.ai/pgp-key.asc)
+- **Security Team Lead**: Piyush More ([@MorePiyush55](https://github.com/MorePiyush55)) - Cybersecurity Expert
+- **Development Team Lead**: Sagar Wavhal ([@Sagar4173](https://github.com/Sagar4173)) - Lead Developer
+- **Infrastructure Team Lead**: Rushikesh Phalke ([@rushiphalke247](https://github.com/rushiphalke247)) - DevOps Engineer
+- **Email**: Use GitHub Issues for security reports (mark as security)
 - **Response Time**: We aim to acknowledge receipt within 24 hours
 
 ### 🔍 What to Include
@@ -521,6 +523,14 @@ _Bounty amounts depend on impact, quality of report, and fix complexity._
 - 🔄 Compliance reporting enhancements
 
 ---
+
+## 👥 Security Team
+
+**SecureDevOps AI Platform Security** is overseen by our dedicated team:
+
+- **🔒 Piyush More** ([@MorePiyush55](https://github.com/MorePiyush55)) - Security Expert & Vulnerability Assessment Lead
+- **🧑‍💻 Sagar Wavhal** ([@Sagar4173](https://github.com/Sagar4173)) - Lead Developer & Security Implementation
+- **⚙️ Rushikesh Phalke** ([@RushiPhalke247](https://github.com/RushiPhalke247)) - DevOps Engineer & Infrastructure Security
 
 Thank you for helping keep SecureDevOps AI Platform secure! 🔒
 

@@ -679,7 +679,48 @@ We recognize all contributors in our [CONTRIBUTORS.md](CONTRIBUTORS.md) file and
 
 ---
 
-## 📚 **Resources**
+## � **Core Team & Maintainers**
+
+**SecureDevOps AI Platform** is maintained by a dedicated team of three specialists:
+
+### **🧑‍💻 Lead Developer**
+
+**Sagar Wavhal** - Full-Stack Development & AI Integration
+
+- Platform architecture and core development
+- Backend/frontend implementation
+- AI-powered analysis features
+- **Contact**: GitHub [@Sagar4173](https://github.com/Sagar4173)
+
+### **🔒 Security Expert**
+
+**Piyush More** - Cybersecurity & Vulnerability Assessment
+
+- Security scanner integration and optimization
+- Threat analysis and compliance frameworks
+- Security best practices and vulnerability research
+- **Contact**: GitHub [@MorePiyush55](https://github.com/MorePiyush55)
+
+### **⚙️ DevOps Engineer**
+
+**Rushikesh Phalke** - DevOps & Infrastructure
+
+- Deployment automation and CI/CD pipelines
+- Infrastructure management and scalability
+- Linux administration and performance optimization
+- **Contact**: GitHub [@rushiphalke247](https://github.com/rushiphalke247)
+
+### **📞 Getting in Touch with the Team**
+
+For specific areas of contribution, you can reach out to the relevant team member:
+
+- **Development & Architecture**: Contact Sagar ([@Sagar4173](https://github.com/Sagar4173)) for technical implementation questions
+- **Security Features**: Contact Piyush ([@MorePiyush55](https://github.com/MorePiyush55)) for security-related contributions
+- **Infrastructure & Deployment**: Contact Rushikesh ([@RushiPhalke247](https://github.com/RushiPhalke247)) for DevOps and scaling topics
+
+---
+
+## �📚 **Resources**
 
 ### **Learning Resources**
 
