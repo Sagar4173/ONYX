@@ -34,6 +34,7 @@ from database import db_manager, init_database, close_database
 from routes.reports import router as reports_router
 from routes.webhook import router as webhook_router
 from routes.auth import router as auth_router
+from routes.projects import router as projects_router
 
 # Import configuration
 from config import settings
@@ -94,6 +95,7 @@ async def options_handler():
 # Include API routers with explicit trailing slash handling
 app.include_router(auth_router, prefix="/api")
 app.include_router(reports_router, prefix="/api/reports")
+app.include_router(projects_router, prefix="/api")
 app.include_router(webhook_router)
 
 # Add trailing slash redirect middleware

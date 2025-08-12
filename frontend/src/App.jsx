@@ -39,6 +39,7 @@ import {
   EyeIcon,
   ArrowPathIcon,
   PlayIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import {
   ChartBarIcon,
@@ -50,6 +51,7 @@ import {
 import ProjectList from "./components/ProjectList";
 import ReportDetails from "./components/ReportDetails";
 import ComplianceReport from "./components/ComplianceReport";
+import ProjectManagement from "./components/ProjectManagement";
 import {
   AuthProvider,
   useAuth,
@@ -516,6 +518,12 @@ function AppContent() {
       href: "/",
       icon: HomeIcon,
       gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      name: "Projects",
+      href: "/projects",
+      icon: UsersIcon,
+      gradient: "from-indigo-500 to-purple-500",
     },
     {
       name: "Reports",
@@ -1051,6 +1059,19 @@ function AppContent() {
               <Route
                 path="/"
                 element={<ModernDashboard notifications={notifications} />}
+              />
+              <Route
+                path="/projects"
+                element={
+                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                        <ProjectManagement />
+                      </div>
+                    </div>
+                  </div>
+                }
               />
               <Route
                 path="/reports"
