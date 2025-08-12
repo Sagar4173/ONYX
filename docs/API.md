@@ -137,7 +137,372 @@ Authorization: Bearer <token>
 
 ---
 
-## 📊 Reports API
+## � User Management API
+
+### Get Current User Profile
+
+Get the profile information for the currently authenticated user.
+
+```http
+GET /api/users/me
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "id": "user_123",
+  "email": "user@example.com",
+  "username": "johndoe",
+  "full_name": "John Doe",
+  "role": "developer",
+  "status": "active",
+  "organization": "Acme Corp",
+  "timezone": "UTC",
+  "is_email_verified": true,
+  "last_login": "2025-01-15T10:30:00Z",
+  "created_at": "2025-01-01T00:00:00Z",
+  "notification_preferences": {
+    "email_notifications": true,
+    "security_alerts": true,
+    "scan_completion": true,
+    "weekly_reports": true
+  }
+}
+```
+
+### Update Current User Profile
+
+Update the profile information for the currently authenticated user.
+
+```http
+PUT /api/users/me
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "full_name": "John Smith",
+  "organization": "New Company",
+  "timezone": "America/New_York",
+  "notification_preferences": {
+    "email_notifications": false,
+    "security_alerts": true,
+    "scan_completion": true,
+    "weekly_reports": false
+  }
+}
+```
+
+### Change Password
+
+Change the password for the currently authenticated user.
+
+```http
+POST /api/users/me/change-password
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "current_password": "oldpassword123",
+  "new_password": "NewSecurePassword!123"
+}
+```
+
+### List All Users (Admin Only)
+
+Retrieve a list of all users with filtering and pagination. Requires Admin role.
+
+```http
+GET /api/users?role=developer&status=active&search=john&page=1&limit=20
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "users": [
+    {
+      "id": "user_123",
+      "email": "user@example.com",
+      "username": "johndoe",
+      "full_name": "John Doe",
+      "role": "developer",
+      "status": "active",
+      "organization": "Acme Corp",
+      "last_login": "2025-01-15T10:30:00Z",
+      "created_at": "2025-01-01T00:00:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "total_pages": 1,
+  "has_next": false,
+  "has_previous": false
+}
+```
+
+### Update User Role (Admin Only)
+
+Update a user's role. Requires Admin role.
+
+```http
+PUT /api/users/{user_id}/role
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+"security_manager"
+```
+
+### Update User Status (Admin Only)
+
+Update a user's status. Requires Admin role.
+
+```http
+PUT /api/users/{user_id}/status
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+"suspended"
+```
+
+### Get User Sessions
+
+Get active sessions for the current user or a specific user (Admin only).
+
+```http
+GET /api/users/me/sessions
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "sessions": [
+    {
+      "session_id": "session_123",
+      "ip_address": "192.168.1.100",
+      "user_agent": "Mozilla/5.0...",
+      "device_info": {
+        "browser": "Chrome",
+        "os": "Windows 10"
+      },
+      "created_at": "2025-01-15T10:00:00Z",
+      "last_activity": "2025-01-15T10:30:00Z",
+      "expires_at": "2025-01-15T18:00:00Z"
+    }
+  ]
+}
+```
+
+### Revoke Session
+
+Revoke a specific session for the current user.
+
+```http
+DELETE /api/users/me/sessions/{session_id}
+Authorization: Bearer <token>
+```
+
+### Get API Tokens
+
+Get API tokens for the current user.
+
+```http
+GET /api/users/me/api-tokens
+Authorization: Bearer <token>
+```
+
+### Create API Token
+
+Create a new API token for the current user.
+
+```http
+POST /api/users/me/api-tokens
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "CI/CD Integration",
+  "scopes": ["read:reports", "write:scans"],
+  "expires_in_days": 90,
+  "allowed_ips": ["192.168.1.0/24"]
+}
+```
+
+**Response:**
+
+```json
+{
+  "token_id": "token_123",
+  "name": "CI/CD Integration",
+  "token": "sdt_1234567890abcdef...",
+  "prefix": "sdt_1234",
+  "scopes": ["read:reports", "write:scans"],
+  "expires_at": "2025-04-15T00:00:00Z",
+  "created_at": "2025-01-15T10:30:00Z"
+}
+```
+
+### Get User Statistics (Admin Only)
+
+Get user statistics for the admin dashboard.
+
+```http
+GET /api/users/statistics
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "total_users": 150,
+  "active_users": 142,
+  "pending_users": 5,
+  "suspended_users": 3,
+  "role_distribution": {
+    "admin": 2,
+    "security_manager": 8,
+    "developer": 95,
+    "viewer": 45
+  },
+  "recent_registrations": 12,
+  "active_sessions": 89
+}
+```
+
+---
+
+## 📊 Projects API
+
+### Get All Projects
+
+Retrieve a list of projects accessible to the current user.
+
+```http
+GET /api/projects?category=web&status=active&page=1&limit=20
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "projects": [
+    {
+      "id": "project_123",
+      "name": "My Web App",
+      "description": "A secure web application",
+      "category": "web",
+      "repository_url": "https://github.com/user/repo",
+      "repository_branch": "main",
+      "scan_tools": ["semgrep", "trivy"],
+      "created_at": "2025-01-01T00:00:00Z",
+      "last_scan": "2025-01-15T10:00:00Z",
+      "team_members": [
+        {
+          "user_id": "user_123",
+          "role": "owner",
+          "permissions": ["read", "write", "admin"]
+        }
+      ]
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "total_pages": 1
+}
+```
+
+### Create Project
+
+Create a new project.
+
+```http
+POST /api/projects
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "New Security Project",
+  "description": "Project for security testing",
+  "category": "web",
+  "repository_url": "https://github.com/user/new-repo",
+  "repository_branch": "main",
+  "scan_tools": ["semgrep", "trivy", "gitleaks"],
+  "team_members": [
+    {
+      "user_id": "user_456",
+      "role": "developer"
+    }
+  ]
+}
+```
+
+### Update Project
+
+Update an existing project.
+
+```http
+PUT /api/projects/{project_id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Updated Project Name",
+  "description": "Updated description",
+  "scan_tools": ["semgrep", "trivy", "gitleaks", "bandit"]
+}
+```
+
+### Add Team Member
+
+Add a team member to a project.
+
+```http
+POST /api/projects/{project_id}/team
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "user_id": "user_789",
+  "role": "developer"
+}
+```
+
+### Get Project Statistics
+
+Get statistics for a specific project.
+
+```http
+GET /api/projects/{project_id}/statistics
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "total_scans": 25,
+  "last_scan_date": "2025-01-15T10:00:00Z",
+  "vulnerabilities": {
+    "critical": 2,
+    "high": 8,
+    "medium": 15,
+    "low": 30
+  },
+  "scan_tools_used": ["semgrep", "trivy", "gitleaks"],
+  "team_size": 4,
+  "project_health": "good"
+}
+```
+
+---
+
+## �📊 Reports API
 
 ### Get All Scan Reports
 

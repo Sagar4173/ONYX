@@ -52,6 +52,7 @@ import ProjectList from "./components/ProjectList";
 import ReportDetails from "./components/ReportDetails";
 import ComplianceReport from "./components/ComplianceReport";
 import ProjectManagement from "./components/ProjectManagement";
+import UserManagement from "./components/UserManagement";
 import {
   AuthProvider,
   useAuth,
@@ -524,6 +525,12 @@ function AppContent() {
       href: "/projects",
       icon: UsersIcon,
       gradient: "from-indigo-500 to-purple-500",
+    },
+    {
+      name: "Users",
+      href: "/users",
+      icon: UserCircleIcon,
+      gradient: "from-teal-500 to-blue-500",
     },
     {
       name: "Reports",
@@ -1073,6 +1080,7 @@ function AppContent() {
                   </div>
                 }
               />
+              <Route path="/users" element={<UserManagement />} />
               <Route
                 path="/reports"
                 element={

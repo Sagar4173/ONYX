@@ -2,9 +2,9 @@
  * Project Management Components for SecureDevOps Platform
  * Handles project creation, editing, and management
  */
-import React, { useState, useEffect } from 'react';
-import { 
-  PlusIcon, 
+import React, { useState, useEffect } from "react";
+import {
+  PlusIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
   EllipsisVerticalIcon,
@@ -18,136 +18,136 @@ import {
   GlobeAltIcon,
   ShieldCheckIcon,
   ExclamationTriangleIcon,
-  XMarkIcon
-} from '@heroicons/react/24/outline';
-import { 
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import {
   ChartBarIcon as ChartBarSolid,
   CheckCircleIcon,
-  ExclamationCircleIcon
-} from '@heroicons/react/24/solid';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { useAuth } from './Auth';
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/solid";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { useAuth } from "./Auth";
 
 // API Functions
 const projectsAPI = {
   getProjects: async (params = {}) => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
+      if (value !== null && value !== undefined && value !== "") {
         searchParams.append(key, value);
       }
     });
-    
+
     const response = await fetch(`/api/projects?${searchParams}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to fetch projects');
+      throw new Error("Failed to fetch projects");
     }
-    
+
     return response.json();
   },
 
   createProject: async (projectData) => {
-    const response = await fetch('/api/projects/', {
-      method: 'POST',
+    const response = await fetch("/api/projects/", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(projectData)
+      body: JSON.stringify(projectData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to create project');
+      throw new Error(error.detail || "Failed to create project");
     }
-    
+
     return response.json();
   },
 
   getProject: async (projectId) => {
     const response = await fetch(`/api/projects/${projectId}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to fetch project');
+      throw new Error("Failed to fetch project");
     }
-    
+
     return response.json();
   },
 
   updateProject: async (projectId, updateData) => {
     const response = await fetch(`/api/projects/${projectId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(updateData)
+      body: JSON.stringify(updateData),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to update project');
+      throw new Error(error.detail || "Failed to update project");
     }
-    
+
     return response.json();
   },
 
   deleteProject: async (projectId) => {
     const response = await fetch(`/api/projects/${projectId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete project');
+      throw new Error(error.detail || "Failed to delete project");
     }
   },
 
   getProjectTemplates: async () => {
-    const response = await fetch('/api/projects/templates/categories', {
+    const response = await fetch("/api/projects/templates/categories", {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to fetch project templates');
+      throw new Error("Failed to fetch project templates");
     }
-    
+
     return response.json();
   },
 
   getProjectAnalytics: async () => {
-    const response = await fetch('/api/projects/analytics/overview', {
+    const response = await fetch("/api/projects/analytics/overview", {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        "Content-Type": "application/json",
+      },
     });
-    
+
     if (!response.ok) {
-      throw new Error('Failed to fetch project analytics');
+      throw new Error("Failed to fetch project analytics");
     }
-    
+
     return response.json();
-  }
+  },
 };
 
 // Project Card Component
@@ -156,44 +156,61 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'critical': return 'from-red-500 to-red-600';
-      case 'high': return 'from-orange-500 to-orange-600';
-      case 'medium': return 'from-yellow-500 to-yellow-600';
-      case 'low': return 'from-green-500 to-green-600';
-      default: return 'from-gray-500 to-gray-600';
+      case "critical":
+        return "from-red-500 to-red-600";
+      case "high":
+        return "from-orange-500 to-orange-600";
+      case "medium":
+        return "from-yellow-500 to-yellow-600";
+      case "low":
+        return "from-green-500 to-green-600";
+      default:
+        return "from-gray-500 to-gray-600";
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'text-green-400 bg-green-500/20';
-      case 'inactive': return 'text-yellow-400 bg-yellow-500/20';
-      case 'archived': return 'text-gray-400 bg-gray-500/20';
-      default: return 'text-gray-400 bg-gray-500/20';
+      case "active":
+        return "text-green-400 bg-green-500/20";
+      case "inactive":
+        return "text-yellow-400 bg-yellow-500/20";
+      case "archived":
+        return "text-gray-400 bg-gray-500/20";
+      default:
+        return "text-gray-400 bg-gray-500/20";
     }
   };
 
   const getCategoryIcon = (category) => {
     switch (category) {
-      case 'web_application': return '🌐';
-      case 'mobile_application': return '📱';
-      case 'api_service': return '🔌';
-      case 'infrastructure': return '🏗️';
-      case 'microservice': return '⚡';
-      case 'library': return '📚';
-      default: return '📦';
+      case "web_application":
+        return "🌐";
+      case "mobile_application":
+        return "📱";
+      case "api_service":
+        return "🔌";
+      case "infrastructure":
+        return "🏗️";
+      case "microservice":
+        return "⚡";
+      case "library":
+        return "📚";
+      default:
+        return "📦";
     }
   };
 
-  const totalVulns = project.vulnerability_count.critical + 
-                   project.vulnerability_count.high + 
-                   project.vulnerability_count.medium + 
-                   project.vulnerability_count.low;
+  const totalVulns =
+    project.vulnerability_count.critical +
+    project.vulnerability_count.high +
+    project.vulnerability_count.medium +
+    project.vulnerability_count.low;
 
   return (
     <div className="relative group">
       <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl group-hover:scale-105 transition-all duration-300" />
-      
+
       <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6 hover:border-gray-600/50 transition-all duration-300">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
@@ -204,16 +221,24 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
                 {project.name}
               </h3>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(project.status)}`}>
+                <span
+                  className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(
+                    project.status
+                  )}`}
+                >
                   {project.status}
                 </span>
-                <div className={`px-2 py-1 rounded-lg bg-gradient-to-r ${getPriorityColor(project.priority)} text-white text-xs font-medium`}>
+                <div
+                  className={`px-2 py-1 rounded-lg bg-gradient-to-r ${getPriorityColor(
+                    project.priority
+                  )} text-white text-xs font-medium`}
+                >
                   {project.priority}
                 </div>
               </div>
             </div>
           </div>
-          
+
           <div className="relative">
             <button
               onClick={() => setShowActions(!showActions)}
@@ -221,25 +246,34 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
             >
               <EllipsisVerticalIcon className="h-5 w-5" />
             </button>
-            
+
             {showActions && (
               <div className="absolute right-0 top-full mt-2 w-48 bg-gray-800/95 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl z-10">
                 <button
-                  onClick={() => { onView(project); setShowActions(false); }}
+                  onClick={() => {
+                    onView(project);
+                    setShowActions(false);
+                  }}
                   className="w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all flex items-center space-x-2"
                 >
                   <ChartBarIcon className="h-4 w-4" />
                   <span>View Details</span>
                 </button>
                 <button
-                  onClick={() => { onEdit(project); setShowActions(false); }}
+                  onClick={() => {
+                    onEdit(project);
+                    setShowActions(false);
+                  }}
                   className="w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all flex items-center space-x-2"
                 >
                   <PencilIcon className="h-4 w-4" />
                   <span>Edit Project</span>
                 </button>
                 <button
-                  onClick={() => { onDelete(project); setShowActions(false); }}
+                  onClick={() => {
+                    onDelete(project);
+                    setShowActions(false);
+                  }}
                   className="w-full px-4 py-3 text-left text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all flex items-center space-x-2"
                 >
                   <TrashIcon className="h-4 w-4" />
@@ -261,14 +295,18 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
         <div className="flex items-center space-x-2 mb-4">
           <GlobeAltIcon className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-400 truncate">
-            {project.repository_url.replace('https://', '').replace('http://', '')}
+            {project.repository_url
+              .replace("https://", "")
+              .replace("http://", "")}
           </span>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center">
-            <div className="text-lg font-bold text-white">{project.total_scans}</div>
+            <div className="text-lg font-bold text-white">
+              {project.total_scans}
+            </div>
             <div className="text-xs text-gray-400">Scans</div>
           </div>
           <div className="text-center">
@@ -276,7 +314,9 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
             <div className="text-xs text-gray-400">Issues</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-white">{Math.round(project.security_score || 0)}</div>
+            <div className="text-lg font-bold text-white">
+              {Math.round(project.security_score || 0)}
+            </div>
             <div className="text-xs text-gray-400">Score</div>
           </div>
         </div>
@@ -306,14 +346,11 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
         {/* Footer */}
         <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-700/50">
           <span>
-            {project.last_scan 
+            {project.last_scan
               ? `Last scan: ${new Date(project.last_scan).toLocaleDateString()}`
-              : 'No scans yet'
-            }
+              : "No scans yet"}
           </span>
-          <span>
-            {new Date(project.created_at).toLocaleDateString()}
-          </span>
+          <span>{new Date(project.created_at).toLocaleDateString()}</span>
         </div>
       </div>
     </div>
@@ -323,70 +360,70 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
 // Create Project Modal
 const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    category: 'other',
-    priority: 'medium',
+    name: "",
+    description: "",
+    category: "other",
+    priority: "medium",
     repository: {
-      url: '',
-      branch: 'main',
-      access_token: '',
-      scan_paths: ['/'],
-      exclude_paths: []
+      url: "",
+      branch: "main",
+      access_token: "",
+      scan_paths: ["/"],
+      exclude_paths: [],
     },
     scan_config: {
-      enabled_scanners: ['sast', 'secrets'],
+      enabled_scanners: ["sast", "secrets"],
       auto_scan_on_push: false,
       scan_timeout_minutes: 60,
-      fail_on_critical: false
+      fail_on_critical: false,
     },
-    tags: []
+    tags: [],
   });
-  
-  const [tagInput, setTagInput] = useState('');
+
+  const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: templates } = useQuery({
-    queryKey: ['projectTemplates'],
-    queryFn: projectsAPI.getProjectTemplates
+    queryKey: ["projectTemplates"],
+    queryFn: projectsAPI.getProjectTemplates,
   });
 
   const createMutation = useMutation({
     mutationFn: projectsAPI.createProject,
     onSuccess: (data) => {
-      toast.success('Project created successfully!');
+      toast.success("Project created successfully!");
       onSuccess(data);
       onClose();
       setFormData({
-        name: '',
-        description: '',
-        category: 'other',
-        priority: 'medium',
+        name: "",
+        description: "",
+        category: "other",
+        priority: "medium",
         repository: {
-          url: '',
-          branch: 'main',
-          access_token: '',
-          scan_paths: ['/'],
-          exclude_paths: []
+          url: "",
+          branch: "main",
+          access_token: "",
+          scan_paths: ["/"],
+          exclude_paths: [],
         },
         scan_config: {
-          enabled_scanners: ['sast', 'secrets'],
+          enabled_scanners: ["sast", "secrets"],
           auto_scan_on_push: false,
           scan_timeout_minutes: 60,
-          fail_on_critical: false
+          fail_on_critical: false,
         },
-        tags: []
+        tags: [],
       });
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create project');
-    }
+      toast.error(error.message || "Failed to create project");
+    },
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.repository.url.trim()) {
-      toast.error('Please fill in required fields');
+      toast.error("Please fill in required fields");
       return;
     }
 
@@ -400,30 +437,30 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim()]
+        tags: [...prev.tags, tagInput.trim()],
       }));
-      setTagInput('');
+      setTagInput("");
     }
   };
 
   const removeTag = (tagToRemove) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
   const toggleScanner = (scanner) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       scan_config: {
         ...prev.scan_config,
         enabled_scanners: prev.scan_config.enabled_scanners.includes(scanner)
-          ? prev.scan_config.enabled_scanners.filter(s => s !== scanner)
-          : [...prev.scan_config.enabled_scanners, scanner]
-      }
+          ? prev.scan_config.enabled_scanners.filter((s) => s !== scanner)
+          : [...prev.scan_config.enabled_scanners, scanner],
+      },
     }));
   };
 
@@ -431,13 +468,16 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl" />
-            
+
             <div className="relative p-8">
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
@@ -446,8 +486,12 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                     <PlusIcon className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Create New Project</h2>
-                    <p className="text-gray-400">Set up a new security scanning project</p>
+                    <h2 className="text-2xl font-bold text-white">
+                      Create New Project
+                    </h2>
+                    <p className="text-gray-400">
+                      Set up a new security scanning project
+                    </p>
                   </div>
                 </div>
                 <button
@@ -461,8 +505,10 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Basic Information */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">Basic Information</h3>
-                  
+                  <h3 className="text-lg font-semibold text-white">
+                    Basic Information
+                  </h3>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">
@@ -471,23 +517,33 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                       <input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
                         placeholder="My Awesome Project"
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">
                         Category
                       </label>
                       <select
                         value={formData.category}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            category: e.target.value,
+                          }))
+                        }
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                       >
-                        {templates?.categories.map(category => (
+                        {templates?.categories.map((category) => (
                           <option key={category.value} value={category.value}>
                             {category.label}
                           </option>
@@ -502,7 +558,12 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                     </label>
                     <textarea
                       value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
                       placeholder="Describe your project..."
                       rows={3}
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
@@ -515,10 +576,15 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                     </label>
                     <select
                       value={formData.priority}
-                      onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          priority: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                     >
-                      {templates?.priorities.map(priority => (
+                      {templates?.priorities.map((priority) => (
                         <option key={priority.value} value={priority.value}>
                           {priority.label}
                         </option>
@@ -529,8 +595,10 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {/* Repository Configuration */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">Repository Configuration</h3>
-                  
+                  <h3 className="text-lg font-semibold text-white">
+                    Repository Configuration
+                  </h3>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">
@@ -539,16 +607,21 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                       <input
                         type="url"
                         value={formData.repository.url}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          repository: { ...prev.repository, url: e.target.value }
-                        }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            repository: {
+                              ...prev.repository,
+                              url: e.target.value,
+                            },
+                          }))
+                        }
                         placeholder="https://github.com/user/repo"
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">
                         Default Branch
@@ -556,10 +629,15 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                       <input
                         type="text"
                         value={formData.repository.branch}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          repository: { ...prev.repository, branch: e.target.value }
-                        }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            repository: {
+                              ...prev.repository,
+                              branch: e.target.value,
+                            },
+                          }))
+                        }
                         placeholder="main"
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                       />
@@ -573,10 +651,15 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                     <input
                       type="password"
                       value={formData.repository.access_token}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        repository: { ...prev.repository, access_token: e.target.value }
-                      }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          repository: {
+                            ...prev.repository,
+                            access_token: e.target.value,
+                          },
+                        }))
+                      }
                       placeholder="ghp_xxxxxxxxxxxx"
                       className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                     />
@@ -585,27 +668,37 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {/* Security Scanners */}
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">Security Scanners</h3>
-                  
+                  <h3 className="text-lg font-semibold text-white">
+                    Security Scanners
+                  </h3>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {templates?.scan_types.map(scanner => (
+                    {templates?.scan_types.map((scanner) => (
                       <button
                         key={scanner.value}
                         type="button"
                         onClick={() => toggleScanner(scanner.value)}
                         className={`p-4 rounded-xl border-2 transition-all text-left ${
-                          formData.scan_config.enabled_scanners.includes(scanner.value)
-                            ? 'border-blue-500/70 bg-blue-500/20'
-                            : 'border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50'
+                          formData.scan_config.enabled_scanners.includes(
+                            scanner.value
+                          )
+                            ? "border-blue-500/70 bg-blue-500/20"
+                            : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-white">{scanner.label}</span>
-                          {formData.scan_config.enabled_scanners.includes(scanner.value) && (
+                          <span className="font-medium text-white">
+                            {scanner.label}
+                          </span>
+                          {formData.scan_config.enabled_scanners.includes(
+                            scanner.value
+                          ) && (
                             <CheckCircleIcon className="h-5 w-5 text-blue-400" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-400">{scanner.description}</p>
+                        <p className="text-sm text-gray-400">
+                          {scanner.description}
+                        </p>
                       </button>
                     ))}
                   </div>
@@ -614,13 +707,15 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                 {/* Tags */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-white">Tags</h3>
-                  
+
                   <div className="flex items-center space-x-2">
                     <input
                       type="text"
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && (e.preventDefault(), addTag())
+                      }
                       placeholder="Add tags..."
                       className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                     />
@@ -632,10 +727,10 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                       Add
                     </button>
                   </div>
-                  
+
                   {formData.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {formData.tags.map(tag => (
+                      {formData.tags.map((tag) => (
                         <span
                           key={tag}
                           className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
@@ -668,7 +763,9 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                     disabled={isSubmitting || createMutation.isPending}
                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all"
                   >
-                    {isSubmitting || createMutation.isPending ? 'Creating...' : 'Create Project'}
+                    {isSubmitting || createMutation.isPending
+                      ? "Creating..."
+                      : "Create Project"}
                   </button>
                 </div>
               </form>
@@ -684,10 +781,10 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 export const ProjectManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filters, setFilters] = useState({
-    search: '',
-    status: '',
-    category: '',
-    priority: ''
+    search: "",
+    status: "",
+    category: "",
+    priority: "",
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -695,33 +792,33 @@ export const ProjectManagement = () => {
   const { user } = useAuth();
 
   const { data: projectsData, isLoading } = useQuery({
-    queryKey: ['projects', filters],
-    queryFn: () => projectsAPI.getProjects(filters)
+    queryKey: ["projects", filters],
+    queryFn: () => projectsAPI.getProjects(filters),
   });
 
   const { data: analytics } = useQuery({
-    queryKey: ['projectAnalytics'],
-    queryFn: projectsAPI.getProjectAnalytics
+    queryKey: ["projectAnalytics"],
+    queryFn: projectsAPI.getProjectAnalytics,
   });
 
   const handleProjectCreated = () => {
-    queryClient.invalidateQueries(['projects']);
-    queryClient.invalidateQueries(['projectAnalytics']);
+    queryClient.invalidateQueries(["projects"]);
+    queryClient.invalidateQueries(["projectAnalytics"]);
   };
 
   const handleEditProject = (project) => {
     // TODO: Implement edit modal
-    console.log('Edit project:', project);
+    console.log("Edit project:", project);
   };
 
   const handleDeleteProject = (project) => {
     // TODO: Implement delete confirmation
-    console.log('Delete project:', project);
+    console.log("Delete project:", project);
   };
 
   const handleViewProject = (project) => {
     // TODO: Navigate to project details
-    console.log('View project:', project);
+    console.log("View project:", project);
   };
 
   if (isLoading) {
@@ -742,12 +839,14 @@ export const ProjectManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Project Management</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Project Management
+          </h1>
           <p className="text-gray-400">
             Manage your security scanning projects and team collaboration
           </p>
         </div>
-        
+
         <button
           onClick={() => setShowCreateModal(true)}
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-2"
@@ -765,7 +864,9 @@ export const ProjectManagement = () => {
               <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500">
                 <UsersIcon className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">{analytics.total_projects}</span>
+              <span className="text-2xl font-bold text-white">
+                {analytics.total_projects}
+              </span>
             </div>
             <h3 className="text-gray-400 font-medium">Total Projects</h3>
           </div>
@@ -775,7 +876,9 @@ export const ProjectManagement = () => {
               <div className="p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
                 <CheckCircleIcon className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">{analytics.active_projects}</span>
+              <span className="text-2xl font-bold text-white">
+                {analytics.active_projects}
+              </span>
             </div>
             <h3 className="text-gray-400 font-medium">Active Projects</h3>
           </div>
@@ -785,7 +888,9 @@ export const ProjectManagement = () => {
               <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
                 <ChartBarSolid className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">{analytics.total_scans}</span>
+              <span className="text-2xl font-bold text-white">
+                {analytics.total_scans}
+              </span>
             </div>
             <h3 className="text-gray-400 font-medium">Total Scans</h3>
           </div>
@@ -795,7 +900,9 @@ export const ProjectManagement = () => {
               <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500">
                 <ExclamationTriangleIcon className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">{analytics.total_vulnerabilities}</span>
+              <span className="text-2xl font-bold text-white">
+                {analytics.total_vulnerabilities}
+              </span>
             </div>
             <h3 className="text-gray-400 font-medium">Total Issues</h3>
           </div>
@@ -820,7 +927,9 @@ export const ProjectManagement = () => {
             <input
               type="text"
               value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
               placeholder="Search projects..."
               className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
             />
@@ -830,7 +939,9 @@ export const ProjectManagement = () => {
             <>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, status: e.target.value }))
+                }
                 className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               >
                 <option value="">All Status</option>
@@ -841,7 +952,9 @@ export const ProjectManagement = () => {
 
               <select
                 value={filters.category}
-                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, category: e.target.value }))
+                }
                 className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               >
                 <option value="">All Categories</option>
@@ -856,7 +969,9 @@ export const ProjectManagement = () => {
 
               <select
                 value={filters.priority}
-                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, priority: e.target.value }))
+                }
                 className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               >
                 <option value="">All Priorities</option>
@@ -872,7 +987,7 @@ export const ProjectManagement = () => {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projectsData?.projects?.map(project => (
+        {projectsData?.projects?.map((project) => (
           <ProjectCard
             key={project.id}
             project={project}
@@ -889,12 +1004,16 @@ export const ProjectManagement = () => {
           <div className="p-4 rounded-2xl bg-gray-800/50 inline-block mb-4">
             <UsersIcon className="h-12 w-12 text-gray-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">No Projects Found</h3>
+          <h3 className="text-xl font-bold text-white mb-2">
+            No Projects Found
+          </h3>
           <p className="text-gray-400 mb-6">
-            {filters.search || filters.status || filters.category || filters.priority
-              ? 'No projects match your current filters'
-              : 'Get started by creating your first project'
-            }
+            {filters.search ||
+            filters.status ||
+            filters.category ||
+            filters.priority
+              ? "No projects match your current filters"
+              : "Get started by creating your first project"}
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
