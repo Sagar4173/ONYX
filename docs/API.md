@@ -4,11 +4,13 @@
 
 SecureDevOps AI Platform provides a comprehensive REST API for managing security scans, accessing reports, and integrating with external systems. The API is built with FastAPI and provides automatic OpenAPI documentation.
 
-**Base URLs**: 
+**Base URLs**:
+
 - **Production**: `https://securedevopsai-platform-production.up.railway.app`
 - **Development**: `http://localhost:8000`
 
-**API Documentation**: 
+**API Documentation**:
+
 - **Live Demo**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
 - **Local Development**: Visit `/docs` for interactive Swagger UI documentation
 
@@ -21,6 +23,7 @@ SecureDevOps AI Platform provides a comprehensive REST API for managing security
 All API endpoints (except health checks and webhook endpoints) require JWT authentication.
 
 #### **Obtain Access Token**
+
 ```http
 POST /auth/login
 Content-Type: application/json
@@ -32,6 +35,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -41,12 +45,15 @@ Content-Type: application/json
 ```
 
 #### **Using the Token**
+
 Include the token in the Authorization header:
+
 ```http
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 #### **Refresh Token**
+
 ```http
 POST /auth/refresh
 Authorization: Bearer <refresh_token>
@@ -73,11 +80,13 @@ Authorization: Bearer <token>
 ```
 
 **Parameters:**
+
 - `repository_url` (string, required): Git repository URL
 - `branch` (string, optional): Branch to scan (default: "main")
 - `scan_types` (array, optional): Types of scans to run
 
 **Response:**
+
 ```json
 {
   "message": "Scan submitted successfully",
@@ -91,6 +100,7 @@ Authorization: Bearer <token>
 ```
 
 **Status Codes:**
+
 - `202`: Scan submitted successfully
 - `400`: Invalid request parameters
 - `401`: Authentication required
@@ -106,6 +116,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "scan_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -117,6 +128,7 @@ Authorization: Bearer <token>
 ```
 
 **Scan Statuses:**
+
 - `pending`: Scan queued for processing
 - `running`: Scan in progress
 - `completed`: Scan finished successfully
@@ -137,6 +149,7 @@ Authorization: Bearer <token>
 ```
 
 **Query Parameters:**
+
 - `project_name` (string, optional): Filter by project name
 - `status` (string, optional): Filter by scan status
 - `severity` (string, optional): Filter by minimum severity level
@@ -146,6 +159,7 @@ Authorization: Bearer <token>
 - `sort_order` (string, optional): Sort order ("asc" or "desc", default: "desc")
 
 **Response:**
+
 ```json
 {
   "reports": [
@@ -192,6 +206,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "scan_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -275,11 +290,13 @@ Authorization: Bearer <token>
 ```
 
 **Query Parameters:**
+
 - `format` (string, required): Export format ("pdf", "json", "csv")
 - `include_ai_analysis` (boolean, optional): Include AI analysis (default: true)
 - `include_code_snippets` (boolean, optional): Include vulnerable code snippets (default: false)
 
 **Response:**
+
 - PDF: Binary PDF file
 - JSON: Structured JSON data
 - CSV: Comma-separated values
@@ -294,6 +311,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "message": "Scan report deleted successfully",
@@ -335,12 +353,14 @@ X-Hub-Signature-256: sha256=...
 ```
 
 **Supported Git Providers:**
+
 - GitHub (push, pull_request events)
 - GitLab (push, merge_request events)
 - Bitbucket (push events)
 - Azure DevOps (push events)
 
 **Response:**
+
 ```json
 {
   "status": "accepted",
@@ -360,12 +380,14 @@ Authorization: Bearer <token>
 ```
 
 **Query Parameters:**
+
 - `provider` (string, optional): Filter by Git provider
 - `status` (string, optional): Filter by processing status
 - `repository` (string, optional): Filter by repository name
 - `event_type` (string, optional): Filter by event type
 
 **Response:**
+
 ```json
 {
   "events": [
@@ -397,11 +419,13 @@ Authorization: Bearer <token>
 ```
 
 **Query Parameters:**
+
 - `timeframe` (string, optional): Time period ("7d", "30d", "90d", "1y")
 - `project` (string, optional): Filter by project name
 - `metric_type` (string, optional): Specific metric type
 
 **Response:**
+
 ```json
 {
   "timeframe": "30d",
@@ -451,6 +475,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "metric": "vulnerability_count",
@@ -484,6 +509,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "scanners": {
@@ -552,6 +578,7 @@ GET /health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -586,6 +613,7 @@ Authorization: Bearer <token>
 ```
 
 **Response:**
+
 ```json
 {
   "scanners": {
@@ -630,18 +658,18 @@ All API errors follow a consistent format:
 
 ### Common Error Codes
 
-| HTTP Status | Error Code | Description |
-|-------------|------------|-------------|
-| 400 | `VALIDATION_ERROR` | Invalid request parameters |
-| 401 | `AUTHENTICATION_REQUIRED` | Valid authentication token required |
-| 403 | `INSUFFICIENT_PERMISSIONS` | User lacks required permissions |
-| 404 | `RESOURCE_NOT_FOUND` | Requested resource does not exist |
-| 409 | `RESOURCE_CONFLICT` | Resource already exists or conflict |
-| 422 | `UNPROCESSABLE_ENTITY` | Request format valid but semantically incorrect |
-| 429 | `RATE_LIMIT_EXCEEDED` | Too many requests in time window |
-| 500 | `INTERNAL_SERVER_ERROR` | Unexpected server error |
-| 502 | `SCANNER_UNAVAILABLE` | Security scanner service unavailable |
-| 503 | `SERVICE_UNAVAILABLE` | Service temporarily unavailable |
+| HTTP Status | Error Code                 | Description                                     |
+| ----------- | -------------------------- | ----------------------------------------------- |
+| 400         | `VALIDATION_ERROR`         | Invalid request parameters                      |
+| 401         | `AUTHENTICATION_REQUIRED`  | Valid authentication token required             |
+| 403         | `INSUFFICIENT_PERMISSIONS` | User lacks required permissions                 |
+| 404         | `RESOURCE_NOT_FOUND`       | Requested resource does not exist               |
+| 409         | `RESOURCE_CONFLICT`        | Resource already exists or conflict             |
+| 422         | `UNPROCESSABLE_ENTITY`     | Request format valid but semantically incorrect |
+| 429         | `RATE_LIMIT_EXCEEDED`      | Too many requests in time window                |
+| 500         | `INTERNAL_SERVER_ERROR`    | Unexpected server error                         |
+| 502         | `SCANNER_UNAVAILABLE`      | Security scanner service unavailable            |
+| 503         | `SERVICE_UNAVAILABLE`      | Service temporarily unavailable                 |
 
 ---
 
@@ -660,10 +688,10 @@ class SecureDevOpsClient:
             'Authorization': f'Bearer {api_token}',
             'Content-Type': 'application/json'
         }
-    
+
     def submit_scan(
-        self, 
-        repository_url: str, 
+        self,
+        repository_url: str,
         branch: str = 'main',
         scan_types: Optional[List[str]] = None
     ) -> Dict:
@@ -673,7 +701,7 @@ class SecureDevOpsClient:
             'branch': branch,
             'scan_types': scan_types or ['sast', 'secrets', 'container']
         }
-        
+
         response = requests.post(
             f'{self.base_url}/webhook/scan',
             json=payload,
@@ -681,7 +709,7 @@ class SecureDevOpsClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def get_scan_report(self, scan_id: str) -> Dict:
         """Get detailed scan report"""
         response = requests.get(
@@ -690,18 +718,18 @@ class SecureDevOpsClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def wait_for_scan_completion(self, scan_id: str, timeout: int = 600) -> Dict:
         """Wait for scan to complete"""
         import time
         start_time = time.time()
-        
+
         while time.time() - start_time < timeout:
             report = self.get_scan_report(scan_id)
             if report['status'] in ['completed', 'failed']:
                 return report
             time.sleep(10)
-        
+
         raise TimeoutError(f'Scan {scan_id} did not complete within {timeout} seconds')
 
 # Usage example
@@ -721,22 +749,26 @@ print(f"Scan completed with {report['total_findings']} findings")
 ```javascript
 class SecureDevOpsClient {
   constructor(baseUrl, apiToken) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+    this.baseUrl = baseUrl.replace(/\/$/, "");
     this.headers = {
-      'Authorization': `Bearer ${apiToken}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${apiToken}`,
+      "Content-Type": "application/json",
     };
   }
 
-  async submitScan(repositoryUrl, branch = 'main', scanTypes = ['sast', 'secrets', 'container']) {
+  async submitScan(
+    repositoryUrl,
+    branch = "main",
+    scanTypes = ["sast", "secrets", "container"]
+  ) {
     const response = await fetch(`${this.baseUrl}/webhook/scan`, {
-      method: 'POST',
+      method: "POST",
       headers: this.headers,
       body: JSON.stringify({
         repository_url: repositoryUrl,
         branch: branch,
-        scan_types: scanTypes
-      })
+        scan_types: scanTypes,
+      }),
     });
 
     if (!response.ok) {
@@ -748,7 +780,7 @@ class SecureDevOpsClient {
 
   async getScanReport(scanId) {
     const response = await fetch(`${this.baseUrl}/api/reports/${scanId}`, {
-      headers: this.headers
+      headers: this.headers,
     });
 
     if (!response.ok) {
@@ -760,37 +792,42 @@ class SecureDevOpsClient {
 
   async waitForScanCompletion(scanId, timeoutMs = 600000) {
     const startTime = Date.now();
-    
+
     while (Date.now() - startTime < timeoutMs) {
       const report = await this.getScanReport(scanId);
-      
-      if (['completed', 'failed'].includes(report.status)) {
+
+      if (["completed", "failed"].includes(report.status)) {
         return report;
       }
-      
-      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
     }
-    
+
     throw new Error(`Scan ${scanId} did not complete within ${timeoutMs}ms`);
   }
 }
 
 // Usage example
-const client = new SecureDevOpsClient('http://localhost:8000', 'your-api-token');
+const client = new SecureDevOpsClient(
+  "http://localhost:8000",
+  "your-api-token"
+);
 
 async function runScan() {
   try {
     // Submit scan
-    const scanResult = await client.submitScan('https://github.com/user/repo.git');
+    const scanResult = await client.submitScan(
+      "https://github.com/user/repo.git"
+    );
     console.log(`Scan submitted: ${scanResult.scan_id}`);
-    
+
     // Wait for completion
     const report = await client.waitForScanCompletion(scanResult.scan_id);
     console.log(`Scan completed with ${report.total_findings} findings`);
-    
+
     return report;
   } catch (error) {
-    console.error('Scan failed:', error);
+    console.error("Scan failed:", error);
     throw error;
   }
 }
@@ -804,13 +841,13 @@ API endpoints are rate limited to ensure fair usage and system stability.
 
 ### Rate Limits
 
-| Endpoint Category | Limit | Window |
-|------------------|-------|--------|
-| **Authentication** | 10 requests | 1 minute |
-| **Scan Submission** | 5 requests | 1 minute |
-| **Report Access** | 100 requests | 1 minute |
-| **Analytics** | 50 requests | 1 minute |
-| **Webhooks** | 1000 requests | 1 minute |
+| Endpoint Category   | Limit         | Window   |
+| ------------------- | ------------- | -------- |
+| **Authentication**  | 10 requests   | 1 minute |
+| **Scan Submission** | 5 requests    | 1 minute |
+| **Report Access**   | 100 requests  | 1 minute |
+| **Analytics**       | 50 requests   | 1 minute |
+| **Webhooks**        | 1000 requests | 1 minute |
 
 ### Rate Limit Headers
 

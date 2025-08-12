@@ -26,12 +26,14 @@ SecureDevOps AI Platform supports multiple deployment options to fit different i
 ### Quick Start with Docker Compose
 
 1. **Clone the repository:**
+
 ```bash
 git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
 cd SecureDevOpsAI-Platform
 ```
 
 2. **Configure environment:**
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -41,6 +43,7 @@ nano .env
 ```
 
 3. **Required environment variables:**
+
 ```env
 # Database
 MONGODB_URL=mongodb://mongodb:27017/securedevops
@@ -66,6 +69,7 @@ CORS_ORIGINS=["https://your-frontend-domain.com"]
 ```
 
 4. **Start the platform:**
+
 ```bash
 # Production deployment
 docker-compose -f docker-compose.prod.yml up -d
@@ -75,6 +79,7 @@ docker-compose up -d
 ```
 
 5. **Verify deployment:**
+
 ```bash
 # Check service status
 docker-compose ps
@@ -89,8 +94,9 @@ curl http://localhost:8000/health
 ### Docker Compose Configuration
 
 **Production (`docker-compose.prod.yml`):**
+
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
@@ -188,6 +194,7 @@ networks:
 #### Option 1: ECS with Fargate
 
 **Prerequisites:**
+
 - AWS CLI configured
 - ECS CLI installed
 - ECR repositories created
@@ -196,18 +203,18 @@ networks:
 
 ```yaml
 # cloudformation/ecs-deployment.yml
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'SecureDevOps AI Platform ECS Deployment'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "SecureDevOps AI Platform ECS Deployment"
 
 Parameters:
   VpcId:
     Type: AWS::EC2::VPC::Id
     Description: VPC for the ECS cluster
-  
+
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Subnets for the ECS service
-  
+
   OpenAIApiKey:
     Type: String
     NoEcho: true
@@ -286,6 +293,7 @@ Outputs:
 ```
 
 **Deploy command:**
+
 ```bash
 aws cloudformation deploy \
   --template-file cloudformation/ecs-deployment.yml \
@@ -349,6 +357,7 @@ EOF
 #### Deploy to Google Kubernetes Engine (GKE)
 
 **1. Create GKE cluster:**
+
 ```bash
 # Create cluster
 gcloud container clusters create securedevops-cluster \
@@ -414,34 +423,34 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: gcr.io/your-project/securedevops-backend:latest
-        ports:
-        - containerPort: 8000
-        envFrom:
-        - configMapRef:
-            name: app-config
-        - secretRef:
-            name: app-secrets
-        resources:
-          requests:
-            cpu: 500m
-            memory: 1Gi
-          limits:
-            cpu: 1000m
-            memory: 2Gi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 10
+        - name: backend
+          image: gcr.io/your-project/securedevops-backend:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
 
 ---
 # k8s/backend-service.yml
@@ -454,9 +463,9 @@ spec:
   selector:
     app: backend
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8000
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
   type: ClusterIP
 
 ---
@@ -472,19 +481,20 @@ metadata:
     networking.gke.io/managed-certificates: "securedevops-ssl-cert"
 spec:
   rules:
-  - host: api.securedevops.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: backend-service
-            port:
-              number: 80
+    - host: api.securedevops.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-service
+                port:
+                  number: 80
 ```
 
 **3. Deploy to cluster:**
+
 ```bash
 # Apply all manifests
 kubectl apply -f k8s/
@@ -570,6 +580,7 @@ kubectl logs -f deployment/backend -n securedevops
 ```
 
 **Deploy with Azure CLI:**
+
 ```bash
 # Create resource group
 az group create --name securedevops-rg --location eastus
@@ -591,6 +602,7 @@ az container show --resource-group securedevops-rg --name securedevops-platform 
 ### Ubuntu/Debian Server
 
 **1. System preparation:**
+
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -616,6 +628,7 @@ sudo dpkg -i trivy_0.48.0_Linux-64bit.deb
 ```
 
 **2. Application setup:**
+
 ```bash
 # Clone repository
 cd /opt
@@ -643,6 +656,7 @@ nano .env  # Edit configuration
 **3. Service configuration:**
 
 **Backend systemd service (`/etc/systemd/system/securedevops-backend.service`):**
+
 ```ini
 [Unit]
 Description=SecureDevOps AI Backend
@@ -663,6 +677,7 @@ WantedBy=multi-user.target
 ```
 
 **Nginx configuration (`/etc/nginx/sites-available/securedevops`):**
+
 ```nginx
 server {
     listen 80;
@@ -704,6 +719,7 @@ server {
 ```
 
 **4. Start services:**
+
 ```bash
 # Create user
 sudo useradd -r -s /bin/false securedevops
@@ -732,6 +748,7 @@ sudo systemctl status nginx
 ### SSL/TLS Configuration
 
 **Let's Encrypt with Certbot:**
+
 ```bash
 # Install Certbot
 sudo apt install -y certbot python3-certbot-nginx
@@ -762,6 +779,7 @@ sudo ufw status
 ### Security Hardening
 
 **1. MongoDB security:**
+
 ```javascript
 // MongoDB admin user creation
 use admin
@@ -781,6 +799,7 @@ db.createUser({
 ```
 
 **2. Application security:**
+
 ```env
 # Strong JWT secret
 JWT_SECRET_KEY=your-super-long-random-secret-key-here
@@ -804,8 +823,9 @@ ALLOWED_IPS=10.0.0.0/8,192.168.0.0/16
 ### Prometheus & Grafana
 
 **docker-compose-monitoring.yml:**
+
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   prometheus:
@@ -816,10 +836,10 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
 
   grafana:
     image: grafana/grafana:latest
@@ -841,9 +861,9 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
 
 volumes:
   prometheus_data:
@@ -853,9 +873,10 @@ volumes:
 ### Log Management
 
 **Centralized logging with ELK Stack:**
+
 ```yaml
 # docker-compose-logging.yml
-version: '3.8'
+version: "3.8"
 
 services:
   elasticsearch:
@@ -897,6 +918,7 @@ volumes:
 ### Database Backup
 
 **Automated backup script:**
+
 ```bash
 #!/bin/bash
 # backup-mongodb.sh
@@ -924,6 +946,7 @@ echo "Backup completed: mongodb_backup_$DATE.tar.gz"
 ```
 
 **Cron job for daily backups:**
+
 ```bash
 # Add to crontab
 0 2 * * * /opt/scripts/backup-mongodb.sh >> /var/log/mongodb-backup.log 2>&1
@@ -932,6 +955,7 @@ echo "Backup completed: mongodb_backup_$DATE.tar.gz"
 ### Disaster Recovery
 
 **Recovery procedure:**
+
 ```bash
 # Stop services
 sudo systemctl stop securedevops-backend
@@ -954,6 +978,7 @@ curl http://localhost:8000/health
 ### Horizontal Scaling
 
 **Load balancer configuration (HAProxy):**
+
 ```
 global
     daemon
@@ -978,6 +1003,7 @@ backend securedevops_backend
 ### Database Scaling
 
 **MongoDB replica set:**
+
 ```javascript
 // Initialize replica set
 rs.initiate({
@@ -985,9 +1011,9 @@ rs.initiate({
   members: [
     { _id: 0, host: "mongo1:27017", priority: 1 },
     { _id: 1, host: "mongo2:27017", priority: 0.5 },
-    { _id: 2, host: "mongo3:27017", priority: 0.5 }
-  ]
-})
+    { _id: 2, host: "mongo3:27017", priority: 0.5 },
+  ],
+});
 ```
 
 ---
@@ -997,6 +1023,7 @@ rs.initiate({
 ### Common Issues
 
 **1. Backend fails to start:**
+
 ```bash
 # Check logs
 sudo journalctl -u securedevops-backend -f
@@ -1007,6 +1034,7 @@ sudo systemctl status securedevops-backend
 ```
 
 **2. Database connection issues:**
+
 ```bash
 # Test MongoDB connection
 mongosh --eval "db.adminCommand('ismaster')"
@@ -1016,6 +1044,7 @@ sudo tail -f /var/log/mongodb/mongod.log
 ```
 
 **3. Scanner tool errors:**
+
 ```bash
 # Test individual scanners
 semgrep --version
@@ -1027,6 +1056,7 @@ trivy image --download-db-only
 ```
 
 **4. Memory/CPU issues:**
+
 ```bash
 # Monitor resources
 htop
@@ -1038,14 +1068,16 @@ docker stats
 ### Performance Optimization
 
 **1. Database optimization:**
+
 ```javascript
 // Create indexes
-db.reports.createIndex({ "created_at": -1 })
-db.reports.createIndex({ "project_name": 1, "status": 1 })
-db.reports.createIndex({ "git_metadata.repository_url": 1 })
+db.reports.createIndex({ created_at: -1 });
+db.reports.createIndex({ project_name: 1, status: 1 });
+db.reports.createIndex({ "git_metadata.repository_url": 1 });
 ```
 
 **2. Application optimization:**
+
 ```env
 # Async workers
 WORKER_PROCESSES=4

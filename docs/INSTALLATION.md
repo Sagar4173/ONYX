@@ -22,18 +22,21 @@ SecureDevOps AI Platform can be deployed in multiple configurations to meet diff
 ### **System Requirements**
 
 #### **Minimum Requirements (Development)**
+
 - **CPU**: 2 cores
 - **Memory**: 4GB RAM
 - **Storage**: 20GB free space
 - **Network**: Internet connection for AI services
 
 #### **Recommended Requirements (Production)**
+
 - **CPU**: 4+ cores
 - **Memory**: 8GB+ RAM
 - **Storage**: 100GB+ SSD
 - **Network**: High-speed internet, dedicated bandwidth
 
 #### **Enterprise Requirements (High Scale)**
+
 - **CPU**: 8+ cores per node
 - **Memory**: 16GB+ RAM per node
 - **Storage**: 500GB+ NVMe SSD
@@ -42,6 +45,7 @@ SecureDevOps AI Platform can be deployed in multiple configurations to meet diff
 ### **Software Dependencies**
 
 #### **Required Software**
+
 - **Python 3.11+** with pip
 - **Node.js 18+** with npm/yarn
 - **MongoDB 7.0+** (local or cloud)
@@ -49,6 +53,7 @@ SecureDevOps AI Platform can be deployed in multiple configurations to meet diff
 - **Docker** (optional, for containerized deployment)
 
 #### **Security Tools (Auto-installed)**
+
 ```bash
 # These are automatically installed via requirements.txt
 - Semgrep (Static Analysis)
@@ -60,6 +65,7 @@ SecureDevOps AI Platform can be deployed in multiple configurations to meet diff
 ```
 
 #### **External Services**
+
 - **OpenAI API** (required for AI analysis)
 - **Slack/Teams** (optional, for notifications)
 - **SMTP Server** (optional, for email notifications)
@@ -71,6 +77,7 @@ SecureDevOps AI Platform can be deployed in multiple configurations to meet diff
 ### **Method 1: Local Development Setup**
 
 #### **1. Clone Repository**
+
 ```bash
 # Clone the repository
 git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
@@ -82,6 +89,7 @@ ls -la
 ```
 
 #### **2. Backend Setup**
+
 ```bash
 # Navigate to backend directory
 cd backend
@@ -108,6 +116,7 @@ python -c "import fastapi, motor, openai; print('All dependencies installed succ
 ```
 
 #### **3. Frontend Setup**
+
 ```bash
 # Navigate to frontend directory (from project root)
 cd frontend
@@ -122,6 +131,7 @@ npm list --depth=0
 #### **4. Database Setup**
 
 ##### **Option A: Local MongoDB**
+
 ```bash
 # Install MongoDB (Ubuntu/Debian)
 wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
@@ -138,6 +148,7 @@ mongosh --eval "db.adminCommand('ping')"
 ```
 
 ##### **Option B: MongoDB Atlas (Cloud)**
+
 ```bash
 # Sign up at https://cloud.mongodb.com/
 # Create a cluster
@@ -146,6 +157,7 @@ mongosh --eval "db.adminCommand('ping')"
 ```
 
 #### **5. Environment Configuration**
+
 ```bash
 # Create environment file (from project root)
 cp .env.example .env
@@ -155,6 +167,7 @@ nano .env  # or your preferred editor
 ```
 
 **Environment Variables:**
+
 ```bash
 # Required Settings
 OPENAI_API_KEY=sk-your-openai-api-key-here
@@ -192,6 +205,7 @@ OPENAI_MAX_TOKENS=2000
 ```
 
 #### **6. Generate Secret Key**
+
 ```bash
 # Generate a secure secret key
 python -c "
@@ -201,6 +215,7 @@ print('SECRET_KEY=' + secrets.token_urlsafe(32))
 ```
 
 #### **7. Start Services**
+
 ```bash
 # Terminal 1: Start Backend
 cd backend
@@ -216,6 +231,7 @@ tail -f backend/logs/app.log
 ```
 
 #### **8. Verify Installation**
+
 ```bash
 # Check backend health
 curl http://localhost:8000/health
@@ -230,9 +246,10 @@ open http://localhost:8000/docs
 ### **Method 2: Docker Deployment**
 
 #### **1. Docker Compose Setup**
+
 ```yaml
 # docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
   mongodb:
@@ -252,7 +269,7 @@ services:
       - securedevops-network
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: securedevops-backend
@@ -279,7 +296,7 @@ services:
       retries: 3
 
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: securedevops-frontend
@@ -317,6 +334,7 @@ networks:
 ```
 
 #### **2. Environment Configuration**
+
 ```bash
 # Create .env file for Docker
 cat > .env << EOF
@@ -327,6 +345,7 @@ EOF
 ```
 
 #### **3. Build and Deploy**
+
 ```bash
 # Build and start all services
 docker-compose up -d
@@ -343,6 +362,7 @@ docker-compose up -d --scale backend=3
 ```
 
 #### **4. Docker Health Checks**
+
 ```bash
 # Check all service health
 docker-compose exec backend curl -f http://localhost:8000/health
@@ -355,6 +375,7 @@ docker-compose exec redis redis-cli ping
 #### **1. Kubernetes Manifests**
 
 **Namespace:**
+
 ```yaml
 # k8s/namespace.yaml
 apiVersion: v1
@@ -366,6 +387,7 @@ metadata:
 ```
 
 **ConfigMap:**
+
 ```yaml
 # k8s/configmap.yaml
 apiVersion: v1
@@ -383,6 +405,7 @@ data:
 ```
 
 **Secrets:**
+
 ```yaml
 # k8s/secrets.yaml
 apiVersion: v1
@@ -399,6 +422,7 @@ stringData:
 ```
 
 **MongoDB Deployment:**
+
 ```yaml
 # k8s/mongodb.yaml
 apiVersion: apps/v1
@@ -417,31 +441,31 @@ spec:
         app: mongodb
     spec:
       containers:
-      - name: mongodb
-        image: mongo:7.0
-        env:
-        - name: MONGO_INITDB_ROOT_USERNAME
-          value: "admin"
-        - name: MONGO_INITDB_ROOT_PASSWORD
-          value: "password"
-        - name: MONGO_INITDB_DATABASE
-          value: "securedevops"
-        ports:
-        - containerPort: 27017
-        volumeMounts:
-        - name: mongodb-storage
-          mountPath: /data/db
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
+        - name: mongodb
+          image: mongo:7.0
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "admin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "password"
+            - name: MONGO_INITDB_DATABASE
+              value: "securedevops"
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
       volumes:
-      - name: mongodb-storage
-        persistentVolumeClaim:
-          claimName: mongodb-pvc
+        - name: mongodb-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -452,11 +476,12 @@ spec:
   selector:
     app: mongodb
   ports:
-  - port: 27017
-    targetPort: 27017
+    - port: 27017
+      targetPort: 27017
 ```
 
 **Backend Deployment:**
+
 ```yaml
 # k8s/backend.yaml
 apiVersion: apps/v1
@@ -475,44 +500,44 @@ spec:
         app: securedevops-backend
     spec:
       containers:
-      - name: backend
-        image: securedevops/backend:latest
-        envFrom:
-        - configMapRef:
-            name: securedevops-config
-        - secretRef:
-            name: securedevops-secrets
-        ports:
-        - containerPort: 8000
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
-        volumeMounts:
-        - name: logs
-          mountPath: /app/logs
-        - name: cache
-          mountPath: /app/cache
+        - name: backend
+          image: securedevops/backend:latest
+          envFrom:
+            - configMapRef:
+                name: securedevops-config
+            - secretRef:
+                name: securedevops-secrets
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+            - name: cache
+              mountPath: /app/cache
       volumes:
-      - name: logs
-        emptyDir: {}
-      - name: cache
-        emptyDir: {}
+        - name: logs
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -523,12 +548,13 @@ spec:
   selector:
     app: securedevops-backend
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000
   type: ClusterIP
 ```
 
 **Ingress:**
+
 ```yaml
 # k8s/ingress.yaml
 apiVersion: networking.k8s.io/v1
@@ -543,30 +569,31 @@ metadata:
     nginx.ingress.kubernetes.io/rate-limit-window: "1m"
 spec:
   tls:
-  - hosts:
-    - securedevops.yourdomain.com
-    secretName: securedevops-tls
+    - hosts:
+        - securedevops.yourdomain.com
+      secretName: securedevops-tls
   rules:
-  - host: securedevops.yourdomain.com
-    http:
-      paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: securedevops-backend
-            port:
-              number: 8000
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: securedevops-frontend
-            port:
-              number: 80
+    - host: securedevops.yourdomain.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: securedevops-backend
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: securedevops-frontend
+                port:
+                  number: 80
 ```
 
 #### **2. Deploy to Kubernetes**
+
 ```bash
 # Apply all manifests
 kubectl apply -f k8s/
@@ -590,6 +617,7 @@ kubectl scale deployment securedevops-backend --replicas=5 -n securedevops
 ### **Security Hardening**
 
 #### **1. SSL/TLS Configuration**
+
 ```nginx
 # nginx.conf for frontend
 server {
@@ -598,11 +626,11 @@ server {
 
     ssl_certificate /etc/ssl/certs/securedevops.crt;
     ssl_certificate_key /etc/ssl/private/securedevops.key;
-    
+
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
     ssl_prefer_server_ciphers off;
-    
+
     location /api {
         proxy_pass http://backend:8000;
         proxy_set_header Host $host;
@@ -610,7 +638,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location / {
         root /usr/share/nginx/html;
         try_files $uri $uri/ /index.html;
@@ -619,6 +647,7 @@ server {
 ```
 
 #### **2. Database Security**
+
 ```bash
 # MongoDB security configuration
 # Enable authentication
@@ -637,6 +666,7 @@ net:
 ```
 
 #### **3. Environment Security**
+
 ```bash
 # Production environment variables
 ENVIRONMENT=production
@@ -658,6 +688,7 @@ RATE_LIMIT_BURST=10
 ### **Performance Optimization**
 
 #### **1. Application Tuning**
+
 ```python
 # backend/config.py - Production settings
 class ProductionConfig(BaseConfig):
@@ -667,11 +698,11 @@ class ProductionConfig(BaseConfig):
     MAX_REQUESTS = 1000
     MAX_REQUESTS_JITTER = 100
     PRELOAD_APP = True
-    
+
     # Database connection pooling
     MONGODB_MAX_POOL_SIZE = 100
     MONGODB_MIN_POOL_SIZE = 10
-    
+
     # Caching
     CACHE_TYPE = "redis"
     CACHE_REDIS_URL = "redis://redis:6379/0"
@@ -679,26 +710,28 @@ class ProductionConfig(BaseConfig):
 ```
 
 #### **2. Database Optimization**
+
 ```javascript
 // MongoDB indexes for performance
-db.scan_reports.createIndex({ "scan_id": 1 }, { unique: true });
-db.scan_reports.createIndex({ "project_name": 1, "created_at": -1 });
-db.scan_reports.createIndex({ "status": 1, "created_at": -1 });
-db.scan_reports.createIndex({ "total_findings": -1 });
-db.scan_reports.createIndex({ 
-  "project_name": "text", 
-  "git_metadata.commit_message": "text" 
+db.scan_reports.createIndex({ scan_id: 1 }, { unique: true });
+db.scan_reports.createIndex({ project_name: 1, created_at: -1 });
+db.scan_reports.createIndex({ status: 1, created_at: -1 });
+db.scan_reports.createIndex({ total_findings: -1 });
+db.scan_reports.createIndex({
+  project_name: "text",
+  "git_metadata.commit_message": "text",
 });
 
 // Compound indexes for common queries
-db.scan_reports.createIndex({ 
-  "project_name": 1, 
-  "status": 1, 
-  "created_at": -1 
+db.scan_reports.createIndex({
+  project_name: 1,
+  status: 1,
+  created_at: -1,
 });
 ```
 
 #### **3. Caching Strategy**
+
 ```python
 # Redis caching implementation
 from redis import asyncio as aioredis
@@ -707,16 +740,16 @@ import json
 class CacheService:
     def __init__(self):
         self.redis = aioredis.from_url("redis://redis:6379")
-    
+
     async def get_scan_results(self, scan_id: str):
         cached = await self.redis.get(f"scan:{scan_id}")
         if cached:
             return json.loads(cached)
         return None
-    
+
     async def cache_scan_results(self, scan_id: str, results: dict):
         await self.redis.setex(
-            f"scan:{scan_id}", 
+            f"scan:{scan_id}",
             3600,  # 1 hour TTL
             json.dumps(results, default=str)
         )
@@ -725,6 +758,7 @@ class CacheService:
 ### **Monitoring & Observability**
 
 #### **1. Health Checks**
+
 ```python
 # Comprehensive health check endpoint
 @app.get("/health")
@@ -735,7 +769,7 @@ async def health_check():
         "version": "1.0.0",
         "services": {}
     }
-    
+
     # Database check
     try:
         await db_manager.ping()
@@ -743,7 +777,7 @@ async def health_check():
     except Exception as e:
         health["services"]["database"] = f"unhealthy: {e}"
         health["status"] = "unhealthy"
-    
+
     # Security scanners check
     for scanner_name, scanner in security_scanner.scanners.items():
         try:
@@ -751,7 +785,7 @@ async def health_check():
             health["services"][scanner_name.value] = "healthy" if available else "unavailable"
         except Exception as e:
             health["services"][scanner_name.value] = f"error: {e}"
-    
+
     # AI service check
     try:
         await ai_processor.health_check()
@@ -759,11 +793,12 @@ async def health_check():
     except Exception as e:
         health["services"]["ai_processor"] = f"unhealthy: {e}"
         health["status"] = "unhealthy"
-    
+
     return health
 ```
 
 #### **2. Prometheus Metrics**
+
 ```python
 # metrics.py
 from prometheus_client import Counter, Histogram, Gauge, generate_latest
@@ -780,6 +815,7 @@ async def metrics():
 ```
 
 #### **3. Logging Configuration**
+
 ```python
 # logging_config.py
 import structlog
@@ -807,6 +843,7 @@ structlog.configure(
 ## 🔄 **Backup & Recovery**
 
 ### **Database Backup**
+
 ```bash
 #!/bin/bash
 # backup.sh - MongoDB backup script
@@ -834,12 +871,14 @@ echo "Backup completed: $BACKUP_PATH.tar.gz"
 ```
 
 ### **Automated Backup with Cron**
+
 ```bash
 # Add to crontab (daily backup at 2 AM)
 0 2 * * * /path/to/backup.sh >> /var/log/mongodb-backup.log 2>&1
 ```
 
 ### **Recovery Process**
+
 ```bash
 #!/bin/bash
 # restore.sh - MongoDB restore script
@@ -873,6 +912,7 @@ echo "Restore completed from: $BACKUP_FILE"
 ### **Common Issues**
 
 #### **1. Backend Won't Start**
+
 ```bash
 # Check Python version
 python --version  # Should be 3.11+
@@ -890,6 +930,7 @@ tail -f backend/logs/app.log
 ```
 
 #### **2. Database Connection Issues**
+
 ```bash
 # Test MongoDB connectivity
 mongosh "mongodb://localhost:27017/securedevops" --eval "db.adminCommand('ping')"
@@ -902,6 +943,7 @@ telnet mongodb-host 27017
 ```
 
 #### **3. Frontend Build Issues**
+
 ```bash
 # Clear npm cache
 npm cache clean --force
@@ -916,6 +958,7 @@ npm --version
 ```
 
 #### **4. Security Scanner Issues**
+
 ```bash
 # Verify scanner installations
 semgrep --version
@@ -930,6 +973,7 @@ curl http://localhost:8000/health
 ### **Performance Issues**
 
 #### **1. Slow Scans**
+
 ```bash
 # Check system resources
 top
@@ -944,6 +988,7 @@ df -h
 ```
 
 #### **2. High Memory Usage**
+
 ```bash
 # Check memory usage
 free -h
@@ -957,6 +1002,7 @@ ps aux | grep python | awk '{print $6}' | awk '{sum+=$1} END {print sum/1024 " M
 ```
 
 #### **3. Database Performance**
+
 ```bash
 # Check MongoDB performance
 db.serverStatus().metrics
@@ -972,6 +1018,7 @@ db.system.profile.find().sort({ ts: -1 }).limit(5)
 ## 📞 **Support & Maintenance**
 
 ### **Regular Maintenance Tasks**
+
 ```bash
 # Weekly tasks
 - Database backup verification
@@ -987,6 +1034,7 @@ db.system.profile.find().sort({ ts: -1 }).limit(5)
 ```
 
 ### **Update Procedures**
+
 ```bash
 # Update application
 git pull origin main

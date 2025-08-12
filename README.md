@@ -12,13 +12,14 @@
 [![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://securedevopsai-platform-production.up.railway.app/docs)
 
 > **The Next-Generation Open Source Alternative to GitHub Advanced Security & Snyk**  
-> *Comprehensive Security Scanning • AI-Powered Analysis • Enterprise-Ready*
+> _Comprehensive Security Scanning • AI-Powered Analysis • Enterprise-Ready_
 
 An intelligent, comprehensive security scanning and DevOps automation platform that integrates multiple security tools with AI-powered analysis to provide actionable insights for your development workflow.
 
 ## 🚀 **Live Demo**
 
 **Experience SecureDevOps AI Platform:**
+
 - 🌐 **Frontend Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
 - 🔌 **Backend API**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
 - 📚 **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
@@ -31,6 +32,7 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 ## 🌟 Why Choose SecureDevOps AI Platform?
 
 ### 🆚 **vs GitHub Advanced Security (GHAS)**
+
 - ✅ **Open Source** - No vendor lock-in, full customization
 - ✅ **Multi-Platform** - Works with any Git provider (GitHub, GitLab, Bitbucket)
 - ✅ **AI-Enhanced** - GPT-4 powered vulnerability analysis and remediation
@@ -38,6 +40,7 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 - ✅ **Self-Hosted** - Complete data control and compliance
 
 ### 🆚 **vs Snyk**
+
 - ✅ **Comprehensive Coverage** - SAST, Container, Secrets, Infrastructure scanning
 - ✅ **Real-Time Analysis** - Instant AI-powered risk assessment
 - ✅ **Developer-Friendly** - Modern React UI with real-time notifications
@@ -217,11 +220,13 @@ npm run preview
 ### 6. Access the Platform
 
 **Local Development:**
+
 - **Web Interface**: http://localhost:4173 (or the port shown by Vite)
 - **API Documentation**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/health
 
 **Live Demo (Production):**
+
 - **Web Interface**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
 - **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
 - **Health Check**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)

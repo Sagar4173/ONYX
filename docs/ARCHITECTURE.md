@@ -56,6 +56,7 @@ SecureDevOps AI Platform is designed as a modern, scalable, and enterprise-ready
 ### Frontend Architecture
 
 **Technology Stack:**
+
 - **React 18** with Concurrent Features
 - **Vite** for fast development and building
 - **Tailwind CSS** for utility-first styling
@@ -64,6 +65,7 @@ SecureDevOps AI Platform is designed as a modern, scalable, and enterprise-ready
 - **Chart.js/Recharts** for data visualization
 
 **Key Components:**
+
 ```
 frontend/src/
 ├── components/
@@ -89,6 +91,7 @@ frontend/src/
 ### Backend Architecture
 
 **Technology Stack:**
+
 - **FastAPI** with async/await support
 - **Python 3.11+** with type hints
 - **Pydantic** for data validation
@@ -97,6 +100,7 @@ frontend/src/
 - **Structlog** for structured logging
 
 **Service Architecture:**
+
 ```
 backend/
 ├── app.py                  # FastAPI application entry point
@@ -130,10 +134,11 @@ backend/
 ### Security Engine
 
 **Scanner Integration:**
+
 ```python
 class SecurityScanner:
     """Main security scanner orchestrator"""
-    
+
     def __init__(self):
         self.scanners = {
             ScannerType.SEMGREP: SemgrepScanner(),      # SAST
@@ -143,27 +148,28 @@ class SecurityScanner:
             ScannerType.SAFETY: SafetyScanner(),        # Dependencies
             ScannerType.BANDIT: BanditScanner()         # Python SAST
         }
-    
+
     async def run_all_scans(self, repo_path: str) -> List[ScanResult]:
         """Execute all security scanners in parallel"""
         tasks = [
-            scanner.scan(repo_path) 
+            scanner.scan(repo_path)
             for scanner in self.scanners.values()
         ]
         return await asyncio.gather(*tasks)
 ```
 
 **AI Analysis Engine:**
+
 ```python
 class VulnerabilityAIProcessor:
     """AI processor for vulnerability analysis"""
-    
+
     async def analyze_scan_results(
-        self, 
+        self,
         scan_results: List[ScanResult]
     ) -> AIAnalysis:
         """Generate comprehensive AI analysis"""
-        
+
         # Parallel AI analysis tasks
         analysis_tasks = [
             self._generate_executive_summary(findings_data),
@@ -173,9 +179,9 @@ class VulnerabilityAIProcessor:
             self._generate_secure_code_examples(findings_data),
             self._generate_compliance_impact(findings_data)
         ]
-        
+
         results = await asyncio.gather(*analysis_tasks)
-        
+
         return AIAnalysis(
             model_used="gpt-4",
             executive_summary=results[0],
@@ -190,36 +196,37 @@ class VulnerabilityAIProcessor:
 ### Data Models
 
 **Scan Report Model:**
+
 ```python
 class ScanReport(Document):
     """Comprehensive scan report document"""
-    
+
     # Basic Information
     scan_id: str = Field(..., unique=True)
     project_name: str
     status: ScanStatus
-    
+
     # Timestamps
     created_at: datetime
     started_at: Optional[datetime]
     completed_at: Optional[datetime]
     duration_seconds: Optional[float]
-    
+
     # Git Information
     git_metadata: GitMetadata
-    
+
     # Scan Results
     scan_results: List[ScanResult] = []
     total_findings: int = 0
     findings_by_severity: Dict[str, int] = {}
-    
+
     # AI Analysis
     ai_analysis: Optional[AIAnalysis]
-    
+
     # Metadata
     tags: List[str] = []
     metadata: Dict[str, Any] = {}
-    
+
     class Settings:
         name = "scan_reports"
         indexes = [
@@ -232,13 +239,14 @@ class ScanReport(Document):
 ```
 
 **AI Analysis Model:**
+
 ```python
 class AIAnalysis(BaseModel):
     """AI-generated analysis and recommendations"""
-    
+
     model_used: str
     generated_at: datetime
-    
+
     # Analysis Results
     executive_summary: str
     risk_assessment: str
@@ -247,7 +255,7 @@ class AIAnalysis(BaseModel):
     secure_code_examples: Dict[str, str]
     compliance_impact: Dict[str, str]
     estimated_fix_time: str
-    
+
     # Quality Metrics
     confidence_score: Optional[float]
     analysis_duration: Optional[float]
@@ -260,16 +268,16 @@ class AIAnalysis(BaseModel):
 ```python
 class AuthenticationService:
     """JWT-based authentication service"""
-    
+
     async def authenticate_user(
-        self, 
+        self,
         token: str
     ) -> Optional[User]:
         """Validate JWT token and return user"""
         try:
             payload = jwt.decode(
-                token, 
-                settings.secret_key, 
+                token,
+                settings.secret_key,
                 algorithms=[settings.algorithm]
             )
             user_id = payload.get("sub")
@@ -285,16 +293,16 @@ class AuthenticationService:
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     """Rate limiting middleware"""
-    
+
     client_ip = request.client.host
-    
+
     # Check rate limit
     if await rate_limiter.is_rate_limited(client_ip):
         raise HTTPException(
             status_code=429,
             detail="Rate limit exceeded"
         )
-    
+
     response = await call_next(request)
     return response
 ```
@@ -304,12 +312,12 @@ async def rate_limit_middleware(request: Request, call_next):
 ```python
 class EncryptionService:
     """Data encryption and decryption service"""
-    
+
     def encrypt_sensitive_data(self, data: str) -> str:
         """Encrypt sensitive data before storage"""
         cipher = Fernet(settings.encryption_key)
         return cipher.encrypt(data.encode()).decode()
-    
+
     def decrypt_sensitive_data(self, encrypted_data: str) -> str:
         """Decrypt sensitive data after retrieval"""
         cipher = Fernet(settings.encryption_key)
@@ -324,15 +332,15 @@ class EncryptionService:
 @app.post("/webhook/scan")
 async def submit_scan(scan_request: ScanRequest):
     """Async scan submission"""
-    
+
     # Create scan record immediately
     scan_report = await ScanReport.create(scan_request)
-    
+
     # Process scan in background
     asyncio.create_task(
         process_scan_background(scan_report.scan_id)
     )
-    
+
     return {"scan_id": scan_report.scan_id, "status": "submitted"}
 
 async def process_scan_background(scan_id: str):
@@ -340,10 +348,10 @@ async def process_scan_background(scan_id: str):
     try:
         # Run security scanners
         scan_results = await security_scanner.run_all_scans(repo_path)
-        
+
         # Generate AI analysis
         ai_analysis = await ai_processor.analyze_scan_results(scan_results)
-        
+
         # Update scan report
         await ScanReport.find_one(
             ScanReport.scan_id == scan_id
@@ -352,7 +360,7 @@ async def process_scan_background(scan_id: str):
             "ai_analysis": ai_analysis,
             "status": ScanStatus.COMPLETED
         }})
-        
+
     except Exception as e:
         logger.error(f"Scan failed: {e}")
         await mark_scan_failed(scan_id, str(e))
@@ -367,15 +375,15 @@ class ScanReport(Document):
         indexes = [
             # Single field indexes
             "scan_id",
-            "project_name", 
+            "project_name",
             "status",
             "created_at",
-            
+
             # Compound indexes
             [("project_name", 1), ("created_at", -1)],
             [("status", 1), ("created_at", -1)],
             [("total_findings", -1), ("created_at", -1)],
-            
+
             # Text search index
             [("project_name", "text"), ("git_metadata.commit_message", "text")]
         ]
@@ -388,24 +396,24 @@ from redis import asyncio as aioredis
 
 class CacheService:
     """Redis-based caching service"""
-    
+
     async def get_scan_cache(self, cache_key: str) -> Optional[dict]:
         """Get cached scan results"""
         cached_data = await self.redis.get(cache_key)
         if cached_data:
             return json.loads(cached_data)
         return None
-    
+
     async def set_scan_cache(
-        self, 
-        cache_key: str, 
-        data: dict, 
+        self,
+        cache_key: str,
+        data: dict,
         expire: int = 3600
     ):
         """Cache scan results"""
         await self.redis.setex(
-            cache_key, 
-            expire, 
+            cache_key,
+            expire,
             json.dumps(data, default=str)
         )
 ```
@@ -454,38 +462,38 @@ spec:
         app: securedevops
     spec:
       containers:
-      - name: backend
-        image: securedevops/platform:latest
-        env:
-        - name: MONGODB_URI
-          valueFrom:
-            secretKeyRef:
-              name: securedevops-secrets
-              key: mongodb-uri
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: securedevops-secrets
-              key: openai-api-key
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: backend
+          image: securedevops/platform:latest
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: securedevops-secrets
+                  key: mongodb-uri
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: securedevops-secrets
+                  key: openai-api-key
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ```
 
 ## Monitoring & Observability
@@ -496,13 +504,13 @@ spec:
 @app.get("/health")
 async def health_check():
     """Comprehensive health check endpoint"""
-    
+
     health_status = {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "services": {}
     }
-    
+
     # Database connectivity
     try:
         await db_manager.ping()
@@ -510,7 +518,7 @@ async def health_check():
     except Exception as e:
         health_status["services"]["database"] = f"unhealthy: {e}"
         health_status["status"] = "unhealthy"
-    
+
     # Security scanners
     for scanner_type, scanner in security_scanner.scanners.items():
         try:
@@ -520,14 +528,14 @@ async def health_check():
             )
         except Exception as e:
             health_status["services"][scanner_type.value] = f"error: {e}"
-    
+
     # AI service
     try:
         await ai_processor.health_check()
         health_status["services"]["ai_processor"] = "healthy"
     except Exception as e:
         health_status["services"]["ai_processor"] = f"unhealthy: {e}"
-    
+
     return health_status
 ```
 
@@ -560,20 +568,20 @@ logger = structlog.get_logger(__name__)
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
     """Request logging middleware"""
-    
+
     start_time = time.time()
-    
+
     logger.info(
         "request_started",
         method=request.method,
         url=str(request.url),
         client_ip=request.client.host
     )
-    
+
     response = await call_next(request)
-    
+
     process_time = time.time() - start_time
-    
+
     logger.info(
         "request_completed",
         method=request.method,
@@ -581,7 +589,7 @@ async def logging_middleware(request: Request, call_next):
         status_code=response.status_code,
         process_time=process_time
     )
-    
+
     return response
 ```
 
@@ -617,12 +625,12 @@ async def logging_middleware(request: Request, call_next):
 # Event-driven scan processing
 class ScanEventHandler:
     """Event-driven scan processing"""
-    
+
     async def handle_scan_submitted(self, event: ScanSubmittedEvent):
         """Handle scan submission event"""
         await self.queue_scan_job(event.scan_id)
         await self.notify_scan_started(event.scan_id)
-    
+
     async def handle_scan_completed(self, event: ScanCompletedEvent):
         """Handle scan completion event"""
         await self.generate_ai_analysis(event.scan_results)

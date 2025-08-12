@@ -58,31 +58,35 @@ curl -H "Authorization: Bearer <token>" \
 
 ### Response Timeline
 
-| Timeframe | Action |
-|-----------|--------|
-| **Within 24 hours** | Acknowledge receipt and begin investigation |
-| **Within 72 hours** | Provide initial assessment and severity rating |
-| **Within 1 week** | Develop and test fix (for critical vulnerabilities) |
-| **Within 2 weeks** | Release patch and security advisory |
+| Timeframe           | Action                                              |
+| ------------------- | --------------------------------------------------- |
+| **Within 24 hours** | Acknowledge receipt and begin investigation         |
+| **Within 72 hours** | Provide initial assessment and severity rating      |
+| **Within 1 week**   | Develop and test fix (for critical vulnerabilities) |
+| **Within 2 weeks**  | Release patch and security advisory                 |
 
 ### Severity Levels
 
 #### 🔴 Critical (CVSS 9.0-10.0)
+
 - **Response Time**: 24 hours
 - **Fix Timeline**: 1-3 days
 - **Examples**: Remote code execution, authentication bypass
 
 #### 🟠 High (CVSS 7.0-8.9)
+
 - **Response Time**: 48 hours
 - **Fix Timeline**: 1 week
 - **Examples**: Privilege escalation, data exposure
 
 #### 🟡 Medium (CVSS 4.0-6.9)
+
 - **Response Time**: 1 week
 - **Fix Timeline**: 2 weeks
 - **Examples**: Information disclosure, CSRF
 
 #### 🟢 Low (CVSS 0.1-3.9)
+
 - **Response Time**: 2 weeks
 - **Fix Timeline**: Next release
 - **Examples**: Minor information leaks, rate limiting bypass
@@ -94,12 +98,14 @@ curl -H "Authorization: Bearer <token>" \
 ### Current Security Measures
 
 #### **Authentication & Authorization**
+
 - JWT-based authentication with configurable expiration
 - Secure token generation using cryptographically secure random values
 - Password hashing using bcrypt with salt
 - Rate limiting on authentication endpoints
 
 #### **API Security**
+
 - Input validation using Pydantic models
 - SQL injection prevention through ODM (Beanie/Motor)
 - NoSQL injection prevention through input sanitization
@@ -107,12 +113,14 @@ curl -H "Authorization: Bearer <token>" \
 - Request size limits to prevent DoS attacks
 
 #### **Data Protection**
+
 - Environment variable-based configuration
 - Secure defaults for production deployments
 - Sensitive data masking in logs
 - Automatic credential detection and filtering
 
 #### **Infrastructure Security**
+
 - Container security scanning with Trivy
 - Dependency vulnerability scanning with Safety
 - Secret detection with GitLeaks
@@ -127,7 +135,7 @@ The platform implements security headers for web protection:
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
     response = await call_next(request)
-    
+
     # Security headers
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -135,7 +143,7 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Content-Security-Policy"] = "default-src 'self'"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    
+
     return response
 ```
 
@@ -148,12 +156,14 @@ async def security_headers_middleware(request: Request, call_next):
 The platform regularly scans itself using its own security tools:
 
 #### **Automated Security Scans**
+
 - **Daily SAST scans** using Semgrep on codebase
 - **Dependency scanning** using Safety for Python packages
 - **Secret detection** using GitLeaks on commits
 - **Container scanning** using Trivy on Docker images
 
 #### **Manual Security Reviews**
+
 - **Quarterly penetration testing** by security team
 - **Code review** for all security-related changes
 - **Architecture reviews** for new security features
@@ -161,12 +171,12 @@ The platform regularly scans itself using its own security tools:
 
 ### Security Test Results
 
-| Scanner | Last Scan | Status | Critical | High | Medium | Low |
-|---------|-----------|---------|----------|------|--------|-----|
-| Semgrep | 2024-01-15 | ✅ Clean | 0 | 0 | 2 | 3 |
-| Safety | 2024-01-15 | ✅ Clean | 0 | 0 | 0 | 1 |
-| GitLeaks | 2024-01-15 | ✅ Clean | 0 | 0 | 0 | 0 |
-| Trivy | 2024-01-15 | ⚠️ Issues | 0 | 1 | 3 | 5 |
+| Scanner  | Last Scan  | Status    | Critical | High | Medium | Low |
+| -------- | ---------- | --------- | -------- | ---- | ------ | --- |
+| Semgrep  | 2024-01-15 | ✅ Clean  | 0        | 0    | 2      | 3   |
+| Safety   | 2024-01-15 | ✅ Clean  | 0        | 0    | 0      | 1   |
+| GitLeaks | 2024-01-15 | ✅ Clean  | 0        | 0    | 0      | 0   |
+| Trivy    | 2024-01-15 | ⚠️ Issues | 0        | 1    | 3      | 5   |
 
 ---
 
@@ -221,11 +231,11 @@ graph TD
     G --> H[Business Logic]
     H --> I[Database Access]
     I --> J[Audit Logging]
-    
+
     K[External APIs] --> L[TLS Verification]
     L --> M[API Key Validation]
     M --> H
-    
+
     N[Background Jobs] --> O[Queue Security]
     O --> P[Job Validation]
     P --> H
@@ -248,28 +258,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run SAST Scan
         run: |
           pip install semgrep
           semgrep --config=auto --json --output=semgrep-report.json .
-      
+
       - name: Run Dependency Scan
         run: |
           pip install safety
           safety check --json --output safety-report.json
-      
+
       - name: Run Secret Scan
         run: |
           docker run --rm -v "$PWD:/path" zricethezav/gitleaks:latest \
             detect --source="/path" --report-format=json --report-path=/path/gitleaks-report.json
-      
+
       - name: Run Container Scan
         run: |
           docker build -t app:latest .
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
             aquasec/trivy image --format json --output trivy-report.json app:latest
-      
+
       - name: Upload Security Reports
         uses: actions/upload-artifact@v3
         with:
@@ -280,6 +290,7 @@ jobs:
 ### Secure Coding Guidelines
 
 #### **Input Validation**
+
 ```python
 # Good: Comprehensive input validation
 from pydantic import BaseModel, validator, constr
@@ -289,7 +300,7 @@ class ScanRequest(BaseModel):
     repository_url: constr(regex=r'^https://github\.com/[\w\-\.]+/[\w\-\.]+\.git$')
     branch: constr(min_length=1, max_length=255)
     scan_types: List[constr(regex=r'^(sast|secrets|container|infrastructure)$')]
-    
+
     @validator('repository_url')
     def validate_repository_url(cls, v):
         # Additional validation logic
@@ -299,6 +310,7 @@ class ScanRequest(BaseModel):
 ```
 
 #### **SQL Injection Prevention**
+
 ```python
 # Good: Using ODM with parameterized queries
 async def get_scan_reports(
@@ -306,14 +318,14 @@ async def get_scan_reports(
     status: Optional[ScanStatus] = None
 ) -> List[ScanReport]:
     query = {}
-    
+
     if project_name:
         # Safe: Using ODM field matching
         query['project_name'] = {"$regex": f"^{re.escape(project_name)}"}
-    
+
     if status:
         query['status'] = status
-    
+
     return await ScanReport.find(query).to_list()
 
 # Bad: String concatenation (vulnerable to NoSQL injection)
@@ -321,6 +333,7 @@ async def get_scan_reports(
 ```
 
 #### **Authentication Security**
+
 ```python
 # Good: Secure JWT implementation
 import jwt
@@ -336,12 +349,12 @@ class AuthService:
             "type": "access"
         }
         return jwt.encode(payload, settings.secret_key, algorithm="HS256")
-    
+
     def verify_token(self, token: str) -> Optional[str]:
         try:
             payload = jwt.decode(
-                token, 
-                settings.secret_key, 
+                token,
+                settings.secret_key,
                 algorithms=["HS256"],
                 options={"verify_exp": True}
             )
@@ -365,26 +378,26 @@ class ProductionConfig(BaseConfig):
     SECRET_KEY: str = Field(..., min_length=32)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
+
     # Security
     FORCE_HTTPS: bool = True
     SECURE_COOKIES: bool = True
     SESSION_COOKIE_HTTPONLY: bool = True
     SESSION_COOKIE_SECURE: bool = True
     SESSION_COOKIE_SAMESITE: str = "strict"
-    
+
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_BURST: int = 10
-    
+
     # Database Security
     MONGODB_TLS: bool = True
     MONGODB_AUTH_SOURCE: str = "admin"
-    
+
     # API Security
     MAX_REQUEST_SIZE: int = 10 * 1024 * 1024  # 10MB
     CORS_ORIGINS: List[str] = []  # Restrict origins in production
-    
+
     # Logging Security
     LOG_LEVEL: str = "WARNING"  # Reduce log verbosity
     MASK_SENSITIVE_DATA: bool = True
@@ -393,6 +406,7 @@ class ProductionConfig(BaseConfig):
 ### Environment Security Checklist
 
 #### **Deployment Checklist**
+
 - [ ] **Secrets Management**: All secrets in environment variables or vault
 - [ ] **HTTPS Only**: Force HTTPS in production
 - [ ] **Database Security**: Authentication and encryption enabled
@@ -403,6 +417,7 @@ class ProductionConfig(BaseConfig):
 - [ ] **Audit Logging**: Comprehensive audit trail enabled
 
 #### **Code Security Checklist**
+
 - [ ] **Input Validation**: All inputs validated and sanitized
 - [ ] **Output Encoding**: Proper encoding for XSS prevention
 - [ ] **Authentication**: Strong authentication mechanisms
@@ -425,6 +440,7 @@ class ProductionConfig(BaseConfig):
 ### Incident Response Team
 
 24/7 incident response for critical security issues:
+
 - **Phone**: +1-XXX-XXX-XXXX (US)
 - **Phone**: +44-XXX-XXX-XXXX (EU)
 - **Slack**: #security-incidents (for verified contributors)
@@ -442,9 +458,9 @@ class ProductionConfig(BaseConfig):
 
 We acknowledge security researchers who have responsibly disclosed vulnerabilities:
 
-| Researcher | Vulnerability | Severity | Date | Bounty |
-|------------|---------------|----------|------|--------|
-| *Awaiting first report* | - | - | - | - |
+| Researcher              | Vulnerability | Severity | Date | Bounty |
+| ----------------------- | ------------- | -------- | ---- | ------ |
+| _Awaiting first report_ | -             | -        | -    | -      |
 
 ### Bug Bounty Program
 
@@ -455,7 +471,7 @@ We offer recognition and rewards for security vulnerability reports:
 - **Medium**: $50 - $200
 - **Low**: Recognition + Swag
 
-*Bounty amounts depend on impact, quality of report, and fix complexity.*
+_Bounty amounts depend on impact, quality of report, and fix complexity._
 
 ---
 
@@ -483,6 +499,7 @@ We offer recognition and rewards for security vulnerability reports:
 ### Version Security Notes
 
 #### **v1.0.0** (Current)
+
 - ✅ Initial security implementation
 - ✅ Basic authentication and authorization
 - ✅ Input validation and sanitization
@@ -490,12 +507,14 @@ We offer recognition and rewards for security vulnerability reports:
 - ⚠️ Limited to single-tenant deployment
 
 #### **v1.1.0** (Planned)
+
 - 🔄 Enhanced authentication with MFA
 - 🔄 Role-based access control (RBAC)
 - 🔄 API rate limiting improvements
 - 🔄 Security audit logging
 
 #### **v1.2.0** (Planned)
+
 - 🔄 Multi-tenant security isolation
 - 🔄 Advanced threat detection
 - 🔄 Security incident response automation
