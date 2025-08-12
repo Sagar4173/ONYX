@@ -11,6 +11,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
+import { authAPI } from "../services/api.js";
 
 // Auth Context
 const AuthContext = createContext(null);
@@ -53,18 +54,8 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetch("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        logout();
-      } else {
-        const userData = await response.json();
-        setUser(userData);
-      }
+      const userData = await authAPI.getProfile();
+      setUser(userData);
     } catch (error) {
       console.error("Token verification failed:", error);
       logout();
@@ -73,20 +64,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Login failed");
-      }
-
-      const data = await response.json();
+      const data = await authAPI.login(credentials);
 
       // Store tokens and user data
       localStorage.setItem("access_token", data.access_token);
@@ -106,26 +84,14 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Registration failed");
-      }
-
-      const data = await response.json();
+      const data = await authAPI.register(userData);
       toast.success(
         "Account created successfully! Please check your email for verification."
       );
       return data;
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = error.response?.data?.detail || error.message || "Registration failed";
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -134,12 +100,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("access_token");
       if (token) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await authAPI.logout();
       }
     } catch (error) {
       console.error("Logout error:", error);
@@ -157,54 +118,27 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch("/api/auth/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(profileData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Profile update failed");
-      }
-
-      const data = await response.json();
+      const data = await authAPI.updateProfile(profileData);
       setUser(data);
       localStorage.setItem("user_data", JSON.stringify(data));
 
       toast.success("Profile updated successfully!");
       return data;
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = error.response?.data?.detail || error.message || "Profile update failed";
+      toast.error(errorMessage);
       throw error;
     }
   };
 
   const changePassword = async (passwordData) => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await fetch("/api/auth/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(passwordData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Password change failed");
-      }
-
+      await authAPI.changePassword(passwordData);
       toast.success("Password changed successfully! Please log in again.");
       logout();
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = error.response?.data?.detail || error.message || "Password change failed";
+      toast.error(errorMessage);
       throw error;
     }
   };

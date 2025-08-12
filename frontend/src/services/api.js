@@ -120,6 +120,110 @@ api.interceptors.response.use(
 );
 
 /**
+ * Authentication API
+ */
+export const authAPI = {
+  // Login user
+  login: async (credentials) => {
+    try {
+      const response = await api.post("/auth/login", credentials);
+      return response.data;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  },
+
+  // Register user
+  register: async (userData) => {
+    try {
+      const response = await api.post("/auth/register", userData);
+      return response.data;
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
+  },
+
+  // Logout user
+  logout: async () => {
+    try {
+      const response = await api.post("/auth/logout");
+      return response.data;
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
+  },
+
+  // Refresh token
+  refreshToken: async (refreshToken) => {
+    try {
+      const response = await api.post("/auth/refresh", { refresh_token: refreshToken });
+      return response.data;
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      throw error;
+    }
+  },
+
+  // Get current user profile
+  getProfile: async () => {
+    try {
+      const response = await api.get("/auth/profile");
+      return response.data;
+    } catch (error) {
+      console.error("Get profile error:", error);
+      throw error;
+    }
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put("/auth/profile", profileData);
+      return response.data;
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw error;
+    }
+  },
+
+  // Change password
+  changePassword: async (passwordData) => {
+    try {
+      const response = await api.post("/auth/change-password", passwordData);
+      return response.data;
+    } catch (error) {
+      console.error("Change password error:", error);
+      throw error;
+    }
+  },
+
+  // Request password reset
+  requestPasswordReset: async (email) => {
+    try {
+      const response = await api.post("/auth/password-reset-request", { email });
+      return response.data;
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      throw error;
+    }
+  },
+
+  // Confirm password reset
+  confirmPasswordReset: async (resetData) => {
+    try {
+      const response = await api.post("/auth/password-reset-confirm", resetData);
+      return response.data;
+    } catch (error) {
+      console.error("Password reset confirm error:", error);
+      throw error;
+    }
+  },
+};
+
+/**
  * Reports API
  */
 export const reportsAPI = {

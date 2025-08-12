@@ -6,7 +6,19 @@
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/(.*)",
+      "destination": "https://securedevopsai-platform-production.up.railway.app/api/$1"
+    },
+    {
+      "source": "/webhook/(.*)",
+      "destination": "https://securedevopsai-platform-production.up.railway.app/webhook/$1"
+    },
+    {
+      "source": "/health",
+      "destination": "https://securedevopsai-platform-production.up.railway.app/health"
+    },
+    {
+      "source": "/((?!api/|webhook/|health).*)",
       "destination": "/index.html"
     }
   ],
