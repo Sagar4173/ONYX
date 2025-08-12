@@ -67,7 +67,7 @@ class AuthService:
         if additional_claims:
             payload.update(additional_claims)
         
-        return jwt.encode(payload, settings.jwt_secret_key, algorithm=self.algorithm)
+        return jwt.encode(payload, settings.secret_key, algorithm=self.algorithm)
     
     def create_refresh_token(self, user_id: str) -> str:
         """Create JWT refresh token"""
@@ -80,14 +80,14 @@ class AuthService:
             "jti": str(uuid.uuid4())
         }
         
-        return jwt.encode(payload, settings.jwt_secret_key, algorithm=self.algorithm)
+        return jwt.encode(payload, settings.secret_key, algorithm=self.algorithm)
     
     def verify_token(self, token: str, token_type: str = "access") -> Optional[Dict[str, Any]]:
         """Verify and decode JWT token"""
         try:
             payload = jwt.decode(
                 token, 
-                settings.jwt_secret_key, 
+                settings.secret_key, 
                 algorithms=[self.algorithm],
                 options={"verify_exp": True}
             )
