@@ -53,7 +53,7 @@ MONGODB_DB_NAME=securedevops
 OPENAI_API_KEY=sk-your-openai-api-key-here
 
 # JWT Authentication
-JWT_SECRET_KEY=your-super-secret-jwt-key-here
+SECRET_KEY=your-super-secret-key-here
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 
@@ -108,7 +108,7 @@ services:
     environment:
       - MONGODB_URL=mongodb://mongodb:27017/securedevops
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       - mongodb
       - redis
@@ -332,7 +332,7 @@ cd SecureDevOpsAI-Platform
 cat > .env << EOF
 MONGODB_URL=mongodb://mongodb.cluster.amazonaws.com:27017/securedevops
 OPENAI_API_KEY=${OpenAIApiKey}
-JWT_SECRET_KEY=${JWTSecretKey}
+SECRET_KEY=${SecretKey}
 ENVIRONMENT=production
 EOF
 
@@ -403,7 +403,7 @@ metadata:
 type: Opaque
 data:
   OPENAI_API_KEY: <base64-encoded-key>
-  JWT_SECRET_KEY: <base64-encoded-secret>
+  SECRET_KEY: <base64-encoded-secret>
 
 ---
 # k8s/backend-deployment.yml
@@ -802,7 +802,7 @@ db.createUser({
 
 ```env
 # Strong JWT secret
-JWT_SECRET_KEY=your-super-long-random-secret-key-here
+SECRET_KEY=your-super-long-random-secret-key-here
 
 # Secure headers
 SECURE_HEADERS=true
