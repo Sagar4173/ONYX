@@ -6,11 +6,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 // API Configuration - Production ready with environment variable support
-const API_BASE_URL = import.meta.env.DEV
-  ? "/api" // Use proxy in development
-  : import.meta.env.VITE_API_URL || 
-    import.meta.env.VITE_API_BASE_URL || 
-    "https://securedevopsai-platform-production.up.railway.app/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Check if we're in demo mode (no backend available)
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true" || false;
@@ -20,7 +17,9 @@ const WS_BASE_URL = import.meta.env.DEV
   ? "ws://127.0.0.1:8000" // Direct connection in development
   : import.meta.env.VITE_WS_URL ||
     import.meta.env.VITE_WEBSOCKET_URL ||
-    "wss://securedevopsai-platform-production.up.railway.app";
+    (window.location.protocol === "https:" ? "wss:" : "ws:") +
+      "//" +
+      window.location.host;
 
 // Debug: Log the configuration values (only in development)
 if (import.meta.env.DEV) {
