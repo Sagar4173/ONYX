@@ -33,9 +33,17 @@ class Settings(BaseSettings):
     
     # Security
     secret_key: str = Field(..., env="SECRET_KEY")
+    jwt_secret_key: str = Field(..., env="JWT_SECRET_KEY")  # Add separate JWT secret
     algorithm: str = Field(default="HS256", env="ALGORITHM")
     access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    refresh_token_expire_days: int = Field(default=30, env="REFRESH_TOKEN_EXPIRE_DAYS")
     force_https: bool = Field(default=False, env="FORCE_HTTPS")
+    
+    # Authentication
+    allow_registration: bool = Field(default=True, env="ALLOW_REGISTRATION")
+    require_email_verification: bool = Field(default=True, env="REQUIRE_EMAIL_VERIFICATION")
+    max_failed_login_attempts: int = Field(default=5, env="MAX_FAILED_LOGIN_ATTEMPTS")
+    account_lockout_duration_minutes: int = Field(default=30, env="ACCOUNT_LOCKOUT_DURATION_MINUTES")
     
     # OpenAI
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")

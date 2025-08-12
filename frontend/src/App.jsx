@@ -50,6 +50,14 @@ import {
 import ProjectList from "./components/ProjectList";
 import ReportDetails from "./components/ReportDetails";
 import ComplianceReport from "./components/ComplianceReport";
+import {
+  AuthProvider,
+  useAuth,
+  LoginForm,
+  RegisterForm,
+  UserProfile,
+  AuthModal,
+} from "./components/Auth";
 import { websocketService, reportsAPI } from "./services/api";
 import toast from "react-hot-toast";
 
@@ -377,12 +385,16 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
 
 // Separate AppContent component that uses QueryClient hooks
 function AppContent() {
+  // Always call ALL hooks at the top level, before any conditional returns
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
-  // Scan mutation for repository submission
+  // Scan mutation for repository submission - moved to top
   const scanMutation = useMutation({
     mutationFn: async (scanData) => {
       // Use the configured API base URL from environment variables
@@ -420,7 +432,7 @@ function AppContent() {
     },
   });
 
-  // Enhanced WebSocket connection with better error handling
+  // Enhanced WebSocket connection with better error handling - moved to top
   useEffect(() => {
     websocketService.connect();
 
@@ -464,6 +476,39 @@ function AppContent() {
       websocketService.disconnect();
     };
   }, []);
+
+  // Now handle conditional rendering after all hooks are called
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-4 animate-pulse">
+            <ShieldCheckIcon className="h-8 w-8 text-white" />
+          </div>
+          <p className="text-white text-lg">Loading SecureDevOps Platform...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication modal if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <AuthModal isOpen={true} onClose={() => setAuthModalOpen(false)} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#1f2937",
+              color: "#fff",
+              border: "1px solid #374151",
+            },
+          }}
+        />
+      </div>
+    );
+  }
 
   const navigation = [
     {
@@ -675,13 +720,21 @@ function AppContent() {
           </div>
 
           {/* User Profile */}
-          <button className="flex items-center space-x-2 lg:space-x-3 p-2 rounded-xl lg:rounded-2xl hover:bg-gray-800/50 transition-all">
+          <button
+            onClick={() => setProfileModalOpen(true)}
+            className="flex items-center space-x-2 lg:space-x-3 p-2 rounded-xl lg:rounded-2xl hover:bg-gray-800/50 transition-all"
+          >
             <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
               <UserCircleIcon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-sm font-medium text-white">Security Admin</p>
-              <p className="text-xs text-gray-400">admin@securedevops.ai</p>
+              <p className="text-sm font-medium text-white">
+                {user?.full_name || "Unknown User"}
+              </p>
+              <p className="text-xs text-gray-400">{user?.email || ""}</p>
+              <span className="inline-block px-2 py-0.5 mt-1 text-xs bg-blue-500/20 text-blue-300 rounded-lg">
+                {user?.role || "viewer"}
+              </span>
             </div>
           </button>
         </div>
@@ -1051,6 +1104,17 @@ function AppContent() {
           onSubmit={scanMutation.mutateAsync}
         />
 
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+        />
+
+        {/* User Profile Modal */}
+        {profileModalOpen && (
+          <UserProfile onClose={() => setProfileModalOpen(false)} />
+        )}
+
         {/* Enhanced Toast Notifications */}
         <Toaster
           position="top-right"
@@ -1094,7 +1158,9 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -46,7 +46,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -68,7 +68,7 @@ api.interceptors.response.use(
     console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error(
       "❌ API Response Error:",
       error.response?.data || error.message
@@ -76,8 +76,35 @@ api.interceptors.response.use(
 
     // Handle common error cases
     if (error.response?.status === 401) {
-      toast.error("Authentication required. Please log in.");
-      // Handle logout logic here
+      // Try to refresh token
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (refreshToken && !error.config._retry) {
+        error.config._retry = true;
+
+        try {
+          const response = await api.post("/auth/refresh", {
+            refresh_token: refreshToken,
+          });
+          const { access_token } = response.data;
+
+          localStorage.setItem("access_token", access_token);
+          error.config.headers.Authorization = `Bearer ${access_token}`;
+
+          return api.request(error.config);
+        } catch (refreshError) {
+          // Refresh failed, logout user
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user_data");
+          toast.error("Session expired. Please log in again.");
+          window.location.href = "/";
+        }
+      } else {
+        toast.error("Authentication required. Please log in.");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_data");
+      }
     } else if (error.response?.status === 403) {
       toast.error("Access denied. Insufficient permissions.");
     } else if (error.response?.status === 429) {
