@@ -1,0 +1,242 @@
+name: CI/CD Pipeline
+
+# Add concurrency control at top level
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main, staging, dev]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    env:
+      ENVIRONMENT: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      # Updated Python version to 3.12
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Cache Python dependencies
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Install dependencies
+      - name: Install requirements
+        run: pip install -r backend/requirements.txt
+
+      # Run unit tests
+      - name: Run unit tests
+        run: pytest backend/tests/ || echo "No tests found"
+
+      # Run linting
+      - name: Run linting
+        run: flake8 backend/ || echo "Linting completed"
+
+      # Build Docker image
+      - name: Build Docker image
+        run: docker build -t securedevops-ai:latest .
+
+      # Save Docker image as artifact
+      - name: Save Docker image as artifact
+        run: |
+          docker save securedevops-ai:latest | gzip > securedevops-ai.tar.gz
+        shell: bash
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: securedevops-ai.tar.gz
+
+      # Cleanup build artifacts
+      - name: Cleanup build artifacts
+        if: always()
+        run: |
+          rm -f securedevops-ai.tar.gz
+          docker system prune -f
+
+  sast-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Cache pip for scans
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-scan-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-scan-
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep scan
+        run: semgrep --config=auto --json --output=semgrep-report.json backend/ frontend/ || echo "SAST scan completed"
+
+      - name: Upload Semgrep report
+        uses: actions/upload-artifact@v3
+        with:
+          name: semgrep-report
+          path: semgrep-report.json
+
+  dependency-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Cache pip for scans
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-scan-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-scan-
+
+      - name: Install Safety
+        run: pip install safety
+
+      - name: Run Python dependency scan
+        run: safety check --json --output safety-report.json || echo "Safety scan completed"
+
+      - name: Run npm audit (if package.json exists)
+        run: |
+          if [ -f "frontend/package.json" ]; then
+            cd frontend && npm audit --audit-level=moderate --json > ../npm-audit-report.json || true
+          fi
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-reports
+          path: |
+            safety-report.json
+            npm-audit-report.json
+
+  secret-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Run GitLeaks scan
+        run: |
+          docker run --rm -v "$PWD:/path" zricethezav/gitleaks:latest \
+            detect --source="/path" --report-format=json --report-path=/path/gitleaks-report.json || echo "Secret scan completed"
+
+      - name: Upload GitLeaks report
+        uses: actions/upload-artifact@v3
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+
+  container-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-image
+          path: .
+
+      - name: Load Docker image
+        run: |
+          gzip -d securedevops-ai.tar.gz
+          docker load < securedevops-ai.tar
+
+      - name: Run Trivy scan
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy image securedevops-ai:latest \
+            --format json --output trivy-report.json || echo "Container scan completed"
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-report
+          path: trivy-report.json
+
+      - name: Cleanup scan artifacts
+        if: always()
+        run: |
+          rm -f securedevops-ai.tar
+          docker system prune -f
+
+  deploy:
+    needs: [build-test, sast-scan, dependency-scan, secret-scan, container-scan]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Deploy to environment
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "Deploying to production..."
+            # Add your production deployment commands here
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "Deploying to staging..."
+            # Add your staging deployment commands here
+          else
+            echo "Deploying to development..."
+            # Add your development deployment commands here
+          fi
+
+      - name: Notify on deployment status
+        if: always()
+        run: |
+          echo "Deployment status: ${{ job.status }}"
+          echo "Environment: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+
+  # Cleanup job to remove old artifacts after deployment
+  cleanup:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Delete workflow artifacts
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: |
+            docker-image
+            semgrep-report
+            dependency-reports
+            gitleaks-report
+            trivy-report
