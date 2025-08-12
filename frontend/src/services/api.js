@@ -317,6 +317,225 @@ export const reportsAPI = {
 };
 
 /**
+ * Projects API
+ */
+export const projectsAPI = {
+  // Get all projects with filtering and pagination
+  getProjects: async (params = {}) => {
+    try {
+      const response = await api.get("/projects", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      throw error;
+    }
+  },
+
+  // Get project by ID
+  getProject: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      throw error;
+    }
+  },
+
+  // Create new project
+  createProject: async (projectData) => {
+    try {
+      const response = await api.post("/projects", projectData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating project:", error);
+      throw error;
+    }
+  },
+
+  // Update project
+  updateProject: async (projectId, projectData) => {
+    try {
+      const response = await api.put(`/projects/${projectId}`, projectData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating project:", error);
+      throw error;
+    }
+  },
+
+  // Delete project
+  deleteProject: async (projectId) => {
+    try {
+      const response = await api.delete(`/projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      throw error;
+    }
+  },
+
+  // Get project templates
+  getProjectTemplates: async () => {
+    try {
+      const response = await api.get("/projects/templates");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching project templates:", error);
+      throw error;
+    }
+  },
+
+  // Get project template categories
+  getTemplateCategories: async () => {
+    try {
+      const response = await api.get("/projects/templates/categories");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching template categories:", error);
+      throw error;
+    }
+  },
+
+  // Get project analytics overview
+  getAnalyticsOverview: async (params = {}) => {
+    try {
+      const response = await api.get("/projects/analytics/overview", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching analytics overview:", error);
+      throw error;
+    }
+  },
+
+  // Add member to project
+  addMember: async (projectId, memberData) => {
+    try {
+      const response = await api.post(`/projects/${projectId}/members`, memberData);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding project member:", error);
+      throw error;
+    }
+  },
+
+  // Remove member from project
+  removeMember: async (projectId, memberId) => {
+    try {
+      const response = await api.delete(`/projects/${projectId}/members/${memberId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error removing project member:", error);
+      throw error;
+    }
+  },
+
+  // Update member role
+  updateMemberRole: async (projectId, memberId, roleData) => {
+    try {
+      const response = await api.put(`/projects/${projectId}/members/${memberId}`, roleData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Users API
+ */
+export const usersAPI = {
+  // Get all users with filtering and pagination
+  getUsers: async (params = {}) => {
+    try {
+      const response = await api.get("/users", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
+  },
+
+  // Get user by ID
+  getUser: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      throw error;
+    }
+  },
+
+  // Create new user (admin only)
+  createUser: async (userData) => {
+    try {
+      const response = await api.post("/users", userData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
+  },
+
+  // Update user
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await api.put(`/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user:", error);
+      throw error;
+    }
+  },
+
+  // Delete user
+  deleteUser: async (userId) => {
+    try {
+      const response = await api.delete(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
+  },
+
+  // Update user status
+  updateUserStatus: async (userId, status) => {
+    try {
+      const response = await api.patch(`/users/${userId}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw error;
+    }
+  },
+
+  // Update user role
+  updateUserRole: async (userId, role) => {
+    try {
+      const response = await api.patch(`/users/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      throw error;
+    }
+  },
+
+  // Get user activity
+  getUserActivity: async (userId, params = {}) => {
+    try {
+      const response = await api.get(`/users/${userId}/activity`, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
+      throw error;
+    }
+  },
+};
+
+/**
  * Webhook API
  */
 export const webhookAPI = {
