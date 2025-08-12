@@ -1,13 +1,50 @@
 # 🛡️ SecureDevOps AI Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangion.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0+-green.svg)](https://www.mongodb.com/)
+[![AI Powered](https://img.shields.io/badge/AI-GPT--4-orange.svg)](https://openai.com/)
+
+[![Frontend Status](https://img.shields.io/badge/Frontend-Live-brightgreen.svg)](https://secure-dev-ops-ai-platform.vercel.app)
+[![Backend Status](https://img.shields.io/badge/Backend-Live-brightgreen.svg)](https://securedevopsai-platform-production.up.railway.app)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://securedevopsai-platform-production.up.railway.app/docs)
+
+> **The Next-Generation Open Source Alternative to GitHub Advanced Security & Snyk**  
+> *Comprehensive Security Scanning • AI-Powered Analysis • Enterprise-Ready*
 
 An intelligent, comprehensive security scanning and DevOps automation platform that integrates multiple security tools with AI-powered analysis to provide actionable insights for your development workflow.
 
+## 🚀 **Live Demo**
+
+**Experience SecureDevOps AI Platform:**
+- 🌐 **Frontend Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
+- 🔌 **Backend API**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
+- 📚 **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
+- 🏥 **System Health**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)
+
+> **Test Credentials**: Contact us for demo access or deploy your own instance using the guides below.
+
 ![SecureDevOps Platform Dashboard](docs/images/dashboard.png)
+
+## 🌟 Why Choose SecureDevOps AI Platform?
+
+### 🆚 **vs GitHub Advanced Security (GHAS)**
+- ✅ **Open Source** - No vendor lock-in, full customization
+- ✅ **Multi-Platform** - Works with any Git provider (GitHub, GitLab, Bitbucket)
+- ✅ **AI-Enhanced** - GPT-4 powered vulnerability analysis and remediation
+- ✅ **Cost-Effective** - No per-user licensing fees
+- ✅ **Self-Hosted** - Complete data control and compliance
+
+### 🆚 **vs Snyk**
+- ✅ **Comprehensive Coverage** - SAST, Container, Secrets, Infrastructure scanning
+- ✅ **Real-Time Analysis** - Instant AI-powered risk assessment
+- ✅ **Developer-Friendly** - Modern React UI with real-time notifications
+- ✅ **Enterprise Features** - Compliance reporting, audit trails, webhooks
+- ✅ **Transparent Pricing** - No hidden costs or feature limitations
+
+---
 
 ## 🌟 Features
 
@@ -179,9 +216,15 @@ npm run preview
 
 ### 6. Access the Platform
 
+**Local Development:**
 - **Web Interface**: http://localhost:4173 (or the port shown by Vite)
 - **API Documentation**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/health
+
+**Live Demo (Production):**
+- **Web Interface**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
+- **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
+- **Health Check**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)
 
 ## 📖 Installation Guide
 
