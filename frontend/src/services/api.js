@@ -33,6 +33,16 @@ if (import.meta.env.DEV) {
   });
 }
 
+// Utility function to clean parameters by removing empty values
+const cleanParams = (params = {}) => {
+  return Object.entries(params).reduce((acc, [key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+};
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -234,7 +244,7 @@ export const reportsAPI = {
   // Get all reports with filtering and pagination
   getReports: async (params = {}) => {
     try {
-      const response = await api.get("/reports", { params });
+      const response = await api.get("/reports", { params: cleanParams(params) });
       return response.data;
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -273,7 +283,7 @@ export const reportsAPI = {
       const params = { days_back: daysBack };
       if (projectName) params.project_name = projectName;
 
-      const response = await api.get("/analytics/overview", { params });
+      const response = await api.get("/analytics/overview", { params: cleanParams(params) });
       return response.data;
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -286,7 +296,7 @@ export const reportsAPI = {
     try {
       const response = await api.get(
         `/reports/project/${encodeURIComponent(projectName)}`,
-        { params }
+        { params: cleanParams(params) }
       );
       return response.data;
     } catch (error) {
@@ -327,7 +337,7 @@ export const projectsAPI = {
   // Get all projects with filtering and pagination
   getProjects: async (params = {}) => {
     try {
-      const response = await api.get("/projects/", { params });
+      const response = await api.get("/projects/", { params: cleanParams(params) });
       return response.data;
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -405,7 +415,7 @@ export const projectsAPI = {
   getAnalyticsOverview: async (params = {}) => {
     try {
       const response = await api.get("/projects/analytics/overview", {
-        params,
+        params: cleanParams(params),
       });
       return response.data;
     } catch (error) {
@@ -463,7 +473,7 @@ export const usersAPI = {
   // Get all users with filtering and pagination
   getUsers: async (params = {}) => {
     try {
-      const response = await api.get("/users", { params });
+      const response = await api.get("/users", { params: cleanParams(params) });
       return response.data;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -540,7 +550,7 @@ export const usersAPI = {
   // Get user activity
   getUserActivity: async (userId, params = {}) => {
     try {
-      const response = await api.get(`/users/${userId}/activity`, { params });
+      const response = await api.get(`/users/${userId}/activity`, { params: cleanParams(params) });
       return response.data;
     } catch (error) {
       console.error("Error fetching user activity:", error);
