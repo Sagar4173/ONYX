@@ -28,127 +28,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useAuth } from "./Auth";
-
-// API Functions
-const projectsAPI = {
-  getProjects: async (params = {}) => {
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== "") {
-        searchParams.append(key, value);
-      }
-    });
-
-    const response = await fetch(`/api/projects?${searchParams}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch projects");
-    }
-
-    return response.json();
-  },
-
-  createProject: async (projectData) => {
-    const response = await fetch("/api/projects/", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(projectData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to create project");
-    }
-
-    return response.json();
-  },
-
-  getProject: async (projectId) => {
-    const response = await fetch(`/api/projects/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch project");
-    }
-
-    return response.json();
-  },
-
-  updateProject: async (projectId, updateData) => {
-    const response = await fetch(`/api/projects/${projectId}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updateData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to update project");
-    }
-
-    return response.json();
-  },
-
-  deleteProject: async (projectId) => {
-    const response = await fetch(`/api/projects/${projectId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to delete project");
-    }
-  },
-
-  getProjectTemplates: async () => {
-    const response = await fetch("/api/projects/templates/categories", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch project templates");
-    }
-
-    return response.json();
-  },
-
-  getProjectAnalytics: async () => {
-    const response = await fetch("/api/projects/analytics/overview", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch project analytics");
-    }
-
-    return response.json();
-  },
-};
+import { projectsAPI } from "../services/api";
 
 // Project Card Component
 const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
@@ -385,7 +265,7 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
   const { data: templates } = useQuery({
     queryKey: ["projectTemplates"],
-    queryFn: projectsAPI.getProjectTemplates,
+    queryFn: projectsAPI.getTemplateCategories,
   });
 
   const createMutation = useMutation({
@@ -798,7 +678,7 @@ export const ProjectManagement = () => {
 
   const { data: analytics } = useQuery({
     queryKey: ["projectAnalytics"],
-    queryFn: projectsAPI.getProjectAnalytics,
+    queryFn: projectsAPI.getAnalyticsOverview,
   });
 
   const handleProjectCreated = () => {
