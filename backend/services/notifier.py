@@ -444,6 +444,18 @@ class NotificationService:
         except Exception as e:
             notification_status.errors.append(f"Teams test failed: {e}")
 
+    async def send_email(self, to_email: str, subject: str, html_body: str):
+        """
+        Send email using the dedicated email service
+        """
+        try:
+            from services.email_service import email_service
+            return await email_service.send_email(to_email, subject, html_body)
+            
+        except Exception as e:
+            logger.error(f"Failed to send email to {to_email}: {str(e)}")
+            raise NotificationError(f"Email sending failed: {str(e)}")
+
 
 # Global notification service instance
 notification_service = NotificationService()

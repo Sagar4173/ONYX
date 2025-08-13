@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     
     # URLs
     backend_url: Optional[str] = Field(default=None, env="BACKEND_URL")
-    frontend_url: Optional[str] = Field(default=None, env="FRONTEND_URL")
+    frontend_url: str = Field(default="http://localhost:5173", env="FRONTEND_URL")
     api_base_url: Optional[str] = Field(default=None, env="API_BASE_URL")
     websocket_url: Optional[str] = Field(default=None, env="WEBSOCKET_URL")
     
@@ -52,6 +52,20 @@ class Settings(BaseSettings):
     # Notifications
     slack_webhook_url: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
     teams_webhook_url: Optional[str] = Field(default=None, env="TEAMS_WEBHOOK_URL")
+    
+    # Email Configuration
+    email_enabled: bool = Field(default=False, env="EMAIL_ENABLED")
+    smtp_server: Optional[str] = Field(default=None, env="SMTP_SERVER")
+    smtp_port: int = Field(default=587, env="SMTP_PORT")
+    smtp_username: Optional[str] = Field(default=None, env="SMTP_USERNAME") 
+    smtp_password: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
+    smtp_use_tls: bool = Field(default=True, env="SMTP_USE_TLS")
+    smtp_use_ssl: bool = Field(default=False, env="SMTP_USE_SSL")
+    email_from: Optional[str] = Field(default=None, env="EMAIL_FROM")
+    email_from_name: str = Field(default="SecureDevOps Platform", env="EMAIL_FROM_NAME")
+    
+    # Email Provider Presets (for easy configuration)
+    email_provider: Optional[str] = Field(default=None, env="EMAIL_PROVIDER")  # gmail, sendgrid, outlook, etc.
     slack_channel: str = Field(default="#dev-alerts", env="SLACK_CHANNEL")
     
     # Rate Limiting
@@ -111,7 +125,7 @@ class Settings(BaseSettings):
         origins = [origin.strip() for origin in self.cors_origins.split(",")]
         return [origin for origin in origins if origin]  # Remove empty strings
     
-    model_config = {"extra": "ignore", "env_file": "../.env", "env_file_encoding": "utf-8", "case_sensitive": False}
+    model_config = {"extra": "ignore", "env_file": ".env", "env_file_encoding": "utf-8", "case_sensitive": False}
 
 
 def get_log_level() -> int:

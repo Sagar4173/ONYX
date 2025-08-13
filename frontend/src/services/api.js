@@ -235,6 +235,39 @@ export const authAPI = {
       throw error;
     }
   },
+
+  // Verify email
+  verifyEmail: async (token) => {
+    try {
+      const response = await api.post("/auth/verify-email", { token });
+      return response.data;
+    } catch (error) {
+      console.error("Email verification error:", error);
+      throw error;
+    }
+  },
+
+  // Resend verification email
+  resendVerificationEmail: async () => {
+    try {
+      const response = await api.post("/auth/resend-verification");
+      return response.data;
+    } catch (error) {
+      console.error("Resend verification error:", error);
+      throw error;
+    }
+  },
+
+  // Test email configuration
+  testEmailConfiguration: async () => {
+    try {
+      const response = await api.post("/auth/test-email");
+      return response.data;
+    } catch (error) {
+      console.error("Test email error:", error);
+      throw error;
+    }
+  },
 };
 
 /**
@@ -244,7 +277,9 @@ export const reportsAPI = {
   // Get all reports with filtering and pagination
   getReports: async (params = {}) => {
     try {
-      const response = await api.get("/reports", { params: cleanParams(params) });
+      const response = await api.get("/reports", {
+        params: cleanParams(params),
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -283,7 +318,9 @@ export const reportsAPI = {
       const params = { days_back: daysBack };
       if (projectName) params.project_name = projectName;
 
-      const response = await api.get("/analytics/overview", { params: cleanParams(params) });
+      const response = await api.get("/analytics/overview", {
+        params: cleanParams(params),
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -337,7 +374,9 @@ export const projectsAPI = {
   // Get all projects with filtering and pagination
   getProjects: async (params = {}) => {
     try {
-      const response = await api.get("/projects/", { params: cleanParams(params) });
+      const response = await api.get("/projects/", {
+        params: cleanParams(params),
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -550,7 +589,9 @@ export const usersAPI = {
   // Get user activity
   getUserActivity: async (userId, params = {}) => {
     try {
-      const response = await api.get(`/users/${userId}/activity`, { params: cleanParams(params) });
+      const response = await api.get(`/users/${userId}/activity`, {
+        params: cleanParams(params),
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching user activity:", error);

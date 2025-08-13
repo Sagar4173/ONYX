@@ -339,6 +339,11 @@ class PasswordResetConfirm(BaseModel):
         return v
 
 
+class EmailVerificationRequest(BaseModel):
+    """Model for email verification request"""
+    token: str
+
+
 class TokenResponse(BaseModel):
     """Model for token response"""
     access_token: str

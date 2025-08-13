@@ -4,6 +4,7 @@ Handles JWT token generation, validation, password management, and user sessions
 """
 import secrets
 import hashlib
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, Tuple
 import uuid
@@ -20,6 +21,8 @@ from models.user import (
     PasswordResetRequest, PasswordResetConfirm,
     UserCreate, UserPasswordChange
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -366,6 +369,7 @@ class AuthService:
         
         # TODO: Send email with reset link
         # await send_password_reset_email(user.email, reset_token)
+        await self.send_password_reset_email(user.email, reset_token)
         
         return True
     
@@ -485,6 +489,52 @@ class AuthService:
             # If anything goes wrong with authentication, just return None for optional auth
             return None
     
+    async def get_current_user_for_verification(self, credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> User:
+        """Get current user for verification-related operations (allows PENDING_VERIFICATION users)"""
+        token = credentials.credentials
+        payload = self.verify_token(token, "access")
+        
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+        
+        user_id = payload["sub"]
+        user = await User.get(user_id)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
+        
+        # Allow both ACTIVE and PENDING_VERIFICATION users for verification operations
+        if user.status not in [UserStatus.ACTIVE, UserStatus.PENDING_VERIFICATION]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is not accessible"
+            )
+        
+        # Verify session is still active
+        session = await UserSession.find_one({
+            "user_id": user_id,
+            "access_token": token,
+            "is_active": True
+        })
+        
+        if not session:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session not found or expired"
+            )
+        
+        # Update last activity
+        session.last_activity = datetime.utcnow()
+        await session.save()
+        
+        return user
+    
     def require_role(self, required_role: UserRole):
         """Dependency to require specific user role"""
         def role_checker(current_user: User = Depends(self.get_current_user)) -> User:
@@ -575,6 +625,53 @@ class AuthService:
         # Get user
         user = await User.get(api_token.user_id)
         return user
+
+    # Email Services
+    
+    async def send_verification_email(self, email: str, verification_token: str):
+        """Send email verification link"""
+        try:
+            from services.email_service import email_service
+            success = await email_service.send_verification_email(email, verification_token)
+            
+            if success:
+                logger.info(f"Verification email sent to {email}")
+            else:
+                logger.error(f"Failed to send verification email to {email}")
+            
+        except Exception as e:
+            logger.error(f"Failed to send verification email to {email}: {str(e)}")
+            # Don't raise exception - user registration should still succeed
+    
+    async def send_password_reset_email(self, email: str, reset_token: str):
+        """Send password reset link"""
+        try:
+            from services.email_service import email_service
+            success = await email_service.send_password_reset_email(email, reset_token)
+            
+            if success:
+                logger.info(f"Password reset email sent to {email}")
+            else:
+                logger.error(f"Failed to send password reset email to {email}")
+            
+        except Exception as e:
+            logger.error(f"Failed to send password reset email to {email}: {str(e)}")
+            # Don't raise exception
+    
+    async def send_welcome_email(self, email: str, user_name: str):
+        """Send welcome email to new users"""
+        try:
+            from services.email_service import email_service
+            success = await email_service.send_welcome_email(email, user_name)
+            
+            if success:
+                logger.info(f"Welcome email sent to {email}")
+            else:
+                logger.error(f"Failed to send welcome email to {email}")
+            
+        except Exception as e:
+            logger.error(f"Failed to send welcome email to {email}: {str(e)}")
+            # Don't raise exception - user registration should still succeed
 
 
 # Global instance
