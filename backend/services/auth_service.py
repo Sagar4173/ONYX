@@ -398,7 +398,7 @@ class AuthService:
     
     # Token Dependency
     
-    async def get_current_user(self, credentials: HTTPAuthorizationCredentials) -> User:
+    async def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> User:
         """Get current user from JWT token"""
         token = credentials.credentials
         payload = self.verify_token(token, "access")

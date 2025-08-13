@@ -12,27 +12,26 @@ const API_BASE_URL =
 // Check if we're in demo mode (no backend available)
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true" || false;
 
-// WebSocket URL - Connect directly to Railway backend
+// WebSocket URL - Connect directly to backend in development
 const WS_BASE_URL = import.meta.env.DEV
   ? "ws://127.0.0.1:8000" // Direct connection in development
   : import.meta.env.VITE_WS_URL ||
     import.meta.env.VITE_WEBSOCKET_URL ||
-    "wss://securedevopsai-platform-production.up.railway.app";
+    (window.location.protocol === "https:" ? "wss:" : "ws:") +
+      "//" +
+      window.location.host;
 
-// Debug: Log the configuration values (always log for troubleshooting)
-console.log("🔧 API Configuration:", {
-  API_BASE_URL,
-  WS_BASE_URL,
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  VITE_WS_URL: import.meta.env.VITE_WS_URL,
-  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  VITE_WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL,
-  DEV: import.meta.env.DEV,
-  PROD: import.meta.env.PROD,
-  MODE: import.meta.env.MODE,
-  location_host: window.location.host,
-  location_protocol: window.location.protocol,
-});
+// Debug: Log the configuration values (only in development)
+if (import.meta.env.DEV) {
+  console.log("🔧 API Configuration:", {
+    API_BASE_URL,
+    WS_BASE_URL,
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    VITE_WS_URL: import.meta.env.VITE_WS_URL,
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    VITE_WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL,
+  });
+}
 
 // Create axios instance with default config
 const api = axios.create({
@@ -121,41 +120,6 @@ api.interceptors.response.use(
 );
 
 /**
- * Utility API functions
- */
-export const utilAPI = {
-  // Health check to test API connectivity
-  healthCheck: async () => {
-    try {
-      console.log("🏥 Testing API connectivity...");
-      const response = await api.get("/health");
-      console.log("✅ Health check successful:", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("❌ Health check failed:", error);
-      throw error;
-    }
-  },
-
-  // Test authentication by getting profile
-  testAuth: async () => {
-    try {
-      console.log("🔐 Testing authentication...");
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error("No access token found");
-      }
-      const response = await authAPI.getProfile();
-      console.log("✅ Authentication test successful:", response);
-      return response;
-    } catch (error) {
-      console.error("❌ Authentication test failed:", error);
-      throw error;
-    }
-  },
-};
-
-/**
  * Authentication API
  */
 export const authAPI = {
@@ -208,7 +172,7 @@ export const authAPI = {
   // Get current user profile
   getProfile: async () => {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get("/auth/profile");
       return response.data;
     } catch (error) {
       console.error("Get profile error:", error);
@@ -219,7 +183,7 @@ export const authAPI = {
   // Update user profile
   updateProfile: async (profileData) => {
     try {
-      const response = await api.put("/auth/me", profileData);
+      const response = await api.put("/auth/profile", profileData);
       return response.data;
     } catch (error) {
       console.error("Update profile error:", error);
@@ -999,26 +963,5 @@ export const utils = {
   },
 };
 
-// Global debug functions for troubleshooting (available in console)
-if (typeof window !== "undefined") {
-  window.apiDebug = {
-    healthCheck: () => utilAPI.healthCheck(),
-    testAuth: () => utilAPI.testAuth(),
-    getConfig: () => ({
-      API_BASE_URL,
-      WS_BASE_URL,
-      hasToken: !!localStorage.getItem("access_token"),
-      environment: import.meta.env,
-    }),
-    clearAuth: () => {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user_data");
-      console.log("🧹 Authentication data cleared");
-    },
-  };
-  console.log("🛠️ Debug functions available: window.apiDebug");
-}
-
-// Default export - combined API object
+// Default export
 export default api;
