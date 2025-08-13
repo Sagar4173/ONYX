@@ -446,6 +446,44 @@ class AuthService:
     async def get_current_active_user(self, current_user: User = Depends(get_current_user)) -> User:
         """Get current active user (wrapper for dependency injection)"""
         return current_user
+
+    async def get_optional_current_user(self, 
+                                      credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[User]:
+        """Get current user from JWT token (optional - for endpoints that allow anonymous access)"""
+        if not credentials:
+            return None
+            
+        try:
+            token = credentials.credentials
+            payload = self.verify_token(token, "access")
+            
+            if not payload:
+                return None
+            
+            user_id = payload["sub"]
+            user = await User.get(user_id)
+            
+            if not user or user.status != UserStatus.ACTIVE:
+                return None
+            
+            # Verify session is still active
+            session = await UserSession.find_one({
+                "user_id": user_id,
+                "access_token": token,
+                "is_active": True
+            })
+            
+            if not session:
+                return None
+            
+            # Update last activity
+            session.last_activity = datetime.utcnow()
+            await session.save()
+            
+            return user
+        except Exception:
+            # If anything goes wrong with authentication, just return None for optional auth
+            return None
     
     def require_role(self, required_role: UserRole):
         """Dependency to require specific user role"""

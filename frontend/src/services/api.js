@@ -172,7 +172,7 @@ export const authAPI = {
   // Get current user profile
   getProfile: async () => {
     try {
-      const response = await api.get("/auth/profile");
+      const response = await api.get("/auth/me");
       return response.data;
     } catch (error) {
       console.error("Get profile error:", error);
@@ -183,7 +183,7 @@ export const authAPI = {
   // Update user profile
   updateProfile: async (profileData) => {
     try {
-      const response = await api.put("/auth/profile", profileData);
+      const response = await api.put("/auth/me", profileData);
       return response.data;
     } catch (error) {
       console.error("Update profile error:", error);
@@ -205,7 +205,7 @@ export const authAPI = {
   // Request password reset
   requestPasswordReset: async (email) => {
     try {
-      const response = await api.post("/auth/password-reset-request", {
+      const response = await api.post("/auth/request-password-reset", {
         email,
       });
       return response.data;
@@ -218,10 +218,7 @@ export const authAPI = {
   // Confirm password reset
   confirmPasswordReset: async (resetData) => {
     try {
-      const response = await api.post(
-        "/auth/password-reset-confirm",
-        resetData
-      );
+      const response = await api.post("/auth/reset-password", resetData);
       return response.data;
     } catch (error) {
       console.error("Password reset confirm error:", error);
@@ -330,7 +327,7 @@ export const projectsAPI = {
   // Get all projects with filtering and pagination
   getProjects: async (params = {}) => {
     try {
-      const response = await api.get("/projects", { params });
+      const response = await api.get("/projects/", { params });
       return response.data;
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -352,7 +349,7 @@ export const projectsAPI = {
   // Create new project
   createProject: async (projectData) => {
     try {
-      const response = await api.post("/projects", projectData);
+      const response = await api.post("/projects/", projectData);
       return response.data;
     } catch (error) {
       console.error("Error creating project:", error);

@@ -24,7 +24,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreate,
-    current_user: Optional[User] = Depends(auth_service.get_current_user)
+    current_user: Optional[User] = Depends(auth_service.get_optional_current_user)
 ):
     """
     Register a new user
