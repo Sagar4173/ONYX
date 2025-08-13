@@ -4,7 +4,7 @@ Handles project CRUD operations, team management, and analytics
 """
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from models.project import (
     Project, ProjectCreateRequest, ProjectUpdateRequest, 
@@ -23,9 +23,9 @@ project_service = ProjectService()
 auth_service = AuthService()
 
 
-async def get_current_user(token: str = Depends(security)) -> User:
+async def get_current_user(token: HTTPAuthorizationCredentials = Depends(security)) -> User:
     """Get current authenticated user"""
-    user = await auth_service.get_current_user(token.credentials)
+    user = await auth_service.get_current_user(token)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
