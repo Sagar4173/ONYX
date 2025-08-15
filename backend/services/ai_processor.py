@@ -25,7 +25,18 @@ class VulnerabilityAIProcessor:
     """AI processor for vulnerability analysis and recommendations"""
     
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.openai_api_key)
+        try:
+            self.client = AsyncOpenAI(api_key=settings.openai_api_key)
+        except TypeError as e:
+            # Handle version compatibility issues
+            if "proxies" in str(e):
+                # Fallback for older OpenAI client versions
+                self.client = AsyncOpenAI(
+                    api_key=settings.openai_api_key,
+                    timeout=30.0
+                )
+            else:
+                raise e
         self.model = settings.openai_model
         self.max_tokens = settings.openai_max_tokens
     
@@ -392,5 +403,16 @@ class VulnerabilityAIProcessor:
             raise AIProcessorError(f"AI analysis failed: {e}")
 
 
-# Global AI processor instance
-ai_processor = VulnerabilityAIProcessor()
+# Global AI processor instance - lazy initialization
+_ai_processor = None
+
+def get_ai_processor() -> VulnerabilityAIProcessor:
+    """Get or create the global AI processor instance"""
+    global _ai_processor
+    if _ai_processor is None:
+        _ai_processor = VulnerabilityAIProcessor()
+    return _ai_processor
+
+# Create function to get the processor when needed
+def ai_processor():
+    return get_ai_processor()

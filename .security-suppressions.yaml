@@ -1,0 +1,291 @@
+# Security Suppressions Configuration
+# Policy-as-code for false positive suppression
+version: "1.0"
+
+# Global suppression rules
+rules:
+  test-files:
+    description: "Suppress security findings in test files and directories"
+    file_patterns:
+      - "**/test/**"
+      - "**/tests/**" 
+      - "**/*_test.py"
+      - "**/*_test.js"
+      - "**/*_test.go"
+      - "**/*Test.java"
+      - "**/*test*.py"
+      - "**/spec/**"
+      - "**/*_spec.rb"
+    severities:
+      - "low"
+      - "medium"
+    scanners:
+      - "codeql"
+      - "checkov"
+    reason: "Test files may contain intentionally insecure code for testing purposes"
+
+  documentation:
+    description: "Suppress findings in documentation and examples"
+    file_patterns:
+      - "**/docs/**"
+      - "**/documentation/**"
+      - "**/*.md"
+      - "**/*.rst"
+      - "**/examples/**"
+      - "**/samples/**"
+    severities:
+      - "low"
+      - "medium"
+    reason: "Documentation and examples may contain simplified code for illustration"
+
+  third-party-code:
+    description: "Suppress findings in third-party dependencies"
+    file_patterns:
+      - "**/node_modules/**"
+      - "**/vendor/**"
+      - "**/lib/**"
+      - "**/libs/**"
+      - "**/external/**"
+      - "**/.venv/**"
+      - "**/venv/**"
+      - "**/site-packages/**"
+    scanners:
+      - "codeql"
+      - "checkov"
+      - "zap"
+    reason: "Third-party code should be assessed separately from application code"
+
+  legacy-code:
+    description: "Suppress specific findings in legacy code pending refactoring"
+    file_patterns:
+      - "**/legacy/**"
+      - "**/deprecated/**"
+      - "**/old/**"
+    rule_ids:
+      - "CWE-79"  # XSS
+      - "CWE-89"  # SQL Injection  
+      - "CWE-22"  # Path Traversal
+    severities:
+      - "medium"
+      - "low"
+    reason: "Legacy code issues tracked in technical debt backlog"
+
+  configuration-files:
+    description: "Suppress certain findings in configuration files"
+    file_patterns:
+      - "**/*.json"
+      - "**/*.yaml" 
+      - "**/*.yml"
+      - "**/*.toml"
+      - "**/*.ini"
+      - "**/*.cfg"
+      - "**/*.conf"
+    rule_ids:
+      - "CKV_SECRET_1"  # Generic secrets
+      - "CKV_DOCKER_1"  # Docker security
+    severities:
+      - "low"
+    reason: "Configuration files may contain placeholder values"
+
+  development-environment:
+    description: "Suppress findings relevant only to development environment"
+    file_patterns:
+      - "**/docker-compose.dev.yml"
+      - "**/docker-compose.local.yml"
+      - "**/.env.example"
+      - "**/.env.template"
+      - "**/Dockerfile.dev"
+      - "**/dev/**"
+      - "**/development/**"
+    rule_ids:
+      - "CKV_DOCKER_2"  # Docker user
+      - "CKV_DOCKER_3"  # Docker privileged
+      - "CKV_K8S_1"     # Kubernetes security context
+    reason: "Development environment may have relaxed security for debugging"
+
+  known-false-positives:
+    description: "Suppress known false positive patterns"
+    rule_ids:
+      - "js/hardcoded-credentials"  # CodeQL
+      - "CKV_AWS_1"                # Checkov S3 bucket public access
+      - "CKV_AZURE_1"              # Checkov Azure storage account
+      - "go/path-injection"         # CodeQL Go path injection
+    file_patterns:
+      - "**/constants.py"
+      - "**/config.py" 
+      - "**/settings.py"
+    reason: "These patterns are false positives in our codebase context"
+
+  database-migrations:
+    description: "Suppress SQL injection warnings in database migrations"
+    file_patterns:
+      - "**/migrations/**"
+      - "**/migrate/**"
+      - "**/*migration*.sql"
+      - "**/*_migration.py"
+    rule_ids:
+      - "CWE-89"  # SQL Injection
+      - "py/sql-injection"
+    reason: "Database migrations contain trusted SQL statements"
+
+  build-scripts:
+    description: "Suppress shell injection in build and deployment scripts"
+    file_patterns:
+      - "**/scripts/**"
+      - "**/*.sh"
+      - "**/*.bash"
+      - "**/Makefile"
+      - "**/build.py"
+      - "**/deploy.py"
+      - "**/setup.py"
+    rule_ids:
+      - "CWE-78"  # OS Command Injection
+      - "py/command-line-injection"
+      - "js/shell-command-injection-from-environment"
+    severities:
+      - "low"
+      - "medium"
+    reason: "Build scripts run in controlled environments with trusted input"
+
+  test-data:
+    description: "Suppress hardcoded values in test data and fixtures"
+    file_patterns:
+      - "**/fixtures/**"
+      - "**/testdata/**"
+      - "**/test_data/**"
+      - "**/*_fixture.py"
+      - "**/*_fixtures.py"
+      - "**/mocks/**"
+      - "**/mock_data/**"
+    rule_ids:
+      - "CWE-798"  # Hardcoded credentials
+      - "hardcoded-credentials"
+      - "CKV_SECRET_6"  # Base64 encoded secrets
+    reason: "Test data may contain dummy credentials and sensitive values"
+
+# Inline suppression examples:
+# Use these patterns in your code to suppress specific findings:
+#
+# Python:
+# password = "dummy123"  # nosec B105
+# 
+# JavaScript:  
+# const token = "test-token";  // nosec
+#
+# Go:
+# password := "hardcoded"  // nosec G101
+#
+# General:
+# var secret = "placeholder";  /* nosec CWE-798 */
+#
+# HTML/XML:
+# <input type="password" value="test"> <!-- nosec -->
+
+# Scanner-specific configurations:
+scanners:
+  codeql:
+    description: "CodeQL specific suppressions"
+    custom_rules:
+      - "exclude-generated-code"
+      - "exclude-minified-files"
+    file_patterns:
+      - "**/*.min.js"
+      - "**/*.min.css"
+      - "**/generated/**"
+      - "**/*generated*"
+
+  checkov:
+    description: "Checkov specific suppressions"
+    skip_checks:
+      - "CKV_DOCKER_1"  # Skip Docker health check requirement
+      - "CKV_K8S_1"     # Skip Kubernetes security context in development
+    frameworks:
+      - "terraform"
+      - "kubernetes"
+      - "docker"
+
+  zap:
+    description: "ZAP DAST specific suppressions"
+    exclude_urls:
+      - ".*\\.css"
+      - ".*\\.js"
+      - ".*\\.jpg"
+      - ".*\\.png"
+      - ".*\\.gif"
+      - ".*logout.*"
+      - ".*admin.*"
+    exclude_rules:
+      - "10021"  # X-Content-Type-Options header missing
+      - "10020"  # X-Frame-Options header missing
+
+  nuclei:
+    description: "Nuclei specific suppressions"
+    exclude_templates:
+      - "ssl-dns-names"
+      - "options-method"
+      - "trace-method"
+    severity_threshold: "medium"
+
+# Compliance framework mappings
+compliance:
+  pci_dss:
+    description: "PCI DSS compliance requirements"
+    mandatory_rules:
+      - "CWE-89"   # SQL Injection
+      - "CWE-79"   # XSS
+      - "CWE-798"  # Hardcoded credentials
+    suppress_non_applicable:
+      - "CKV_AWS_1"  # If not using AWS
+
+  owasp_top_10:
+    description: "OWASP Top 10 security risks"
+    mandatory_rules:
+      - "CWE-79"   # A03 - Injection
+      - "CWE-89"   # A03 - Injection
+      - "CWE-22"   # A01 - Broken Access Control
+      - "CWE-798"  # A07 - Identification and Authentication Failures
+    severity_escalation:
+      high_risk_patterns:
+        - "**/api/**"
+        - "**/auth/**"
+        - "**/payment/**"
+
+  gdpr:
+    description: "GDPR privacy compliance"
+    mandatory_rules:
+      - "CWE-200"  # Information exposure
+      - "CWE-532"  # Information exposure through log files
+    sensitive_data_patterns:
+      - ".*email.*"
+      - ".*phone.*"
+      - ".*address.*"
+      - ".*ssn.*"
+      - ".*credit.*card.*"
+
+# Reporting configurations
+reporting:
+  metrics:
+    track_suppression_rate: true
+    track_false_positive_rate: true
+    alert_on_high_suppression: true
+    suppression_threshold: 0.3  # 30% suppression rate triggers alert
+
+  notifications:
+    new_critical_findings: true
+    suppression_rule_violations: true
+    scan_completion: false
+    weekly_summary: true
+
+# Version control integration
+git_integration:
+  commit_hooks:
+    pre_commit: true
+    pre_push: false
+  pull_request_checks:
+    block_on_new_critical: true
+    block_on_new_high: false
+    require_suppression_justification: true
+  baseline_management:
+    auto_create_baseline: true
+    baseline_update_frequency: "weekly"
+    baseline_approval_required: true

@@ -6,15 +6,16 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 // API Configuration - Production ready with environment variable support
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://127.0.0.1:8001/api" // Direct connection in development with /api prefix
+  : import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Check if we're in demo mode (no backend available)
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true" || false;
 
 // WebSocket URL - Connect directly to backend in development
 const WS_BASE_URL = import.meta.env.DEV
-  ? "ws://127.0.0.1:8000" // Direct connection in development
+  ? "ws://127.0.0.1:8001" // Direct connection in development
   : import.meta.env.VITE_WS_URL ||
     import.meta.env.VITE_WEBSOCKET_URL ||
     (window.location.protocol === "https:" ? "wss:" : "ws:") +
@@ -163,21 +164,9 @@ export const reportsAPI = {
   // Start a new scan
   startScan: async (scanData) => {
     try {
-      // Webhook endpoints are not under /api prefix, so use direct fetch
-      const backendBaseUrl = API_BASE_URL.replace("/api", "");
-      const response = await fetch(`${backendBaseUrl}/webhook/scan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(scanData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      // Use the regular API service for webhook calls now that they're under /api
+      const response = await api.post("/webhook/scan", scanData);
+      return response.data;
     } catch (error) {
       console.error("Error starting scan:", error);
       throw error;

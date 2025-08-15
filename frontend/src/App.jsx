@@ -385,24 +385,8 @@ function AppContent() {
   // Scan mutation for repository submission
   const scanMutation = useMutation({
     mutationFn: async (scanData) => {
-      // Use the configured API base URL from environment variables
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL ||
-        import.meta.env.VITE_API_BASE_URL ||
-        "/api";
-
-      // Webhook endpoints are not under /api prefix
-      const backendBaseUrl = API_BASE_URL.replace("/api", "");
-      const response = await fetch(`${backendBaseUrl}/webhook/scan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(scanData),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to start scan");
-      }
-      return response.json();
+      // Use the API service for webhook calls now that they're under /api
+      return await api.startScan(scanData);
     },
     onSuccess: (data) => {
       // Add notification for successful scan start
@@ -422,7 +406,10 @@ function AppContent() {
 
   // Enhanced WebSocket connection with better error handling
   useEffect(() => {
-    websocketService.connect();
+    // Add a small delay to let the backend fully start up
+    setTimeout(() => {
+      websocketService.connect();
+    }, 1000);
 
     websocketService.on("connected", (connected) => {
       setIsConnected(connected);

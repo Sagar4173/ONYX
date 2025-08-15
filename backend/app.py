@@ -33,6 +33,12 @@ from database import db_manager, init_database, close_database
 # Import route modules
 from routes.reports import router as reports_router
 from routes.webhook import router as webhook_router
+from routes.compliance import router as compliance_router
+from routes.security import router as security_router
+from routes.advanced_security import router as advanced_security_router
+from routes.enhanced_security import router as enhanced_security_router
+# from routes.god_level_security import god_level_bp  # Temporarily commented out for conversion
+from routes.advanced_scanning_fastapi import router as advanced_scanning_router
 
 # Import configuration
 from config import settings
@@ -92,7 +98,13 @@ async def options_handler():
 
 # Include API routers with explicit trailing slash handling
 app.include_router(reports_router, prefix="/api/reports")
-app.include_router(webhook_router)
+app.include_router(compliance_router, prefix="/api/compliance")
+app.include_router(security_router)
+app.include_router(webhook_router, prefix="/api")
+app.include_router(advanced_security_router)
+app.include_router(enhanced_security_router)
+# app.include_router(god_level_bp)  # Temporarily commented out for conversion
+app.include_router(advanced_scanning_router)
 
 # Add trailing slash redirect middleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware

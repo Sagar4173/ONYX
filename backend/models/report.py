@@ -26,16 +26,105 @@ class SeverityLevel(str, Enum):
     INFO = "info"
 
 
+class ComplianceFramework(str, Enum):
+    """Supported compliance frameworks"""
+    SOC2 = "soc2"
+    PCI_DSS = "pci_dss"
+    GDPR = "gdpr"
+    HIPAA = "hipaa"
+    NIST_CSF = "nist_csf"
+    ISO_27001 = "iso_27001"
+    OWASP_TOP_10 = "owasp_top_10"
+    CIS_CONTROLS = "cis_controls"
+
+
+class ThreatCategory(str, Enum):
+    """Threat categorization types"""
+    INJECTION = "injection"
+    AUTHENTICATION = "authentication"
+    AUTHORIZATION = "authorization"
+    CRYPTOGRAPHY = "cryptography"
+    DATA_EXPOSURE = "data_exposure"
+    CONFIGURATION = "configuration"
+    DEPENDENCY = "dependency"
+    CODE_QUALITY = "code_quality"
+    SECRETS = "secrets"
+    MALWARE = "malware"
+    NETWORK = "network"
+    INFRASTRUCTURE = "infrastructure"
+
+
+class RiskLevel(str, Enum):
+    """Business risk levels"""
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    INFORMATIONAL = "informational"
+
+
+class BusinessImpact(BaseModel):
+    """Business impact assessment"""
+    confidentiality_impact: str = Field(..., description="Impact on data confidentiality")
+    integrity_impact: str = Field(..., description="Impact on data integrity")
+    availability_impact: str = Field(..., description="Impact on system availability")
+    business_criticality: str = Field(..., description="Business criticality of the asset")
+    compliance_risk: str = Field(..., description="Regulatory compliance risk")
+    financial_impact: str = Field(..., description="Potential financial impact")
+
+
+class CVSSScore(BaseModel):
+    """CVSS scoring information"""
+    version: str = Field(default="3.1", description="CVSS version")
+    base_score: float = Field(..., description="CVSS base score (0-10)")
+    temporal_score: Optional[float] = Field(None, description="CVSS temporal score")
+    environmental_score: Optional[float] = Field(None, description="CVSS environmental score")
+    vector_string: Optional[str] = Field(None, description="CVSS vector string")
+    attack_vector: Optional[str] = Field(None, description="Attack vector")
+    attack_complexity: Optional[str] = Field(None, description="Attack complexity")
+    privileges_required: Optional[str] = Field(None, description="Privileges required")
+    user_interaction: Optional[str] = Field(None, description="User interaction required")
+    scope: Optional[str] = Field(None, description="Scope of impact")
+    confidentiality_impact: Optional[str] = Field(None, description="Confidentiality impact")
+    integrity_impact: Optional[str] = Field(None, description="Integrity impact")
+    availability_impact: Optional[str] = Field(None, description="Availability impact")
+
+
+class ComplianceMapping(BaseModel):
+    """Compliance framework mapping"""
+    framework: ComplianceFramework = Field(..., description="Compliance framework")
+    control_id: str = Field(..., description="Control ID within the framework")
+    control_title: str = Field(..., description="Control title")
+    control_description: str = Field(..., description="Control description")
+    severity: SeverityLevel = Field(..., description="Compliance violation severity")
+    requirement_category: str = Field(..., description="Category of requirement")
+
+
+class ThreatAnalysis(BaseModel):
+    """Comprehensive threat analysis"""
+    cwe_id: Optional[str] = Field(None, description="CWE identifier")
+    cve_id: Optional[str] = Field(None, description="CVE identifier")
+    threat_categories: List[ThreatCategory] = Field(default_factory=list, description="Threat categories")
+    attack_patterns: List[str] = Field(default_factory=list, description="CAPEC attack patterns")
+    exploitability: str = Field(..., description="Exploitability assessment")
+    impact_assessment: str = Field(..., description="Impact assessment")
+    mitigation_priority: str = Field(..., description="Mitigation priority")
+    remediation_effort: str = Field(..., description="Estimated remediation effort")
+    false_positive_likelihood: str = Field(default="low", description="False positive likelihood")
+
+
 class ScannerType(str, Enum):
     """Supported scanner types"""
     SEMGREP = "semgrep"
     TRIVY = "trivy"
     GITLEAKS = "gitleaks"
     LYNIS = "lynis"
+    BANDIT = "bandit"
+    SAFETY = "safety"
 
 
 class VulnerabilityFinding(BaseModel):
-    """Individual vulnerability finding"""
+    """Enhanced individual vulnerability finding with compliance mapping and threat analysis"""
     id: str = Field(..., description="Unique finding identifier")
     scanner: ScannerType = Field(..., description="Scanner that found this vulnerability")
     rule_id: str = Field(..., description="Rule or check ID")
@@ -54,6 +143,44 @@ class VulnerabilityFinding(BaseModel):
     owasp_category: Optional[str] = Field(None, description="OWASP Top 10 category")
     references: List[str] = Field(default_factory=list, description="Reference URLs")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    
+    # Enhanced fields for compliance and threat analysis
+    compliance_mappings: List[ComplianceMapping] = Field(
+        default_factory=list, 
+        description="Compliance framework mappings"
+    )
+    threat_analysis: Optional[ThreatAnalysis] = Field(
+        None, 
+        description="Comprehensive threat analysis"
+    )
+    cvss_score: Optional[CVSSScore] = Field(
+        None, 
+        description="CVSS scoring information"
+    )
+    business_impact: Optional[BusinessImpact] = Field(
+        None, 
+        description="Business impact assessment"
+    )
+    risk_level: RiskLevel = Field(
+        default=RiskLevel.MEDIUM, 
+        description="Calculated business risk level"
+    )
+    tags: List[str] = Field(
+        default_factory=list, 
+        description="Categorization tags (injection, crypto, auth, etc.)"
+    )
+    remediation_priority: Optional[str] = Field(
+        None, 
+        description="Calculated remediation priority"
+    )
+    exploitability_score: Optional[float] = Field(
+        None, 
+        description="Exploitability score (0-10)"
+    )
+    false_positive_score: Optional[float] = Field(
+        None, 
+        description="False positive likelihood score (0-1)"
+    )
 
 
 class ScanResult(BaseModel):

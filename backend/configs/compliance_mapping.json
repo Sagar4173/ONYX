@@ -1,0 +1,575 @@
+{
+  "compliance_mappings": {
+    "SOC2": {
+      "framework_info": {
+        "name": "SOC 2 Trust Service Criteria",
+        "version": "2017",
+        "description": "SOC 2 trust service criteria for security, availability, processing integrity, confidentiality, and privacy"
+      },
+      "controls": {
+        "CC6.1": {
+          "title": "Logical and Physical Access Controls",
+          "description": "Controls to restrict logical and physical access to assets",
+          "category": "access_control",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["hardcoded-password", "hardcoded-secret", "weak-authentication"]
+            },
+            {
+              "scanner": "gitleaks",
+              "rules": ["api-key", "password", "private-key"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B106", "B107", "B108"]
+            }
+          ]
+        },
+        "CC6.2": {
+          "title": "System Access Rights",
+          "description": "Prior to issuing system credentials, the entity's system access is approved by management",
+          "category": "access_control",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["missing-authorization", "insecure-authentication"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["AUTH-9204", "AUTH-9208"]
+            }
+          ]
+        },
+        "CC6.3": {
+          "title": "Data Access Rights",
+          "description": "Data access is restricted to authorized users",
+          "category": "data_protection",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["sql-injection", "path-traversal", "ldap-injection"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B608", "B609", "B703"]
+            }
+          ]
+        },
+        "CC6.6": {
+          "title": "Encryption of Data in Transit and at Rest",
+          "description": "Data transmission and data at rest is encrypted",
+          "category": "cryptography",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["weak-crypto", "http-without-ssl", "insecure-tls"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B303", "B304", "B305", "B501", "B502"]
+            },
+            {
+              "scanner": "trivy",
+              "rules": ["TLS-WEAK-CIPHER", "HTTP-UNENCRYPTED"]
+            }
+          ]
+        },
+        "CC6.7": {
+          "title": "Data Transmission",
+          "description": "Data transmitted is encrypted using approved encryption protocols",
+          "category": "data_transmission",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["cleartext-transmission", "weak-ssl-config"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["CRYP-7902", "CRYP-7930"]
+            }
+          ]
+        },
+        "CC7.1": {
+          "title": "System Boundary and Information Processing",
+          "description": "System boundaries are defined and monitored",
+          "category": "system_monitoring",
+          "scanner_mappings": [
+            {
+              "scanner": "trivy",
+              "rules": ["NETWORK-SECURITY", "CONTAINER-SECURITY"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["FIRE-4512", "FIRE-4513"]
+            }
+          ]
+        }
+      }
+    },
+    "PCI_DSS": {
+      "framework_info": {
+        "name": "Payment Card Industry Data Security Standard",
+        "version": "4.0",
+        "description": "Security standard for organizations that handle credit card information"
+      },
+      "controls": {
+        "3.4": {
+          "title": "Cryptographic Keys Protection",
+          "description": "Cryptographic keys are stored securely and protected from disclosure",
+          "category": "cryptography",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["hardcoded-crypto-key", "weak-key-generation"]
+            },
+            {
+              "scanner": "gitleaks",
+              "rules": ["private-key", "encryption-key", "crypto-key"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B106", "B107", "B108", "B304"]
+            }
+          ]
+        },
+        "6.2": {
+          "title": "Software Vulnerability Management",
+          "description": "Security vulnerabilities are identified and managed",
+          "category": "vulnerability_management",
+          "scanner_mappings": [
+            {
+              "scanner": "safety",
+              "rules": ["known-vulnerability", "cve-found"]
+            },
+            {
+              "scanner": "trivy",
+              "rules": ["CVE-HIGH", "CVE-CRITICAL"]
+            }
+          ]
+        },
+        "6.3": {
+          "title": "Secure Development",
+          "description": "Software is developed securely according to PCI DSS",
+          "category": "secure_development",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["sql-injection", "xss", "command-injection"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B201", "B602", "B605", "B608"]
+            }
+          ]
+        },
+        "8.2": {
+          "title": "User Authentication",
+          "description": "All users are authenticated with unique credentials",
+          "category": "authentication",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["weak-password-policy", "default-credentials"]
+            },
+            {
+              "scanner": "gitleaks",
+              "rules": ["password", "credential", "api-key"]
+            }
+          ]
+        }
+      }
+    },
+    "GDPR": {
+      "framework_info": {
+        "name": "General Data Protection Regulation",
+        "version": "2018",
+        "description": "EU regulation on data protection and privacy"
+      },
+      "controls": {
+        "ART25": {
+          "title": "Data Protection by Design and by Default",
+          "description": "Technical and organizational measures to implement data protection principles",
+          "category": "privacy_by_design",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["data-exposure", "logging-sensitive-data", "privacy-violation"]
+            },
+            {
+              "scanner": "gitleaks",
+              "rules": ["personal-data", "pii", "sensitive-info"]
+            }
+          ]
+        },
+        "ART32": {
+          "title": "Security of Processing",
+          "description": "Appropriate technical and organizational measures to ensure security",
+          "category": "data_security",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["encryption-missing", "weak-crypto", "data-leak"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B501", "B502", "B506"]
+            },
+            {
+              "scanner": "trivy",
+              "rules": ["ENCRYPTION-WEAK", "DATA-EXPOSURE"]
+            }
+          ]
+        },
+        "ART33": {
+          "title": "Notification of Personal Data Breach",
+          "description": "Breach detection and notification requirements",
+          "category": "incident_response",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["error-disclosure", "debug-info-leak", "stack-trace-exposure"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["LOGG-2154", "LOGG-2190"]
+            }
+          ]
+        }
+      }
+    },
+    "NIST_CSF": {
+      "framework_info": {
+        "name": "NIST Cybersecurity Framework",
+        "version": "1.1",
+        "description": "Framework for improving critical infrastructure cybersecurity"
+      },
+      "controls": {
+        "ID.AM": {
+          "title": "Asset Management",
+          "description": "Physical devices and systems are inventoried and managed",
+          "category": "asset_management",
+          "scanner_mappings": [
+            {
+              "scanner": "trivy",
+              "rules": ["ASSET-INVENTORY", "CONTAINER-INVENTORY"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["PROC-3602", "HRDN-7230"]
+            }
+          ]
+        },
+        "PR.AC": {
+          "title": "Access Control",
+          "description": "Access to assets and associated facilities is limited",
+          "category": "access_control",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["authorization-bypass", "privilege-escalation"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B101", "B102", "B103"]
+            }
+          ]
+        },
+        "PR.DS": {
+          "title": "Data Security",
+          "description": "Information and records are managed consistent with risk strategy",
+          "category": "data_protection",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["sensitive-data-exposure", "data-validation"]
+            },
+            {
+              "scanner": "gitleaks",
+              "rules": ["data-leak", "credential-exposure"]
+            }
+          ]
+        }
+      }
+    },
+    "OWASP_TOP_10": {
+      "framework_info": {
+        "name": "OWASP Top 10",
+        "version": "2021",
+        "description": "Top 10 web application security risks"
+      },
+      "controls": {
+        "A01": {
+          "title": "Broken Access Control",
+          "description": "Access control enforces policy such that users cannot act outside of their intended permissions",
+          "category": "access_control",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["broken-access-control", "authorization-bypass", "privilege-escalation"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B101", "B102"]
+            }
+          ]
+        },
+        "A02": {
+          "title": "Cryptographic Failures",
+          "description": "Failures related to cryptography often lead to sensitive data exposure",
+          "category": "cryptography",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["weak-crypto", "crypto-failure", "insecure-random"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B303", "B304", "B305", "B501", "B502"]
+            }
+          ]
+        },
+        "A03": {
+          "title": "Injection",
+          "description": "Application is vulnerable to injection attacks",
+          "category": "injection",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["sql-injection", "command-injection", "ldap-injection", "xss"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B608", "B609", "B602", "B605"]
+            }
+          ]
+        },
+        "A04": {
+          "title": "Insecure Design",
+          "description": "Risks related to design flaws and architectural issues",
+          "category": "design",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["insecure-design", "missing-security-control"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["HRDN-7222", "HRDN-7230"]
+            }
+          ]
+        },
+        "A05": {
+          "title": "Security Misconfiguration",
+          "description": "Security misconfiguration vulnerabilities",
+          "category": "configuration",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["debug-mode", "default-config", "insecure-config"]
+            },
+            {
+              "scanner": "trivy",
+              "rules": ["CONFIG-INSECURE", "MISCONFIGURATION"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["HTTP-6640", "HTTP-6643"]
+            }
+          ]
+        },
+        "A06": {
+          "title": "Vulnerable and Outdated Components",
+          "description": "Using components with known vulnerabilities",
+          "category": "dependency",
+          "scanner_mappings": [
+            {
+              "scanner": "safety",
+              "rules": ["known-vulnerability", "outdated-package"]
+            },
+            {
+              "scanner": "trivy",
+              "rules": ["CVE-HIGH", "CVE-CRITICAL", "OUTDATED-PACKAGE"]
+            }
+          ]
+        },
+        "A07": {
+          "title": "Identification and Authentication Failures",
+          "description": "Confirmation of user identity, authentication, and session management",
+          "category": "authentication",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["weak-authentication", "session-fixation", "authentication-bypass"]
+            },
+            {
+              "scanner": "gitleaks",
+              "rules": ["password", "api-key", "session-token"]
+            }
+          ]
+        },
+        "A08": {
+          "title": "Software and Data Integrity Failures",
+          "description": "Software and data integrity failures",
+          "category": "integrity",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["integrity-check-missing", "tamper-detection"]
+            },
+            {
+              "scanner": "trivy",
+              "rules": ["INTEGRITY-CHECK", "CHECKSUM-VERIFICATION"]
+            }
+          ]
+        },
+        "A09": {
+          "title": "Security Logging and Monitoring Failures",
+          "description": "Insufficient logging and monitoring",
+          "category": "logging",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["missing-security-logging", "log-injection"]
+            },
+            {
+              "scanner": "lynis",
+              "rules": ["LOGG-2154", "LOGG-2190", "LOGG-2210"]
+            }
+          ]
+        },
+        "A10": {
+          "title": "Server-Side Request Forgery (SSRF)",
+          "description": "SSRF flaws occur when a web application fetches remote resources without validating the user-supplied URL",
+          "category": "network",
+          "scanner_mappings": [
+            {
+              "scanner": "semgrep",
+              "rules": ["ssrf", "url-validation-missing"]
+            },
+            {
+              "scanner": "bandit",
+              "rules": ["B113", "B310"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "cwe_mappings": {
+    "CWE-79": {
+      "name": "Cross-site Scripting (XSS)",
+      "category": "injection",
+      "owasp_mapping": "A03",
+      "threat_categories": ["injection", "data_exposure"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10"]
+    },
+    "CWE-89": {
+      "name": "SQL Injection",
+      "category": "injection",
+      "owasp_mapping": "A03",
+      "threat_categories": ["injection", "data_exposure"],
+      "default_severity": "high",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10"]
+    },
+    "CWE-78": {
+      "name": "OS Command Injection",
+      "category": "injection",
+      "owasp_mapping": "A03",
+      "threat_categories": ["injection", "code_quality"],
+      "default_severity": "high",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10"]
+    },
+    "CWE-798": {
+      "name": "Use of Hard-coded Credentials",
+      "category": "authentication",
+      "owasp_mapping": "A07",
+      "threat_categories": ["authentication", "secrets"],
+      "default_severity": "high",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR"]
+    },
+    "CWE-327": {
+      "name": "Use of a Broken or Risky Cryptographic Algorithm",
+      "category": "cryptography",
+      "owasp_mapping": "A02",
+      "threat_categories": ["cryptography"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR"]
+    },
+    "CWE-22": {
+      "name": "Path Traversal",
+      "category": "data_exposure",
+      "owasp_mapping": "A01",
+      "threat_categories": ["data_exposure", "authorization"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "GDPR"]
+    },
+    "CWE-319": {
+      "name": "Cleartext Transmission of Sensitive Information",
+      "category": "data_transmission",
+      "owasp_mapping": "A02",
+      "threat_categories": ["cryptography", "data_exposure"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR"]
+    },
+    "CWE-200": {
+      "name": "Information Exposure",
+      "category": "data_exposure",
+      "owasp_mapping": "A02",
+      "threat_categories": ["data_exposure"],
+      "default_severity": "low",
+      "compliance_frameworks": ["GDPR", "SOC2"]
+    }
+  },
+  "threat_categories": {
+    "injection": {
+      "description": "Injection flaws allow attackers to send hostile data to an interpreter",
+      "typical_severity": "high",
+      "remediation_priority": "high",
+      "examples": ["SQL Injection", "Command Injection", "LDAP Injection", "XSS"]
+    },
+    "authentication": {
+      "description": "Authentication and session management vulnerabilities",
+      "typical_severity": "high",
+      "remediation_priority": "high",
+      "examples": ["Broken Authentication", "Session Fixation", "Weak Passwords"]
+    },
+    "authorization": {
+      "description": "Access control and authorization failures",
+      "typical_severity": "medium",
+      "remediation_priority": "medium",
+      "examples": ["Privilege Escalation", "Missing Authorization", "IDOR"]
+    },
+    "cryptography": {
+      "description": "Cryptographic failures and weak encryption",
+      "typical_severity": "medium",
+      "remediation_priority": "medium",
+      "examples": ["Weak Encryption", "Broken Crypto", "Key Management Issues"]
+    },
+    "data_exposure": {
+      "description": "Sensitive data exposure vulnerabilities",
+      "typical_severity": "medium",
+      "remediation_priority": "high",
+      "examples": ["Data Leaks", "PII Exposure", "Information Disclosure"]
+    },
+    "configuration": {
+      "description": "Security misconfigurations",
+      "typical_severity": "low",
+      "remediation_priority": "medium",
+      "examples": ["Default Configs", "Debug Mode", "Insecure Settings"]
+    },
+    "dependency": {
+      "description": "Vulnerable dependencies and components",
+      "typical_severity": "varies",
+      "remediation_priority": "medium",
+      "examples": ["Known CVEs", "Outdated Libraries", "Vulnerable Packages"]
+    },
+    "secrets": {
+      "description": "Exposed secrets and credentials",
+      "typical_severity": "high",
+      "remediation_priority": "critical",
+      "examples": ["API Keys", "Passwords", "Private Keys", "Tokens"]
+    }
+  }
+}

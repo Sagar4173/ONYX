@@ -1,0 +1,110 @@
+# Custom GitLeaks Configuration for Organization-Specific Secrets
+# This file contains custom rules for detecting organization-specific secrets
+
+title = "Custom GitLeaks Configuration"
+
+# Organization-specific API keys and tokens
+[[rules]]
+id = "org-api-key"
+description = "Organization API Key"
+regex = '''(?i)(org|company)[-_]?(api[-_]?key|token|secret)[-_]?[:=]\s*['"]?[a-zA-Z0-9]{20,}'''
+tags = ["api", "key", "org"]
+
+[[rules]]
+id = "custom-jwt-token"
+description = "Custom JWT Token Pattern"
+regex = '''eyJ[A-Za-z0-9_/+\-]{10,}={0,2}\.eyJ[A-Za-z0-9_/+\-]{10,}={0,2}\.[A-Za-z0-9_/+\-]{10,}={0,2}'''
+tags = ["jwt", "token"]
+
+[[rules]]
+id = "database-connection-string"
+description = "Database Connection String"
+regex = '''(?i)(mysql|postgresql|mongodb|redis)://[^\s"']{10,}'''
+tags = ["database", "connection"]
+
+[[rules]]
+id = "internal-service-token"
+description = "Internal Service Token"
+regex = '''(?i)(internal|service)[-_]?(token|key|secret)[-_]?[:=]\s*['"]?[a-zA-Z0-9]{16,}'''
+tags = ["internal", "service", "token"]
+
+# Cloud provider specific patterns
+[[rules]]
+id = "custom-aws-pattern"
+description = "Custom AWS Pattern"
+regex = '''(?i)aws[-_]?(access[-_]?key|secret)[-_]?[:=]\s*['"]?[A-Z0-9]{16,}'''
+tags = ["aws", "cloud"]
+
+[[rules]]
+id = "azure-custom-pattern"
+description = "Azure Custom Pattern" 
+regex = '''(?i)azure[-_]?(key|secret|token)[-_]?[:=]\s*['"]?[a-zA-Z0-9+/]{20,}={0,2}'''
+tags = ["azure", "cloud"]
+
+# Development and testing secrets
+[[rules]]
+id = "test-api-key"
+description = "Test API Key (should be flagged in production)"
+regex = '''(?i)test[-_]?(api[-_]?key|token|secret)[-_]?[:=]\s*['"]?[a-zA-Z0-9]{8,}'''
+tags = ["test", "development"]
+
+[[rules]]
+id = "dev-credentials"
+description = "Development Credentials"
+regex = '''(?i)dev[-_]?(user|pass|password|secret)[-_]?[:=]\s*['"]?[a-zA-Z0-9]{4,}'''
+tags = ["development", "credentials"]
+
+# Webhook and callback URLs with secrets
+[[rules]]
+id = "webhook-with-secret"
+description = "Webhook URL with Secret"
+regex = '''https?://[^/\s]+/webhook/[a-zA-Z0-9]{20,}'''
+tags = ["webhook", "url"]
+
+# Email service API keys
+[[rules]]
+id = "email-service-key"
+description = "Email Service API Key"
+regex = '''(?i)(sendgrid|mailgun|ses)[-_]?(api[-_]?key|token)[-_]?[:=]\s*['"]?[a-zA-Z0-9]{20,}'''
+tags = ["email", "service", "api"]
+
+# Monitoring and logging service keys
+[[rules]]
+id = "monitoring-service-key"
+description = "Monitoring Service Key"
+regex = '''(?i)(datadog|newrelic|splunk)[-_]?(api[-_]?key|token)[-_]?[:=]\s*['"]?[a-zA-Z0-9]{20,}'''
+tags = ["monitoring", "logging"]
+
+# Configuration for allowlisting
+[allowlist]
+description = "Allowlisted files and patterns"
+files = [
+    '''gitleaks-custom\.toml''',
+    '''\.git/''',
+    '''node_modules/''',
+    '''vendor/''',
+    '''__pycache__/''',
+    '''\.pyc$''',
+    '''test.*\.py$''',
+    '''example.*\.py$'''
+]
+
+# Patterns to ignore (false positives)
+regexes = [
+    '''(?i)password\s*=\s*['"]?(example|test|dummy|placeholder)['"]?''',
+    '''(?i)secret\s*=\s*['"]?(your|api|key|here)['"]?''',
+    '''(?i)token\s*=\s*['"]?(replace|with|actual)['"]?''',
+    '''(?i)key\s*=\s*['"]?(insert|your|key)['"]?'''
+]
+
+# Paths to ignore completely
+paths = [
+    '''\.git/''',
+    '''node_modules/''',
+    '''dist/''',
+    '''build/''',
+    '''target/''',
+    '''\.venv/''',
+    '''venv/''',
+    '''env/'''
+]

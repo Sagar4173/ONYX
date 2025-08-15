@@ -272,6 +272,80 @@ class DatabaseManager:
                 "projects_scanned": 0,
                 "average_security_score": 0.0
             }
+    
+    async def save_scan_report(self, report_data: dict) -> str:
+        """Save advanced scan report to database"""
+        try:
+            if not self.connected:
+                logger.warning("Database not connected, scan report not saved")
+                return ""
+            
+            collection = self.db.advanced_scan_reports
+            result = await collection.insert_one(report_data)
+            logger.info(f"✅ Saved advanced scan report: {result.inserted_id}")
+            return str(result.inserted_id)
+        except Exception as e:
+            logger.error(f"❌ Error saving advanced scan report: {e}")
+            raise
+    
+    async def get_scan_report(self, scan_id: str) -> dict:
+        """Get advanced scan report by scan ID"""
+        try:
+            if not self.connected:
+                logger.warning("Database not connected")
+                return None
+            
+            collection = self.db.advanced_scan_reports
+            report = await collection.find_one({"results.scan_id": scan_id})
+            return report
+        except Exception as e:
+            logger.error(f"❌ Error getting scan report: {e}")
+            raise
+    
+    async def save_suppression_rule(self, rule_data: dict) -> str:
+        """Save suppression rule to database"""
+        try:
+            if not self.connected:
+                logger.warning("Database not connected, suppression rule not saved")
+                return ""
+            
+            collection = self.db.suppression_rules
+            result = await collection.insert_one(rule_data)
+            logger.info(f"✅ Saved suppression rule: {result.inserted_id}")
+            return str(result.inserted_id)
+        except Exception as e:
+            logger.error(f"❌ Error saving suppression rule: {e}")
+            raise
+    
+    async def get_suppression_rules(self, repository_url: str) -> dict:
+        """Get suppression rules for a repository"""
+        try:
+            if not self.connected:
+                logger.warning("Database not connected")
+                return {"version": "1.0", "rules": {}}
+            
+            collection = self.db.suppression_rules
+            rules = await collection.find({"repository_url": repository_url}).to_list(length=None)
+            
+            # Convert to suppression format
+            suppressions = {
+                "version": "1.0",
+                "rules": {}
+            }
+            
+            for rule in rules:
+                suppressions["rules"][rule["name"]] = {
+                    "description": rule["description"],
+                    "rule_ids": rule.get("rule_ids", []),
+                    "file_patterns": rule.get("file_patterns", []),
+                    "severities": rule.get("severities", []),
+                    "scanners": rule.get("scanners", [])
+                }
+            
+            return suppressions
+        except Exception as e:
+            logger.error(f"❌ Error getting suppression rules: {e}")
+            raise
             
 # Global database manager instance
 db_manager = DatabaseManager()
@@ -280,6 +354,10 @@ async def init_database():
     """Initialize database connection and Beanie ODM"""
     # Initialize the custom database manager
     manager_connected = await db_manager.connect()
+    
+    # Initialize collection references
+    if manager_connected:
+        init_collections()
     
     # Initialize Beanie ODM
     beanie_connected = False
@@ -321,3 +399,39 @@ async def init_database():
 async def close_database():
     """Close database connection"""
     await db_manager.disconnect()
+
+# Collection exports for backwards compatibility
+def get_scan_reports_collection():
+    """Get scan reports collection"""
+    if db_manager.db is not None:
+        return db_manager.db.scan_reports
+    return None
+
+def get_advanced_scan_reports_collection():
+    """Get advanced scan reports collection"""
+    if db_manager.db is not None:
+        return db_manager.db.advanced_scan_reports
+    return None
+
+def get_suppression_rules_collection():
+    """Get suppression rules collection"""
+    if db_manager.db is not None:
+        return db_manager.db.suppression_rules
+    return None
+
+def get_db():
+    """Get database instance for backwards compatibility"""
+    return db_manager.db
+
+# Export collection instances for backwards compatibility
+scan_reports_collection = None
+advanced_scan_reports_collection = None
+suppression_rules_collection = None
+
+def init_collections():
+    """Initialize collection references after database connection"""
+    global scan_reports_collection, advanced_scan_reports_collection, suppression_rules_collection
+    if db_manager.db is not None:
+        scan_reports_collection = db_manager.db.scan_reports
+        advanced_scan_reports_collection = db_manager.db.advanced_scan_reports
+        suppression_rules_collection = db_manager.db.suppression_rules

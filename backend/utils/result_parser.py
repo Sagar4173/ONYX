@@ -1,5 +1,6 @@
 """
-Result parsing utilities for normalizing scanner outputs
+Enhanced result parsing utilities for normalizing scanner outputs
+with compliance mapping and threat analysis
 """
 import json
 import re
@@ -9,6 +10,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from models.report import VulnerabilityFinding, ScannerType, SeverityLevel
+from services.compliance_analyzer import compliance_service
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,171 @@ class BaseResultParser:
         cve_pattern = r'CVE-\d{4}-\d{4,}'
         match = re.search(cve_pattern, text, re.IGNORECASE)
         return match.group(0) if match else None
+    
+    def enhance_finding_with_analysis(
+        self, 
+        finding: VulnerabilityFinding,
+        repository_context: Optional[Dict[str, Any]] = None,
+        business_context: Optional[Dict[str, Any]] = None
+    ) -> VulnerabilityFinding:
+        """
+        Enhance finding with compliance mapping and threat analysis
+        
+        Args:
+            finding: The vulnerability finding to enhance
+            repository_context: Repository context information
+            business_context: Business context information
+            
+        Returns:
+            Enhanced vulnerability finding
+        """
+        try:
+            # Perform compliance mapping
+            compliance_mappings = compliance_service.analyze_finding_compliance(finding)
+            finding.compliance_mappings = compliance_mappings
+            
+            # Perform threat analysis
+            threat_analysis = compliance_service.perform_threat_analysis(finding, repository_context)
+            finding.threat_analysis = threat_analysis
+            
+            # Calculate CVSS score
+            cvss_score = compliance_service.calculate_cvss_score(finding, repository_context)
+            finding.cvss_score = cvss_score
+            
+            # Calculate business impact
+            if business_context:
+                business_impact = compliance_service.calculate_business_impact(finding, business_context)
+                finding.business_impact = business_impact
+            
+            # Calculate overall risk level
+            risk_level = compliance_service.calculate_risk_level(finding, business_context)
+            finding.risk_level = risk_level
+            
+            # Add categorization tags
+            finding.tags = self._generate_tags(finding)
+            
+            # Calculate exploitability score
+            finding.exploitability_score = self._calculate_exploitability_score(finding)
+            
+            # Calculate false positive score
+            finding.false_positive_score = self._calculate_false_positive_score(finding)
+            
+            # Set remediation priority
+            finding.remediation_priority = threat_analysis.mitigation_priority
+            
+        except Exception as e:
+            logger.error(f"Failed to enhance finding with analysis: {e}")
+        
+        return finding
+    
+    def _generate_tags(self, finding: VulnerabilityFinding) -> List[str]:
+        """Generate categorization tags for the finding"""
+        tags = []
+        
+        # Add scanner tag
+        tags.append(f"scanner:{finding.scanner.value}")
+        
+        # Add severity tag
+        tags.append(f"severity:{finding.severity.value}")
+        
+        # Add threat category tags
+        if finding.threat_analysis and finding.threat_analysis.threat_categories:
+            for category in finding.threat_analysis.threat_categories:
+                tags.append(f"category:{category.value}")
+        
+        # Add compliance framework tags
+        if finding.compliance_mappings:
+            for mapping in finding.compliance_mappings:
+                tags.append(f"compliance:{mapping.framework.value}")
+        
+        # Add CWE tag
+        if finding.cwe_id:
+            tags.append(f"cwe:{finding.cwe_id}")
+        
+        # Add OWASP tag
+        if finding.owasp_category:
+            tags.append(f"owasp:{finding.owasp_category}")
+        
+        # Add language/file type tags
+        if finding.file_path:
+            file_extension = Path(finding.file_path).suffix.lower()
+            if file_extension:
+                tags.append(f"filetype:{file_extension[1:]}")  # Remove the dot
+        
+        return tags
+    
+    def _calculate_exploitability_score(self, finding: VulnerabilityFinding) -> float:
+        """Calculate numerical exploitability score (0-10)"""
+        
+        # Base score from severity
+        severity_scores = {
+            SeverityLevel.CRITICAL: 9.0,
+            SeverityLevel.HIGH: 7.0,
+            SeverityLevel.MEDIUM: 5.0,
+            SeverityLevel.LOW: 3.0,
+            SeverityLevel.INFO: 1.0
+        }
+        
+        base_score = severity_scores.get(finding.severity, 5.0)
+        
+        # Adjust based on threat categories
+        if finding.threat_analysis and finding.threat_analysis.threat_categories:
+            from models.report import ThreatCategory
+            
+            high_exploitability_categories = [
+                ThreatCategory.INJECTION,
+                ThreatCategory.SECRETS,
+                ThreatCategory.AUTHENTICATION
+            ]
+            
+            category_boost = sum(1.5 for cat in finding.threat_analysis.threat_categories 
+                               if cat in high_exploitability_categories)
+            base_score = min(base_score + category_boost, 10.0)
+        
+        # Adjust based on CVSS score if available
+        if finding.cvss_score and finding.cvss_score.base_score:
+            # Average the severity-based score with CVSS
+            base_score = (base_score + finding.cvss_score.base_score) / 2
+        
+        return round(base_score, 1)
+    
+    def _calculate_false_positive_score(self, finding: VulnerabilityFinding) -> float:
+        """Calculate false positive likelihood score (0-1)"""
+        
+        # Base score from scanner reliability
+        scanner_fp_rates = {
+            "semgrep": 0.1,    # Low false positive rate
+            "safety": 0.05,    # Very low false positive rate
+            "trivy": 0.1,      # Low false positive rate
+            "gitleaks": 0.15,  # Low-medium false positive rate
+            "bandit": 0.25,    # Medium false positive rate
+            "lynis": 0.3       # Medium-high false positive rate
+        }
+        
+        base_fp = scanner_fp_rates.get(finding.scanner.value, 0.2)
+        
+        # Adjust based on confidence
+        if finding.confidence:
+            confidence_lower = finding.confidence.lower()
+            if confidence_lower in ["high", "certain"]:
+                base_fp *= 0.5  # Reduce FP likelihood
+            elif confidence_lower in ["low", "uncertain"]:
+                base_fp *= 1.5  # Increase FP likelihood
+        
+        # Adjust based on threat analysis
+        if finding.threat_analysis:
+            fp_assessment = finding.threat_analysis.false_positive_likelihood
+            if fp_assessment:
+                fp_multipliers = {
+                    "very_low": 0.5,
+                    "low": 0.7,
+                    "medium": 1.0,
+                    "high": 1.3,
+                    "very_high": 1.5
+                }
+                base_fp *= fp_multipliers.get(fp_assessment, 1.0)
+        
+        return round(min(base_fp, 1.0), 2)
 
 
 class SemgrepResultParser(BaseResultParser):
@@ -366,33 +533,200 @@ class LynisResultParser(BaseResultParser):
         return findings
 
 
+class BanditResultParser(BaseResultParser):
+    """Parser for Bandit JSON output"""
+    
+    def __init__(self):
+        super().__init__(ScannerType.BANDIT)
+    
+    def parse(self, output: str, file_path: Optional[str] = None) -> List[VulnerabilityFinding]:
+        """Parse Bandit JSON output"""
+        try:
+            data = json.loads(output)
+            findings = []
+            
+            for result in data.get('results', []):
+                finding = VulnerabilityFinding(
+                    id=f"bandit-{result.get('test_id', '')}-{hash(str(result))}",
+                    scanner=self.scanner_type,
+                    rule_id=result.get('test_id', ''),
+                    title=result.get('test_name', 'Bandit Security Issue'),
+                    description=result.get('issue_text', ''),
+                    severity=self._normalize_bandit_severity(
+                        result.get('issue_severity', 'MEDIUM')
+                    ),
+                    confidence=result.get('issue_confidence', ''),
+                    file_path=result.get('filename', ''),
+                    line_start=result.get('line_number'),
+                    line_end=result.get('line_number'),
+                    code_snippet=result.get('code', ''),
+                    cwe_id=self._extract_cwe_from_text(
+                        result.get('more_info', '') + ' ' + result.get('issue_text', '')
+                    ),
+                    references=[result.get('more_info', '')] if result.get('more_info') else [],
+                    metadata={
+                        'test_id': result.get('test_id', ''),
+                        'line_range': result.get('line_range', []),
+                        'col_offset': result.get('col_offset'),
+                        'test_name': result.get('test_name', '')
+                    }
+                )
+                findings.append(finding)
+            
+            return findings
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Bandit JSON output: {e}")
+            return []
+    
+    def _normalize_bandit_severity(self, severity: str) -> SeverityLevel:
+        """Normalize Bandit severity levels"""
+        severity_lower = severity.lower().strip()
+        
+        if severity_lower == 'high':
+            return SeverityLevel.HIGH
+        elif severity_lower == 'medium':
+            return SeverityLevel.MEDIUM
+        elif severity_lower == 'low':
+            return SeverityLevel.LOW
+        else:
+            return SeverityLevel.MEDIUM
+
+
+class SafetyResultParser(BaseResultParser):
+    """Parser for Safety JSON output"""
+    
+    def __init__(self):
+        super().__init__(ScannerType.SAFETY)
+    
+    def parse(self, output: str, file_path: Optional[str] = None) -> List[VulnerabilityFinding]:
+        """Parse Safety JSON output"""
+        try:
+            data = json.loads(output)
+            findings = []
+            
+            # Handle both direct vulnerabilities list and nested structure
+            vulnerabilities = data.get('vulnerabilities', data) if isinstance(data, dict) else data
+            
+            if isinstance(vulnerabilities, list):
+                for vuln in vulnerabilities:
+                    finding = self._create_safety_finding(vuln)
+                    if finding:
+                        findings.append(finding)
+            
+            return findings
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Safety JSON output: {e}")
+            return []
+    
+    def _create_safety_finding(self, vuln: Dict[str, Any]) -> Optional[VulnerabilityFinding]:
+        """Create a vulnerability finding from Safety vulnerability data"""
+        try:
+            # Safety vulnerability structure
+            package = vuln.get('package', '')
+            installed_version = vuln.get('installed_version', '')
+            vulnerability_id = vuln.get('vulnerability_id', '')
+            advisory = vuln.get('advisory', '')
+            
+            # Determine severity based on CVE or advisory content
+            severity = self._determine_safety_severity(advisory, vulnerability_id)
+            
+            finding = VulnerabilityFinding(
+                id=f"safety-{vulnerability_id}-{package}",
+                scanner=self.scanner_type,
+                rule_id=vulnerability_id,
+                title=f"Vulnerable dependency: {package}",
+                description=f"Package {package} version {installed_version} has a known vulnerability: {advisory}",
+                severity=severity,
+                file_path=vuln.get('dependency_file', 'requirements.txt'),
+                cve_id=self._extract_cve_from_text(advisory + ' ' + vulnerability_id),
+                references=self._extract_references_from_advisory(advisory),
+                metadata={
+                    'package': package,
+                    'installed_version': installed_version,
+                    'vulnerability_id': vulnerability_id,
+                    'advisory': advisory,
+                    'patched_versions': vuln.get('patched_versions', []),
+                    'closest_patched_version': vuln.get('closest_patched_version', '')
+                }
+            )
+            
+            return finding
+            
+        except Exception as e:
+            logger.error(f"Error creating Safety finding: {e}")
+            return None
+    
+    def _determine_safety_severity(self, advisory: str, vuln_id: str) -> SeverityLevel:
+        """Determine severity based on advisory content and vulnerability ID"""
+        advisory_lower = advisory.lower()
+        
+        # High severity indicators
+        if any(keyword in advisory_lower for keyword in [
+            'remote code execution', 'rce', 'critical', 'arbitrary code',
+            'code injection', 'command injection', 'privilege escalation'
+        ]):
+            return SeverityLevel.CRITICAL
+        
+        # Medium-high severity indicators
+        if any(keyword in advisory_lower for keyword in [
+            'sql injection', 'xss', 'csrf', 'authentication bypass',
+            'authorization bypass', 'directory traversal', 'path traversal'
+        ]):
+            return SeverityLevel.HIGH
+        
+        # Medium severity indicators
+        if any(keyword in advisory_lower for keyword in [
+            'denial of service', 'dos', 'information disclosure',
+            'memory exhaustion', 'resource consumption'
+        ]):
+            return SeverityLevel.MEDIUM
+        
+        # Default to medium for unknown patterns
+        return SeverityLevel.MEDIUM
+    
+    def _extract_references_from_advisory(self, advisory: str) -> List[str]:
+        """Extract reference URLs from advisory text"""
+        import re
+        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+        urls = re.findall(url_pattern, advisory)
+        return urls[:5]  # Limit to first 5 URLs
+
+
 class UnifiedResultParser:
-    """Unified parser that handles all scanner types"""
+    """Enhanced unified parser that handles all scanner types"""
     
     def __init__(self):
         self.parsers = {
             ScannerType.SEMGREP: SemgrepResultParser(),
             ScannerType.TRIVY: TrivyResultParser(),
             ScannerType.GITLEAKS: GitLeaksResultParser(),
-            ScannerType.LYNIS: LynisResultParser()
+            ScannerType.LYNIS: LynisResultParser(),
+            ScannerType.BANDIT: BanditResultParser(),
+            ScannerType.SAFETY: SafetyResultParser()
         }
     
     def parse_results(
         self,
         scanner_type: ScannerType,
         output: str,
-        file_path: Optional[str] = None
+        file_path: Optional[str] = None,
+        repository_context: Optional[Dict] = None,
+        business_context: Optional[Dict] = None
     ) -> List[VulnerabilityFinding]:
         """
-        Parse scanner results using appropriate parser
+        Parse scanner results using appropriate parser and enhance with compliance analysis
         
         Args:
             scanner_type: Type of scanner that generated the output
             output: Raw scanner output
             file_path: Optional path to output file
+            repository_context: Optional repository metadata for enhanced analysis
+            business_context: Optional business context for risk assessment
             
         Returns:
-            List of normalized vulnerability findings
+            List of normalized vulnerability findings with compliance analysis
         """
         parser = self.parsers.get(scanner_type)
         if not parser:
@@ -401,8 +735,17 @@ class UnifiedResultParser:
         
         try:
             findings = parser.parse(output, file_path)
-            logger.info(f"Parsed {len(findings)} findings from {scanner_type.value}")
-            return findings
+            
+            # Enhance findings with compliance and threat analysis
+            enhanced_findings = []
+            for finding in findings:
+                enhanced_finding = parser.enhance_finding_with_analysis(
+                    finding, repository_context, business_context
+                )
+                enhanced_findings.append(enhanced_finding)
+            
+            logger.info(f"Parsed and enhanced {len(enhanced_findings)} findings from {scanner_type.value}")
+            return enhanced_findings
             
         except Exception as e:
             logger.error(f"Error parsing {scanner_type.value} results: {e}")

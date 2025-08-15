@@ -17,7 +17,7 @@ from models.report import (
     ScanReport, WebhookEvent, GitMetadata, ScanStatus, ScannerType
 )
 from services.scanner import security_scanner
-from services.ai_processor import ai_processor
+from services.ai_processor import get_ai_processor
 from services.notifier import notification_service
 from services.real_scanner import RealSecurityScanner
 from utils.repo_clone import repo_cloner
@@ -519,7 +519,7 @@ class WebhookProcessor:
                 # Generate AI analysis if there are findings
                 if scan_report.total_findings > 0:
                     logger.info("Generating AI analysis...")
-                    ai_analysis = await ai_processor.analyze_scan_results(
+                    ai_analysis = await get_ai_processor().analyze_scan_results(
                         scan_results,
                         project_context={'project_name': scan_report.project_name}
                     )

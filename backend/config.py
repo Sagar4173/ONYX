@@ -61,12 +61,22 @@ class Settings(BaseSettings):
     allowed_origins: str = Field(default="", env="ALLOWED_ORIGINS")
     
     # Scanner configuration
-    enable_semgrep: bool = Field(default=False, env="ENABLE_SEMGREP")
-    enable_trivy: bool = Field(default=False, env="ENABLE_TRIVY")
-    enable_gitleaks: bool = Field(default=False, env="ENABLE_GITLEAKS")
-    enable_lynis: bool = Field(default=False, env="ENABLE_LYNIS")
+    enable_semgrep: bool = Field(default=True, env="ENABLE_SEMGREP")
+    enable_trivy: bool = Field(default=True, env="ENABLE_TRIVY")
+    enable_gitleaks: bool = Field(default=True, env="ENABLE_GITLEAKS")
+    enable_lynis: bool = Field(default=True, env="ENABLE_LYNIS")
+    enable_bandit: bool = Field(default=True, env="ENABLE_BANDIT")
+    enable_safety: bool = Field(default=True, env="ENABLE_SAFETY")
     scan_timeout: int = Field(default=300, env="SCAN_TIMEOUT")
     max_concurrent_scans: int = Field(default=3, env="MAX_CONCURRENT_SCANS")
+    
+    # Custom security rules
+    custom_semgrep_rules_repo: Optional[str] = Field(default=None, env="CUSTOM_SEMGREP_RULES_REPO")
+    custom_gitleaks_config: Optional[str] = Field(default=None, env="CUSTOM_GITLEAKS_CONFIG")
+    
+    # Trivy configuration
+    trivy_cache_dir: str = Field(default="/tmp/trivy-cache", env="TRIVY_CACHE_DIR")
+    trivy_db_update_interval: int = Field(default=24, env="TRIVY_DB_UPDATE_INTERVAL")  # hours
     
     # Redis
     redis_url: str = Field(default="redis://redis:6379", env="REDIS_URL")
@@ -83,6 +93,8 @@ class Settings(BaseSettings):
     trivy_path: str = Field(default="trivy", env="TRIVY_PATH")
     gitleaks_path: str = Field(default="gitleaks", env="GITLEAKS_PATH")
     lynis_path: str = Field(default="lynis", env="LYNIS_PATH")
+    bandit_path: str = Field(default="bandit", env="BANDIT_PATH")
+    safety_path: str = Field(default="safety", env="SAFETY_PATH")
     
     # Git operations
     git_clone_timeout: int = Field(default=300, env="GIT_CLONE_TIMEOUT")  # 5 minutes

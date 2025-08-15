@@ -1,0 +1,54 @@
+{
+  "test_suite": "Advanced Security Comprehensive Test",
+  "timestamp": "2025-08-13T09:04:24.469109",
+  "total_duration": 0.027096,
+  "tests_run": 6,
+  "tests_passed": 0,
+  "tests_failed": 6,
+  "results": {
+    "OWASP ZAP": {
+      "scanner": "OWASP ZAP",
+      "status": "failed",
+      "findings": 0,
+      "duration": 0,
+      "error": "6 validation errors for ScanResult\nscanner\n  Field required [type=missing, input_value={'scanner_type': <Scanner...'scan_type': 'passive'}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nscan_id\n  Field required [type=missing, input_value={'scanner_type': <Scanner...'scan_type': 'passive'}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nduration_seconds\n  Field required [type=missing, input_value={'scanner_type': <Scanner...'scan_type': 'passive'}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.title\n  Field required [type=missing, input_value={'id': 'test_finding_1', ...Options header missing'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.scanner\n  Field required [type=missing, input_value={'id': 'test_finding_1', ...Options header missing'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.evidence\n  Input should be a valid dictionary [type=dict_type, input_value='X-Frame-Options header missing', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.11/v/dict_type"
+    },
+    "Nuclei": {
+      "scanner": "Nuclei",
+      "status": "failed",
+      "findings": 0,
+      "duration": 0,
+      "error": "7 validation errors for ScanResult\nscanner\n  Field required [type=missing, input_value={'scanner_type': <Scanner...', 'templates_used': 2}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nscan_id\n  Field required [type=missing, input_value={'scanner_type': <Scanner...', 'templates_used': 2}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nduration_seconds\n  Field required [type=missing, input_value={'scanner_type': <Scanner...', 'templates_used': 2}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.title\n  Field required [type=missing, input_value={'id': 'nuclei_test_1', '...: 'php-info-disclosure'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.scanner\n  Field required [type=missing, input_value={'id': 'nuclei_test_1', '...: 'php-info-disclosure'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.1.title\n  Field required [type=missing, input_value={'id': 'nuclei_test_2', '...e': 'directory-listing'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.1.scanner\n  Field required [type=missing, input_value={'id': 'nuclei_test_2', '...e': 'directory-listing'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing"
+    },
+    "CodeQL": {
+      "scanner": "CodeQL",
+      "status": "failed",
+      "findings": 0,
+      "duration": 0,
+      "error": "11 validation errors for ScanResult\nscanner\n  Field required [type=missing, input_value={'scanner_type': <Scanner...n', 'queries_run': 150}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nscan_id\n  Field required [type=missing, input_value={'scanner_type': <Scanner...n', 'queries_run': 150}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nduration_seconds\n  Field required [type=missing, input_value={'scanner_type': <Scanner...n', 'queries_run': 150}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.title\n  Field required [type=missing, input_value={'id': 'py/sql-injection'...9', 'rule_id': 'CWE-89'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.scanner\n  Field required [type=missing, input_value={'id': 'py/sql-injection'...9', 'rule_id': 'CWE-89'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.1.title\n  Field required [type=missing, input_value={'id': 'py/command-inject...5', 'rule_id': 'CWE-78'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.1.scanner\n  Field required [type=missing, input_value={'id': 'py/command-inject...5', 'rule_id': 'CWE-78'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.2.title\n  Field required [type=missing, input_value={'id': 'py/hardcoded-cred...', 'rule_id': 'CWE-798'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.2.scanner\n  Field required [type=missing, input_value={'id': 'py/hardcoded-cred...', 'rule_id': 'CWE-798'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.3.title\n  Field required [type=missing, input_value={'id': 'py/path-injection...4', 'rule_id': 'CWE-22'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.3.scanner\n  Field required [type=missing, input_value={'id': 'py/path-injection...4', 'rule_id': 'CWE-22'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing"
+    },
+    "Checkov": {
+      "scanner": "Checkov",
+      "status": "failed",
+      "findings": 0,
+      "duration": 0,
+      "error": "11 validation errors for ScanResult\nscanner\n  Field required [type=missing, input_value={'scanner_type': <Scanner...m'], 'checks_run': 150}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nscan_id\n  Field required [type=missing, input_value={'scanner_type': <Scanner...m'], 'checks_run': 150}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nduration_seconds\n  Field required [type=missing, input_value={'scanner_type': <Scanner...m'], 'checks_run': 150}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.title\n  Field required [type=missing, input_value={'id': 'CKV_AWS_18', 'nam...cket.vulnerable_bucket'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.scanner\n  Field required [type=missing, input_value={'id': 'CKV_AWS_18', 'nam...cket.vulnerable_bucket'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.1.title\n  Field required [type=missing, input_value={'id': 'CKV_AWS_21', 'nam...cket.vulnerable_bucket'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.1.scanner\n  Field required [type=missing, input_value={'id': 'CKV_AWS_21', 'nam...cket.vulnerable_bucket'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.2.title\n  Field required [type=missing, input_value={'id': 'CKV_AWS_24', 'nam...ty_group.vulnerable_sg'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.2.scanner\n  Field required [type=missing, input_value={'id': 'CKV_AWS_24', 'nam...ty_group.vulnerable_sg'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.3.title\n  Field required [type=missing, input_value={'id': 'CKV_AWS_8', 'name...ce.vulnerable_instance'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.3.scanner\n  Field required [type=missing, input_value={'id': 'CKV_AWS_8', 'name...ce.vulnerable_instance'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing"
+    },
+    "Custom Rules Engine": {
+      "scanner": "Custom Rules Engine",
+      "status": "failed",
+      "compliance_rules": 0,
+      "organizational_rules": 0,
+      "error": "type object 'CustomRuleCategory' has no attribute 'SECRETS'"
+    },
+    "Enhanced Baseline Manager": {
+      "scanner": "Enhanced Baseline Manager",
+      "status": "failed",
+      "baselines_created": 0,
+      "comparisons": 0,
+      "error": "6 validation errors for ScanResult\nscanner\n  Field required [type=missing, input_value={'scanner_type': <Scanner..., 13, 9, 4, 24, 465351)}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nscan_id\n  Field required [type=missing, input_value={'scanner_type': <Scanner..., 13, 9, 4, 24, 465351)}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nduration_seconds\n  Field required [type=missing, input_value={'scanner_type': <Scanner..., 13, 9, 4, 24, 465351)}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.title\n  Field required [type=missing, input_value={'id': 'test', 'severity'...erity.MEDIUM: 'medium'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.description\n  Field required [type=missing, input_value={'id': 'test', 'severity'...erity.MEDIUM: 'medium'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing\nfindings.0.scanner\n  Field required [type=missing, input_value={'id': 'test', 'severity'...erity.MEDIUM: 'medium'>}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.11/v/missing"
+    }
+  },
+  "success_rate": 0.0,
+  "overall_status": "FAILED"
+}

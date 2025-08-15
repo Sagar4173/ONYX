@@ -1,0 +1,28 @@
+{
+  "baseline_id": "golden_test_repo_20250813_090424",
+  "baseline_type": "golden_branch",
+  "name": "Golden Baseline - test_repo",
+  "description": "Security baseline for golden branch main",
+  "repository": "test_repo",
+  "branch": "main",
+  "commit_hash": "commit_20250813_090424",
+  "scan_timestamp": "2025-08-13 09:04:24.464037",
+  "vulnerability_fingerprints": {},
+  "security_score": 0.0,
+  "risk_score": 0.0,
+  "compliance_scores": {},
+  "compliance_controls": {},
+  "scanner_results": {},
+  "code_coverage": 0.0,
+  "test_coverage": 0.0,
+  "dependency_coverage": 0.0,
+  "infrastructure_score": 0.0,
+  "configuration_hash": "config_20250813_090424",
+  "created_by": "system",
+  "tags": [
+    "golden",
+    "baseline",
+    "main"
+  ],
+  "metadata": {}
+}

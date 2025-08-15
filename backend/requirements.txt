@@ -16,12 +16,24 @@ bcrypt==4.1.2
 
 # Environment and configuration
 python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+
+# Enhanced Security Dependencies
+numpy==1.24.3
+scipy==1.11.4
+aiohttp==3.9.1
+aiofiles==23.2.1
+xmltodict==0.13.0
+
+# Security Boundary Dependencies
+docker==7.0.0
+psutil==5.9.6
+deepdiff==8.6.0
+jsonschema==4.19.2
+PyYAML==6.0.1
 
 # HTTP client
 httpx==0.25.2
-aiohttp==3.9.1
+aiohttp>=3.8.0           # Use newer version with precompiled wheels
 
 # Git operations
 GitPython==3.1.40
@@ -36,10 +48,44 @@ reportlab==4.0.7
 bandit==1.7.5           # Python SAST scanner
 safety==2.3.5           # Python dependency vulnerability scanner
 semgrep==1.45.0         # Multi-language SAST scanner
+
+# Enterprise Security Orchestration Dependencies
+sqlite3                 # Built-in Python module for lightweight database
+dataclasses             # Built-in Python module for data classes
+statistics              # Built-in Python module for statistical functions
+collections             # Built-in Python module for specialized data structures
+uuid                    # Built-in Python module for UUID generation
+xml.etree.ElementTree   # Built-in Python module for XML processing
+tempfile                # Built-in Python module for temporary files
+gzip                    # Built-in Python module for gzip compression
+csv                     # Built-in Python module for CSV processing
+io                      # Built-in Python module for I/O operations
+
+# Advanced Scanning Dependencies
+requests>=2.31.0        # HTTP client for API calls
+pyyaml>=6.0            # YAML parsing for configurations
+gitpython>=3.1.0       # Git repository operations
+asyncio-subprocess>=0.1.0  # Async subprocess handling
+
+# DAST Tools Integration
+python-owasp-zap-v2.4>=0.0.21  # ZAP API client
+nuclei-python>=1.0.0           # Nuclei integration (if available)
+
+# SAST Tools Integration  
+codeql>=2.15.0         # GitHub CodeQL CLI
+checkov>=3.0.0         # Infrastructure as Code scanner
+
+# Additional utilities
+urllib3>=1.26.0        # URL parsing and validation
+colorlog>=6.7.0        # Colored logging for better visibility
 gitpython==3.1.40       # Git operations (already exists but ensuring latest)
 detect-secrets==1.4.0   # Secrets detection
 # truffleHog==3.63.2      # Secrets scanning (commented out due to version issues)
 requests==2.31.0        # HTTP requests for API calls
+
+# Additional Security Tools for Enhanced Scanning
+toml==0.10.2            # For parsing gitleaks.toml config files
+packaging                # For version parsing in safety checks (remove version constraint)
 
 # Notifications
 slack-sdk==3.26.1

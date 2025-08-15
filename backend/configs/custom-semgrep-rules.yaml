@@ -1,0 +1,176 @@
+# Custom Semgrep Rules for Organization Security
+# This directory contains organization-specific security rules
+
+rules:
+  - id: hardcoded-secrets-custom
+    pattern-either:
+      - pattern: |
+          $VAR = "org_secret_$VALUE"
+      - pattern: |
+          $VAR = "company_api_$VALUE"
+      - pattern: |
+          password = "$VALUE"
+      - pattern: |
+          api_key = "$VALUE"
+    message: |
+      Hardcoded secret detected. Store secrets in environment variables or secure vaults.
+    languages: [python, javascript, typescript, java, go]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: "A02:2021 - Cryptographic Failures"
+      references:
+        - https://owasp.org/Top10/A02_2021-Cryptographic_Failures/
+
+  - id: sql-injection-custom
+    pattern-either:
+      - pattern: |
+          cursor.execute($QUERY + $USER_INPUT)
+      - pattern: |
+          db.query($QUERY + $USER_INPUT)
+      - pattern: |
+          $CONN.execute(f"... {$VAR} ...")
+    message: |
+      Potential SQL injection vulnerability. Use parameterized queries.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+      owasp: "A03:2021 - Injection"
+
+  - id: command-injection-custom
+    pattern-either:
+      - pattern: |
+          os.system($COMMAND + $USER_INPUT)
+      - pattern: |
+          subprocess.call($COMMAND + $USER_INPUT)
+      - pattern: |
+          exec($USER_INPUT)
+      - pattern: |
+          eval($USER_INPUT)
+    message: |
+      Potential command injection vulnerability. Validate and sanitize input.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78: OS Command Injection"
+
+  - id: insecure-random-custom
+    pattern-either:
+      - pattern: |
+          random.random()
+      - pattern: |
+          random.randint(...)
+      - pattern: |
+          Math.random()
+    message: |
+      Using insecure random number generator for security purposes. Use cryptographically secure random.
+    languages: [python, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator"
+
+  - id: debug-mode-enabled
+    pattern-either:
+      - pattern: |
+          DEBUG = True
+      - pattern: |
+          debug=True
+      - pattern: |
+          app.debug = True
+    message: |
+      Debug mode should not be enabled in production.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      deployment: production
+
+  - id: weak-crypto-algorithm
+    pattern-either:
+      - pattern: |
+          hashlib.md5(...)
+      - pattern: |
+          hashlib.sha1(...)
+      - pattern: |
+          Cipher.new("DES", ...)
+      - pattern: |
+          Cipher.new("RC4", ...)
+    message: |
+      Weak cryptographic algorithm detected. Use stronger alternatives like SHA-256 or AES.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+
+  - id: http-without-ssl
+    pattern-either:
+      - pattern: |
+          requests.get("http://...")
+      - pattern: |
+          urllib.request.urlopen("http://...")
+      - pattern: |
+          fetch("http://...")
+    message: |
+      HTTP communication without SSL/TLS encryption detected. Use HTTPS.
+    languages: [python, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-319: Cleartext Transmission of Sensitive Information"
+
+  - id: unsafe-file-operations
+    pattern-either:
+      - pattern: |
+          open($PATH, "w")
+      - pattern: |
+          with open($PATH, "w") as $F: ...
+    where:
+      - metavariable-regex:
+          metavariable: $PATH
+          regex: ".*\\.\\./.*"
+    message: |
+      Potential path traversal vulnerability. Validate file paths.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-22: Path Traversal"
+
+  - id: missing-authentication-check
+    pattern: |
+      @app.route(...)
+      def $FUNC(...):
+        ...
+    pattern-not-inside: |
+      @login_required
+      def $FUNC(...):
+        ...
+    message: |
+      Endpoint missing authentication check. Add @login_required or similar.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      framework: flask
+
+  - id: cors-wildcard-origin
+    pattern-either:
+      - pattern: |
+          CORS(app, origins="*")
+      - pattern: |
+          app.add_middleware(CORSMiddleware, allow_origins=["*"])
+      - pattern: |
+          Access-Control-Allow-Origin: *
+    message: |
+      CORS configured with wildcard origin. This can lead to security vulnerabilities.
+    languages: [python, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-942: Overly Permissive Cross-domain Whitelist"
