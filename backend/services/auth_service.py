@@ -127,32 +127,32 @@ class AuthService:
         if not user:
             return None
         
-        # Check if account is locked
-        if user.is_account_locked():
-            raise HTTPException(
-                status_code=status.HTTP_423_LOCKED,
-                detail=f"Account is locked until {user.locked_until}. Please try again later."
-            )
-        
+        # Check if account is locked (TEMPORARILY DISABLED)
+        # if user.is_account_locked():
+        #     raise HTTPException(
+        #         status_code=status.HTTP_423_LOCKED,
+        #         detail=f"Account is locked until {user.locked_until}. Please try again later."
+        #     )
+
         # Check if account is active
         if user.status not in [UserStatus.ACTIVE, UserStatus.PENDING_VERIFICATION]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is suspended or inactive"
             )
-        
+
         # Verify password
         if not self.verify_password(password, user.hashed_password):
-            # Increment failed attempts
-            user.failed_login_attempts += 1
+            # Increment failed attempts (TEMPORARILY DISABLED)
+            # user.failed_login_attempts += 1
             
-            # Lock account if too many failed attempts
-            if user.failed_login_attempts >= self.max_failed_attempts:
-                user.locked_until = datetime.utcnow() + timedelta(minutes=self.lockout_duration)
+            # Lock account if too many failed attempts (TEMPORARILY DISABLED)
+            # if user.failed_login_attempts >= self.max_failed_attempts:
+            #     user.locked_until = datetime.utcnow() + timedelta(minutes=self.lockout_duration)
             
-            await user.save()
+            # await user.save()
             return None
-        
+
         # Reset failed attempts on successful login
         user.failed_login_attempts = 0
         user.locked_until = None

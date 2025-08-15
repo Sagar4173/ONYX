@@ -45,11 +45,23 @@ async def create_project(
     - **tags**: Optional project tags
     """
     try:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🚀 Creating project with data: {project_data.model_dump()}")
+        logger.info(f"👤 Current user: {current_user.username} (ID: {current_user.id})")
+        
         project = await project_service.create_project(project_data, str(current_user.id))
+        logger.info(f"✅ Project created successfully: {project.name}")
         return ProjectResponse.model_validate(project.model_dump())
     except HTTPException:
         raise
     except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"❌ Project creation failed: {str(e)}")
+        logger.error(f"❌ Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create project: {str(e)}"

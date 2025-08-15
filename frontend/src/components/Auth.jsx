@@ -96,7 +96,19 @@ export const AuthProvider = ({ children }) => {
       toast.success(`Welcome back, ${data.user.full_name}!`);
       return data;
     } catch (error) {
-      toast.error(error.message);
+      // Extract proper error message
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.message ||
+        "Login failed. Please check your credentials.";
+
+      console.error("Login error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+
+      toast.error(errorMessage);
       throw error;
     }
   };

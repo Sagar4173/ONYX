@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
-  ? "http://127.0.0.1:8001/api" // Direct connection in development with /api prefix
+  ? "http://127.0.0.1:8000/api" // Direct connection in development with /api prefix
   : import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Check if we're in demo mode (no backend available)
@@ -15,7 +15,7 @@ const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true" || false;
 
 // WebSocket URL - Connect directly to backend in development
 const WS_BASE_URL = import.meta.env.DEV
-  ? "ws://127.0.0.1:8001" // Direct connection in development
+  ? "ws://127.0.0.1:8000" // Direct connection in development
   : import.meta.env.VITE_WS_URL ||
     import.meta.env.VITE_WEBSOCKET_URL ||
     (window.location.protocol === "https:" ? "wss:" : "ws:") +
@@ -87,9 +87,15 @@ api.interceptors.response.use(
 
     // Handle common error cases
     if (error.response?.status === 401) {
-      // Try to refresh token
+      // Extract error message from response
+      const errorMessage =
+        error.response?.data?.detail || "Authentication failed";
+
+      // Try to refresh token only if it's not a login request and we have a refresh token
       const refreshToken = localStorage.getItem("refresh_token");
-      if (refreshToken && !error.config._retry) {
+      const isLoginRequest = error.config?.url?.includes("/auth/login");
+
+      if (refreshToken && !error.config._retry && !isLoginRequest) {
         error.config._retry = true;
 
         try {
@@ -110,6 +116,10 @@ api.interceptors.response.use(
           toast.error("Session expired. Please log in again.");
           window.location.href = "/";
         }
+      } else if (isLoginRequest) {
+        // For login requests, don't show generic toast, let the login handler deal with it
+        // The login function will extract and show the proper error message
+        console.log("Login failed:", errorMessage);
       } else {
         toast.error("Authentication required. Please log in.");
         localStorage.removeItem("access_token");
@@ -137,10 +147,31 @@ export const authAPI = {
   // Login user
   login: async (credentials) => {
     try {
+      console.log("🔑 Attempting login with:", {
+        username_or_email: credentials.username_or_email,
+        remember_me: credentials.remember_me,
+        password_length: credentials.password?.length,
+      });
+
       const response = await api.post("/auth/login", credentials);
+
+      console.log("✅ Login successful:", {
+        status: response.status,
+        user: response.data.user?.username,
+      });
+
       return response.data;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Login failed:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+        credentials_sent: {
+          username_or_email: credentials.username_or_email,
+          remember_me: credentials.remember_me,
+          password_provided: !!credentials.password,
+        },
+      });
       throw error;
     }
   },
@@ -346,11 +377,54 @@ export const reportsAPI = {
   // Start a new scan
   startScan: async (scanData) => {
     try {
-      // Use the regular API service for webhook calls now that they're under /api
+      console.log("🚀 Starting scan with data:", scanData);
       const response = await api.post("/webhook/scan", scanData);
+      console.log("✅ Scan started successfully:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Error starting scan:", error);
+      console.error("❌ Error starting scan:", error);
+
+      // Enhanced error logging for debugging
+      if (error.response) {
+        console.error("❌ Response data:", error.response.data);
+        console.error("❌ Response status:", error.response.status);
+        console.error("❌ Response headers:", error.response.headers);
+      } else if (error.request) {
+        console.error("❌ No response received:", error.request);
+      } else {
+        console.error("❌ Request setup error:", error.message);
+      }
+
+      throw error;
+    }
+  },
+
+  // Get scan status by scan ID
+  getScanStatus: async (scanId) => {
+    try {
+      // Try to find the scan in reports
+      const reports = await api.get("/reports/");
+      const scanReport = reports.data.reports?.find(
+        (report) => report.scan_id === scanId
+      );
+
+      if (scanReport) {
+        return {
+          scan_id: scanReport.scan_id,
+          status: scanReport.status,
+          project_name: scanReport.project_name,
+          total_findings: scanReport.total_findings,
+          findings_by_severity: scanReport.findings_by_severity,
+          created_at: scanReport.created_at,
+          completed_at: scanReport.completed_at,
+          duration_seconds: scanReport.duration_seconds,
+          error_message: scanReport.error_message,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("❌ Error getting scan status:", error);
       throw error;
     }
   },

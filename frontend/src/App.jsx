@@ -53,6 +53,8 @@ import ProjectList from "./components/ProjectList";
 import ReportDetails from "./components/ReportDetails";
 import ComplianceReport from "./components/ComplianceReport";
 import ProjectManagement from "./components/ProjectManagement";
+import ProjectDetails from "./components/ProjectDetails";
+import Settings from "./components/Settings";
 import UserManagement from "./components/UserManagement";
 import {
   AuthProvider,
@@ -68,6 +70,7 @@ import {
   ForgotPasswordSuccess,
 } from "./components/Auth";
 import { websocketService, reportsAPI, authAPI } from "./services/api";
+import useScanTracker from "./hooks/useScanTracker";
 import toast from "react-hot-toast";
 
 // Create a client for React Query with enhanced settings
@@ -122,14 +125,28 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate repository URL
     if (!formData.repository_url.trim()) {
       toast.error("Please enter a repository URL");
       return;
     }
 
+    // Basic URL validation
+    const urlPattern = /^https?:\/\/.+/i;
+    if (!urlPattern.test(formData.repository_url.trim())) {
+      toast.error(
+        "Please enter a valid repository URL (must start with http:// or https://)"
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      console.log("🚀 Submitting scan with data:", formData);
       await onSubmit(formData);
+
+      // Reset form and close modal
       setFormData({
         repository_url: "",
         branch: "main",
@@ -137,9 +154,23 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
         access_token: "",
       });
       onClose();
-      toast.success("🚀 Scan initiated successfully!");
+
+      // Success message is handled by the mutation
     } catch (error) {
-      toast.error("Failed to start scan. Please try again.");
+      console.error("❌ Modal handleSubmit error:", error);
+
+      // Extract error message for modal-specific handling
+      let errorMessage = "Failed to start scan";
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Show error in modal context (shorter message)
+      toast.error(`❌ ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -605,22 +636,107 @@ function AppContent() {
   // Scan mutation for repository submission - moved to top
   const scanMutation = useMutation({
     mutationFn: async (scanData) => {
-      // Use the API service for webhook calls now that they're under /api
-      return await api.startScan(scanData);
+      // Use the reportsAPI service for scan calls
+      return await reportsAPI.startScan(scanData);
     },
     onSuccess: (data) => {
-      // Add notification for successful scan start
+      console.log("✅ Scan started successfully:", data);
+
+      // Show detailed success message with scan ID
+      const projectName = data.project_name || "Repository";
+      const scanId = data.scan_id?.slice(-8) || "Unknown";
+
+      toast.success(
+        `🚀 Scan initiated for ${projectName}!\nScan ID: ${scanId}\n⏳ Processing in background...`,
+        { duration: 8000 }
+      );
+
+      // Add notification for successful scan start with more details
       setNotifications((prev) => [
         {
           id: Date.now(),
           type: "scan_started",
-          message: `Security scan initiated for repository`,
+          message: `Security scan initiated for ${projectName} (ID: ${scanId})`,
           timestamp: new Date(),
-          data: data,
+          data: {
+            ...data,
+            scan_url: `/scans/${data.scan_id}`,
+            status_message:
+              "Scan is processing. Check the Reports section for updates.",
+          },
         },
         ...prev.slice(0, 9),
       ]);
+
+      // Show follow-up instructions
+      setTimeout(() => {
+        toast(
+          `💡 Tip: Check the Reports section to monitor your scan progress`,
+          {
+            icon: "💡",
+            duration: 6000,
+          }
+        );
+      }, 3000);
+
       queryClient.invalidateQueries(["reports"]);
+
+      // Auto-refresh reports after a short delay to show new scan
+      setTimeout(() => {
+        queryClient.invalidateQueries(["reports"]);
+      }, 2000);
+    },
+    onError: (error) => {
+      console.error("❌ Scan submission failed:", error);
+
+      // Extract meaningful error message
+      let errorMessage = "Failed to start scan";
+      let errorDetails = "";
+      let suggestions = "";
+
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+
+        // Add helpful suggestions based on error type
+        if (error.response.status === 400) {
+          suggestions = "\n💡 Check your repository URL format";
+        } else if (error.response.status === 403) {
+          suggestions = "\n💡 Check repository permissions";
+        } else if (error.response.status === 500) {
+          suggestions = "\n💡 Server error - try again in a few minutes";
+        }
+
+        // Add status code context
+        errorDetails = ` (${error.response.status})`;
+      } else if (error.message) {
+        errorMessage = error.message;
+        suggestions = "\n💡 Check your internet connection";
+      }
+
+      // Show detailed error message
+      toast.error(`❌ ${errorMessage}${errorDetails}${suggestions}`, {
+        duration: 10000,
+      });
+
+      // Add error notification
+      setNotifications((prev) => [
+        {
+          id: Date.now(),
+          type: "scan_error",
+          message: `Scan submission failed: ${errorMessage}`,
+          timestamp: new Date(),
+          data: {
+            error: error.response?.data || error.message,
+            suggestions: suggestions.replace("\n💡 ", ""),
+          },
+        },
+        ...prev.slice(0, 9),
+      ]);
     },
   });
 
@@ -1393,6 +1509,19 @@ function AppContent() {
                 </div>
               }
             />
+            <Route
+              path="/project/:projectId"
+              element={
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                      <ProjectDetails />
+                    </div>
+                  </div>
+                </div>
+              }
+            />
             <Route path="/users" element={<UserManagement />} />
             <Route
               path="/reports"
@@ -1423,12 +1552,7 @@ function AppContent() {
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
                     <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                      <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 lg:mb-8">
-                        Settings
-                      </h1>
-                      <p className="text-gray-400 text-sm lg:text-base">
-                        Settings panel coming soon...
-                      </p>
+                      <Settings />
                     </div>
                   </div>
                 </div>

@@ -29,6 +29,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useAuth } from "./Auth";
 import { projectsAPI } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 // Project Card Component
 const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
@@ -670,6 +671,7 @@ export const ProjectManagement = () => {
 
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: projectsData, isLoading } = useQuery({
     queryKey: ["projects", filters],
@@ -686,19 +688,55 @@ export const ProjectManagement = () => {
     queryClient.invalidateQueries(["projectAnalytics"]);
   };
 
+  // Delete project mutation
+  const deleteProjectMutation = useMutation({
+    mutationFn: (projectId) => projectsAPI.deleteProject(projectId),
+    onSuccess: () => {
+      toast.success("Project deleted successfully!");
+      setDeletingProject(null);
+      queryClient.invalidateQueries(["projects"]);
+      queryClient.invalidateQueries(["projectAnalytics"]);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete project");
+    },
+  });
+
+  // Update project mutation
+  const updateProjectMutation = useMutation({
+    mutationFn: ({ projectId, projectData }) =>
+      projectsAPI.updateProject(projectId, projectData),
+    onSuccess: () => {
+      toast.success("Project updated successfully!");
+      setEditingProject(null);
+      queryClient.invalidateQueries(["projects"]);
+      queryClient.invalidateQueries(["projectAnalytics"]);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update project");
+    },
+  });
+
+  const confirmDeleteProject = () => {
+    if (deletingProject) {
+      deleteProjectMutation.mutate(deletingProject.id);
+    }
+  };
+
+  const [editingProject, setEditingProject] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(null);
+
   const handleEditProject = (project) => {
-    // TODO: Implement edit modal
-    console.log("Edit project:", project);
+    setEditingProject(project);
   };
 
   const handleDeleteProject = (project) => {
-    // TODO: Implement delete confirmation
-    console.log("Delete project:", project);
+    setDeletingProject(project);
   };
 
   const handleViewProject = (project) => {
-    // TODO: Navigate to project details
-    console.log("View project:", project);
+    // Navigate to project details page
+    navigate(`/project/${project.id}`);
   };
 
   if (isLoading) {
@@ -919,6 +957,416 @@ export const ProjectManagement = () => {
         onClose={() => setShowCreateModal(false)}
         onSuccess={handleProjectCreated}
       />
+
+      {/* Edit Project Modal */}
+      {editingProject && (
+        <EditProjectModal
+          project={editingProject}
+          isOpen={!!editingProject}
+          onClose={() => setEditingProject(null)}
+          onSuccess={() => {
+            setEditingProject(null);
+            queryClient.invalidateQueries(["projects"]);
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingProject && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setDeletingProject(null)}
+          />
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl p-6 w-full max-w-md">
+              <div className="text-center">
+                <ExclamationTriangleIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Delete Project
+                </h3>
+                <p className="text-gray-400 mb-6">
+                  Are you sure you want to delete "{deletingProject.name}"? This
+                  action cannot be undone and will remove all associated scan
+                  data.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setDeletingProject(null)}
+                    className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteProject}
+                    disabled={deleteProjectMutation.isPending}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all"
+                  >
+                    {deleteProjectMutation.isPending ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Edit Project Modal
+const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    name: project?.name || "",
+    description: project?.description || "",
+    category: project?.category || "other",
+    priority: project?.priority || "medium",
+    repository: {
+      url: project?.repository_url || "",
+      branch: project?.repository?.branch || "main",
+      access_token: project?.repository?.access_token || "",
+      scan_paths: project?.repository?.scan_paths || ["/"],
+      exclude_paths: project?.repository?.exclude_paths || [],
+    },
+    scan_config: {
+      enabled_scanners: project?.scan_config?.enabled_scanners || [
+        "sast",
+        "secrets",
+      ],
+      auto_scan_on_push: project?.scan_config?.auto_scan_on_push || false,
+      scan_timeout_minutes: project?.scan_config?.scan_timeout_minutes || 60,
+      fail_on_critical: project?.scan_config?.fail_on_critical || false,
+    },
+    tags: project?.tags || [],
+  });
+
+  const [tagInput, setTagInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: templates } = useQuery({
+    queryKey: ["projectTemplates"],
+    queryFn: projectsAPI.getTemplateCategories,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => projectsAPI.updateProject(project.id, data),
+    onSuccess: (data) => {
+      toast.success("Project updated successfully!");
+      onSuccess(data);
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update project");
+    },
+  });
+
+  useEffect(() => {
+    if (project) {
+      setFormData({
+        name: project.name || "",
+        description: project.description || "",
+        category: project.category || "other",
+        priority: project.priority || "medium",
+        repository: {
+          url: project.repository_url || "",
+          branch: project.repository?.branch || "main",
+          access_token: project.repository?.access_token || "",
+          scan_paths: project.repository?.scan_paths || ["/"],
+          exclude_paths: project.repository?.exclude_paths || [],
+        },
+        scan_config: {
+          enabled_scanners: project.scan_config?.enabled_scanners || [
+            "sast",
+            "secrets",
+          ],
+          auto_scan_on_push: project.scan_config?.auto_scan_on_push || false,
+          scan_timeout_minutes: project.scan_config?.scan_timeout_minutes || 60,
+          fail_on_critical: project.scan_config?.fail_on_critical || false,
+        },
+        tags: project.tags || [],
+      });
+    }
+  }, [project]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.repository.url.trim()) {
+      toast.error("Please fill in required fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await updateMutation.mutateAsync(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        tags: [...prev.tags, tagInput.trim()],
+      }));
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+    }));
+  };
+
+  const toggleScanner = (scanner) => {
+    setFormData((prev) => ({
+      ...prev,
+      scan_config: {
+        ...prev.scan_config,
+        enabled_scanners: prev.scan_config.enabled_scanners.includes(scanner)
+          ? prev.scan_config.enabled_scanners.filter((s) => s !== scanner)
+          : [...prev.scan_config.enabled_scanners, scanner],
+      },
+    }));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl" />
+
+            <div className="relative p-8">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                    <PencilIcon className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">
+                      Edit Project
+                    </h2>
+                    <p className="text-gray-400">
+                      Update your project configuration
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Basic Information */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-white">
+                    Basic Information
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">
+                        Project Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">
+                        Category
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            category: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      >
+                        {templates?.categories?.map((category) => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      Description
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
+                      placeholder="Describe your project..."
+                      rows={3}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      Priority
+                    </label>
+                    <select
+                      value={formData.priority}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          priority: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    >
+                      {templates?.priorities?.map((priority) => (
+                        <option key={priority.value} value={priority.value}>
+                          {priority.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Security Scanners */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-white">
+                    Security Scanners
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {templates?.scan_types?.map((scanner) => (
+                      <button
+                        key={scanner.value}
+                        type="button"
+                        onClick={() => toggleScanner(scanner.value)}
+                        className={`p-4 rounded-xl border-2 transition-all text-left ${
+                          formData.scan_config.enabled_scanners.includes(
+                            scanner.value
+                          )
+                            ? "border-blue-500/70 bg-blue-500/20"
+                            : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-white">
+                            {scanner.label}
+                          </span>
+                          {formData.scan_config.enabled_scanners.includes(
+                            scanner.value
+                          ) && (
+                            <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-400">
+                          {scanner.description}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-white">Tags</h3>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && (e.preventDefault(), addTag())
+                      }
+                      placeholder="Add tags..."
+                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={addTag}
+                      className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
+                        >
+                          <span>{tag}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeTag(tag)}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Submit */}
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-6 py-3 text-gray-300 hover:text-white transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || updateMutation.isPending}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all"
+                  >
+                    {isSubmitting || updateMutation.isPending
+                      ? "Updating..."
+                      : "Update Project"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
