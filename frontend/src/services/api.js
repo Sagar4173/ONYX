@@ -34,6 +34,16 @@ if (import.meta.env.DEV) {
   });
 }
 
+// Utility function to clean parameters by removing empty values
+const cleanParams = (params = {}) => {
+  return Object.entries(params).reduce((acc, [key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+};
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -47,7 +57,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -69,7 +79,7 @@ api.interceptors.response.use(
     console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error(
       "❌ API Response Error:",
       error.response?.data || error.message
@@ -77,8 +87,35 @@ api.interceptors.response.use(
 
     // Handle common error cases
     if (error.response?.status === 401) {
-      toast.error("Authentication required. Please log in.");
-      // Handle logout logic here
+      // Try to refresh token
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (refreshToken && !error.config._retry) {
+        error.config._retry = true;
+
+        try {
+          const response = await api.post("/auth/refresh", {
+            refresh_token: refreshToken,
+          });
+          const { access_token } = response.data;
+
+          localStorage.setItem("access_token", access_token);
+          error.config.headers.Authorization = `Bearer ${access_token}`;
+
+          return api.request(error.config);
+        } catch (refreshError) {
+          // Refresh failed, logout user
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("user_data");
+          toast.error("Session expired. Please log in again.");
+          window.location.href = "/";
+        }
+      } else {
+        toast.error("Authentication required. Please log in.");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_data");
+      }
     } else if (error.response?.status === 403) {
       toast.error("Access denied. Insufficient permissions.");
     } else if (error.response?.status === 429) {
@@ -94,13 +131,156 @@ api.interceptors.response.use(
 );
 
 /**
+ * Authentication API
+ */
+export const authAPI = {
+  // Login user
+  login: async (credentials) => {
+    try {
+      const response = await api.post("/auth/login", credentials);
+      return response.data;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  },
+
+  // Register user
+  register: async (userData) => {
+    try {
+      const response = await api.post("/auth/register", userData);
+      return response.data;
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
+  },
+
+  // Logout user
+  logout: async () => {
+    try {
+      const response = await api.post("/auth/logout");
+      return response.data;
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
+  },
+
+  // Refresh token
+  refreshToken: async (refreshToken) => {
+    try {
+      const response = await api.post("/auth/refresh", {
+        refresh_token: refreshToken,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      throw error;
+    }
+  },
+
+  // Get current user profile
+  getProfile: async () => {
+    try {
+      const response = await api.get("/auth/me");
+      return response.data;
+    } catch (error) {
+      console.error("Get profile error:", error);
+      throw error;
+    }
+  },
+
+  // Update user profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put("/auth/me", profileData);
+      return response.data;
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw error;
+    }
+  },
+
+  // Change password
+  changePassword: async (passwordData) => {
+    try {
+      const response = await api.post("/auth/change-password", passwordData);
+      return response.data;
+    } catch (error) {
+      console.error("Change password error:", error);
+      throw error;
+    }
+  },
+
+  // Request password reset
+  requestPasswordReset: async (email) => {
+    try {
+      const response = await api.post("/auth/request-password-reset", {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      throw error;
+    }
+  },
+
+  // Confirm password reset
+  confirmPasswordReset: async (resetData) => {
+    try {
+      const response = await api.post("/auth/reset-password", resetData);
+      return response.data;
+    } catch (error) {
+      console.error("Password reset confirm error:", error);
+      throw error;
+    }
+  },
+
+  // Verify email
+  verifyEmail: async (token) => {
+    try {
+      const response = await api.post("/auth/verify-email", { token });
+      return response.data;
+    } catch (error) {
+      console.error("Email verification error:", error);
+      throw error;
+    }
+  },
+
+  // Resend verification email
+  resendVerificationEmail: async () => {
+    try {
+      const response = await api.post("/auth/resend-verification");
+      return response.data;
+    } catch (error) {
+      console.error("Resend verification error:", error);
+      throw error;
+    }
+  },
+
+  // Test email configuration
+  testEmailConfiguration: async () => {
+    try {
+      const response = await api.post("/auth/test-email");
+      return response.data;
+    } catch (error) {
+      console.error("Test email error:", error);
+      throw error;
+    }
+  },
+};
+
+/**
  * Reports API
  */
 export const reportsAPI = {
   // Get all reports with filtering and pagination
   getReports: async (params = {}) => {
     try {
-      const response = await api.get("/reports", { params });
+      const response = await api.get("/reports", {
+        params: cleanParams(params),
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -139,7 +319,9 @@ export const reportsAPI = {
       const params = { days_back: daysBack };
       if (projectName) params.project_name = projectName;
 
-      const response = await api.get("/analytics/overview", { params });
+      const response = await api.get("/analytics/overview", {
+        params: cleanParams(params),
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -152,7 +334,7 @@ export const reportsAPI = {
     try {
       const response = await api.get(
         `/reports/project/${encodeURIComponent(projectName)}`,
-        { params }
+        { params: cleanParams(params) }
       );
       return response.data;
     } catch (error) {
@@ -169,6 +351,239 @@ export const reportsAPI = {
       return response.data;
     } catch (error) {
       console.error("Error starting scan:", error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Projects API
+ */
+export const projectsAPI = {
+  // Get all projects with filtering and pagination
+  getProjects: async (params = {}) => {
+    try {
+      const response = await api.get("/projects/", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      throw error;
+    }
+  },
+
+  // Get project by ID
+  getProject: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      throw error;
+    }
+  },
+
+  // Create new project
+  createProject: async (projectData) => {
+    try {
+      const response = await api.post("/projects/", projectData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating project:", error);
+      throw error;
+    }
+  },
+
+  // Update project
+  updateProject: async (projectId, projectData) => {
+    try {
+      const response = await api.put(`/projects/${projectId}`, projectData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating project:", error);
+      throw error;
+    }
+  },
+
+  // Delete project
+  deleteProject: async (projectId) => {
+    try {
+      const response = await api.delete(`/projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      throw error;
+    }
+  },
+
+  // Get project templates
+  getProjectTemplates: async () => {
+    try {
+      const response = await api.get("/projects/templates");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching project templates:", error);
+      throw error;
+    }
+  },
+
+  // Get project template categories
+  getTemplateCategories: async () => {
+    try {
+      const response = await api.get("/projects/templates/categories");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching template categories:", error);
+      throw error;
+    }
+  },
+
+  // Get project analytics overview
+  getAnalyticsOverview: async (params = {}) => {
+    try {
+      const response = await api.get("/projects/analytics/overview", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching analytics overview:", error);
+      throw error;
+    }
+  },
+
+  // Add member to project
+  addMember: async (projectId, memberData) => {
+    try {
+      const response = await api.post(
+        `/projects/${projectId}/members`,
+        memberData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error adding project member:", error);
+      throw error;
+    }
+  },
+
+  // Remove member from project
+  removeMember: async (projectId, memberId) => {
+    try {
+      const response = await api.delete(
+        `/projects/${projectId}/members/${memberId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error removing project member:", error);
+      throw error;
+    }
+  },
+
+  // Update member role
+  updateMemberRole: async (projectId, memberId, roleData) => {
+    try {
+      const response = await api.put(
+        `/projects/${projectId}/members/${memberId}`,
+        roleData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Users API
+ */
+export const usersAPI = {
+  // Get all users with filtering and pagination
+  getUsers: async (params = {}) => {
+    try {
+      const response = await api.get("/users", { params: cleanParams(params) });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
+  },
+
+  // Get user by ID
+  getUser: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      throw error;
+    }
+  },
+
+  // Create new user (admin only)
+  createUser: async (userData) => {
+    try {
+      const response = await api.post("/users", userData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
+  },
+
+  // Update user
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await api.put(`/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user:", error);
+      throw error;
+    }
+  },
+
+  // Delete user
+  deleteUser: async (userId) => {
+    try {
+      const response = await api.delete(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
+  },
+
+  // Update user status
+  updateUserStatus: async (userId, status) => {
+    try {
+      const response = await api.patch(`/users/${userId}/status`, { status });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw error;
+    }
+  },
+
+  // Update user role
+  updateUserRole: async (userId, role) => {
+    try {
+      const response = await api.patch(`/users/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      throw error;
+    }
+  },
+
+  // Get user activity
+  getUserActivity: async (userId, params = {}) => {
+    try {
+      const response = await api.get(`/users/${userId}/activity`, {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
       throw error;
     }
   },

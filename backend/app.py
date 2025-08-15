@@ -20,7 +20,7 @@ import json
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-env_path = Path(__file__).parent.parent / '.env'
+env_path = Path(__file__).parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
     print(f"📄 Loaded environment variables from: {env_path}")
@@ -33,6 +33,9 @@ from database import db_manager, init_database, close_database
 # Import route modules
 from routes.reports import router as reports_router
 from routes.webhook import router as webhook_router
+from routes.auth import router as auth_router
+from routes.projects import router as projects_router
+from routes.users import router as users_router
 from routes.compliance import router as compliance_router
 from routes.security import router as security_router
 from routes.advanced_security import router as advanced_security_router
@@ -97,7 +100,10 @@ async def options_handler():
     return {"message": "OK"}
 
 # Include API routers with explicit trailing slash handling
+app.include_router(auth_router, prefix="/api")
 app.include_router(reports_router, prefix="/api/reports")
+app.include_router(projects_router, prefix="/api")
+app.include_router(users_router, prefix="/api")
 app.include_router(compliance_router, prefix="/api/compliance")
 app.include_router(security_router)
 app.include_router(webhook_router, prefix="/api")

@@ -9,6 +9,7 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import {
   QueryClient,
@@ -39,6 +40,7 @@ import {
   EyeIcon,
   ArrowPathIcon,
   PlayIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import {
   ChartBarIcon,
@@ -50,7 +52,22 @@ import {
 import ProjectList from "./components/ProjectList";
 import ReportDetails from "./components/ReportDetails";
 import ComplianceReport from "./components/ComplianceReport";
-import { websocketService, reportsAPI } from "./services/api";
+import ProjectManagement from "./components/ProjectManagement";
+import UserManagement from "./components/UserManagement";
+import {
+  AuthProvider,
+  useAuth,
+  LoginForm,
+  RegisterForm,
+  UserProfile,
+  AuthModal,
+  EmailVerification,
+  ForgotPasswordForm,
+  ResetPasswordForm,
+  RegistrationSuccess,
+  ForgotPasswordSuccess,
+} from "./components/Auth";
+import { websocketService, reportsAPI, authAPI } from "./services/api";
 import toast from "react-hot-toast";
 
 // Create a client for React Query with enhanced settings
@@ -375,14 +392,217 @@ const ScanModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
+// Email Verification Page Component
+const EmailVerificationPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const searchParams = new URLSearchParams(location.search);
+  const token = searchParams.get("token");
+
+  const handleVerificationSuccess = () => {
+    if (isAuthenticated) {
+      navigate("/", {
+        state: {
+          message: "Email verified successfully!",
+          from: "verification",
+        },
+        replace: true,
+      });
+    } else {
+      navigate("/", {
+        state: {
+          message: "Email verified successfully! Please log in to continue.",
+          from: "verification",
+        },
+        replace: true,
+      });
+    }
+  };
+
+  const handleVerificationError = () => {
+    navigate("/");
+  };
+
+  return (
+    <EmailVerification
+      token={token}
+      onSuccess={handleVerificationSuccess}
+      onError={handleVerificationError}
+    />
+  );
+};
+
+// Password Reset Page Component
+const PasswordResetPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const searchParams = new URLSearchParams(location.search);
+  const token = searchParams.get("token");
+
+  const handleResetSuccess = () => {
+    navigate("/", {
+      state: {
+        message:
+          "Password reset successfully! Please log in with your new password.",
+      },
+    });
+  };
+
+  const handleSwitchToLogin = () => {
+    navigate("/");
+  };
+
+  if (!token) {
+    return (
+      <div className="max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl mb-4">
+          <ExclamationTriangleIcon className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">
+          Invalid Reset Link
+        </h2>
+        <p className="text-gray-400 mb-6">
+          The password reset link is invalid or has expired.
+        </p>
+        <button
+          onClick={handleSwitchToLogin}
+          className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
+        >
+          Back to Login
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <AuthModal
+      isOpen={true}
+      onClose={handleSwitchToLogin}
+      initialView="reset-password"
+      resetToken={token}
+    />
+  );
+};
+
+// Component to handle authentication routing inside Router context
+const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
+  const location = useLocation();
+
+  const publicRoutes = ["/reset-password", "/verify-email"];
+  const isPublicRoute = publicRoutes.some((route) =>
+    location.pathname.startsWith(route)
+  );
+
+  if (isPublicRoute) {
+    // For public routes, render the specific route components
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <Routes>
+          <Route
+            path="/verify-email"
+            element={
+              <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+                <EmailVerificationPage />
+              </div>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+                <PasswordResetPage />
+              </div>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: "#1f2937",
+              color: "#fff",
+              border: "1px solid #374151",
+            },
+          }}
+        />
+      </div>
+    );
+  }
+
+  // For non-public routes when not authenticated, show login modal
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <AuthModal isOpen={true} onClose={() => setAuthModalOpen(false)} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: "#1f2937",
+            color: "#fff",
+            border: "1px solid #374151",
+          },
+        }}
+      />
+    </div>
+  );
+};
+
 // Separate AppContent component that uses QueryClient hooks
 function AppContent() {
+  // Always call ALL hooks at the top level, before any conditional returns
+  const { user, isAuthenticated, isLoading, logout, refreshUserProfile } =
+    useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
+  const location = useLocation();
 
-  // Scan mutation for repository submission
+  // Check for verification success message and refresh profile
+  useEffect(() => {
+    if (
+      isAuthenticated &&
+      location.state?.message &&
+      location.state?.from === "verification"
+    ) {
+      // If there's a verification success message, refresh the user profile
+      refreshUserProfile()
+        .then(() => {
+          // Clear the state after processing to prevent infinite loops
+          window.history.replaceState({}, document.title, location.pathname);
+        })
+        .catch((error) => {
+          console.log("Could not refresh profile:", error);
+        });
+    }
+  }, [isAuthenticated, location.state?.message, location.state?.from]);
+
+  // Close notification panel when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationPanelOpen &&
+        !event.target.closest(".notification-panel")
+      ) {
+        setNotificationPanelOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [notificationPanelOpen]);
+
+  // Scan mutation for repository submission - moved to top
   const scanMutation = useMutation({
     mutationFn: async (scanData) => {
       // Use the API service for webhook calls now that they're under /api
@@ -404,7 +624,7 @@ function AppContent() {
     },
   });
 
-  // Enhanced WebSocket connection with better error handling
+  // Enhanced WebSocket connection with better error handling - moved to top
   useEffect(() => {
     // Add a small delay to let the backend fully start up
     setTimeout(() => {
@@ -452,12 +672,48 @@ function AppContent() {
     };
   }, []);
 
+  // Now handle conditional rendering after all hooks are called
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-4 animate-pulse">
+            <ShieldCheckIcon className="h-8 w-8 text-white" />
+          </div>
+          <p className="text-white text-lg">Loading SecureDevOps Platform...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication modal if not authenticated, but allow certain routes to be handled by their own components
+  if (!isAuthenticated) {
+    return (
+      <AuthRoutingHandler
+        authModalOpen={authModalOpen}
+        setAuthModalOpen={setAuthModalOpen}
+      />
+    );
+  }
+
   const navigation = [
     {
       name: "Dashboard",
       href: "/",
       icon: HomeIcon,
       gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      name: "Projects",
+      href: "/projects",
+      icon: UsersIcon,
+      gradient: "from-indigo-500 to-purple-500",
+    },
+    {
+      name: "Users",
+      href: "/users",
+      icon: UserCircleIcon,
+      gradient: "from-teal-500 to-blue-500",
     },
     {
       name: "Reports",
@@ -612,69 +868,213 @@ function AppContent() {
   );
 
   // Modern Header with Glassmorphism
-  const ModernHeader = () => (
-    <div className="sticky top-0 z-30 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
-      <div className="flex h-16 lg:h-20 items-center justify-between px-4 lg:px-8">
-        {/* Mobile menu button */}
-        <button
-          type="button"
-          className="lg:hidden p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-          onClick={() => setSidebarOpen(true)}
-        >
-          <MenuIcon className="h-6 w-6" />
-        </button>
+  const ModernHeader = () => {
+    const { resendVerificationEmail } = useAuth();
 
-        {/* Enhanced Search Bar */}
-        <div className="flex-1 max-w-lg mx-4 lg:mx-8 hidden sm:block">
-          <div className="relative group">
-            <MagnifyingGlassIcon className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
-            <input
-              type="text"
-              placeholder="Search repositories, scans, vulnerabilities..."
-              className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl lg:rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800/70 transition-all hover:bg-gray-800/60 text-sm lg:text-base"
-            />
-            <div className="absolute inset-0 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-focus-within:from-blue-500/10 group-focus-within:via-purple-500/5 group-focus-within:to-pink-500/10 transition-all pointer-events-none" />
+    return (
+      <div className="sticky top-0 z-30 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
+        {/* Email Verification Banner */}
+        {user && !user.is_email_verified && (
+          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 text-center">
+            <p className="text-white text-sm font-medium">
+              Please verify your email address to access all features.{" "}
+              <button
+                onClick={async () => {
+                  try {
+                    await resendVerificationEmail();
+                  } catch (error) {
+                    // Error already handled in the function
+                  }
+                }}
+                className="underline hover:no-underline font-semibold"
+              >
+                Resend verification email
+              </button>
+            </p>
           </div>
-        </div>
+        )}
 
-        {/* Enhanced Right side actions */}
-        <div className="flex items-center space-x-2 lg:space-x-4">
-          {/* Mobile search button */}
-          <button className="sm:hidden p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
-            <MagnifyingGlassIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+        <div className="flex h-16 lg:h-20 items-center justify-between px-4 lg:px-8">
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            className="lg:hidden p-3 rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <MenuIcon className="h-6 w-6" />
           </button>
 
-          {/* Enhanced Notifications */}
-          <div className="relative group">
-            <button className="relative p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all group-hover:scale-105">
-              <BellIcon className="h-5 w-5 lg:h-6 lg:w-6" />
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 lg:h-5 lg:w-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse shadow-lg">
-                  {notifications.length > 9 ? "9+" : notifications.length}
-                </span>
-              )}
+          {/* Enhanced Search Bar */}
+          <div className="flex-1 max-w-lg mx-4 lg:mx-8 hidden sm:block">
+            <div className="relative group">
+              <MagnifyingGlassIcon className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
+              <input
+                type="text"
+                placeholder="Search repositories, scans, vulnerabilities..."
+                className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-2 lg:py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl lg:rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 focus:bg-gray-800/70 transition-all hover:bg-gray-800/60 text-sm lg:text-base"
+              />
+              <div className="absolute inset-0 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-focus-within:from-blue-500/10 group-focus-within:via-purple-500/5 group-focus-within:to-pink-500/10 transition-all pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Enhanced Right side actions */}
+          <div className="flex items-center space-x-2 lg:space-x-4">
+            {/* Mobile search button */}
+            <button className="sm:hidden p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+              <MagnifyingGlassIcon className="h-5 w-5 lg:h-6 lg:w-6" />
             </button>
 
-            {/* Tooltip */}
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
-              {notifications.length} notifications
-            </div>
-          </div>
+            {/* Enhanced Notifications */}
+            <div className="relative group notification-panel">
+              <button
+                onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                className="relative p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all group-hover:scale-105"
+              >
+                <BellIcon className="h-5 w-5 lg:h-6 lg:w-6" />
+                {notifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 lg:h-5 lg:w-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse shadow-lg">
+                    {notifications.length > 9 ? "9+" : notifications.length}
+                  </span>
+                )}
+              </button>
 
-          {/* User Profile */}
-          <button className="flex items-center space-x-2 lg:space-x-3 p-2 rounded-xl lg:rounded-2xl hover:bg-gray-800/50 transition-all">
-            <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-              <UserCircleIcon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+              {/* Notification Dropdown */}
+              {notificationPanelOpen && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-gray-800/95 backdrop-blur-xl rounded-2xl border border-gray-700/50 shadow-2xl z-50">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">
+                        Notifications
+                      </h3>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={() => setNotifications([])}
+                          className="text-sm text-gray-400 hover:text-white transition-colors"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="text-center py-8">
+                          <BellIcon className="h-12 w-12 text-gray-600 mx-auto mb-3" />
+                          <p className="text-gray-400">No notifications</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className="p-3 rounded-xl bg-gray-700/50 border border-gray-600/30 hover:bg-gray-700/70 transition-colors"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    {notification.type === "scan_started" && (
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                    )}
+                                    {notification.type === "scan_update" && (
+                                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                    )}
+                                    <p className="text-sm font-medium text-white truncate">
+                                      {notification.data?.project_name ||
+                                        "SecureDevOps Platform"}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm text-gray-300">
+                                    {notification.message}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {notification.timestamp.toLocaleString()}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setNotifications((prev) =>
+                                      prev.filter(
+                                        (n) => n.id !== notification.id
+                                      )
+                                    );
+                                  }}
+                                  className="text-gray-500 hover:text-gray-300 transition-colors"
+                                >
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    ></path>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tooltip */}
+              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none">
+                {notifications.length} notifications
+              </div>
             </div>
-            <div className="hidden md:block text-left">
-              <p className="text-sm font-medium text-white">Security Admin</p>
-              <p className="text-xs text-gray-400">admin@securedevops.ai</p>
-            </div>
-          </button>
+
+            {/* User Profile */}
+            <button
+              onClick={() => setProfileModalOpen(true)}
+              className="flex items-center space-x-2 lg:space-x-3 p-2 rounded-xl lg:rounded-2xl hover:bg-gray-800/50 transition-all"
+            >
+              <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <UserCircleIcon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-white">
+                  {user?.full_name || "Unknown User"}
+                </p>
+                <p className="text-xs text-gray-400">{user?.email || ""}</p>
+                <span className="inline-block px-2 py-0.5 mt-1 text-xs bg-blue-500/20 text-blue-300 rounded-lg">
+                  {user?.role || "viewer"}
+                </span>
+              </div>
+            </button>
+
+            {/* Logout Button */}
+            <button
+              onClick={logout}
+              className="p-2 lg:p-3 rounded-xl lg:rounded-2xl text-gray-400 hover:text-white hover:bg-red-500/20 transition-all group"
+              title="Logout"
+            >
+              <svg
+                className="h-5 w-5 lg:h-6 lg:w-6 group-hover:text-red-400 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Enhanced Modern Dashboard
   const ModernDashboard = ({ notifications }) => {
@@ -890,190 +1290,224 @@ function AppContent() {
 
   // AppContent Return
   return (
-    <Router
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
-      <div className="min-h-screen bg-gray-900">
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
+    <div className="min-h-screen bg-gray-900">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        >
           <div
-            className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
-                    <ShieldCheckSolid className="h-5 w-5 text-white" />
-                  </div>
-                  <span className="text-base font-bold text-white">
-                    SecureDevOps AI
-                  </span>
+            <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                  <ShieldCheckSolid className="h-5 w-5 text-white" />
                 </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-                >
-                  <XIcon className="h-5 w-5" />
-                </button>
+                <span className="text-base font-bold text-white">
+                  SecureDevOps AI
+                </span>
               </div>
-
-              {/* Mobile Quick Scan Button */}
-              <div className="p-4 border-b border-gray-800/50">
-                <button
-                  onClick={() => {
-                    setScanModalOpen(true);
-                    setSidebarOpen(false);
-                  }}
-                  className="w-full p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center space-x-2"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  <span className="text-sm">Start New Scan</span>
-                </button>
-              </div>
-
-              <nav className="px-4 py-4 space-y-2">
-                {navigation.map((item) => {
-                  const isActive = window.location.pathname === item.href;
-                  return (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center px-3 py-3 rounded-2xl transition-all ${
-                        isActive
-                          ? "bg-gray-800/50 text-white border border-blue-500/20"
-                          : "text-gray-300 hover:text-white hover:bg-gray-800/50"
-                      }`}
-                    >
-                      <div
-                        className={`p-2 rounded-xl bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
-                      >
-                        <item.icon className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="font-medium text-sm">{item.name}</span>
-                      {item.badge && (
-                        <span className="ml-auto px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                    </a>
-                  );
-                })}
-              </nav>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
             </div>
+
+            {/* Mobile Quick Scan Button */}
+            <div className="p-4 border-b border-gray-800/50">
+              <button
+                onClick={() => {
+                  setScanModalOpen(true);
+                  setSidebarOpen(false);
+                }}
+                className="w-full p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center space-x-2"
+              >
+                <PlusIcon className="h-4 w-4" />
+                <span className="text-sm">Start New Scan</span>
+              </button>
+            </div>
+
+            <nav className="px-4 py-4 space-y-2">
+              {navigation.map((item) => {
+                const isActive = window.location.pathname === item.href;
+                return (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center px-3 py-3 rounded-2xl transition-all ${
+                      isActive
+                        ? "bg-gray-800/50 text-white border border-blue-500/20"
+                        : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                    }`}
+                  >
+                    <div
+                      className={`p-2 rounded-xl bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
+                    >
+                      <item.icon className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="font-medium text-sm">{item.name}</span>
+                    {item.badge && (
+                      <span className="ml-auto px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                  </a>
+                );
+              })}
+            </nav>
           </div>
-        )}
-
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:block">
-          <ModernSidebar />
         </div>
+      )}
 
-        {/* Main Content */}
-        <div className="lg:pl-72">
-          <ModernHeader />
-
-          <main className="relative min-h-screen">
-            <Routes>
-              <Route
-                path="/"
-                element={<ModernDashboard notifications={notifications} />}
-              />
-              <Route
-                path="/reports"
-                element={
-                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-                      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                        <ProjectList />
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-              <Route path="/report/:reportId" element={<ReportDetails />} />
-              <Route
-                path="/compliance/:reportId"
-                element={<ComplianceReport />}
-              />
-              <Route
-                path="/analytics"
-                element={<ModernDashboard notifications={notifications} />}
-              />
-              <Route
-                path="/settings"
-                element={
-                  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-                      <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 lg:mb-8">
-                          Settings
-                        </h1>
-                        <p className="text-gray-400 text-sm lg:text-base">
-                          Settings panel coming soon...
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-        </div>
-
-        {/* Scan Modal */}
-        <ScanModal
-          isOpen={scanModalOpen}
-          onClose={() => setScanModalOpen(false)}
-          onSubmit={scanMutation.mutateAsync}
-        />
-
-        {/* Enhanced Toast Notifications */}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 6000,
-            style: {
-              background:
-                "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
-              color: "#fff",
-              border: "1px solid rgba(75, 85, 99, 0.3)",
-              borderRadius: "1rem",
-              backdropFilter: "blur(16px)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-            },
-            success: {
-              iconTheme: {
-                primary: "#10b981",
-                secondary: "#fff",
-              },
-            },
-            error: {
-              iconTheme: {
-                primary: "#ef4444",
-                secondary: "#fff",
-              },
-            },
-            loading: {
-              iconTheme: {
-                primary: "#3b82f6",
-                secondary: "#fff",
-              },
-            },
-          }}
-        />
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <ModernSidebar />
       </div>
-    </Router>
+
+      {/* Main Content */}
+      <div className="lg:pl-72">
+        <ModernHeader />
+
+        <main className="relative min-h-screen">
+          <Routes>
+            <Route
+              path="/"
+              element={<ModernDashboard notifications={notifications} />}
+            />
+            <Route
+              path="/projects"
+              element={
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                      <ProjectManagement />
+                    </div>
+                  </div>
+                </div>
+              }
+            />
+            <Route path="/users" element={<UserManagement />} />
+            <Route
+              path="/reports"
+              element={
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                      <ProjectList />
+                    </div>
+                  </div>
+                </div>
+              }
+            />
+            <Route path="/report/:reportId" element={<ReportDetails />} />
+            <Route
+              path="/compliance/:reportId"
+              element={<ComplianceReport />}
+            />
+            <Route
+              path="/analytics"
+              element={<ModernDashboard notifications={notifications} />}
+            />
+            <Route
+              path="/settings"
+              element={
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 lg:mb-8">
+                        Settings
+                      </h1>
+                      <p className="text-gray-400 text-sm lg:text-base">
+                        Settings panel coming soon...
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              }
+            />
+            <Route
+              path="/verify-email"
+              element={
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+                  <EmailVerificationPage />
+                </div>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+                  <PasswordResetPage />
+                </div>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+
+      {/* Scan Modal */}
+      <ScanModal
+        isOpen={scanModalOpen}
+        onClose={() => setScanModalOpen(false)}
+        onSubmit={scanMutation.mutateAsync}
+      />
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
+
+      {/* User Profile Modal */}
+      {profileModalOpen && (
+        <UserProfile onClose={() => setProfileModalOpen(false)} />
+      )}
+
+      {/* Enhanced Toast Notifications */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 6000,
+          style: {
+            background:
+              "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
+            color: "#fff",
+            border: "1px solid rgba(75, 85, 99, 0.3)",
+            borderRadius: "1rem",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+          loading: {
+            iconTheme: {
+              primary: "#3b82f6",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+    </div>
   );
 }
 
@@ -1081,7 +1515,11 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

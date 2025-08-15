@@ -108,10 +108,13 @@ backend/
 ├── database.py             # Database connection and setup
 ├── models/
 │   ├── report.py           # Scan report data models
-│   ├── user.py             # User and authentication models
+│   ├── user.py             # User and authentication
+│   ├── project.py          # Project, vulnerability, and issue
 │   └── webhook.py          # Webhook event models
 ├── routes/
 │   ├── auth.py             # Authentication endpoints
+│   ├── users.py            # User management APIs
+│   ├── projects.py         # Project management APIs
 │   ├── reports.py          # Report management APIs
 │   ├── webhook.py          # Webhook handlers
 │   └── admin.py            # Administrative functions
@@ -120,7 +123,9 @@ backend/
 │   ├── ai_processor.py     # AI analysis engine
 │   ├── notifier.py         # Notification service
 │   ├── real_scanner.py     # Real security tool integration
-│   └── auth_service.py     # Authentication logic
+│   ├── auth_service.py     # Authentication and session logic
+│   ├── user_service.py     # User management business logic
+│   └── project_service.py  # Project management business logic
 ├── utils/
 │   ├── repo_clone.py       # Repository management
 │   ├── result_parser.py    # Scan result processing
@@ -259,6 +264,89 @@ class AIAnalysis(BaseModel):
     # Quality Metrics
     confidence_score: Optional[float]
     analysis_duration: Optional[float]
+```
+
+### User Management & Access Control
+
+**User Management Architecture:**
+
+```python
+class User(Document):
+    """User document with role-based access control"""
+
+    # Basic Information
+    email: Indexed(EmailStr, unique=True)
+    username: Indexed(str, unique=True)
+    full_name: str
+
+    # Authentication
+    hashed_password: str
+    role: UserRole = UserRole.VIEWER
+    status: UserStatus = UserStatus.PENDING_VERIFICATION
+
+    # Profile & Preferences
+    organization: Optional[str]
+    timezone: str = "UTC"
+    notification_preferences: UserNotificationPreferences
+
+    # Security Tracking
+    last_login: Optional[datetime]
+    failed_login_attempts: int = 0
+    email_verified: bool = False
+
+    # Audit
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+**Role-Based Access Control:**
+
+```python
+class UserRole(str, Enum):
+    """Hierarchical user roles"""
+    ADMIN = "admin"                    # Full system access
+    SECURITY_MANAGER = "security_manager"  # Security operations
+    DEVELOPER = "developer"            # Development access
+    VIEWER = "viewer"                  # Read-only access
+
+@require_role([UserRole.ADMIN, UserRole.SECURITY_MANAGER])
+async def list_users():
+    """Admin/Security Manager only endpoint"""
+    pass
+```
+
+**Project Management Architecture:**
+
+```python
+class Project(Document):
+    """Project with team collaboration"""
+
+    # Basic Information
+    name: Indexed(str)
+    description: Optional[str]
+    category: ProjectCategory
+
+    # Repository Integration
+    repository_url: Optional[str]
+    default_branch: str = "main"
+
+    # Team Management
+    owner_id: str
+    team_members: List[ProjectMember]
+
+    # Scan Configuration
+    scan_configuration: ProjectScanConfig
+
+    # Analytics
+    total_scans: int = 0
+    last_scan_at: Optional[datetime]
+
+class ProjectMember(BaseModel):
+    """Project team member with role-based permissions"""
+    user_id: str
+    role: ProjectRole
+    joined_at: datetime
+    permissions: List[ProjectPermission]
 ```
 
 ## Security Architecture

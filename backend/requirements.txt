@@ -13,9 +13,13 @@ python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 slowapi==0.1.9
 bcrypt==4.1.2
+PyJWT==2.8.0
+email-validator==2.1.0
 
 # Environment and configuration
 python-dotenv==1.0.0
+pydantic[email]==2.5.0
+pydantic-settings==2.1.0
 
 # Enhanced Security Dependencies
 numpy==1.24.3
@@ -34,6 +38,10 @@ PyYAML==6.0.1
 # HTTP client
 httpx==0.25.2
 aiohttp>=3.8.0           # Use newer version with precompiled wheels
+
+# Email services
+aiosmtplib==3.0.1
+jinja2==3.1.2
 
 # Git operations
 GitPython==3.1.40

@@ -11,6 +11,11 @@ from pymongo.errors import ServerSelectionTimeoutError, DuplicateKeyError
 from beanie import init_beanie
 import logging
 
+# Import all models
+from models.report import ScanReport, WebhookEvent, ScannerHealth
+from models.user import User, UserSession, APIToken
+from models.project import Project
+
 logger = logging.getLogger(__name__)
 
 class DatabaseManager:
@@ -384,7 +389,7 @@ async def init_database():
         # Initialize Beanie with document models
         await init_beanie(
             database=beanie_db,
-            document_models=[ScanReport, WebhookEvent]
+            document_models=[ScanReport, WebhookEvent, ScannerHealth, User, UserSession, APIToken, Project]
         )
         
         beanie_connected = True
