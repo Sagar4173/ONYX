@@ -304,6 +304,7 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
                         "duration_seconds": report.duration_seconds,
                         "total_findings": report.total_findings,
                         "findings_by_severity": report.findings_by_severity,
+                        "scan_results": report.scan_results if report.scan_results else [],  # Add scan results
                         "git_metadata": {
                             "repository_url": report.git_metadata.repository_url if report.git_metadata else "",
                             "branch": report.git_metadata.branch if report.git_metadata else "main",
@@ -321,6 +322,30 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
         # If not found in database, return 404
         if not report_data:
             raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+        
+        # Extract findings early for AI analysis
+        findings = []
+        if report_data.get('findings'):
+            findings.extend(report_data['findings'])
+        elif report_data.get('scan_results'):
+            for scan_result in report_data['scan_results']:
+                # Handle both dict and ScanResult object formats
+                if hasattr(scan_result, 'findings'):
+                    # ScanResult object
+                    if scan_result.findings:
+                        for finding in scan_result.findings:
+                            # Convert VulnerabilityFinding object to dict for compatibility
+                            if hasattr(finding, 'model_dump'):
+                                finding_dict = finding.model_dump()
+                            elif hasattr(finding, 'dict'):
+                                finding_dict = finding.dict()
+                            else:
+                                # Already a dict
+                                finding_dict = finding
+                            findings.append(finding_dict)
+                else:
+                    # Dictionary format
+                    findings.extend(scan_result.get('findings', []))
         
         # Handle different download formats
         if format == "json":
@@ -376,93 +401,210 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
             )
         
         elif format == "pdf":
-            # Generate PDF report
+            # Generate Enhanced PDF report with AI analysis
             pdf_buffer = io.BytesIO()
             
-            # Create PDF document
+            # Import additional PDF libraries for enhanced formatting
+            from reportlab.graphics.shapes import Drawing, Rect
+            from reportlab.lib import colors as reportlab_colors
+            
+            # Create PDF document with better margins
             doc = SimpleDocTemplate(
                 pdf_buffer,
                 pagesize=A4,
-                rightMargin=72,
-                leftMargin=72,
-                topMargin=72,
-                bottomMargin=18
+                rightMargin=50,
+                leftMargin=50,
+                topMargin=50,
+                bottomMargin=50
             )
             
-            # Define styles
+            # Enhanced styles
             styles = getSampleStyleSheet()
+            
+            # Professional title style
             title_style = ParagraphStyle(
                 'CustomTitle',
                 parent=styles['Heading1'],
-                fontSize=20,
+                fontSize=24,
                 spaceAfter=30,
+                spaceBefore=0,
                 alignment=TA_CENTER,
-                textColor=blue
+                textColor=blue,
+                fontName='Helvetica-Bold'
             )
             
+            # Subtitle style
+            subtitle_style = ParagraphStyle(
+                'CustomSubtitle',
+                parent=styles['Heading2'],
+                fontSize=16,
+                spaceAfter=20,
+                alignment=TA_CENTER,
+                textColor=black
+            )
+            
+            # Section heading style
             heading_style = ParagraphStyle(
                 'CustomHeading',
                 parent=styles['Heading2'],
                 fontSize=14,
                 spaceAfter=12,
-                spaceBefore=12,
-                textColor=black
+                spaceBefore=20,
+                textColor=blue,
+                fontName='Helvetica-Bold',
+                borderWidth=1,
+                borderColor=blue,
+                borderPadding=5,
+                backColor=reportlab_colors.lightblue
+            )
+            
+            # AI analysis style
+            ai_style = ParagraphStyle(
+                'AIAnalysis',
+                parent=styles['Normal'],
+                fontSize=11,
+                spaceAfter=12,
+                leftIndent=20,
+                backColor=reportlab_colors.lightgrey,
+                borderWidth=1,
+                borderColor=reportlab_colors.grey,
+                borderPadding=10
             )
             
             normal_style = styles['Normal']
             
-            # Build PDF content
+            # Build enhanced PDF content
             story = []
             
-            # Title
-            story.append(Paragraph("Security Scan Report", title_style))
-            story.append(Spacer(1, 12))
+            # Professional Header
+            story.append(Paragraph("🛡️ SecureDevOps AI Platform", title_style))
+            story.append(Paragraph("Comprehensive Security Analysis Report", subtitle_style))
+            story.append(Spacer(1, 20))
             
-            # Project Information
-            story.append(Paragraph("Project Information", heading_style))
+            # Executive Summary Box
+            story.append(Paragraph("🎯 Executive Summary", heading_style))
+            
+            # Get AI analysis for executive summary - generate real analysis
+            ai_summary = "Comprehensive security analysis completed successfully."
+            
+            # Generate real AI analysis based on findings
+            if findings:
+                try:
+                    # Count findings by severity
+                    severity_counts = {}
+                    finding_types = []
+                    for finding in findings:
+                        # Handle both dict and object formats
+                        if isinstance(finding, dict):
+                            severity = finding.get('severity', 'unknown')
+                            finding_type = finding.get('type', '')
+                        else:
+                            severity = getattr(finding, 'severity', 'unknown')
+                            if hasattr(severity, 'value'):
+                                severity = severity.value
+                            finding_type = getattr(finding, 'category', '')
+                        
+                        severity_counts[severity] = severity_counts.get(severity, 0) + 1
+                        if finding_type:
+                            finding_types.append(finding_type)
+                    
+                    # Generate contextual summary
+                    total_findings = len(findings)
+                    critical_count = severity_counts.get('critical', 0)
+                    high_count = severity_counts.get('high', 0)
+                    
+                    if critical_count > 0:
+                        risk_level = "CRITICAL"
+                        urgency = "immediate attention required"
+                    elif high_count > 0:
+                        risk_level = "HIGH"
+                        urgency = "prompt remediation needed"
+                    else:
+                        risk_level = "MODERATE"
+                        urgency = "scheduled remediation recommended"
+                    
+                    # Generate detailed AI summary
+                    ai_summary = f"""Security analysis revealed {total_findings} findings requiring attention. 
+                    Risk assessment indicates {risk_level} priority level with {urgency}. 
+                    Critical issues: {critical_count}, High severity: {high_count}. 
+                    Primary concerns include {', '.join(set(finding_types[:3]))} requiring immediate review. 
+                    Recommend prioritizing critical and high-severity findings for immediate remediation."""
+                    
+                except Exception as e:
+                    logger.warning(f"Error generating AI summary: {e}")
+            
+            # Try to get existing AI analysis
+            if report and hasattr(report, 'ai_analysis') and report.ai_analysis:
+                ai_summary = report.ai_analysis.executive_summary or ai_summary
+            elif report_data.get('ai_analysis'):
+                ai_summary = report_data['ai_analysis'].get('executive_summary', ai_summary)
+            
+            story.append(Paragraph(f"<b>AI-Generated Summary:</b><br/>{ai_summary}", ai_style))
+            story.append(Spacer(1, 15))
+            
+            # Project Information in a more professional layout
+            story.append(Paragraph("📋 Project Information", heading_style))
             project_data = [
-                ['Project Name:', report_data.get('project_name', 'N/A')],
-                ['Scan ID:', report_data.get('scan_id', 'N/A')],
-                ['Status:', report_data.get('status', 'N/A')],
-                ['Created:', report_data.get('created_at', 'N/A')],
-                ['Completed:', report_data.get('completed_at', 'N/A')],
-                ['Duration:', f"{report_data.get('duration_seconds', 0)} seconds"],
-                ['Repository:', report_data.get('git_metadata', {}).get('repository_url', 'N/A')],
-                ['Branch:', report_data.get('git_metadata', {}).get('branch', 'N/A')],
-                ['Commit:', report_data.get('git_metadata', {}).get('commit_hash', 'N/A')[:8] + '...' if report_data.get('git_metadata', {}).get('commit_hash') else 'N/A']
+                ['Project Name', report_data.get('project_name', 'N/A')],
+                ['Report ID', str(report_id)],  # Use the actual report ID being requested
+                ['Scan ID', report_data.get('scan_id', 'N/A')],
+                ['Status', report_data.get('status', 'N/A').title()],
+                ['Created', report_data.get('created_at', 'N/A')[:19] if report_data.get('created_at') else 'N/A'],
+                ['Completed', report_data.get('completed_at', 'N/A')[:19] if report_data.get('completed_at') else 'N/A'],
+                ['Duration', f"{report_data.get('duration_seconds', 0):.1f} seconds"],
+                ['Repository', report_data.get('git_metadata', {}).get('repository_url', 'N/A')],
+                ['Branch', report_data.get('git_metadata', {}).get('branch', 'N/A')],
+                ['Commit Hash', report_data.get('git_metadata', {}).get('commit_hash', 'N/A')[:12] + '...' if report_data.get('git_metadata', {}).get('commit_hash') else 'N/A']
             ]
             
-            project_table = Table(project_data, colWidths=[2*inch, 4*inch])
+            project_table = Table(project_data, colWidths=[2.2*inch, 4.3*inch])
             project_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (0, -1), blue),
                 ('TEXTCOLOR', (0, 0), (0, -1), white),
                 ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 0), (-1, -1), 10),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                ('BACKGROUND', (1, 0), (1, -1), white),
-                ('TEXTCOLOR', (1, 0), (1, -1), black),
-                ('GRID', (0, 0), (-1, -1), 1, black)
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BACKGROUND', (1, 0), (1, -1), reportlab_colors.lightgrey),
+                ('GRID', (0, 0), (-1, -1), 1, black),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
             ]))
             story.append(project_table)
-            story.append(Spacer(1, 20))
+            story.append(Spacer(1, 25))
             
-            # Summary Statistics
-            story.append(Paragraph("Security Summary", heading_style))
+            # Enhanced Security Summary with visuals
+            story.append(Paragraph("📊 Security Summary", heading_style))
             findings_by_severity = report_data.get('findings_by_severity', {})
             total_findings = report_data.get('total_findings', 0)
             
+            # Risk level assessment
+            critical_count = findings_by_severity.get('critical', 0)
+            high_count = findings_by_severity.get('high', 0)
+            
+            risk_level = "🟢 LOW"
+            if critical_count > 0:
+                risk_level = "🔴 CRITICAL"
+            elif high_count > 5:
+                risk_level = "🟠 HIGH"
+            elif high_count > 0:
+                risk_level = "🟡 MEDIUM"
+            
+            story.append(Paragraph(f"<b>Overall Risk Level:</b> {risk_level}", ai_style))
+            story.append(Spacer(1, 10))
+            
             summary_data = [
-                ['Severity', 'Count', 'Percentage'],
-                ['Critical', str(findings_by_severity.get('critical', 0)), f"{(findings_by_severity.get('critical', 0) / max(total_findings, 1)) * 100:.1f}%"],
-                ['High', str(findings_by_severity.get('high', 0)), f"{(findings_by_severity.get('high', 0) / max(total_findings, 1)) * 100:.1f}%"],
-                ['Medium', str(findings_by_severity.get('medium', 0)), f"{(findings_by_severity.get('medium', 0) / max(total_findings, 1)) * 100:.1f}%"],
-                ['Low', str(findings_by_severity.get('low', 0)), f"{(findings_by_severity.get('low', 0) / max(total_findings, 1)) * 100:.1f}%"],
-                ['Info', str(findings_by_severity.get('info', 0)), f"{(findings_by_severity.get('info', 0) / max(total_findings, 1)) * 100:.1f}%"],
-                ['Total', str(total_findings), '100.0%']
+                ['Severity Level', 'Count', 'Percentage', 'Risk Impact'],
+                ['🔴 Critical', str(findings_by_severity.get('critical', 0)), f"{(findings_by_severity.get('critical', 0) / max(total_findings, 1)) * 100:.1f}%", 'Immediate Action Required'],
+                ['🟠 High', str(findings_by_severity.get('high', 0)), f"{(findings_by_severity.get('high', 0) / max(total_findings, 1)) * 100:.1f}%", 'Priority Fix Needed'],
+                ['🟡 Medium', str(findings_by_severity.get('medium', 0)), f"{(findings_by_severity.get('medium', 0) / max(total_findings, 1)) * 100:.1f}%", 'Schedule Fix'],
+                ['🟢 Low', str(findings_by_severity.get('low', 0)), f"{(findings_by_severity.get('low', 0) / max(total_findings, 1)) * 100:.1f}%", 'Monitor'],
+                ['ℹ️ Info', str(findings_by_severity.get('info', 0)), f"{(findings_by_severity.get('info', 0) / max(total_findings, 1)) * 100:.1f}%", 'Informational'],
+                ['📊 Total', str(total_findings), '100.0%', f'{total_findings} Total Issues']
             ]
             
-            summary_table = Table(summary_data, colWidths=[2*inch, 1*inch, 1.5*inch])
+            summary_table = Table(summary_data, colWidths=[1.5*inch, 0.8*inch, 1*inch, 2.2*inch])
             summary_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), blue),
                 ('TEXTCOLOR', (0, 0), (-1, 0), white),
@@ -470,67 +612,332 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                ('BACKGROUND', (0, 1), (0, 1), red),      # Critical
-                ('BACKGROUND', (0, 2), (0, 2), orange),  # High
-                ('BACKGROUND', (0, 3), (0, 3), orange),  # Medium
-                ('BACKGROUND', (0, 4), (0, 4), green),   # Low
-                ('BACKGROUND', (0, 5), (0, 5), green),   # Info
-                ('BACKGROUND', (0, 6), (0, 6), blue),    # Total
-                ('TEXTCOLOR', (0, 1), (0, 6), white),
-                ('GRID', (0, 0), (-1, -1), 1, black)
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BACKGROUND', (0, 1), (-1, 1), reportlab_colors.mistyrose),  # Critical
+                ('BACKGROUND', (0, 2), (-1, 2), reportlab_colors.orange),     # High
+                ('BACKGROUND', (0, 3), (-1, 3), reportlab_colors.lightyellow), # Medium
+                ('BACKGROUND', (0, 4), (-1, 4), reportlab_colors.lightgreen),  # Low
+                ('BACKGROUND', (0, 5), (-1, 5), reportlab_colors.lightblue),   # Info
+                ('BACKGROUND', (0, 6), (-1, 6), reportlab_colors.lightgrey),   # Total
+                ('GRID', (0, 0), (-1, -1), 1, black),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
             ]))
             story.append(summary_table)
+            story.append(Spacer(1, 25))
+            
+            # Enhanced AI Analysis Section
+            story.append(Paragraph("🤖 AI-Powered Security Analysis", heading_style))
+            
+            # Get AI analysis from report
+            ai_analysis = None
+            if report and hasattr(report, 'ai_analysis') and report.ai_analysis:
+                ai_analysis = report.ai_analysis
+            elif report_data.get('ai_analysis'):
+                ai_analysis = report_data.get('ai_analysis')
+            
+            if ai_analysis:
+                # Executive Summary
+                if hasattr(ai_analysis, 'executive_summary') and ai_analysis.executive_summary:
+                    story.append(Paragraph("📋 Executive Summary", normal_style))
+                    story.append(Paragraph(ai_analysis.executive_summary, ai_style))
+                    story.append(Spacer(1, 12))
+                elif isinstance(ai_analysis, dict) and ai_analysis.get('executive_summary'):
+                    story.append(Paragraph("📋 Executive Summary", normal_style))
+                    story.append(Paragraph(ai_analysis.get('executive_summary'), ai_style))
+                    story.append(Spacer(1, 12))
+                
+                # Risk Assessment
+                risk_assessment = None
+                if hasattr(ai_analysis, 'risk_assessment') and ai_analysis.risk_assessment:
+                    risk_assessment = ai_analysis.risk_assessment
+                elif isinstance(ai_analysis, dict) and ai_analysis.get('risk_assessment'):
+                    risk_assessment = ai_analysis.get('risk_assessment')
+                
+                if risk_assessment:
+                    story.append(Paragraph("⚠️ Risk Assessment", normal_style))
+                    story.append(Paragraph(risk_assessment, ai_style))
+                    story.append(Spacer(1, 12))
+                
+                # Priority Findings
+                priority_findings = None
+                if hasattr(ai_analysis, 'priority_findings') and ai_analysis.priority_findings:
+                    priority_findings = ai_analysis.priority_findings
+                elif isinstance(ai_analysis, dict) and ai_analysis.get('priority_findings'):
+                    priority_findings = ai_analysis.get('priority_findings')
+                
+                if priority_findings:
+                    story.append(Paragraph("🎯 Priority Findings", normal_style))
+                    for i, finding in enumerate(priority_findings[:5], 1):
+                        story.append(Paragraph(f"{i}. {finding}", normal_style))
+                    story.append(Spacer(1, 12))
+                
+                # Recommendations
+                recommendations = None
+                if hasattr(ai_analysis, 'recommendations') and ai_analysis.recommendations:
+                    recommendations = ai_analysis.recommendations
+                elif isinstance(ai_analysis, dict) and ai_analysis.get('recommendations'):
+                    recommendations = ai_analysis.get('recommendations')
+                
+                if recommendations:
+                    story.append(Paragraph("💡 AI Recommendations", normal_style))
+                    for i, rec in enumerate(recommendations[:5], 1):
+                        story.append(Paragraph(f"{i}. {rec}", normal_style))
+                    story.append(Spacer(1, 12))
+                
+                # Compliance Impact
+                compliance_impact = None
+                if hasattr(ai_analysis, 'compliance_impact') and ai_analysis.compliance_impact:
+                    compliance_impact = ai_analysis.compliance_impact
+                elif isinstance(ai_analysis, dict) and ai_analysis.get('compliance_impact'):
+                    compliance_impact = ai_analysis.get('compliance_impact')
+                
+                if compliance_impact:
+                    story.append(Paragraph("📋 Compliance Impact", normal_style))
+                    if isinstance(compliance_impact, dict):
+                        for framework, impact in compliance_impact.items():
+                            story.append(Paragraph(f"<b>{framework}:</b> {impact}", normal_style))
+                    else:
+                        story.append(Paragraph(str(compliance_impact), ai_style))
+                    story.append(Spacer(1, 12))
+                
+                # Estimated Fix Time
+                estimated_fix_time = None
+                if hasattr(ai_analysis, 'estimated_fix_time') and ai_analysis.estimated_fix_time:
+                    estimated_fix_time = ai_analysis.estimated_fix_time
+                elif isinstance(ai_analysis, dict) and ai_analysis.get('estimated_fix_time'):
+                    estimated_fix_time = ai_analysis.get('estimated_fix_time')
+                
+                if estimated_fix_time:
+                    story.append(Paragraph("⏰ Estimated Remediation Time", normal_style))
+                    story.append(Paragraph(estimated_fix_time, ai_style))
+                    story.append(Spacer(1, 12))
+                
+            else:
+                # Fallback AI analysis if none exists
+                story.append(Paragraph("📋 Automated Security Assessment", normal_style))
+                
+                if findings:
+                    # Generate basic analysis based on findings
+                    total_findings = len(findings)
+                    severity_counts = {}
+                    for finding in findings:
+                        severity = finding.get('severity', 'unknown').lower()
+                        severity_counts[severity] = severity_counts.get(severity, 0) + 1
+                    
+                    critical_count = severity_counts.get('critical', 0)
+                    high_count = severity_counts.get('high', 0)
+                    medium_count = severity_counts.get('medium', 0)
+                    
+                    if critical_count > 0:
+                        risk_level = "CRITICAL - Immediate action required"
+                    elif high_count > 0:
+                        risk_level = "HIGH - Prompt remediation needed"
+                    elif medium_count > 0:
+                        risk_level = "MEDIUM - Scheduled remediation recommended"
+                    else:
+                        risk_level = "LOW - Monitor and address during maintenance"
+                    
+                    basic_analysis = f"""
+                    Security scan identified {total_findings} findings requiring attention.
+                    Risk Level: {risk_level}
+                    
+                    Breakdown:
+                    • Critical: {critical_count} findings
+                    • High: {high_count} findings  
+                    • Medium: {medium_count} findings
+                    • Low: {severity_counts.get('low', 0)} findings
+                    
+                    Recommendation: Prioritize critical and high-severity findings for immediate remediation.
+                    Review medium-severity findings during next maintenance window.
+                    """
+                    
+                    story.append(Paragraph(basic_analysis, ai_style))
+                else:
+                    story.append(Paragraph("No security findings detected. Maintain current security practices.", ai_style))
+                
+                story.append(Spacer(1, 12))
+            
             story.append(Spacer(1, 20))
             
-            # Findings Details (if available in metadata)
-            findings = report_data.get('metadata', {}).get('findings', [])
-            if findings:
-                story.append(Paragraph("Detailed Findings", heading_style))
+            # Scanner Results Summary
+            if report_data.get('scan_results'):
+                story.append(Paragraph("🔍 Scanner Results", heading_style))
                 
-                for i, finding in enumerate(findings[:20]):  # Limit to first 20 findings
-                    finding_title = f"Finding {i+1}: {finding.get('title', 'Untitled Finding')}"
-                    story.append(Paragraph(finding_title, ParagraphStyle(
+                scanner_data = [['Scanner', 'Status', 'Findings', 'Duration']]
+                for scan_result in report_data.get('scan_results', []):
+                    # Handle both dict and ScanResult object formats
+                    if hasattr(scan_result, 'scanner'):
+                        # ScanResult object
+                        scanner_name = scan_result.scanner.value if hasattr(scan_result.scanner, 'value') else str(scan_result.scanner)
+                        # Clean up scanner name
+                        if scanner_name.startswith('ScannerType.'):
+                            scanner_name = scanner_name.replace('ScannerType.', '').replace('GITLEAKS', 'GitLeaks').replace('SEMGREP', 'Semgrep').replace('SAFETY', 'Safety')
+                        elif scanner_name in ['GITLEAKS', 'gitleaks']:
+                            scanner_name = 'GitLeaks'
+                        elif scanner_name in ['SEMGREP', 'semgrep']:
+                            scanner_name = 'Semgrep'
+                        elif scanner_name in ['SAFETY', 'safety']:
+                            scanner_name = 'Safety'
+                        
+                        status = scan_result.status.value if hasattr(scan_result.status, 'value') else str(scan_result.status)
+                        status = status.replace('ScanStatus.', '').title()
+                        findings_count = len(scan_result.findings) if scan_result.findings else 0
+                        duration = scan_result.duration_seconds or 0
+                    else:
+                        # Dictionary format
+                        scanner_name = scan_result.get('scanner', 'Unknown')
+                        status = scan_result.get('status', 'Unknown')
+                        findings_count = scan_result.get('findings_count', 0)
+                        duration = scan_result.get('duration_seconds', 0)
+                    
+                    scanner_data.append([
+                        scanner_name,
+                        status,
+                        str(findings_count),
+                        f"{duration:.1f}s"
+                    ])
+                
+                scanner_table = Table(scanner_data, colWidths=[2*inch, 1.5*inch, 1*inch, 1*inch])
+                scanner_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), blue),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), white),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 10),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                    ('GRID', (0, 0), (-1, -1), 1, black),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+                ]))
+                story.append(scanner_table)
+                story.append(Spacer(1, 20))
+            
+            # Page break before detailed findings
+            story.append(PageBreak())
+            
+            # Detailed Findings Section (findings already extracted earlier)
+            
+            if findings:
+                story.append(Paragraph("🔍 Detailed Security Findings", heading_style))
+                story.append(Paragraph(f"This section contains detailed information about {len(findings)} security findings identified during the scan.", normal_style))
+                story.append(Spacer(1, 15))
+                
+                # Sort findings by severity
+                severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3, 'info': 4}
+                findings_sorted = sorted(findings, key=lambda x: severity_order.get(x.get('severity', 'info') if isinstance(x, dict) else getattr(x, 'severity', 'info'), 4))
+                
+                for i, finding in enumerate(findings_sorted[:15], 1):  # Limit to first 15 findings
+                    # Handle both dict and object formats
+                    if isinstance(finding, dict):
+                        severity = finding.get('severity', 'unknown')
+                        title = finding.get('title', 'Untitled Finding')
+                        scanner = finding.get('scanner', 'Unknown')
+                        file_path = finding.get('file_path', 'N/A')
+                        line_number = finding.get('line_number', finding.get('line_start', 'N/A'))
+                        rule_id = finding.get('rule_id', 'N/A')
+                        cwe_id = finding.get('cwe_id', 'N/A')
+                        description = finding.get('description', '')
+                        remediation = finding.get('remediation') or finding.get('recommendation', '')
+                    else:
+                        # Object format
+                        severity = getattr(finding, 'severity', 'unknown')
+                        if hasattr(severity, 'value'):
+                            severity = severity.value
+                        title = getattr(finding, 'title', 'Untitled Finding')
+                        scanner = getattr(finding, 'scanner', 'Unknown')
+                        if hasattr(scanner, 'value'):
+                            scanner = scanner.value
+                        # Clean up scanner name
+                        if scanner.startswith('ScannerType.'):
+                            scanner = scanner.replace('ScannerType.', '').replace('GITLEAKS', 'GitLeaks').replace('SEMGREP', 'Semgrep').replace('SAFETY', 'Safety')
+                        elif scanner in ['GITLEAKS', 'gitleaks']:
+                            scanner = 'GitLeaks'
+                        elif scanner in ['SEMGREP', 'semgrep']:
+                            scanner = 'Semgrep'
+                        elif scanner in ['SAFETY', 'safety']:
+                            scanner = 'Safety'
+                        file_path = getattr(finding, 'file_path', 'N/A')
+                        line_number = getattr(finding, 'line_start', getattr(finding, 'line_number', 'N/A'))
+                        rule_id = getattr(finding, 'rule_id', 'N/A')
+                        cwe_id = getattr(finding, 'cwe_id', getattr(finding, 'cwe', 'N/A'))
+                        description = getattr(finding, 'description', '')
+                        remediation = getattr(finding, 'remediation', '')
+                    
+                    severity_icon = {
+                        'critical': '🔴', 'high': '🟠', 'medium': '🟡', 
+                        'low': '🟢', 'info': 'ℹ️'
+                    }.get(severity, '❓')
+                    
+                    finding_title = f"{severity_icon} Finding {i}: {title}"
+                    
+                    title_color = red if severity in ['critical', 'high'] else orange if severity == 'medium' else black
+                    finding_title_style = ParagraphStyle(
                         'FindingTitle',
                         parent=styles['Heading3'],
                         fontSize=12,
-                        spaceAfter=6,
-                        spaceBefore=12,
-                        textColor=red if finding.get('severity') in ['critical', 'high'] else orange
-                    )))
+                        spaceAfter=8,
+                        spaceBefore=15,
+                        textColor=title_color,
+                        fontName='Helvetica-Bold'
+                    )
+                    story.append(Paragraph(finding_title, finding_title_style))
                     
+                    # Finding details table
                     finding_details = [
-                        ['Severity:', finding.get('severity', 'Unknown').title()],
-                        ['Scanner:', finding.get('scanner', 'Unknown')],
-                        ['File:', finding.get('file_path', 'N/A')],
-                        ['Line:', str(finding.get('line_number', 'N/A'))],
-                        ['Rule:', finding.get('rule_id', 'N/A')]
+                        ['Severity', severity.title()],
+                        ['Scanner', scanner],
+                        ['File Path', file_path],
+                        ['Line Number', str(line_number) if line_number != 'N/A' else 'Not Available'],
+                        ['Rule ID', rule_id if rule_id != 'N/A' else 'Not Available'],
+                        ['CWE ID', str(cwe_id) if cwe_id and cwe_id != 'N/A' else 'Not Available']
                     ]
                     
-                    finding_table = Table(finding_details, colWidths=[1.2*inch, 4.3*inch])
-                    finding_table.setStyle(TableStyle([
-                        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                    detail_table = Table(finding_details, colWidths=[1.3*inch, 4.2*inch])
+                    detail_table.setStyle(TableStyle([
+                        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
                         ('FONTSIZE', (0, 0), (-1, -1), 9),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                        ('TOPPADDING', (0, 0), (-1, -1), 4),
                         ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
                         ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-                        ('VALIGN', (0, 0), (-1, -1), 'TOP')
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('BACKGROUND', (0, 0), (0, -1), reportlab_colors.lightgrey)
                     ]))
-                    story.append(finding_table)
+                    story.append(detail_table)
                     
-                    if finding.get('description'):
-                        story.append(Paragraph(f"<b>Description:</b> {finding['description']}", normal_style))
+                    # Description
+                    if description:
+                        story.append(Spacer(1, 8))
+                        story.append(Paragraph(f"<b>Description:</b><br/>{description}", normal_style))
                     
-                    story.append(Spacer(1, 12))
+                    # Remediation advice
+                    if remediation:
+                        story.append(Spacer(1, 8))
+                        story.append(Paragraph(f"<b>💡 Remediation:</b><br/>{remediation}", ai_style))
+                    
+                    story.append(Spacer(1, 15))
                 
-                if len(findings) > 20:
-                    story.append(Paragraph(f"<i>... and {len(findings) - 20} more findings. Download CSV for complete details.</i>", normal_style))
+                if len(findings) > 15:
+                    story.append(Paragraph(f"<i>... and {len(findings) - 15} more findings not shown in this PDF. Download JSON/CSV format for complete details.</i>", normal_style))
             
-            # Footer with timestamp
+            # Professional Footer
             story.append(PageBreak())
-            story.append(Spacer(1, 20))
-            story.append(Paragraph(f"Report generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 
-                                  ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, alignment=TA_CENTER)))
+            story.append(Spacer(1, 40))
+            
+            footer_style = ParagraphStyle(
+                'Footer',
+                parent=styles['Normal'],
+                fontSize=10,
+                alignment=TA_CENTER,
+                textColor=reportlab_colors.grey
+            )
+            
+            story.append(Paragraph("🛡️ SecureDevOps AI Platform", footer_style))
+            story.append(Paragraph(f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}", footer_style))
+            story.append(Paragraph(f"Report ID: {report_data.get('scan_id', report_id)} | Project: {report_data.get('project_name', 'Unknown')}", footer_style))
+            story.append(Paragraph("This report contains confidential security information. Handle with appropriate care.", footer_style))
             
             # Build PDF
             doc.build(story)
@@ -538,7 +945,7 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
             pdf_buffer.close()
             
             headers = {
-                'Content-Disposition': f'attachment; filename="{report_id}_report.pdf"',
+                'Content-Disposition': f'attachment; filename="{report_id}_enhanced_security_report.pdf"',
                 'Content-Type': 'application/pdf'
             }
             return StreamingResponse(

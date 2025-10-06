@@ -410,7 +410,9 @@ def get_ai_processor() -> VulnerabilityAIProcessor:
     """Get or create the global AI processor instance"""
     global _ai_processor
     if _ai_processor is None:
-        _ai_processor = VulnerabilityAIProcessor()
+        # Use factory function from gemini_ai_processor for provider selection
+        from .gemini_ai_processor import create_ai_processor
+        _ai_processor = create_ai_processor()
     return _ai_processor
 
 # Create function to get the processor when needed

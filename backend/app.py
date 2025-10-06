@@ -38,9 +38,9 @@ from routes.projects import router as projects_router
 from routes.users import router as users_router
 from routes.compliance import router as compliance_router
 from routes.security import router as security_router
-from routes.advanced_security import router as advanced_security_router
-from routes.enhanced_security import router as enhanced_security_router
-# from routes.god_level_security import god_level_bp  # Temporarily commented out for conversion
+# from routes.advanced_security import router as advanced_security_router  # Removed - redundant file deleted
+from routes.enhanced_security import router as enhanced_security_router  # Re-enabled with clean FastAPI implementation
+from routes.god_level_security import router as god_level_security_router  # Re-enabled with clean FastAPI implementation
 from routes.advanced_scanning_fastapi import router as advanced_scanning_router
 
 # Import configuration
@@ -107,9 +107,9 @@ app.include_router(users_router, prefix="/api")
 app.include_router(compliance_router, prefix="/api/compliance")
 app.include_router(security_router)
 app.include_router(webhook_router, prefix="/api")
-app.include_router(advanced_security_router)
-app.include_router(enhanced_security_router)
-# app.include_router(god_level_bp)  # Temporarily commented out for conversion
+# app.include_router(advanced_security_router)  # Removed - redundant file deleted
+app.include_router(enhanced_security_router)  # Re-enabled with clean FastAPI implementation
+app.include_router(god_level_security_router)  # Re-enabled with clean FastAPI implementation
 app.include_router(advanced_scanning_router)
 
 # Add trailing slash redirect middleware

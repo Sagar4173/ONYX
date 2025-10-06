@@ -502,8 +502,28 @@ const ComplianceReport = () => {
     );
   }
 
+  // Extract all findings from the report
+  const getAllFindings = (report) => {
+    let allFindings = [];
+
+    // Try different data structures
+    if (report.findings) {
+      allFindings = report.findings;
+    } else if (report.scan_results) {
+      // Extract findings from scan_results
+      report.scan_results.forEach((scanResult) => {
+        if (scanResult.findings) {
+          allFindings = allFindings.concat(scanResult.findings);
+        }
+      });
+    }
+
+    return allFindings;
+  };
+
+  const allFindings = getAllFindings(report || {});
   const complianceMapping = mapFindingsToCompliance(
-    report.findings || [],
+    allFindings,
     selectedStandards
   );
 
@@ -747,7 +767,7 @@ const ComplianceReport = () => {
             <p className="text-gray-700">
               This security compliance report provides an assessment of{" "}
               {report.project_name} against industry-standard security
-              frameworks. The analysis identified {report.findings?.length || 0}
+              frameworks. The analysis identified {allFindings.length}
               security findings across {selectedStandards.join(", ")} compliance
               frameworks.
             </p>
@@ -887,7 +907,7 @@ const ComplianceReport = () => {
               Detailed Findings
             </h2>
             <div className="space-y-6">
-              {(report.findings || []).map((finding, index) => (
+              {allFindings.map((finding, index) => (
                 <div
                   key={index}
                   className="border border-gray-200 rounded-lg p-6"

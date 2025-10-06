@@ -6,7 +6,7 @@ import json
 import logging
 import uuid
 import random
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException, Request, BackgroundTasks, Depends
@@ -14,9 +14,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, HttpUrl
 
 from models.report import (
-    ScanReport, WebhookEvent, GitMetadata, ScanStatus, ScannerType
+    ScanReport, WebhookEvent, GitMetadata, ScanStatus, ScannerType,
+    ScanResult, VulnerabilityFinding, SeverityLevel
 )
-from services.scanner import security_scanner
+from services.enhanced_scanning_workflow import enhanced_workflow
 from services.ai_processor import get_ai_processor
 from services.notifier import notification_service
 from services.real_scanner import RealSecurityScanner
@@ -179,7 +180,88 @@ async def process_real_scan(
         # Calculate scan duration
         scan_duration = random.randint(60, 300)  # Real scans take time, simulate realistic duration
         
-        # Update the scan report with real results
+        # Create properly structured scan results
+        scan_results_list = []
+        
+        # Group findings by scanner type
+        findings_by_scanner = {}
+        for finding in detailed_findings:
+            scanner = finding.get('scanner', 'detect-secrets')
+            if scanner not in findings_by_scanner:
+                findings_by_scanner[scanner] = []
+            findings_by_scanner[scanner].append(finding)
+        
+        # Create scan results for each scanner
+        for scanner_name, scanner_findings in findings_by_scanner.items():
+            # Map scanner name to ScannerType
+            scanner_type = ScannerType.GITLEAKS
+            if scanner_name in ['bandit', 'semgrep']:
+                scanner_type = ScannerType.SEMGREP
+            elif scanner_name in ['safety', 'npm-audit']:
+                scanner_type = ScannerType.SAFETY
+            elif scanner_name == 'detect-secrets':
+                scanner_type = ScannerType.GITLEAKS
+            
+            # Create VulnerabilityFinding objects
+            finding_objects = []
+            for finding_data in scanner_findings:
+                # Map severity string to enum
+                severity_str = finding_data.get('severity', 'medium').lower()
+                severity = SeverityLevel.MEDIUM
+                if severity_str == 'critical':
+                    severity = SeverityLevel.CRITICAL
+                elif severity_str == 'high':
+                    severity = SeverityLevel.HIGH
+                elif severity_str == 'medium':
+                    severity = SeverityLevel.MEDIUM
+                elif severity_str == 'low':
+                    severity = SeverityLevel.LOW
+                elif severity_str == 'info':
+                    severity = SeverityLevel.INFO
+                
+                # Map confidence string
+                confidence_str = finding_data.get('confidence', 'medium').upper()
+                
+                finding_obj = VulnerabilityFinding(
+                    id=finding_data.get('rule_id', f"{scanner_name}_{len(finding_objects)}"),
+                    scanner=scanner_type,
+                    rule_id=finding_data.get('rule_id', f"{scanner_name}_{len(finding_objects)}"),
+                    title=finding_data.get('title', 'Security Finding'),
+                    description=finding_data.get('description', ''),
+                    severity=severity,
+                    confidence=confidence_str,
+                    file_path=finding_data.get('file_path', ''),
+                    line_start=finding_data.get('line_number'),
+                    line_end=finding_data.get('line_number'),
+                    column_start=finding_data.get('column_number'),
+                    column_end=finding_data.get('column_number'),
+                    code_snippet=finding_data.get('code_snippet', ''),
+                    owasp_category=finding_data.get('owasp_category', 'Security'),
+                    references=[],
+                    metadata={}
+                )
+                finding_objects.append(finding_obj)
+            
+            # Create ScanResult object
+            scan_result = ScanResult(
+                scanner=scanner_type,
+                status=ScanStatus.COMPLETED,
+                started_at=datetime.now(timezone.utc) - timedelta(seconds=scan_duration),
+                completed_at=datetime.now(timezone.utc),
+                duration_seconds=scan_duration,
+                findings=finding_objects,
+                error_message="",
+                summary={
+                    "critical": len([f for f in finding_objects if f.severity == SeverityLevel.CRITICAL]),
+                    "high": len([f for f in finding_objects if f.severity == SeverityLevel.HIGH]),
+                    "medium": len([f for f in finding_objects if f.severity == SeverityLevel.MEDIUM]),
+                    "low": len([f for f in finding_objects if f.severity == SeverityLevel.LOW]),
+                    "info": len([f for f in finding_objects if f.severity == SeverityLevel.INFO])
+                }
+            )
+            scan_results_list.append(scan_result)
+        
+        # Update the scan report with properly structured results
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update({
             "$set": {
                 "status": ScanStatus.COMPLETED,
@@ -187,6 +269,7 @@ async def process_real_scan(
                 "duration_seconds": scan_duration,
                 "total_findings": total_findings,
                 "findings_by_severity": findings_by_severity,
+                "scan_results": [result.model_dump() for result in scan_results_list],
                 "git_metadata.commit_hash": git_metadata.commit_hash,
                 "git_metadata.commit_message": git_metadata.commit_message,
                 "git_metadata.commit_author": git_metadata.commit_author,
@@ -199,6 +282,46 @@ async def process_real_scan(
                 "metadata.real_scan": True
             }
         })
+        
+        # Now process AI analysis with the properly structured data
+        try:
+            logger.info(f"🤖 Starting AI analysis for scan {scan_id}")
+            
+            # Get the AI processor
+            from services.ai_processor import get_ai_processor
+            ai_processor = get_ai_processor()
+            
+            if ai_processor and scan_results_list:
+                # Get the updated report for AI analysis
+                updated_report = await ScanReport.find_one(ScanReport.scan_id == scan_id)
+                
+                if updated_report and updated_report.scan_results:
+                    # Generate AI analysis
+                    ai_analysis = await ai_processor.analyze_scan_results(
+                        project_name=updated_report.project_name,
+                        scan_results=updated_report.scan_results,
+                        repository_url=str(updated_report.git_metadata.repository_url) if updated_report.git_metadata else ""
+                    )
+                    
+                    if ai_analysis:
+                        # Update report with AI analysis
+                        await ScanReport.find_one(ScanReport.scan_id == scan_id).update({
+                            "$set": {
+                                "ai_analysis": ai_analysis.model_dump(),
+                                "updated_at": datetime.now(timezone.utc)
+                            }
+                        })
+                        logger.info(f"✅ AI analysis completed for scan {scan_id}")
+                    else:
+                        logger.warning(f"⚠️ AI analysis returned empty results for scan {scan_id}")
+                else:
+                    logger.warning(f"⚠️ Could not retrieve updated report for AI analysis: {scan_id}")
+            else:
+                logger.warning(f"⚠️ AI processor not available or no scan results for AI analysis: {scan_id}")
+                
+        except Exception as ai_error:
+            logger.error(f"❌ AI analysis failed for scan {scan_id}: {str(ai_error)}")
+            logger.exception("Full AI analysis error:")
         
         logger.info(f"✅ Real scan {scan_id} completed successfully with {total_findings} findings")
         logger.info(f"   - Critical: {findings_by_severity.get('critical', 0)}")
@@ -508,43 +631,15 @@ class WebhookProcessor:
             local_path = clone_info['local_path']
             
             try:
-                # Run security scans
-                logger.info("Running security scans...")
-                scan_results = await security_scanner.run_all_scans(local_path)
+                # Execute comprehensive scanning workflow with AI analysis
+                logger.info("Starting enhanced scanning workflow...")
+                updated_scan_report = await enhanced_workflow.execute_comprehensive_scan(
+                    scan_report=scan_report,
+                    repository_path=local_path,
+                    target_url=None  # Can be enhanced to support DAST targets
+                )
                 
-                # Update scan report with results
-                scan_report.scan_results = scan_results
-                scan_report.update_summary()
-                
-                # Generate AI analysis if there are findings
-                if scan_report.total_findings > 0:
-                    logger.info("Generating AI analysis...")
-                    ai_analysis = await get_ai_processor().analyze_scan_results(
-                        scan_results,
-                        project_context={'project_name': scan_report.project_name}
-                    )
-                    scan_report.ai_analysis = ai_analysis
-                
-                # Update scan status
-                scan_report.status = ScanStatus.COMPLETED
-                scan_report.completed_at = datetime.now(timezone.utc)
-                scan_report.duration_seconds = (
-                    scan_report.completed_at - scan_report.started_at
-                ).total_seconds()
-                
-                await scan_report.save()
-                
-                # Send notifications
-                logger.info("Sending notifications...")
-                notification_status = await notification_service.send_scan_notification(scan_report)
-                scan_report.notifications = notification_status
-                await scan_report.save()
-                
-                # Update webhook status
-                webhook_event.status = "completed"
-                await webhook_event.save()
-                
-                logger.info(f"Scan workflow completed successfully for {git_metadata.repository_url}")
+                logger.info(f"Enhanced scan workflow completed successfully for {git_metadata.repository_url}")
                 
             finally:
                 # Cleanup cloned repository

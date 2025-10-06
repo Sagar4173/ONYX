@@ -18,8 +18,8 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 
 # Import our engines
-from .threat_intelligence_engine import ThreatIntelligenceEngine, VulnerabilityFinding
-from .vulnerability_management_engine import VulnerabilityManagementEngine, Asset, LifecycleState
+from .threat_intelligence import ThreatIntelligenceEngine, ThreatAlert, CVEData
+from .vulnerability_management import VulnerabilityManager, Asset, Vulnerability
 from .metrics_kpi_engine import MetricsKPIEngine
 from .advanced_scanner_engine import AdvancedScannerEngine
 
@@ -56,7 +56,7 @@ class SecurityOrchestrationEngine:
     def __init__(self):
         # Initialize component engines
         self.threat_intelligence = ThreatIntelligenceEngine()
-        self.vulnerability_management = VulnerabilityManagementEngine()
+        self.vulnerability_management = VulnerabilityManager()
         self.metrics_kpi = MetricsKPIEngine()
         self.scanner_engine = AdvancedScannerEngine()
         

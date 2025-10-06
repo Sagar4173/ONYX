@@ -280,7 +280,7 @@ async def get_projects_analytics(
         )
 
 
-@router.get("/templates/categories", response_model=Dict[str, Any])
+@router.get("/templates", response_model=Dict[str, Any])
 async def get_project_templates():
     """
     Get project templates and categories
@@ -387,3 +387,13 @@ async def get_project_templates():
             }
         ]
     }
+
+
+@router.get("/templates/categories", response_model=Dict[str, Any])
+async def get_project_template_categories():
+    """
+    Get project template categories (backward compatibility)
+    """
+    # Reuse the same data from get_project_templates
+    templates_data = await get_project_templates()
+    return templates_data

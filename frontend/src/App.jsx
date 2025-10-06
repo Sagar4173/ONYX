@@ -51,6 +51,7 @@ import {
 // Components
 import ProjectList from "./components/ProjectList";
 import ReportDetails from "./components/ReportDetails";
+import EnhancedReportDetails from "./components/EnhancedReportDetails";
 import ComplianceReport from "./components/ComplianceReport";
 import ProjectManagement from "./components/ProjectManagement";
 import ProjectDetails from "./components/ProjectDetails";
@@ -1536,7 +1537,10 @@ function AppContent() {
                 </div>
               }
             />
-            <Route path="/report/:reportId" element={<ReportDetails />} />
+            <Route
+              path="/report/:reportId"
+              element={<EnhancedReportDetails />}
+            />
             <Route
               path="/compliance/:reportId"
               element={<ComplianceReport />}
