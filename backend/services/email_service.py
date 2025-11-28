@@ -130,13 +130,6 @@ class EmailTemplateLoader(BaseLoader):
                     </div>
                 </div>
                 
-                <!-- Alternative Link -->
-                <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">
-                    <p style="color: #64748b; font-size: 13px; margin: 0;">
-                        Button not working? Copy and paste this link in your browser:<br>
-                        <a href="{{ verification_url }}" style="color: #818cf8; word-break: break-all; font-size: 12px;">{{ verification_url }}</a>
-                    </p>
-                </div>
                 ''',
                 footer_text="This verification link expires in 24 hours."
             ),
@@ -184,13 +177,6 @@ class EmailTemplateLoader(BaseLoader):
                     </div>
                 </div>
                 
-                <!-- Alternative Link -->
-                <div style="margin-top: 24px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">
-                    <p style="color: #64748b; font-size: 13px; margin: 0;">
-                        Button not working? Copy and paste this link:<br>
-                        <a href="{{ reset_url }}" style="color: #fb923c; word-break: break-all; font-size: 12px;">{{ reset_url }}</a>
-                    </p>
-                </div>
                 ''',
                 footer_text="This reset link expires in 1 hour for security reasons."
             ),
