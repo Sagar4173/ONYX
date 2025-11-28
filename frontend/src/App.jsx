@@ -436,6 +436,7 @@ const EmailVerificationPage = () => {
 
   const handleVerificationSuccess = () => {
     if (isAuthenticated) {
+      // User is logged in - redirect to dashboard
       navigate("/", {
         state: {
           message: "Email verified successfully!",
@@ -444,13 +445,16 @@ const EmailVerificationPage = () => {
         replace: true,
       });
     } else {
-      navigate("/", {
-        state: {
-          message: "Email verified successfully! Please log in to continue.",
-          from: "verification",
-        },
-        replace: true,
-      });
+      // User is not logged in - show success and prompt to login
+      // Show success message via toast
+      toast.success(
+        "Email verified successfully! Please log in to access your account."
+      );
+
+      // Navigate to home with login modal open after a short delay
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 2000);
     }
   };
 
@@ -1696,14 +1700,28 @@ function AppContent() {
       {profileModalOpen && (
         <UserProfile onClose={() => setProfileModalOpen(false)} />
       )}
+    </div>
+  );
+}
 
-      {/* Enhanced Toast Notifications */}
+// Main App function that provides QueryClient context
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+      {/* Enhanced Toast Notifications - Must be outside providers to work globally */}
       <Toaster
         position="top-right"
         reverseOrder={false}
         gutter={8}
         containerClassName=""
-        containerStyle={{}}
+        containerStyle={{
+          zIndex: 9999,
+        }}
         toastOptions={{
           duration: 4000,
           style: {
@@ -1724,7 +1742,7 @@ function AppContent() {
             },
           },
           error: {
-            duration: 4000,
+            duration: 5000,
             iconTheme: {
               primary: "#ef4444",
               secondary: "#fff",
@@ -1739,19 +1757,6 @@ function AppContent() {
           },
         }}
       />
-    </div>
-  );
-}
-
-// Main App function that provides QueryClient context
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
     </QueryClientProvider>
   );
 }

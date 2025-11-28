@@ -76,15 +76,9 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   async (error) => {
-    console.error(
-      "❌ API Response Error:",
-      error.response?.data || error.message
-    );
-
     // Handle common error cases
     if (error.response?.status === 401) {
       // Extract error message from response
@@ -119,7 +113,6 @@ api.interceptors.response.use(
       } else if (isLoginRequest) {
         // For login requests, don't show generic toast, let the login handler deal with it
         // The login function will extract and show the proper error message
-        console.log("Login failed:", errorMessage);
       } else {
         toast.error("Authentication required. Please log in.");
         localStorage.removeItem("access_token");
@@ -147,31 +140,10 @@ export const authAPI = {
   // Login user
   login: async (credentials) => {
     try {
-      console.log("🔑 Attempting login with:", {
-        username_or_email: credentials.username_or_email,
-        remember_me: credentials.remember_me,
-        password_length: credentials.password?.length,
-      });
-
       const response = await api.post("/auth/login", credentials);
-
-      console.log("✅ Login successful:", {
-        status: response.status,
-        user: response.data.user?.username,
-      });
 
       return response.data;
     } catch (error) {
-      console.error("❌ Login failed:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        credentials_sent: {
-          username_or_email: credentials.username_or_email,
-          remember_me: credentials.remember_me,
-          password_provided: !!credentials.password,
-        },
-      });
       throw error;
     }
   },
@@ -182,7 +154,6 @@ export const authAPI = {
       const response = await api.post("/auth/register", userData);
       return response.data;
     } catch (error) {
-      console.error("Registration error:", error);
       throw error;
     }
   },
@@ -193,7 +164,6 @@ export const authAPI = {
       const response = await api.post("/auth/logout");
       return response.data;
     } catch (error) {
-      console.error("Logout error:", error);
       throw error;
     }
   },
@@ -206,7 +176,6 @@ export const authAPI = {
       });
       return response.data;
     } catch (error) {
-      console.error("Token refresh error:", error);
       throw error;
     }
   },
@@ -217,7 +186,6 @@ export const authAPI = {
       const response = await api.get("/auth/me");
       return response.data;
     } catch (error) {
-      console.error("Get profile error:", error);
       throw error;
     }
   },
@@ -228,7 +196,6 @@ export const authAPI = {
       const response = await api.put("/auth/me", profileData);
       return response.data;
     } catch (error) {
-      console.error("Update profile error:", error);
       throw error;
     }
   },
@@ -239,7 +206,6 @@ export const authAPI = {
       const response = await api.post("/auth/change-password", passwordData);
       return response.data;
     } catch (error) {
-      console.error("Change password error:", error);
       throw error;
     }
   },
@@ -252,7 +218,6 @@ export const authAPI = {
       });
       return response.data;
     } catch (error) {
-      console.error("Password reset request error:", error);
       throw error;
     }
   },
@@ -263,7 +228,6 @@ export const authAPI = {
       const response = await api.post("/auth/reset-password", resetData);
       return response.data;
     } catch (error) {
-      console.error("Password reset confirm error:", error);
       throw error;
     }
   },

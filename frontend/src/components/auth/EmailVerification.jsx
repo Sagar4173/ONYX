@@ -27,10 +27,10 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
   const handleVerifyEmail = async (verificationToken) => {
     setIsVerifying(true);
     try {
-      // Use the context function which handles user state updates
-      const response = await verifyEmailContext(verificationToken);
+      // Call the API directly without going through context to avoid auth issues
+      const response = await authAPI.verifyEmail(verificationToken);
       setVerificationStatus("success");
-      toast.success("Email verified successfully!");
+      // Don't show toast here - the success component will handle the message
       onSuccess && onSuccess();
     } catch (error) {
       setVerificationStatus("error");
@@ -38,15 +38,17 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
       // Check if it's an "already verified" error
       const errorMessage =
         error.response?.data?.detail ||
+        error.response?.data?.message ||
         error.message ||
         "Email verification failed";
 
-      if (errorMessage.includes("already verified")) {
+      if (errorMessage.toLowerCase().includes("already verified")) {
         setVerificationStatus("success");
-        toast.success("Email is already verified! Your account is active.");
+        // Don't show toast - success component will handle it
         onSuccess && onSuccess();
       } else {
-        toast.error(errorMessage);
+        // Only show error toast for actual errors
+        console.error("Email verification error:", errorMessage);
         onError && onError(errorMessage);
       }
     } finally {
@@ -103,17 +105,17 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
             <CheckCircleIcon className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
-            Email Verified!
+            Email Verified Successfully!
           </h2>
           <p className="text-gray-400 mb-6">
-            Your account has been successfully verified. You can now access all
+            Your account has been verified. You can now log in to access all
             features.
           </p>
           <button
             onClick={onSuccess}
             className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/25"
           >
-            Continue to Dashboard
+            Continue to Login
           </button>
         </div>
       </div>

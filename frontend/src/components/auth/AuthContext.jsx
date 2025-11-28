@@ -43,7 +43,6 @@ export const AuthProvider = ({ children }) => {
         // Verify token is still valid
         verifyToken(token);
       } catch (error) {
-        console.error("Error parsing user data:", error);
         logout();
       }
     }
@@ -56,7 +55,6 @@ export const AuthProvider = ({ children }) => {
       const userData = await authAPI.getProfile();
       setUser(userData);
     } catch (error) {
-      console.error("Token verification failed:", error);
       logout();
     }
   };
@@ -80,19 +78,17 @@ export const AuthProvider = ({ children }) => {
         setUser(updatedUser);
         localStorage.setItem("user_data", JSON.stringify(updatedUser));
       } catch (profileError) {
-        console.log("Could not refresh profile after login:", profileError);
         // Don't throw error, use the data from login response
       }
 
       toast.success(`Welcome back, ${data.user.full_name}!`);
       return data;
     } catch (error) {
+      const errorData = error.response?.data;
+
       // Handle FastAPI validation errors (422)
-      if (
-        error.response?.status === 422 &&
-        Array.isArray(error.response?.data?.detail)
-      ) {
-        const validationErrors = error.response.data.detail;
+      if (error.response?.status === 422 && Array.isArray(errorData?.detail)) {
+        const validationErrors = errorData.detail;
 
         // Format field names to be more readable
         const formatFieldName = (field) => {
@@ -118,14 +114,22 @@ export const AuthProvider = ({ children }) => {
         });
 
         // Show each error separately for better visibility
-        errorMessages.forEach((msg) => toast.error(msg, { duration: 4000 }));
+        errorMessages.forEach((msg) => {
+          toast.error(msg, { duration: 5000 });
+        });
       } else {
-        // Handle other error types
-        const errorMessage =
-          error.response?.data?.detail ||
-          error.response?.data?.message ||
+        // Handle other error types including 400, 401, etc.
+        let errorMessage =
+          errorData?.detail ||
+          errorData?.message ||
           "Login failed. Please check your credentials.";
-        toast.error(errorMessage);
+
+        // Clean up error codes like "400: " or "401: "
+        if (typeof errorMessage === "string") {
+          errorMessage = errorMessage.replace(/^\d{3}:\s*/, "");
+        }
+
+        toast.error(errorMessage, { duration: 5000 });
       }
       throw error;
     }
@@ -139,11 +143,6 @@ export const AuthProvider = ({ children }) => {
       );
       return response;
     } catch (error) {
-      console.log(
-        "Registration error full:",
-        JSON.stringify(error.response?.data, null, 2)
-      );
-
       const errorData = error.response?.data;
 
       // Check for new structured error format from backend
@@ -154,7 +153,10 @@ export const AuthProvider = ({ children }) => {
             .split("_")
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
-          toast.error(`${fieldName}: ${err.message}`);
+          // Clean up the message by removing "Value error, " prefix
+          const cleanMessage = err.message.replace(/^Value error,\s*/i, "");
+          const toastMessage = `${fieldName}: ${cleanMessage}`;
+          toast.error(toastMessage, { duration: 5000 });
         });
       }
       // Check if it's a string error message (Pydantic formatted)
@@ -174,7 +176,8 @@ export const AuthProvider = ({ children }) => {
                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(" ");
               const message = match[2].trim();
-              toast.error(`${fieldName}: ${message}`);
+              const toastMessage = `${fieldName}: ${message}`;
+              toast.error(toastMessage, { duration: 5000 });
             });
           } else {
             // Fallback: show the whole message cleaned up
@@ -183,11 +186,13 @@ export const AuthProvider = ({ children }) => {
               .filter((line) => line.includes("must be"))
               .map((line) => line.trim())
               .join(". ");
-            toast.error(cleanMessage || detail);
+            const finalMessage = cleanMessage || detail;
+            toast.error(finalMessage, { duration: 5000 });
           }
         } else {
-          // Regular string error
-          toast.error(detail);
+          // Regular string error - clean up "400: " or similar prefixes
+          const cleanDetail = detail.replace(/^\d{3}:\s*/, "");
+          toast.error(cleanDetail, { duration: 5000 });
         }
       }
       // Handle FastAPI validation errors (422 or 400) as array
@@ -231,12 +236,16 @@ export const AuthProvider = ({ children }) => {
         });
 
         // Show each error separately for better visibility
-        errorMessages.forEach((msg) => toast.error(msg));
+        errorMessages.forEach((msg) => {
+          toast.error(msg, { duration: 5000 });
+        });
       } else {
-        // Handle other error types
+        // Handle other error types - fallback
         const errorMessage =
-          errorData?.message || "Registration failed. Please try again.";
-        toast.error(errorMessage);
+          errorData?.message ||
+          errorData?.detail ||
+          "Registration failed. Please try again.";
+        toast.error(errorMessage, { duration: 5000 });
       }
       throw error;
     }
@@ -258,7 +267,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user_data", JSON.stringify(userData));
       return userData;
     } catch (error) {
-      console.error("Failed to refresh user profile:", error);
       throw error;
     }
   };
@@ -318,6 +326,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const verifyEmail = async (token) => {
+    try {
+      const response = await authAPI.verifyEmail(token);
+      // Only refresh user profile if user is authenticated
+      if (isAuthenticated && localStorage.getItem("access_token")) {
+        try {
+          await refreshUserProfile();
+        } catch (profileError) {
+          // Ignore profile refresh errors - verification still succeeded
+          console.log("Could not refresh profile, but verification succeeded");
+        }
+      }
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.detail || "Failed to verify email.";
+      throw error;
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -330,6 +358,7 @@ export const AuthProvider = ({ children }) => {
     requestPasswordReset,
     resetPassword,
     resendVerificationEmail,
+    verifyEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

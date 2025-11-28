@@ -422,15 +422,6 @@ export const AuthModal = ({
           {/* Form Container */}
           <div className="flex items-center justify-center min-h-full p-6 lg:p-12">
             <div className="w-full max-w-md">
-              {/* Progress indicator for multi-step forms */}
-              {currentView === "register" && (
-                <div className="mb-6 flex items-center justify-center gap-2">
-                  <div className="w-8 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" />
-                  <div className="w-8 h-1 bg-gray-700 rounded-full" />
-                  <div className="w-8 h-1 bg-gray-700 rounded-full" />
-                </div>
-              )}
-
               <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 hover:shadow-blue-500/10">
                 {/* Gradient Background Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
