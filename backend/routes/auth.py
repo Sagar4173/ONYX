@@ -2,20 +2,24 @@
 Authentication Routes for SecureDevOps AI Platform
 Handles user registration, login, logout, password management
 """
+import asyncio
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials
+from pydantic import ValidationError, BaseModel
 
 from models.user import (
-    User, UserRole, UserStatus, APIToken,
+    User, UserRole, UserStatus, APIToken, UserSession,
     LoginRequest, LoginResponse, UserResponse,
     UserCreate, UserUpdate, UserPasswordChange,
     PasswordResetRequest, PasswordResetConfirm,
-    EmailVerificationRequest,
+    EmailVerificationRequest, NotificationPreferencesUpdate,
+    TwoFactorSetupResponse, TwoFactorVerifyRequest, SessionResponse,
     APITokenCreate, APITokenResponse, TokenResponse
 )
 from services.auth_service import auth_service
+from services.email_service import email_service
 from config import settings
 
 
@@ -67,7 +71,26 @@ async def register_user(
         
         return UserResponse(**user.dict())
         
+    except ValidationError as e:
+        # Return structured validation errors
+        errors = []
+        for error in e.errors():
+            field = error['loc'][-1] if error['loc'] else 'field'
+            message = error['msg']
+            errors.append({"field": field, "message": message})
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"errors": errors}
+        )
     except Exception as e:
+        # Handle other exceptions
+        error_msg = str(e)
+        # If it's a ValueError from validators, extract clean message
+        if "must be at least" in error_msg or "must be less than" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_msg
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -167,6 +190,347 @@ async def update_current_user(
     return UserResponse(**current_user.dict())
 
 
+# ===== NOTIFICATION PREFERENCES =====
+
+@router.get("/me/notifications")
+async def get_notification_preferences(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Get current user's notification preferences
+    """
+    return current_user.notification_preferences
+
+
+@router.put("/me/notifications")
+async def update_notification_preferences(
+    preferences: NotificationPreferencesUpdate,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Update notification preferences
+    """
+    # Update only provided preferences
+    update_data = preferences.dict(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        current_user.notification_preferences[key] = value
+    
+    current_user.updated_at = datetime.utcnow()
+    await current_user.save()
+    
+    return {
+        "message": "Notification preferences updated",
+        "preferences": current_user.notification_preferences
+    }
+
+
+# ===== TWO-FACTOR AUTHENTICATION =====
+
+@router.post("/me/2fa/setup", response_model=TwoFactorSetupResponse)
+async def setup_two_factor(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Initialize 2FA setup - generates secret and QR code
+    """
+    import pyotp
+    import secrets
+    
+    # Generate a new secret
+    secret = pyotp.random_base32()
+    
+    # Generate backup codes
+    backup_codes = [secrets.token_hex(4).upper() for _ in range(8)]
+    
+    # Store the secret temporarily (not enabled yet)
+    current_user.two_factor_secret = secret
+    current_user.two_factor_backup_codes = backup_codes
+    await current_user.save()
+    
+    # Generate provisioning URI for QR code
+    totp = pyotp.TOTP(secret)
+    qr_code_url = totp.provisioning_uri(
+        name=current_user.email,
+        issuer_name="SecureDevOps AI"
+    )
+    
+    return TwoFactorSetupResponse(
+        secret=secret,
+        qr_code_url=qr_code_url,
+        backup_codes=backup_codes
+    )
+
+
+@router.post("/me/2fa/enable")
+async def enable_two_factor(
+    verify_data: TwoFactorVerifyRequest,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Enable 2FA after verifying the code
+    """
+    import pyotp
+    
+    if not current_user.two_factor_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA setup not initiated. Call /me/2fa/setup first."
+        )
+    
+    # Verify the code
+    totp = pyotp.TOTP(current_user.two_factor_secret)
+    if not totp.verify(verify_data.code, valid_window=1):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code"
+        )
+    
+    # Enable 2FA
+    current_user.two_factor_enabled = True
+    current_user.updated_at = datetime.utcnow()
+    await current_user.save()
+    
+    # Send email notification
+    asyncio.create_task(email_service.send_2fa_enabled_email(
+        email=current_user.email,
+        user_name=current_user.full_name or current_user.username,
+        enabled_at=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+    ))
+    
+    return {"message": "Two-factor authentication enabled successfully"}
+
+
+@router.post("/me/2fa/disable")
+async def disable_two_factor(
+    verify_data: TwoFactorVerifyRequest,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Disable 2FA after verifying the code
+    """
+    import pyotp
+    
+    if not current_user.two_factor_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is not enabled"
+        )
+    
+    # Verify the code or check backup codes
+    totp = pyotp.TOTP(current_user.two_factor_secret)
+    is_valid = totp.verify(verify_data.code, valid_window=1)
+    
+    # Check backup codes if TOTP fails
+    if not is_valid and verify_data.code.upper() in current_user.two_factor_backup_codes:
+        is_valid = True
+        # Remove used backup code
+        current_user.two_factor_backup_codes.remove(verify_data.code.upper())
+    
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code"
+        )
+    
+    # Disable 2FA
+    current_user.two_factor_enabled = False
+    current_user.two_factor_secret = None
+    current_user.two_factor_backup_codes = []
+    current_user.updated_at = datetime.utcnow()
+    await current_user.save()
+    
+    # Send email notification
+    asyncio.create_task(email_service.send_2fa_disabled_email(
+        email=current_user.email,
+        user_name=current_user.full_name or current_user.username,
+        disabled_at=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+    ))
+    
+    return {"message": "Two-factor authentication disabled successfully"}
+
+
+@router.get("/me/2fa/status")
+async def get_two_factor_status(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Get 2FA status
+    """
+    return {
+        "enabled": current_user.two_factor_enabled,
+        "backup_codes_remaining": len(current_user.two_factor_backup_codes) if current_user.two_factor_enabled else 0
+    }
+
+
+# ===== SESSION MANAGEMENT =====
+
+@router.get("/me/sessions")
+async def get_active_sessions(
+    request: Request,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Get all active sessions for current user
+    """
+    from user_agents import parse as parse_ua
+    
+    # Get current token to identify current session
+    auth_header = request.headers.get("Authorization", "")
+    current_token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else None
+    
+    sessions = await UserSession.find({
+        "user_id": current_user.id,
+        "is_active": True
+    }).to_list()
+    
+    result = []
+    for session in sessions:
+        # Parse user agent
+        user_agent_str = session.user_agent or "Unknown"
+        try:
+            ua = parse_ua(user_agent_str)
+            device = f"{ua.device.brand or ''} {ua.device.model or ua.device.family}".strip() or "Unknown Device"
+            browser = f"{ua.browser.family} {ua.browser.version_string}".strip()
+        except:
+            device = "Unknown Device"
+            browser = "Unknown Browser"
+        
+        # Determine location
+        location = "Unknown Location"
+        if session.location:
+            city = session.location.get("city", "")
+            country = session.location.get("country", "")
+            location = f"{city}, {country}".strip(", ") if city or country else "Unknown Location"
+        
+        result.append({
+            "session_id": session.session_id,
+            "device": device,
+            "browser": browser,
+            "location": location,
+            "ip_address": session.ip_address or "Unknown",
+            "is_current": session.access_token == current_token,
+            "last_active": session.last_activity,
+            "created_at": session.created_at
+        })
+    
+    return result
+
+
+@router.delete("/me/sessions/{session_id}")
+async def revoke_session(
+    session_id: str,
+    request: Request,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Revoke a specific session
+    """
+    # Get current token to prevent revoking current session
+    auth_header = request.headers.get("Authorization", "")
+    current_token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else None
+    
+    session = await UserSession.find_one({
+        "session_id": session_id,
+        "user_id": current_user.id,
+        "is_active": True
+    })
+    
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found"
+        )
+    
+    if session.access_token == current_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot revoke current session. Use logout instead."
+        )
+    
+    session.is_active = False
+    session.logged_out_at = datetime.utcnow()
+    await session.save()
+    
+    return {"message": "Session revoked successfully"}
+
+
+@router.delete("/me/sessions")
+async def revoke_all_other_sessions(
+    request: Request,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Revoke all sessions except the current one
+    """
+    # Get current token
+    auth_header = request.headers.get("Authorization", "")
+    current_token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else None
+    
+    # Revoke all other sessions
+    result = await UserSession.find({
+        "user_id": current_user.id,
+        "is_active": True,
+        "access_token": {"$ne": current_token}
+    }).update_many({
+        "$set": {
+            "is_active": False,
+            "logged_out_at": datetime.utcnow()
+        }
+    })
+    
+    return {"message": f"Revoked {result.modified_count} other sessions"}
+
+
+# ===== AVATAR UPLOAD =====
+
+class AvatarUpdate(BaseModel):
+    avatar_url: Optional[str] = ""  # Empty string or None to remove avatar
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    avatar_data: AvatarUpdate,
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """
+    Update avatar URL (accepts base64, URL, or empty string to remove)
+    """
+    avatar_url = (avatar_data.avatar_url or "").strip()
+    
+    # Allow empty string to remove avatar
+    if not avatar_url:
+        current_user.avatar_url = None
+        current_user.updated_at = datetime.utcnow()
+        await current_user.save()
+        return {
+            "message": "Avatar removed successfully",
+            "avatar_url": None
+        }
+    
+    # Validate URL or base64
+    if not avatar_url.startswith(("http://", "https://", "data:image/")):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid avatar format. Provide a URL or base64 data URI."
+        )
+    
+    # Limit base64 size (5MB max)
+    if avatar_url.startswith("data:image/") and len(avatar_url) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar image too large. Maximum size is 5MB."
+        )
+    
+    current_user.avatar_url = avatar_url
+    current_user.updated_at = datetime.utcnow()
+    await current_user.save()
+    
+    return {
+        "message": "Avatar updated successfully",
+        "avatar_url": avatar_url
+    }
+
+
 @router.post("/change-password")
 async def change_password(
     password_data: UserPasswordChange,
@@ -177,6 +541,12 @@ async def change_password(
     """
     success = await auth_service.change_password(current_user.id, password_data)
     if success:
+        # Send email notification
+        asyncio.create_task(email_service.send_password_changed_email(
+            email=current_user.email,
+            user_name=current_user.full_name or current_user.username,
+            changed_at=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+        ))
         return {"message": "Password changed successfully. Please log in again."}
     else:
         raise HTTPException(

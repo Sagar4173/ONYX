@@ -2,13 +2,12 @@
  * Settings Component for SecureDevOps Platform
  * Platform configuration and user preferences management
  */
-import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   CogIcon,
   ShieldCheckIcon,
   BellIcon,
-  UserIcon,
   ComputerDesktopIcon,
   EnvelopeIcon,
   EyeIcon,
@@ -26,23 +25,15 @@ import {
   ExclamationTriangleIcon as ExclamationTriangleSolid,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
-import { useAuth } from "./Auth";
-import { authAPI } from "../services/api";
+import { useAuth } from "./auth";
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("security");
   const [showApiKey, setShowApiKey] = useState(false);
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
-  // Mock settings data - in a real app, these would come from API
+  // Platform settings data - in a real app, these would come from API
   const [settings, setSettings] = useState({
-    profile: {
-      display_name: user?.display_name || "",
-      email: user?.email || "",
-      timezone: "UTC",
-      language: "en",
-    },
     security: {
       two_factor_enabled: false,
       session_timeout: 30,
@@ -75,34 +66,6 @@ const Settings = () => {
       api_key: "sk-••••••••••••••••••••••••••••••••",
       rate_limit: 1000,
       webhook_url: "",
-    },
-  });
-
-  const [passwordData, setPasswordData] = useState({
-    current_password: "",
-    new_password: "",
-    confirm_password: "",
-  });
-
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
-
-  // Change password mutation
-  const changePasswordMutation = useMutation({
-    mutationFn: authAPI.changePassword,
-    onSuccess: () => {
-      toast.success("Password changed successfully!");
-      setPasswordData({
-        current_password: "",
-        new_password: "",
-        confirm_password: "",
-      });
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to change password");
     },
   });
 
@@ -145,21 +108,11 @@ const Settings = () => {
     }));
   };
 
-  const handlePasswordChange = (e) => {
-    e.preventDefault();
-    if (passwordData.new_password !== passwordData.confirm_password) {
-      toast.error("New passwords don't match");
-      return;
-    }
-    changePasswordMutation.mutate(passwordData);
-  };
-
   const handleSaveSettings = () => {
     saveSettingsMutation.mutate(settings);
   };
 
   const tabs = [
-    { key: "profile", label: "Profile", icon: UserIcon },
     { key: "security", label: "Security", icon: ShieldCheckIcon },
     { key: "notifications", label: "Notifications", icon: BellIcon },
     { key: "scanning", label: "Scanning", icon: CogIcon },
@@ -256,182 +209,6 @@ const Settings = () => {
           {/* Content */}
           <div className="flex-1">
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
-              {/* Profile Settings */}
-              {activeTab === "profile" && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-white">
-                    Profile Settings
-                  </h2>
-
-                  <SettingCard
-                    title="Basic Information"
-                    description="Update your profile information"
-                  >
-                    <div className="space-y-4 w-full max-w-md">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Display Name
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.profile.display_name}
-                          onChange={(e) =>
-                            handleSettingChange(
-                              "profile",
-                              "display_name",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          value={settings.profile.email}
-                          onChange={(e) =>
-                            handleSettingChange(
-                              "profile",
-                              "email",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                        />
-                      </div>
-                    </div>
-                  </SettingCard>
-
-                  <SettingCard
-                    title="Change Password"
-                    description="Update your account password"
-                  >
-                    <form
-                      onSubmit={handlePasswordChange}
-                      className="space-y-4 w-full max-w-md"
-                    >
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Current Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPasswords.current ? "text" : "password"}
-                            value={passwordData.current_password}
-                            onChange={(e) =>
-                              setPasswordData((prev) => ({
-                                ...prev,
-                                current_password: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowPasswords((prev) => ({
-                                ...prev,
-                                current: !prev.current,
-                              }))
-                            }
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                          >
-                            {showPasswords.current ? (
-                              <EyeSlashIcon className="h-4 w-4" />
-                            ) : (
-                              <EyeIcon className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          New Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPasswords.new ? "text" : "password"}
-                            value={passwordData.new_password}
-                            onChange={(e) =>
-                              setPasswordData((prev) => ({
-                                ...prev,
-                                new_password: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowPasswords((prev) => ({
-                                ...prev,
-                                new: !prev.new,
-                              }))
-                            }
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                          >
-                            {showPasswords.new ? (
-                              <EyeSlashIcon className="h-4 w-4" />
-                            ) : (
-                              <EyeIcon className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Confirm New Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showPasswords.confirm ? "text" : "password"}
-                            value={passwordData.confirm_password}
-                            onChange={(e) =>
-                              setPasswordData((prev) => ({
-                                ...prev,
-                                confirm_password: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowPasswords((prev) => ({
-                                ...prev,
-                                confirm: !prev.confirm,
-                              }))
-                            }
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                          >
-                            {showPasswords.confirm ? (
-                              <EyeSlashIcon className="h-4 w-4" />
-                            ) : (
-                              <EyeIcon className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={changePasswordMutation.isPending}
-                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
-                      >
-                        {changePasswordMutation.isPending
-                          ? "Changing..."
-                          : "Change Password"}
-                      </button>
-                    </form>
-                  </SettingCard>
-                </div>
-              )}
-
               {/* Security Settings */}
               {activeTab === "security" && (
                 <div className="space-y-6">

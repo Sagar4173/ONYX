@@ -290,13 +290,122 @@ export const authAPI = {
     }
   },
 
-  // Test email configuration
-  testEmailConfiguration: async () => {
+  // ===== NOTIFICATION PREFERENCES =====
+
+  // Get notification preferences
+  getNotificationPreferences: async () => {
     try {
-      const response = await api.post("/auth/test-email");
+      const response = await api.get("/auth/me/notifications");
       return response.data;
     } catch (error) {
-      console.error("Test email error:", error);
+      console.error("Get notifications error:", error);
+      throw error;
+    }
+  },
+
+  // Update notification preferences
+  updateNotificationPreferences: async (preferences) => {
+    try {
+      const response = await api.put("/auth/me/notifications", preferences);
+      return response.data;
+    } catch (error) {
+      console.error("Update notifications error:", error);
+      throw error;
+    }
+  },
+
+  // ===== TWO-FACTOR AUTHENTICATION =====
+
+  // Get 2FA status
+  get2FAStatus: async () => {
+    try {
+      const response = await api.get("/auth/me/2fa/status");
+      return response.data;
+    } catch (error) {
+      console.error("Get 2FA status error:", error);
+      throw error;
+    }
+  },
+
+  // Setup 2FA (get secret and QR code)
+  setup2FA: async () => {
+    try {
+      const response = await api.post("/auth/me/2fa/setup");
+      return response.data;
+    } catch (error) {
+      console.error("Setup 2FA error:", error);
+      throw error;
+    }
+  },
+
+  // Enable 2FA after verification
+  enable2FA: async (code) => {
+    try {
+      const response = await api.post("/auth/me/2fa/enable", { code });
+      return response.data;
+    } catch (error) {
+      console.error("Enable 2FA error:", error);
+      throw error;
+    }
+  },
+
+  // Disable 2FA
+  disable2FA: async (code) => {
+    try {
+      const response = await api.post("/auth/me/2fa/disable", { code });
+      return response.data;
+    } catch (error) {
+      console.error("Disable 2FA error:", error);
+      throw error;
+    }
+  },
+
+  // ===== SESSION MANAGEMENT =====
+
+  // Get active sessions
+  getSessions: async () => {
+    try {
+      const response = await api.get("/auth/me/sessions");
+      return response.data;
+    } catch (error) {
+      console.error("Get sessions error:", error);
+      throw error;
+    }
+  },
+
+  // Revoke a specific session
+  revokeSession: async (sessionId) => {
+    try {
+      const response = await api.delete(`/auth/me/sessions/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Revoke session error:", error);
+      throw error;
+    }
+  },
+
+  // Revoke all other sessions
+  revokeAllOtherSessions: async () => {
+    try {
+      const response = await api.delete("/auth/me/sessions");
+      return response.data;
+    } catch (error) {
+      console.error("Revoke all sessions error:", error);
+      throw error;
+    }
+  },
+
+  // ===== AVATAR =====
+
+  // Update avatar
+  updateAvatar: async (avatarUrl) => {
+    try {
+      const response = await api.post("/auth/me/avatar", {
+        avatar_url: avatarUrl,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Update avatar error:", error);
       throw error;
     }
   },
@@ -1071,6 +1180,265 @@ export const utils = {
       low: "text-blue-400 bg-blue-400/10 border-blue-400/30",
     };
     return colors[severity] || colors.low;
+  },
+};
+
+// ==================== Enterprise API ====================
+export const enterpriseAPI = {
+  // ---------- Audit Logs ----------
+
+  // Get audit logs with filters
+  getAuditLogs: async (params = {}) => {
+    try {
+      const cleanedParams = cleanParams(params);
+      const response = await api.get("/enterprise/audit-logs", {
+        params: cleanedParams,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get audit logs error:", error);
+      throw error;
+    }
+  },
+
+  // Get audit log by ID
+  getAuditLogById: async (logId) => {
+    try {
+      const response = await api.get(`/enterprise/audit-logs/${logId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get audit log error:", error);
+      throw error;
+    }
+  },
+
+  // Get audit users for filtering
+  getAuditUsers: async () => {
+    try {
+      const response = await api.get("/enterprise/audit-logs/users");
+      return response.data;
+    } catch (error) {
+      console.error("Get audit users error:", error);
+      throw error;
+    }
+  },
+
+  // Get audit event types
+  getAuditEventTypes: async () => {
+    try {
+      const response = await api.get("/enterprise/audit-logs/event-types");
+      return response.data;
+    } catch (error) {
+      console.error("Get audit event types error:", error);
+      throw error;
+    }
+  },
+
+  // Export audit logs
+  exportAuditLogs: async (params = {}) => {
+    try {
+      const cleanedParams = cleanParams(params);
+      const response = await api.get("/enterprise/audit-logs/export", {
+        params: cleanedParams,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Export audit logs error:", error);
+      throw error;
+    }
+  },
+
+  // Get audit statistics
+  getAuditStatistics: async (params = {}) => {
+    try {
+      const cleanedParams = cleanParams(params);
+      const response = await api.get("/enterprise/audit-logs/statistics", {
+        params: cleanedParams,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get audit statistics error:", error);
+      throw error;
+    }
+  },
+
+  // Verify audit log integrity
+  verifyAuditLogIntegrity: async (logId) => {
+    try {
+      const response = await api.post(`/enterprise/audit-logs/${logId}/verify`);
+      return response.data;
+    } catch (error) {
+      console.error("Verify audit log integrity error:", error);
+      throw error;
+    }
+  },
+
+  // ---------- Data Retention Policies ----------
+
+  // Get all retention policies
+  getRetentionPolicies: async (params = {}) => {
+    try {
+      const cleanedParams = cleanParams(params);
+      const response = await api.get("/enterprise/retention-policies", {
+        params: cleanedParams,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get retention policies error:", error);
+      throw error;
+    }
+  },
+
+  // Get retention policy by ID
+  getRetentionPolicyById: async (policyId) => {
+    try {
+      const response = await api.get(
+        `/enterprise/retention-policies/${policyId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Get retention policy error:", error);
+      throw error;
+    }
+  },
+
+  // Create retention policy
+  createRetentionPolicy: async (policyData) => {
+    try {
+      const response = await api.post(
+        "/enterprise/retention-policies",
+        policyData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Create retention policy error:", error);
+      throw error;
+    }
+  },
+
+  // Update retention policy
+  updateRetentionPolicy: async (policyId, policyData) => {
+    try {
+      const response = await api.put(
+        `/enterprise/retention-policies/${policyId}`,
+        policyData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Update retention policy error:", error);
+      throw error;
+    }
+  },
+
+  // Delete retention policy
+  deleteRetentionPolicy: async (policyId) => {
+    try {
+      const response = await api.delete(
+        `/enterprise/retention-policies/${policyId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Delete retention policy error:", error);
+      throw error;
+    }
+  },
+
+  // Execute retention policy
+  executeRetentionPolicy: async (policyId) => {
+    try {
+      const response = await api.post(
+        `/enterprise/retention-policies/${policyId}/execute`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Execute retention policy error:", error);
+      throw error;
+    }
+  },
+
+  // ---------- Advanced Compliance ----------
+
+  // Get compliance assessments
+  getComplianceAssessments: async (params = {}) => {
+    try {
+      const cleanedParams = cleanParams(params);
+      const response = await api.get("/enterprise/compliance/assessments", {
+        params: cleanedParams,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get compliance assessments error:", error);
+      throw error;
+    }
+  },
+
+  // Get compliance assessment by ID
+  getComplianceAssessmentById: async (assessmentId) => {
+    try {
+      const response = await api.get(
+        `/enterprise/compliance/assessments/${assessmentId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Get compliance assessment error:", error);
+      throw error;
+    }
+  },
+
+  // Create compliance assessment
+  createComplianceAssessment: async (assessmentData) => {
+    try {
+      const response = await api.post(
+        "/enterprise/compliance/assessments",
+        assessmentData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Create compliance assessment error:", error);
+      throw error;
+    }
+  },
+
+  // Get compliance framework summary
+  getComplianceFrameworkSummary: async () => {
+    try {
+      const response = await api.get(
+        "/enterprise/compliance/framework-summary"
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Get compliance framework summary error:", error);
+      throw error;
+    }
+  },
+
+  // Export compliance report
+  exportComplianceReport: async ({ assessmentId, format = "json" }) => {
+    try {
+      const response = await api.get(
+        `/enterprise/compliance/assessments/${assessmentId}/export`,
+        {
+          params: { format },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Export compliance report error:", error);
+      throw error;
+    }
+  },
+
+  // Get compliance gap analysis
+  getComplianceGapAnalysis: async (assessmentId) => {
+    try {
+      const response = await api.get(
+        `/enterprise/compliance/assessments/${assessmentId}/gap-analysis`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Get compliance gap analysis error:", error);
+      throw error;
+    }
   },
 };
 

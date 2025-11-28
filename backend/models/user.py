@@ -59,12 +59,18 @@ class User(Document):
     last_login: Optional[datetime] = None
     last_password_change: Optional[datetime] = None
     
+    # Two-Factor Authentication
+    two_factor_enabled: bool = False
+    two_factor_secret: Optional[str] = None
+    two_factor_backup_codes: List[str] = Field(default_factory=list)
+    
     # Preferences
     notification_preferences: dict = Field(default_factory=lambda: {
         "email_notifications": True,
+        "push_notifications": True,
         "security_alerts": True,
-        "scan_completion": True,
-        "weekly_reports": True
+        "product_updates": False,
+        "marketing": False
     })
     
     # Permissions & Projects
@@ -263,6 +269,39 @@ class UserUpdate(BaseModel):
     notification_preferences: Optional[dict] = None
 
 
+class NotificationPreferencesUpdate(BaseModel):
+    """Model for updating notification preferences"""
+    email_notifications: Optional[bool] = None
+    push_notifications: Optional[bool] = None
+    security_alerts: Optional[bool] = None
+    product_updates: Optional[bool] = None
+    marketing: Optional[bool] = None
+
+
+class TwoFactorSetupResponse(BaseModel):
+    """Model for 2FA setup response"""
+    secret: str
+    qr_code_url: str
+    backup_codes: List[str]
+
+
+class TwoFactorVerifyRequest(BaseModel):
+    """Model for 2FA verification"""
+    code: str
+
+
+class SessionResponse(BaseModel):
+    """Model for session information"""
+    session_id: str
+    device: str
+    browser: str
+    location: str
+    ip_address: str
+    is_current: bool
+    last_active: datetime
+    created_at: datetime
+
+
 class UserPasswordChange(BaseModel):
     """Model for changing password"""
     current_password: str
@@ -298,8 +337,10 @@ class UserResponse(BaseModel):
     avatar_url: Optional[str] = None
     organization: Optional[str] = None
     department: Optional[str] = None
+    phone: Optional[str] = None
     timezone: str
     is_email_verified: bool
+    two_factor_enabled: bool = False
     last_login: Optional[datetime] = None
     created_at: datetime
     notification_preferences: dict

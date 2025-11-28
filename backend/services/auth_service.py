@@ -174,6 +174,10 @@ class AuthService:
                 detail="Invalid credentials"
             )
         
+        # Update last_login time
+        user.last_login = datetime.utcnow()
+        await user.save()
+        
         # Create tokens
         access_token = self.create_access_token(user.id)
         refresh_token = self.create_refresh_token(user.id)
@@ -198,6 +202,22 @@ class AuthService:
         )
         
         await session.insert()
+        
+        # Send login notification email (async, don't block login)
+        try:
+            from services.notification_service import notification_service
+            user_agent = request.headers.get('user-agent', 'Unknown')
+            parsed_ua = self._parse_user_agent(user_agent)
+            await notification_service.send_login_alert(
+                user_id=str(user.id),
+                login_time=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC"),
+                location="Unknown",  # Would need IP geolocation service
+                device=parsed_ua.get("device", "Unknown"),
+                browser=parsed_ua.get("browser", "Unknown"),
+                ip_address=getattr(request.client, 'host', 'Unknown')
+            )
+        except Exception as notify_error:
+            logger.warning(f"Failed to send login notification: {notify_error}")
         
         return LoginResponse(
             access_token=access_token,
@@ -574,6 +594,44 @@ class AuthService:
             return 'iOS'
         else:
             return 'Unknown'
+    
+    def _parse_user_agent(self, user_agent: str) -> Dict[str, str]:
+        """Parse user agent to extract device and browser info"""
+        ua_lower = user_agent.lower()
+        
+        # Detect browser
+        browser = "Unknown Browser"
+        if 'firefox' in ua_lower:
+            browser = "Firefox"
+        elif 'edg' in ua_lower:
+            browser = "Microsoft Edge"
+        elif 'chrome' in ua_lower:
+            browser = "Chrome"
+        elif 'safari' in ua_lower:
+            browser = "Safari"
+        elif 'opera' in ua_lower or 'opr' in ua_lower:
+            browser = "Opera"
+        
+        # Detect device/platform
+        device = "Unknown Device"
+        if 'windows' in ua_lower:
+            device = "Windows PC"
+        elif 'macintosh' in ua_lower or 'mac os' in ua_lower:
+            device = "Mac"
+        elif 'linux' in ua_lower:
+            device = "Linux PC"
+        elif 'android' in ua_lower:
+            device = "Android Device"
+        elif 'iphone' in ua_lower:
+            device = "iPhone"
+        elif 'ipad' in ua_lower:
+            device = "iPad"
+        
+        return {
+            "browser": browser,
+            "device": device,
+            "platform": self._extract_platform(user_agent)
+        }
     
     # API Token Management
     

@@ -103,3 +103,9 @@ websockets>=12.0
 
 # Process management
 psutil>=5.9.6
+
+# Two-Factor Authentication
+pyotp>=2.9.0
+
+# User Agent Parsing
+user-agents>=2.2.0

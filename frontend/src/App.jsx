@@ -41,6 +41,9 @@ import {
   ArrowPathIcon,
   PlayIcon,
   UsersIcon,
+  ClockIcon,
+  ArchiveBoxIcon,
+  BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 import {
   ChartBarIcon,
@@ -57,19 +60,17 @@ import ProjectManagement from "./components/ProjectManagement";
 import ProjectDetails from "./components/ProjectDetails";
 import Settings from "./components/Settings";
 import UserManagement from "./components/UserManagement";
+import AuditLogs from "./components/AuditLogs";
+import DataRetentionPolicies from "./components/DataRetentionPolicies";
+import AdvancedCompliance from "./components/AdvancedCompliance";
+import LandingPage from "./components/LandingPage";
 import {
   AuthProvider,
   useAuth,
-  LoginForm,
-  RegisterForm,
-  UserProfile,
   AuthModal,
   EmailVerification,
-  ForgotPasswordForm,
-  ResetPasswordForm,
-  RegistrationSuccess,
-  ForgotPasswordSuccess,
-} from "./components/Auth";
+} from "./components/auth";
+import { UserProfile } from "./components/auth/UserProfile";
 import { websocketService, reportsAPI, authAPI } from "./services/api";
 import useScanTracker from "./hooks/useScanTracker";
 import toast from "react-hot-toast";
@@ -524,9 +525,16 @@ const PasswordResetPage = () => {
 const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
   const location = useLocation();
 
-  const publicRoutes = ["/reset-password", "/verify-email"];
-  const isPublicRoute = publicRoutes.some((route) =>
-    location.pathname.startsWith(route)
+  const publicRoutes = [
+    "/",
+    "/landing",
+    "/login",
+    "/register",
+    "/reset-password",
+    "/verify-email",
+  ];
+  const isPublicRoute = publicRoutes.some(
+    (route) => location.pathname.startsWith(route) || location.pathname === "/"
   );
 
   if (isPublicRoute) {
@@ -534,6 +542,32 @@ const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route
+            path="/login"
+            element={
+              <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+                <AuthModal
+                  isOpen={true}
+                  onClose={() => window.history.back()}
+                  initialView="login"
+                />
+              </div>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+                <AuthModal
+                  isOpen={true}
+                  onClose={() => window.history.back()}
+                  initialView="register"
+                />
+              </div>
+            }
+          />
           <Route
             path="/verify-email"
             element={
@@ -552,16 +586,6 @@ const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: "#1f2937",
-              color: "#fff",
-              border: "1px solid #374151",
-            },
-          }}
-        />
       </div>
     );
   }
@@ -570,16 +594,6 @@ const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       <AuthModal isOpen={true} onClose={() => setAuthModalOpen(false)} />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: "#1f2937",
-            color: "#fff",
-            border: "1px solid #374151",
-          },
-        }}
-      />
     </div>
   );
 };
@@ -765,22 +779,50 @@ function AppContent() {
     });
 
     websocketService.on("scan_update", (data) => {
+      const scanData = data.data || data;
+
+      // Handle different message formats
+      const projectName = scanData.project_name || scanData.projectName;
+      const scanStatus = scanData.status;
+      const scanType = scanData.scan_type || scanData.type || "security";
+      const progress = scanData.progress;
+      const customMessage = scanData.message;
+
+      // Build notification message based on available data
+      let notificationMessage;
+      if (projectName && scanStatus) {
+        // Real scan notification with project info
+        notificationMessage = `${scanType.toUpperCase()} scan ${scanStatus} for ${projectName}`;
+      } else if (customMessage) {
+        // Use the message field from demo/progress updates
+        notificationMessage = customMessage;
+        if (progress !== undefined) {
+          notificationMessage += ` (${progress}%)`;
+        }
+      } else if (progress !== undefined) {
+        // Progress-only update
+        notificationMessage = `Scan in progress: ${progress}%`;
+      } else {
+        // Fallback
+        notificationMessage = "Scan update received";
+      }
+
       setNotifications((prev) => [
         {
           id: Date.now(),
           type: "scan_update",
-          message: `Scan ${data.data.status} for ${data.data.project_name}`,
+          message: notificationMessage,
           timestamp: new Date(),
-          data: data.data,
+          data: scanData,
         },
         ...prev.slice(0, 9),
       ]);
 
       // Show toast for important updates
-      if (data.data.status === "completed") {
-        toast.success(`✅ Scan completed for ${data.data.project_name}`);
-      } else if (data.data.status === "failed") {
-        toast.error(`❌ Scan failed for ${data.data.project_name}`);
+      if (scanStatus === "completed" && projectName) {
+        toast.success(`✅ Scan completed for ${projectName}`);
+      } else if (scanStatus === "failed" && projectName) {
+        toast.error(`❌ Scan failed for ${projectName}`);
       }
     });
 
@@ -842,6 +884,24 @@ function AppContent() {
       name: "Analytics",
       href: "/analytics",
       icon: ChartBarIcon,
+      gradient: "from-green-500 to-emerald-500",
+    },
+    {
+      name: "Audit Logs",
+      href: "/audit-logs",
+      icon: ClockIcon,
+      gradient: "from-purple-500 to-pink-500",
+    },
+    {
+      name: "Data Retention",
+      href: "/retention-policies",
+      icon: ArchiveBoxIcon,
+      gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      name: "Compliance",
+      href: "/compliance",
+      icon: BuildingOfficeIcon,
       gradient: "from-green-500 to-emerald-500",
     },
     {
@@ -1095,16 +1155,39 @@ function AppContent() {
                                     {notification.type === "scan_update" && (
                                       <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                                     )}
+                                    {notification.type === "scan_error" && (
+                                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                    )}
+                                    {notification.type === "scan_completed" && (
+                                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    )}
+                                    {notification.type === "system" && (
+                                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                    )}
                                     <p className="text-sm font-medium text-white truncate">
                                       {notification.data?.project_name ||
-                                        "SecureDevOps Platform"}
+                                        notification.data?.projectName ||
+                                        (notification.type === "scan_update"
+                                          ? "Scan Update"
+                                          : notification.type === "scan_started"
+                                          ? "Scan Started"
+                                          : notification.type ===
+                                            "scan_completed"
+                                          ? "Scan Completed"
+                                          : notification.type === "scan_error"
+                                          ? "Scan Error"
+                                          : "System Notification")}
                                     </p>
                                   </div>
                                   <p className="text-sm text-gray-300">
-                                    {notification.message}
+                                    {notification.message || "Notification"}
                                   </p>
                                   <p className="text-xs text-gray-500 mt-1">
-                                    {notification.timestamp.toLocaleString()}
+                                    {notification.timestamp instanceof Date
+                                      ? notification.timestamp.toLocaleString()
+                                      : new Date(
+                                          notification.timestamp
+                                        ).toLocaleString()}
                                   </p>
                                 </div>
                                 <button
@@ -1153,15 +1236,22 @@ function AppContent() {
               onClick={() => setProfileModalOpen(true)}
               className="flex items-center space-x-2 lg:space-x-3 p-2 rounded-xl lg:rounded-2xl hover:bg-gray-800/50 transition-all"
             >
-              <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                <UserCircleIcon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+              <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                {user?.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserCircleIcon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+                )}
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-white">
-                  {user?.full_name || "Unknown User"}
+                  {user?.full_name || user?.username || "User"}
                 </p>
-                <p className="text-xs text-gray-400">{user?.email || ""}</p>
-                <span className="inline-block px-2 py-0.5 mt-1 text-xs bg-blue-500/20 text-blue-300 rounded-lg">
+                <span className="inline-block px-2 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded-lg capitalize">
                   {user?.role || "viewer"}
                 </span>
               </div>
@@ -1524,6 +1614,12 @@ function AppContent() {
               }
             />
             <Route path="/users" element={<UserManagement />} />
+            <Route path="/audit-logs" element={<AuditLogs />} />
+            <Route
+              path="/retention-policies"
+              element={<DataRetentionPolicies />}
+            />
+            <Route path="/compliance" element={<AdvancedCompliance />} />
             <Route
               path="/reports"
               element={
@@ -1604,8 +1700,12 @@ function AppContent() {
       {/* Enhanced Toast Notifications */}
       <Toaster
         position="top-right"
+        reverseOrder={false}
+        gutter={8}
+        containerClassName=""
+        containerStyle={{}}
         toastOptions={{
-          duration: 6000,
+          duration: 4000,
           style: {
             background:
               "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
@@ -1614,20 +1714,24 @@ function AppContent() {
             borderRadius: "1rem",
             backdropFilter: "blur(16px)",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            maxWidth: "500px",
           },
           success: {
+            duration: 3000,
             iconTheme: {
               primary: "#10b981",
               secondary: "#fff",
             },
           },
           error: {
+            duration: 4000,
             iconTheme: {
               primary: "#ef4444",
               secondary: "#fff",
             },
           },
           loading: {
+            duration: Infinity,
             iconTheme: {
               primary: "#3b82f6",
               secondary: "#fff",

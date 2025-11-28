@@ -42,6 +42,7 @@ from routes.security import router as security_router
 from routes.enhanced_security import router as enhanced_security_router  # Re-enabled with clean FastAPI implementation
 from routes.god_level_security import router as god_level_security_router  # Re-enabled with clean FastAPI implementation
 from routes.advanced_scanning_fastapi import router as advanced_scanning_router
+from routes.enterprise import router as enterprise_router  # Enterprise features
 
 # Import configuration
 from config import settings
@@ -111,6 +112,7 @@ app.include_router(webhook_router, prefix="/api")
 app.include_router(enhanced_security_router)  # Re-enabled with clean FastAPI implementation
 app.include_router(god_level_security_router)  # Re-enabled with clean FastAPI implementation
 app.include_router(advanced_scanning_router)
+app.include_router(enterprise_router)  # Enterprise features
 
 # Add trailing slash redirect middleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -297,18 +299,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         "status": "active"
                     }
                 })
-                
-                # Send demo scan progress less frequently
-                if heartbeat_count % 6 == 0:  # Every 3 minutes
-                    await websocket.send_json({
-                        "type": "scan_progress",
-                        "data": {
-                            "scan_id": "demo-scan",
-                            "progress": min(75 + (heartbeat_count % 25), 100),
-                            "message": "Demo scan progress update",
-                            "timestamp": datetime.now().isoformat()
-                        }
-                    })
                 
                 await asyncio.sleep(30)  # Send heartbeat every 30 seconds
                 
