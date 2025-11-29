@@ -30,6 +30,7 @@ class AuthService:
     
     def __init__(self):
         self.security = HTTPBearer()
+        self.optional_security = HTTPBearer(auto_error=False)
         self.algorithm = "HS256"
         self.access_token_expire = settings.access_token_expire_minutes  # minutes
         self.refresh_token_expire = settings.refresh_token_expire_days  # days
@@ -338,6 +339,7 @@ class AuthService:
             department=user_data.department,
             status=UserStatus.PENDING_VERIFICATION,
             email_verification_token=secrets.token_urlsafe(32),
+            email_verification_expires=datetime.utcnow() + timedelta(hours=2),
             created_by=created_by,
             last_updated_by=created_by
         )

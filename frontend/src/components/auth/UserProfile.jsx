@@ -53,7 +53,7 @@ import {
 import { CheckIcon, HeartIcon } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
-import { authAPI } from "../../services/api";
+import { authAPI, getApiErrorMessage } from "../../services/api";
 
 /**
  * UserProfile Component
@@ -360,7 +360,16 @@ export const UserProfile = ({ onClose }) => {
         confirm_password: "",
       });
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to change password");
+      // Check if it's a password validation error (422)
+      const errorMsg = getApiErrorMessage(error, "Failed to change password");
+      if (
+        error.response?.status === 422 ||
+        errorMsg.toLowerCase().includes("password must")
+      ) {
+        toast.error("Please ensure your password meets all requirements");
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setIsChangingPassword(false);
     }
@@ -369,7 +378,8 @@ export const UserProfile = ({ onClose }) => {
   const handleResendVerification = async () => {
     setIsResendingVerification(true);
     try {
-      await resendVerificationEmail();
+      // Pass user's email for safety, though backend can also use auth token
+      await resendVerificationEmail(user?.email);
     } catch (error) {
       // Error handled in AuthContext
     } finally {
@@ -410,7 +420,7 @@ export const UserProfile = ({ onClose }) => {
       setTwoFactorSetupData(setupData);
       setShowTwoFactorSetup(true);
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to setup 2FA");
+      toast.error(getApiErrorMessage(error, "Failed to setup 2FA"));
     } finally {
       setProcessing2FA(false);
     }
@@ -432,7 +442,7 @@ export const UserProfile = ({ onClose }) => {
       toast.success("Two-factor authentication enabled successfully!");
       if (refreshUserProfile) refreshUserProfile();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Invalid verification code");
+      toast.error(getApiErrorMessage(error, "Invalid verification code"));
     } finally {
       setProcessing2FA(false);
     }
@@ -453,7 +463,7 @@ export const UserProfile = ({ onClose }) => {
       toast.success("Two-factor authentication disabled");
       if (refreshUserProfile) refreshUserProfile();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Invalid verification code");
+      toast.error(getApiErrorMessage(error, "Invalid verification code"));
     } finally {
       setProcessing2FA(false);
     }
@@ -467,9 +477,7 @@ export const UserProfile = ({ onClose }) => {
       setActiveSessions((prev) => prev.filter((s) => s.id !== sessionId));
       toast.success("Session terminated");
     } catch (error) {
-      toast.error(
-        error.response?.data?.detail || "Failed to terminate session"
-      );
+      toast.error(getApiErrorMessage(error, "Failed to terminate session"));
     } finally {
       setRevokingSession(null);
     }

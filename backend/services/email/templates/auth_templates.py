@@ -50,7 +50,7 @@ def get_verification_template() -> str:
             </div>
         </div>
         ''',
-        footer_text="This verification link expires in 24 hours."
+        footer_text="This verification link expires in 2 hours."
     )
 
 
@@ -188,8 +188,7 @@ def get_welcome_template() -> str:
                 <li><strong style="color: #e2e8f0;">Set up alerts</strong> - Stay informed in real-time</li>
             </ol>
         </div>
-        ''',
-        footer_text="Questions? Reply to this email and we'll help you get started."
+        '''
     )
 
 

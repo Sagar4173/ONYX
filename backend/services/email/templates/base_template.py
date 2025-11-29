@@ -3,11 +3,16 @@ Base Email Template and Styles
 Provides the foundation for all email templates
 """
 
-# Base email styles for consistency
+from datetime import datetime
+from config import settings
+
+# Base email styles - using web-safe fonts for email compatibility
 BASE_STYLES = '''
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+<!--[if mso]>
+<style type="text/css">
+    body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
 </style>
+<![endif]-->
 '''
 
 
@@ -33,6 +38,9 @@ def get_base_template(
     Returns:
         Complete HTML email template
     """
+    current_year = datetime.now().year
+    base_url = settings.frontend_url
+    
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,48 +50,51 @@ def get_base_template(
     <title>{title}</title>
     {BASE_STYLES}
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a; min-height: 100vh;">
-    <div style="max-width: 640px; margin: 0 auto; padding: 20px;">
-        <!-- Main Card -->
-        <div style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255,255,255,0.1);">
-            
-            <!-- Header -->
-            <div style="background: {header_gradient}; padding: 48px 32px; text-align: center; position: relative; overflow: hidden;">
-                <div style="position: relative; z-index: 1;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">{header_icon}</div>
-                    <h1 style="color: #ffffff; font-size: 28px; margin: 0; font-weight: 700; letter-spacing: -0.5px;">
-                        SecureDevOps Platform
-                    </h1>
-                    <p style="color: rgba(255,255,255,0.85); margin: 12px 0 0 0; font-size: 16px; font-weight: 500;">
-                        {header_subtitle}
-                    </p>
-                </div>
-                <!-- Decorative circles -->
-                <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-                <div style="position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
-            </div>
-            
-            <!-- Content -->
-            <div style="padding: 40px 32px;">
-                {content}
-            </div>
-            
-            <!-- Footer -->
-            <div style="background: rgba(0,0,0,0.3); padding: 32px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
-                {f'<p style="color: #94a3b8; font-size: 14px; margin: 0 0 12px 0;">{footer_text}</p>' if footer_text else ''}
-                <p style="color: #64748b; font-size: 12px; margin: 0;">
-                    © 2025 SecureDevOps Platform. All rights reserved.
-                </p>
-                <div style="margin-top: 16px;">
-                    <a href="#" style="color: #64748b; text-decoration: none; margin: 0 8px; font-size: 12px;">Privacy Policy</a>
-                    <span style="color: #475569;">•</span>
-                    <a href="#" style="color: #64748b; text-decoration: none; margin: 0 8px; font-size: 12px;">Terms of Service</a>
-                    <span style="color: #475569;">•</span>
-                    <a href="#" style="color: #64748b; text-decoration: none; margin: 0 8px; font-size: 12px;">Unsubscribe</a>
-                </div>
-            </div>
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #0f172a;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0f172a;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <!-- Main Card -->
+                <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="max-width: 640px; width: 100%; background-color: #1e293b; border-radius: 24px; border: 1px solid #334155;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: {header_gradient}; background-color: #10b981; padding: 32px 24px; text-align: center; border-radius: 24px 24px 0 0;">
+                            <div style="font-size: 40px; margin-bottom: 12px;">{header_icon}</div>
+                            <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 700; letter-spacing: -0.5px;">
+                                SecureDevOps Platform
+                            </h1>
+                            <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 14px; font-weight: 500;">
+                                {header_subtitle}
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 32px; background-color: #1e293b;">
+                            {content}
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #0f172a; padding: 32px; text-align: center; border-top: 1px solid #334155; border-radius: 0 0 24px 24px;">
+                            {f'<p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">{footer_text}</p>' if footer_text else ''}
+                            <p style="color: #64748b; font-size: 12px; margin: 0;">
+                                © {current_year} SecureDevOps Platform. All rights reserved.
+                            </p>
+                            <p style="margin-top: 16px; margin-bottom: 0;">
+                                <a href="{base_url}/privacy-policy" style="color: #64748b; text-decoration: none; font-size: 12px;">Privacy Policy</a>
+                                <span style="color: #475569;"> • </span>
+                                <a href="{base_url}/terms-of-service" style="color: #64748b; text-decoration: none; font-size: 12px;">Terms of Service</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>'''
 

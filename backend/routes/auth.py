@@ -586,16 +586,24 @@ async def verify_email(request: EmailVerificationRequest):
     """
     Verify email address using verification token
     """
-    # First, try to find user with the token (regardless of status)
+    # Find user with the token and check if not expired
     user = await User.find_one({
         "email_verification_token": request.token
     })
     
     if user:
+        # Check if token has expired (if expiration is set)
+        if user.email_verification_expires and datetime.utcnow() > user.email_verification_expires:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verification link has expired. Please request a new verification email."
+            )
+        
         # Token found and user is pending verification
         if user.status == UserStatus.PENDING_VERIFICATION and not user.is_email_verified:
             user.is_email_verified = True
             user.email_verification_token = None
+            user.email_verification_expires = None
             user.status = UserStatus.ACTIVE
             user.updated_at = datetime.utcnow()
             await user.save()
@@ -603,6 +611,10 @@ async def verify_email(request: EmailVerificationRequest):
         
         # Token found but user is already verified
         elif user.is_email_verified:
+            # Clear the old token since email is already verified
+            user.email_verification_token = None
+            user.email_verification_expires = None
+            await user.save()
             return {"message": "Email is already verified. Your account is active."}
         
         # Token found but user has different status
@@ -612,49 +624,73 @@ async def verify_email(request: EmailVerificationRequest):
                 detail="Account verification failed. Please contact support."
             )
     
-    # No user found with this token - check if there's a verified user with this email pattern
-    # This could happen if the token was already used and cleared
-    if len(request.token) > 10:  # Basic token format check
-        # Look for any users that might have been verified recently
-        recently_verified_user = await User.find_one({
-            "is_email_verified": True,
-            "status": UserStatus.ACTIVE,
-            "email_verification_token": None
-        }, sort=[("updated_at", -1)])
-        
-        if recently_verified_user:
-            # Check if this was updated recently (within last 5 minutes)
-            time_diff = datetime.utcnow() - recently_verified_user.updated_at
-            if time_diff.total_seconds() < 300:  # 5 minutes
-                return {"message": "Email is already verified. Your account is active."}
-    
-    # Invalid or expired token
+    # Invalid or expired token (token not found - could be old link after resend)
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Invalid or expired verification token"
+        detail="Invalid or expired verification link. Please request a new verification email."
     )
+
+
+class ResendVerificationRequest(BaseModel):
+    """Request model for resending verification email"""
+    email: str
 
 
 @router.post("/resend-verification")
 async def resend_verification_email(
-    current_user: User = Depends(auth_service.get_current_user_for_verification)
+    request_data: Optional[ResendVerificationRequest] = None,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(auth_service.optional_security)
 ):
     """
     Resend email verification token
-    Allows both ACTIVE and PENDING_VERIFICATION users
+    
+    Supports two modes:
+    1. Authenticated: Uses the token to identify the user
+    2. Unauthenticated: Uses the email from request body (for post-registration)
+    
+    Note: When a new verification email is sent, the old token becomes invalid.
     """
-    if current_user.is_email_verified:
+    import secrets
+    from datetime import timedelta
+    
+    user = None
+    
+    # Try authenticated mode first
+    if credentials and credentials.credentials:
+        try:
+            user = await auth_service.get_current_user_for_verification(credentials)
+        except HTTPException:
+            # Authentication failed, fall back to email-based lookup
+            pass
+    
+    # Fall back to email-based lookup
+    if not user and request_data and request_data.email:
+        user = await User.find_one({"email": request_data.email.lower()})
+        if not user:
+            # Return error - email not found in system
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No account found with this email address. Please check the email or create a new account."
+            )
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required for unauthenticated requests"
+        )
+    
+    if user.is_email_verified:
         return {"message": "Email is already verified"}
     
-    # Generate new verification token
-    import secrets
-    current_user.email_verification_token = secrets.token_urlsafe(32)
-    await current_user.save()
+    # Generate new verification token (this invalidates the old token)
+    user.email_verification_token = secrets.token_urlsafe(32)
+    user.email_verification_expires = datetime.utcnow() + timedelta(hours=2)
+    await user.save()
     
     # Send verification email
     await auth_service.send_verification_email(
-        current_user.email, 
-        current_user.email_verification_token
+        user.email, 
+        user.email_verification_token
     )
     
     return {"message": "Verification email sent successfully"}

@@ -44,6 +44,35 @@ const cleanParams = (params = {}) => {
   }, {});
 };
 
+/**
+ * Utility function to extract error message from API error response
+ * Handles FastAPI/Pydantic validation errors (422) which return an array of error objects
+ * @param {Error} error - Axios error object
+ * @param {string} fallbackMessage - Default message if no specific error found
+ * @returns {string} - Human-readable error message
+ */
+export const getApiErrorMessage = (
+  error,
+  fallbackMessage = "An error occurred"
+) => {
+  const detail = error.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    // Handle Pydantic validation errors (422 responses)
+    return detail
+      .map((err) => err.msg || err.message || JSON.stringify(err))
+      .join(", ");
+  } else if (typeof detail === "string") {
+    return detail;
+  } else if (error.response?.data?.message) {
+    return error.response.data.message;
+  } else if (error.message) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+};
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -244,9 +273,9 @@ export const authAPI = {
   },
 
   // Resend verification email
-  resendVerificationEmail: async () => {
+  resendVerificationEmail: async (email) => {
     try {
-      const response = await api.post("/auth/resend-verification");
+      const response = await api.post("/auth/resend-verification", { email });
       return response.data;
     } catch (error) {
       console.error("Resend verification error:", error);

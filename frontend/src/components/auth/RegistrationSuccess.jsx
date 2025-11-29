@@ -1,5 +1,9 @@
-import React from "react";
-import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import React, { useState, useEffect } from "react";
+import {
+  EnvelopeIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
 /**
@@ -12,13 +16,59 @@ export const RegistrationSuccess = ({
   onSwitchToLogin,
   onResendVerification,
 }) => {
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (cooldownSeconds > 0) {
+      const timer = setTimeout(() => {
+        setCooldownSeconds(cooldownSeconds - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldownSeconds]);
+
   const handleResendEmail = async () => {
+    if (isResending || cooldownSeconds > 0) return;
+
+    setIsResending(true);
+    setResendSuccess(false);
+
     try {
-      await onResendVerification();
+      await onResendVerification(email);
+      setResendSuccess(true);
+      setCooldownSeconds(60); // 60 second cooldown before next resend
       toast.success("Verification email resent! Please check your inbox.");
     } catch (error) {
       toast.error("Failed to resend verification email");
+    } finally {
+      setIsResending(false);
     }
+  };
+
+  const getButtonContent = () => {
+    if (isResending) {
+      return (
+        <>
+          <ArrowPathIcon className="h-5 w-5 animate-spin mr-2" />
+          Sending...
+        </>
+      );
+    }
+    if (cooldownSeconds > 0) {
+      return `Resend available in ${cooldownSeconds}s`;
+    }
+    if (resendSuccess) {
+      return (
+        <>
+          <CheckCircleIcon className="h-5 w-5 mr-2" />
+          Email Sent! Click to Resend Again
+        </>
+      );
+    }
+    return "Resend Verification Email";
   };
 
   return (
@@ -59,24 +109,57 @@ export const RegistrationSuccess = ({
         </div>
 
         {/* Info Box */}
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
-          <p className="text-sm text-gray-300">
-            <span className="font-semibold text-blue-400">Important:</span>{" "}
-            Please check your email and click the verification link to activate
-            your account.
-          </p>
-          <p className="text-xs text-gray-400 mt-2">
-            Check your spam folder if you don't see the email within a few
-            minutes.
-          </p>
+        <div
+          className={`${
+            resendSuccess
+              ? "bg-green-500/10 border-green-500/30"
+              : "bg-blue-500/10 border-blue-500/30"
+          } border rounded-xl p-4 mb-6 transition-colors duration-300`}
+        >
+          {resendSuccess ? (
+            <>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                <span className="font-semibold text-green-400">
+                  Email Resent Successfully!
+                </span>
+              </div>
+              <p className="text-sm text-gray-300">
+                We've sent another verification email to your inbox.
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                Please check your inbox and spam folder.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-300">
+                <span className="font-semibold text-blue-400">Important:</span>{" "}
+                Please check your email and click the verification link to
+                activate your account.
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                Check your spam folder if you don't see the email within a few
+                minutes.
+              </p>
+            </>
+          )}
         </div>
 
         {/* Resend Button */}
         <button
           onClick={handleResendEmail}
-          className="w-full mb-3 py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/25"
+          disabled={isResending || cooldownSeconds > 0}
+          className={`w-full mb-3 py-3 px-4 font-medium rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center
+            ${
+              isResending || cooldownSeconds > 0
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : resendSuccess
+                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 hover:shadow-blue-500/25"
+                : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 hover:shadow-green-500/25"
+            }`}
         >
-          Resend Verification Email
+          {getButtonContent()}
         </button>
 
         {/* Back to Login */}
