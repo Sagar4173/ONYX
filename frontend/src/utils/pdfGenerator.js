@@ -110,11 +110,22 @@ export const applyPDFStyles = (element) => {
       el.classList.contains("bg-gray-800/50") ||
       el.classList.contains("bg-gray-800/30") ||
       el.classList.contains("bg-gray-700") ||
-      el.classList.contains("bg-gray-700/50")
+      el.classList.contains("bg-gray-700/50") ||
+      el.classList.contains("bg-gray-900/50") ||
+      el.classList.contains("bg-gray-900/30")
     ) {
       el.style.backgroundColor = "#f9fafb";
       el.style.border = "1px solid #e5e7eb";
       el.style.borderRadius = "8px";
+    }
+
+    // Gray severity backgrounds (info level)
+    if (
+      el.classList.contains("bg-gray-500/10") ||
+      el.classList.contains("bg-gray-500/20")
+    ) {
+      el.style.backgroundColor = "#f3f4f6";
+      el.style.border = "1px solid #d1d5db";
     }
 
     // Gradient backgrounds -> Solid light backgrounds
@@ -182,7 +193,8 @@ export const applyPDFStyles = (element) => {
       el.classList.contains("border-gray-700") ||
       el.classList.contains("border-gray-800") ||
       el.classList.contains("border-gray-700/50") ||
-      el.classList.contains("border-gray-600")
+      el.classList.contains("border-gray-600") ||
+      el.classList.contains("border-gray-500/30")
     ) {
       el.style.borderColor = "#e5e7eb";
     }
@@ -293,6 +305,30 @@ export const applyPDFStyles = (element) => {
       el.style.textDecoration = "underline";
     }
 
+    // Fix truncated text for PDF - allow full text to wrap
+    if (el.classList.contains("truncate")) {
+      el.style.overflow = "visible";
+      el.style.textOverflow = "clip";
+      el.style.whiteSpace = "normal";
+      el.style.wordBreak = "break-word";
+    }
+
+    // Fix text that might have line-through or be cut off
+    if (el.classList.contains("line-through")) {
+      el.style.textDecoration = "line-through";
+    } else {
+      // Ensure no unwanted strikethrough
+      if (el.style.textDecoration === "line-through") {
+        el.style.textDecoration = "none";
+      }
+    }
+
+    // Ensure min-w-0 elements can expand in PDF
+    if (el.classList.contains("min-w-0")) {
+      el.style.minWidth = "auto";
+      el.style.width = "auto";
+    }
+
     // Badges/Pills
     if (
       el.classList.contains("rounded-full") &&
@@ -345,11 +381,15 @@ export const applyPDFStyles = (element) => {
 export const generatePDF = async (element, options = {}) => {
   const {
     filename = `report-${new Date().toISOString().split("T")[0]}.pdf`,
+    title = "SecureDevOps AI",
+    subtitle = "Security Compliance Report",
     format = "letter",
     orientation = "portrait",
     margin = 0.5,
     quality = 0.98,
     scale = 2,
+    showHeader = true,
+    showFooter = true,
     onStart = () => {},
     onSuccess = () => {},
     onError = () => {},
@@ -365,54 +405,58 @@ export const generatePDF = async (element, options = {}) => {
     applyPDFStyles(clonedElement);
 
     // Add PDF header with branding
-    const header = document.createElement("div");
-    header.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 0;
-      margin-bottom: 24px;
-      border-bottom: 2px solid #3b82f6;
-    `;
-    header.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-          <span style="color: white; font-weight: bold; font-size: 18px;">S</span>
+    if (showHeader) {
+      const header = document.createElement("div");
+      header.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        margin-bottom: 24px;
+        border-bottom: 2px solid #3b82f6;
+      `;
+      header.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-weight: bold; font-size: 18px;">S</span>
+          </div>
+          <div>
+            <div style="font-size: 16px; font-weight: 700; color: #111827;">${title}</div>
+            <div style="font-size: 11px; color: #6b7280;">${subtitle}</div>
+          </div>
         </div>
-        <div>
-          <div style="font-size: 16px; font-weight: 700; color: #111827;">SecureDevOps AI</div>
-          <div style="font-size: 11px; color: #6b7280;">Security Compliance Report</div>
+        <div style="text-align: right; font-size: 11px; color: #6b7280;">
+          <div>Generated: ${new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}</div>
+          <div>${new Date().toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}</div>
         </div>
-      </div>
-      <div style="text-align: right; font-size: 11px; color: #6b7280;">
-        <div>Generated: ${new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}</div>
-        <div>${new Date().toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}</div>
-      </div>
-    `;
-    clonedElement.insertBefore(header, clonedElement.firstChild);
+      `;
+      clonedElement.insertBefore(header, clonedElement.firstChild);
+    }
 
     // Add PDF footer
-    const footer = document.createElement("div");
-    footer.style.cssText = `
-      margin-top: 32px;
-      padding-top: 16px;
-      border-top: 1px solid #e5e7eb;
-      text-align: center;
-      font-size: 10px;
-      color: #9ca3af;
-    `;
-    footer.innerHTML = `
-      <div>This report was automatically generated by SecureDevOps AI Platform</div>
-      <div style="margin-top: 4px;">© ${new Date().getFullYear()} SecureDevOps AI - Confidential</div>
-    `;
-    clonedElement.appendChild(footer);
+    if (showFooter) {
+      const footer = document.createElement("div");
+      footer.style.cssText = `
+        margin-top: 32px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        font-size: 10px;
+        color: #9ca3af;
+      `;
+      footer.innerHTML = `
+        <div>This report was automatically generated by SecureDevOps AI Platform</div>
+        <div style="margin-top: 4px;">© ${new Date().getFullYear()} SecureDevOps AI - Confidential</div>
+      `;
+      clonedElement.appendChild(footer);
+    }
 
     // Create temporary container
     const tempContainer = document.createElement("div");

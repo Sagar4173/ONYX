@@ -446,6 +446,22 @@ export const reportsAPI = {
     }
   },
 
+  // Get AI analysis for a report
+  getAIAnalysis: async (reportId) => {
+    try {
+      const response = await api.get(`/reports/${reportId}/ai-analysis`);
+      return response.data;
+    } catch (error) {
+      // Don't throw error if AI analysis is not available - just return null
+      if (error.response?.status === 404) {
+        console.log("AI analysis not available for this report");
+        return null;
+      }
+      console.error("Error fetching AI analysis:", error);
+      throw error;
+    }
+  },
+
   // Get analytics overview
   getAnalyticsOverview: async (daysBack = 30, projectName = null) => {
     try {

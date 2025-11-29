@@ -746,7 +746,9 @@ const ComplianceReport = () => {
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
                 <div className="text-sm font-medium text-gray-400">Branch</div>
-                <div className="text-white mt-1">{report.branch}</div>
+                <div className="text-white mt-1">
+                  {report.branch || report.git_metadata?.branch || "main"}
+                </div>
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
                 <div className="text-sm font-medium text-gray-400">
