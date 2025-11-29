@@ -368,11 +368,15 @@ const DataRetentionPolicies = () => {
                           policy_type: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
                       required
                     >
                       {policyTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
+                        <option
+                          key={type.value}
+                          value={type.value}
+                          className="bg-gray-800 text-white"
+                        >
                           {type.label}
                         </option>
                       ))}
