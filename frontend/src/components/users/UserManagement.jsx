@@ -25,6 +25,7 @@ import {
 } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { useAuth } from "../auth";
+import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 const UserManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -456,20 +457,15 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-      <div className="relative max-w-7xl mx-auto">
+    <PageContainer>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <UsersIcon className="w-4 h-4 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white">User Management</h1>
-          </div>
-          <p className="text-gray-400">
-            Manage users, roles, and security settings
-          </p>
-        </div>
+        <PageHeader
+          title="User Management"
+          description="Manage users, roles, and security settings"
+          icon={UsersIcon}
+          breadcrumb={["Users"]}
+        />
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 mb-6">
@@ -498,7 +494,7 @@ const UserManagement = () => {
         {selectedTab === "users" && (
           <div className="space-y-6">
             {/* Search and Filters */}
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
+            <GlassCard>
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
@@ -568,7 +564,7 @@ const UserManagement = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </GlassCard>
 
             {/* Users Table */}
             <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
@@ -864,7 +860,7 @@ const UserManagement = () => {
           }}
         />
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

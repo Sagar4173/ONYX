@@ -20,6 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
+import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 const DataRetentionPolicies = () => {
   const queryClient = useQueryClient();
@@ -193,37 +194,28 @@ const DataRetentionPolicies = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+    <PageContainer>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 lg:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3 lg:gap-4">
-              <div className="p-2.5 lg:p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl lg:rounded-2xl shadow-lg flex-shrink-0">
-                <ArchiveBoxIcon className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl lg:text-4xl font-bold text-white mb-1 lg:mb-2">
-                  Data Retention Policies
-                </h1>
-                <p className="text-sm lg:text-base text-gray-400">
-                  Automated data lifecycle management with compliance support
-                </p>
-              </div>
-            </div>
+        <PageHeader
+          title="Data Retention Policies"
+          description="Automated data lifecycle management with compliance support"
+          icon={ArchiveBoxIcon}
+          breadcrumb={["Data Retention"]}
+          actions={
             <button
               onClick={() => {
                 setEditingPolicy(null);
                 resetForm();
                 setShowCreateModal(true);
               }}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all w-fit"
+              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all"
             >
               <PlusIcon className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>Create Policy</span>
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Policies Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -515,7 +507,7 @@ const DataRetentionPolicies = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

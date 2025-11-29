@@ -1788,32 +1788,8 @@ function AppContent() {
               path="/dashboard"
               element={<ModernDashboard notifications={notifications} />}
             />
-            <Route
-              path="/projects"
-              element={
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                      <ProjectManagement />
-                    </div>
-                  </div>
-                </div>
-              }
-            />
-            <Route
-              path="/project/:projectId"
-              element={
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                      <ProjectDetails />
-                    </div>
-                  </div>
-                </div>
-              }
-            />
+            <Route path="/projects" element={<ProjectManagement />} />
+            <Route path="/project/:projectId" element={<ProjectDetails />} />
             <Route path="/users" element={<UserManagement />} />
             <Route path="/audit-logs" element={<AuditLogs />} />
             <Route
@@ -1831,19 +1807,7 @@ function AppContent() {
               element={<ComplianceReport />}
             />
             <Route path="/analytics" element={<Analytics />} />
-            <Route
-              path="/settings"
-              element={
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                      <Settings />
-                    </div>
-                  </div>
-                </div>
-              }
-            />
+            <Route path="/settings" element={<Settings />} />
             <Route
               path="/verify-email"
               element={

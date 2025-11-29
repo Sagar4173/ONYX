@@ -30,6 +30,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { projectsAPI, reportsAPI, utils } from "../../services/api";
+import { PageContainer, PageHeader } from "../../layouts";
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
@@ -177,50 +178,41 @@ const ProjectDetails = () => {
     project.vulnerability_count.low;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+    <PageContainer>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate("/projects")}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-white">{project.name}</h1>
-              <p className="text-gray-400 mt-1">
-                {project.description || "No description provided"}
-              </p>
+        <PageHeader
+          title={project.name}
+          description={project.description || "No description provided"}
+          icon={ShieldCheckIcon}
+          breadcrumb={["Projects", project.name]}
+          actions={
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleStartScan}
+                disabled={startScanMutation.isPending}
+                className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center space-x-2"
+              >
+                <PlayIcon className="h-5 w-5" />
+                <span>
+                  {startScanMutation.isPending ? "Starting..." : "Start Scan"}
+                </span>
+              </button>
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="p-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/20 transition-all"
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
             </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={handleStartScan}
-              disabled={startScanMutation.isPending}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center space-x-2"
-            >
-              <PlayIcon className="h-5 w-5" />
-              <span>
-                {startScanMutation.isPending ? "Starting..." : "Start Scan"}
-              </span>
-            </button>
-            <button
-              onClick={() => setShowEditModal(true)}
-              className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-            >
-              <PencilIcon className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="p-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/20 transition-all"
-            >
-              <TrashIcon className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -632,7 +624,7 @@ const ProjectDetails = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

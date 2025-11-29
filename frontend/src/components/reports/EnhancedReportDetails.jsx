@@ -33,6 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
+import { PageContainer, PageHeader } from "../../layouts";
 
 const EnhancedReportDetails = () => {
   const { reportId } = useParams();
@@ -256,21 +257,15 @@ const EnhancedReportDetails = () => {
   const filteredFindings = getFilteredFindings();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <PageContainer>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/"
-                className="inline-flex items-center text-sm text-gray-400 hover:text-gray-300 transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                Back to Dashboard
-              </Link>
-            </div>
-
+        <PageHeader
+          title="Security Scan Report"
+          description={report.project_name}
+          icon={DocumentTextIcon}
+          breadcrumb={["Reports", report.project_name]}
+          actions={
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => downloadReport("json")}
@@ -317,45 +312,39 @@ const EnhancedReportDetails = () => {
                 Compliance Report
               </Link>
             </div>
-          </div>
+          }
+        />
 
-          <div className="glass-container rounded-2xl p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">
-                  Security Scan Report
-                </h1>
-                <p className="text-xl text-gray-400 mb-4">
-                  {report.project_name}
-                </p>
-                <div className="flex items-center space-x-6 text-sm text-gray-400">
-                  <div className="flex items-center">
-                    <ClockIcon className="h-4 w-4 mr-1" />
-                    {utils.formatDate(report.created_at)}
-                  </div>
-                  <div className="flex items-center">
-                    <CodeIcon className="h-4 w-4 mr-1" />
-                    {report.git_metadata?.repository_url}
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                      {report.git_metadata?.branch || "main"}
-                    </span>
-                  </div>
+        <div className="glass-container rounded-2xl p-6 mb-8">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center space-x-6 text-sm text-gray-400">
+                <div className="flex items-center">
+                  <ClockIcon className="h-4 w-4 mr-1" />
+                  {utils.formatDate(report.created_at)}
+                </div>
+                <div className="flex items-center">
+                  <CodeIcon className="h-4 w-4 mr-1" />
+                  {report.git_metadata?.repository_url}
+                </div>
+                <div className="flex items-center">
+                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
+                    {report.git_metadata?.branch || "main"}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <div className="text-right">
-                <StatusBadge status={report.status} />
-                <div className="mt-2 text-sm text-gray-400">
-                  Scan ID: {report.scan_id}
-                </div>
-                {report.duration_seconds && (
-                  <div className="text-sm text-gray-400">
-                    Duration: {Math.round(report.duration_seconds)}s
-                  </div>
-                )}
+            <div className="text-right">
+              <StatusBadge status={report.status} />
+              <div className="mt-2 text-sm text-gray-400">
+                Scan ID: {report.scan_id}
               </div>
+              {report.duration_seconds && (
+                <div className="text-sm text-gray-400">
+                  Duration: {Math.round(report.duration_seconds)}s
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -769,7 +758,7 @@ const EnhancedReportDetails = () => {
           )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

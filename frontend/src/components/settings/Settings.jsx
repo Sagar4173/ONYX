@@ -26,6 +26,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth";
+import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("security");
@@ -159,25 +160,20 @@ const Settings = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+    <PageContainer>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Cog6ToothIcon className="w-4 h-4 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white">Settings</h1>
-          </div>
-          <p className="text-gray-400">
-            Manage your account preferences and platform configuration
-          </p>
-        </div>
+        <PageHeader
+          title="Settings"
+          description="Manage your account preferences and platform configuration"
+          icon={CogIcon}
+          breadcrumb={["Settings"]}
+        />
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-64 flex-shrink-0">
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-2">
+            <GlassCard noPadding className="p-2">
               <nav className="space-y-1">
                 {tabs.map((tab) => (
                   <button
@@ -194,7 +190,7 @@ const Settings = () => {
                   </button>
                 ))}
               </nav>
-            </div>
+            </GlassCard>
 
             {/* Save Button */}
             <button
@@ -208,7 +204,7 @@ const Settings = () => {
 
           {/* Content */}
           <div className="flex-1">
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6">
+            <GlassCard>
               {/* Security Settings */}
               {activeTab === "security" && (
                 <div className="space-y-6">
@@ -699,11 +695,11 @@ const Settings = () => {
                   </SettingCard>
                 </div>
               )}
-            </div>
+            </GlassCard>
           </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

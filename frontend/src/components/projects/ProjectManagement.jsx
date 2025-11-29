@@ -30,6 +30,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../auth";
 import { projectsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { PageContainer, PageHeader } from "../../layouts";
 
 // Project Card Component
 const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
@@ -753,26 +754,23 @@ export const ProjectManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+    <PageContainer>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Project Management
-          </h1>
-          <p className="text-gray-400">
-            Manage your security scanning projects and team collaboration
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-2"
-        >
-          <PlusIcon className="h-5 w-5" />
-          <span>New Project</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Project Management"
+        description="Manage your security scanning projects and team collaboration"
+        icon={UsersIcon}
+        breadcrumb={["Projects"]}
+        actions={
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-2"
+          >
+            <PlusIcon className="h-5 w-5" />
+            <span>New Project</span>
+          </button>
+        }
+      />
 
       {/* Analytics Cards */}
       {analytics && (
@@ -1010,7 +1008,7 @@ export const ProjectManagement = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 };
 
