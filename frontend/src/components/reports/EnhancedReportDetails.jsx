@@ -85,11 +85,16 @@ const EnhancedReportDetails = () => {
     retry: false,
   });
 
-  // Fetch AI analysis if available
-  const { data: aiAnalysis, isLoading: aiLoading } = useQuery({
+  // Fetch AI analysis - always try to fetch regardless of has_ai_analysis flag
+  const {
+    data: aiAnalysis,
+    isLoading: aiLoading,
+    error: aiError,
+  } = useQuery({
     queryKey: ["ai-analysis", reportId],
     queryFn: () => reportsAPI.getAIAnalysis(reportId),
-    enabled: !!reportId && report?.has_ai_analysis,
+    enabled: !!reportId && !!report, // Only need reportId and report to exist
+    retry: false, // Don't retry if AI analysis isn't available
   });
 
   // Download report function
@@ -580,26 +585,28 @@ const EnhancedReportDetails = () => {
                   <RefreshIcon className="h-8 w-8 text-blue-400 animate-spin mx-auto mb-4" />
                   <p className="text-gray-400">Loading AI analysis...</p>
                 </div>
-              ) : aiAnalysis ? (
+              ) : aiAnalysis && aiAnalysis.has_analysis ? (
                 <>
                   {aiAnalysis.executive_summary && (
                     <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <SparklesIcon className="h-5 w-5 mr-2 text-blue-400" />
                         Executive Summary
                       </h3>
-                      <p className="text-gray-300">
+                      <p className="text-gray-300 leading-relaxed">
                         {aiAnalysis.executive_summary}
                       </p>
                     </div>
                   )}
 
-                  {aiAnalysis.risk_assessment && (
+                  {aiAnalysis.overall_risk_assessment && (
                     <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <ExclamationTriangleIcon className="h-5 w-5 mr-2 text-amber-400" />
                         Risk Assessment
                       </h3>
-                      <p className="text-gray-300">
-                        {aiAnalysis.risk_assessment}
+                      <p className="text-gray-300 leading-relaxed">
+                        {aiAnalysis.overall_risk_assessment}
                       </p>
                     </div>
                   )}
@@ -607,10 +614,11 @@ const EnhancedReportDetails = () => {
                   {aiAnalysis.priority_findings &&
                     aiAnalysis.priority_findings.length > 0 && (
                       <div className="glass-container rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">
+                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <FireIcon className="h-5 w-5 mr-2 text-red-400" />
                           Priority Findings
                         </h3>
-                        <ul className="space-y-2">
+                        <ul className="space-y-3">
                           {aiAnalysis.priority_findings.map(
                             (finding, index) => (
                               <li key={index} className="flex items-start">
@@ -625,17 +633,18 @@ const EnhancedReportDetails = () => {
                       </div>
                     )}
 
-                  {aiAnalysis.recommendations &&
-                    aiAnalysis.recommendations.length > 0 && (
+                  {aiAnalysis.priority_recommendations &&
+                    aiAnalysis.priority_recommendations.length > 0 && (
                       <div className="glass-container rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4">
+                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <LightBulbIcon className="h-5 w-5 mr-2 text-yellow-400" />
                           Recommendations
                         </h3>
-                        <ul className="space-y-2">
-                          {aiAnalysis.recommendations.map(
+                        <ul className="space-y-3">
+                          {aiAnalysis.priority_recommendations.map(
                             (recommendation, index) => (
                               <li key={index} className="flex items-start">
-                                <LightBulbIcon className="h-5 w-5 text-yellow-400 mr-3 mt-0.5 flex-shrink-0" />
+                                <CheckCircleIcon className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
                                 <span className="text-gray-300">
                                   {recommendation}
                                 </span>
@@ -646,9 +655,49 @@ const EnhancedReportDetails = () => {
                       </div>
                     )}
 
+                  {aiAnalysis.secure_code_examples &&
+                    Object.keys(aiAnalysis.secure_code_examples).length > 0 && (
+                      <div className="glass-container rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <CodeIcon className="h-5 w-5 mr-2 text-green-400" />
+                          Secure Code Examples
+                        </h3>
+                        <div className="space-y-4">
+                          {Object.entries(aiAnalysis.secure_code_examples).map(
+                            ([key, example], index) => (
+                              <div
+                                key={index}
+                                className="bg-gray-900/50 rounded-lg p-4"
+                              >
+                                <h4 className="text-sm font-medium text-gray-400 mb-2">
+                                  {key}
+                                </h4>
+                                <pre className="text-sm text-green-300 overflow-x-auto">
+                                  <code>{example}</code>
+                                </pre>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {aiAnalysis.compliance_impact && (
+                    <div className="glass-container rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <DocumentTextIcon className="h-5 w-5 mr-2 text-purple-400" />
+                        Compliance Impact
+                      </h3>
+                      <p className="text-gray-300 leading-relaxed">
+                        {aiAnalysis.compliance_impact}
+                      </p>
+                    </div>
+                  )}
+
                   {aiAnalysis.estimated_fix_time && (
                     <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <ClockIcon className="h-5 w-5 mr-2 text-blue-400" />
                         Estimated Fix Time
                       </h3>
                       <p className="text-gray-300">
@@ -656,15 +705,34 @@ const EnhancedReportDetails = () => {
                       </p>
                     </div>
                   )}
+
+                  {aiAnalysis.model_used && (
+                    <div className="glass-container rounded-xl p-4 bg-gray-800/30">
+                      <p className="text-xs text-gray-500 text-center">
+                        Analysis generated by {aiAnalysis.model_used}
+                        {aiAnalysis.generated_at &&
+                          ` on ${new Date(
+                            aiAnalysis.generated_at
+                          ).toLocaleString()}`}
+                      </p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="glass-container rounded-xl p-8 text-center">
-                  <InformationCircleIcon className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <SparklesIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-white mb-2">
                     AI Analysis Not Available
                   </h3>
-                  <p className="text-gray-400">
-                    AI analysis is not available for this report.
+                  <p className="text-gray-400 mb-4">
+                    {aiError
+                      ? "Failed to load AI analysis. Please try again later."
+                      : "AI analysis has not been generated for this report yet."}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    AI analysis is automatically generated when a scan
+                    completes. If you're seeing this message, the analysis may
+                    still be processing or may not have been triggered.
                   </p>
                 </div>
               )}
