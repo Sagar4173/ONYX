@@ -106,7 +106,7 @@ const ProjectDetails = () => {
 
   if (projectLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -119,7 +119,7 @@ const ProjectDetails = () => {
 
   if (projectError || !project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <ExclamationCircleIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
@@ -177,7 +177,7 @@ const ProjectDetails = () => {
     project.vulnerability_count.low;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

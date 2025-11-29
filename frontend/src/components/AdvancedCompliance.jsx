@@ -197,42 +197,42 @@ const AdvancedCompliance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
-                <ShieldCheckIcon className="w-8 h-8 text-white" />
+        <div className="mb-6 lg:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 lg:mb-6">
+            <div className="flex items-center gap-3 lg:gap-4">
+              <div className="p-2.5 lg:p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl lg:rounded-2xl shadow-lg flex-shrink-0">
+                <ShieldCheckIcon className="w-6 h-6 lg:w-8 lg:h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-white mb-2">
+                <h1 className="text-2xl lg:text-4xl font-bold text-white mb-1 lg:mb-2">
                   Advanced Compliance
                 </h1>
-                <p className="text-gray-400">
+                <p className="text-sm lg:text-base text-gray-400">
                   Multi-framework compliance assessments and reporting
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-semibold shadow-lg transition-all"
+              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all w-fit"
             >
-              <PlusIcon className="w-5 h-5" />
-              New Assessment
+              <PlusIcon className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span>New Assessment</span>
             </button>
           </div>
 
           {/* Framework Filter */}
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl">
+          <div className="bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-xl lg:rounded-2xl p-3 lg:p-4 shadow-xl">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedFramework("all")}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
                   selectedFramework === "all"
                     ? "bg-purple-500 text-white"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10"
+                    : "bg-gray-900/50 text-gray-400 hover:bg-gray-800/50"
                 }`}
               >
                 All Frameworks
@@ -241,10 +241,10 @@ const AdvancedCompliance = () => {
                 <button
                   key={framework.id}
                   onClick={() => setSelectedFramework(framework.id)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
                     selectedFramework === framework.id
                       ? `bg-gradient-to-r ${framework.color} text-white`
-                      : "bg-white/5 text-gray-400 hover:bg-white/10"
+                      : "bg-gray-900/50 text-gray-400 hover:bg-gray-800/50"
                   }`}
                 >
                   {framework.icon} {framework.name}

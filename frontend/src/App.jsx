@@ -10,6 +10,7 @@ import {
   Navigate,
   useLocation,
   useNavigate,
+  Link,
 } from "react-router-dom";
 import {
   QueryClient,
@@ -961,21 +962,24 @@ function AppContent() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-6 space-y-3">
+        <nav className="flex-1 px-6 space-y-2 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = window.location.pathname === item.href;
+            const isActive =
+              location.pathname === item.href ||
+              (item.href === "/" && location.pathname === "/") ||
+              (item.href !== "/" && location.pathname.startsWith(item.href));
             return (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
-                className={`flex items-center px-4 py-4 rounded-2xl transition-all group ${
+                to={item.href}
+                className={`flex items-center px-3 lg:px-4 py-3 lg:py-4 rounded-xl lg:rounded-2xl transition-all group ${
                   isActive
                     ? "bg-gray-800/50 text-white shadow-lg"
                     : "text-gray-400 hover:text-white hover:bg-gray-800/30"
                 }`}
               >
                 <div
-                  className={`p-2 rounded-xl bg-gradient-to-r ${
+                  className={`p-1.5 lg:p-2 rounded-lg lg:rounded-xl bg-gradient-to-r ${
                     item.gradient
                   } ${
                     isActive
@@ -983,13 +987,15 @@ function AppContent() {
                       : "opacity-60 group-hover:opacity-100"
                   }`}
                 >
-                  <item.icon className="h-5 w-5 text-white" />
+                  <item.icon className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
                 </div>
-                <span className="ml-3 font-medium">{item.name}</span>
+                <span className="ml-2 lg:ml-3 font-medium text-sm lg:text-base">
+                  {item.name}
+                </span>
                 {isActive && (
-                  <div className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                  <div className="ml-auto w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
                 )}
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -1399,27 +1405,29 @@ function AppContent() {
         </div>
 
         {/* Activity and Trends */}
-        <div className="px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:mb-12">
           {/* Recent Activity */}
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
-            <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+            <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl h-full">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 className="text-lg lg:text-xl font-bold text-white">
                   Recent Activity
                 </h3>
-                <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20">
-                  <BoltIcon className="h-5 w-5 text-blue-400" />
+                <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20">
+                  <BoltIcon className="h-4 w-4 lg:h-5 lg:w-5 text-blue-400" />
                 </div>
               </div>
-              <div className="space-y-4 max-h-80 overflow-y-auto">
+              <div className="space-y-3 lg:space-y-4 max-h-64 lg:max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="p-4 rounded-2xl bg-gray-800/50 inline-block mb-4">
-                      <SparklesIcon className="h-8 w-8 text-gray-400" />
+                  <div className="text-center py-6 lg:py-8">
+                    <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/50 inline-block mb-3 lg:mb-4">
+                      <SparklesIcon className="h-6 w-6 lg:h-8 lg:w-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-400">No recent activity</p>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-gray-400 text-sm lg:text-base">
+                      No recent activity
+                    </p>
+                    <p className="text-xs lg:text-sm text-gray-500 mt-1 lg:mt-2">
                       Start a scan to see activity here
                     </p>
                   </div>
@@ -1427,20 +1435,20 @@ function AppContent() {
                   notifications.slice(0, 5).map((notification) => (
                     <div
                       key={notification.id}
-                      className="flex items-center space-x-4 p-4 rounded-2xl bg-gray-800/30 hover:bg-gray-800/50 transition-all"
+                      className="flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/30 hover:bg-gray-800/50 transition-all"
                     >
-                      <div className="p-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
-                        <CheckCircleIcon className="h-4 w-4 text-white" />
+                      <div className="p-1.5 lg:p-2 rounded-lg lg:rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex-shrink-0">
+                        <CheckCircleIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-white" />
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-white">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs lg:text-sm font-medium text-white truncate">
                           {notification.data?.project_name || "Unknown Project"}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 truncate">
                           {notification.message}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 flex-shrink-0">
                         {notification.timestamp.toLocaleTimeString()}
                       </span>
                     </div>
@@ -1452,24 +1460,24 @@ function AppContent() {
 
           {/* Security Trends Chart Placeholder */}
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
-            <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+            <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 className="text-lg lg:text-xl font-bold text-white">
                   Security Trends
                 </h3>
-                <div className="p-2 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20">
-                  <ChartBarIcon className="h-5 w-5 text-purple-400" />
+                <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20">
+                  <ChartBarIcon className="h-4 w-4 lg:h-5 lg:w-5 text-purple-400" />
                 </div>
               </div>
-              <div className="text-center py-16">
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 inline-block mb-4">
-                  <ChartBarIcon className="h-12 w-12 text-purple-400" />
+              <div className="flex-1 flex flex-col items-center justify-center py-8 lg:py-12">
+                <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 inline-block mb-3 lg:mb-4">
+                  <ChartBarIcon className="h-8 w-8 lg:h-12 lg:w-12 text-purple-400" />
                 </div>
-                <p className="text-gray-400 mb-2">
+                <p className="text-gray-400 text-sm lg:text-base mb-1 lg:mb-2">
                   Advanced Analytics Dashboard
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs lg:text-sm text-gray-500 text-center">
                   Interactive charts and trend analysis coming soon
                 </p>
               </div>
@@ -1478,17 +1486,21 @@ function AppContent() {
         </div>
 
         {/* Recent Projects */}
-        <div className="px-8 pb-8">
+        <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-3xl blur-xl" />
-            <div className="relative p-8 rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Your Projects</h3>
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
+            <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
+              <div className="flex items-center justify-between mb-4 lg:mb-6">
+                <h3 className="text-lg lg:text-xl font-bold text-white">
+                  Your Projects
+                </h3>
                 <button
                   onClick={() => setScanModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all"
+                  className="px-3 lg:px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs lg:text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-1.5"
                 >
-                  Add Project
+                  <PlusIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">Add Project</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
               <ProjectList />
@@ -1545,20 +1557,24 @@ function AppContent() {
 
             <nav className="px-4 py-4 space-y-2">
               {navigation.map((item) => {
-                const isActive = window.location.pathname === item.href;
+                const isActive =
+                  location.pathname === item.href ||
+                  (item.href === "/" && location.pathname === "/") ||
+                  (item.href !== "/" &&
+                    location.pathname.startsWith(item.href));
                 return (
-                  <a
+                  <Link
                     key={item.name}
-                    href={item.href}
+                    to={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center px-3 py-3 rounded-2xl transition-all ${
+                    className={`flex items-center px-3 py-3 rounded-xl transition-all ${
                       isActive
                         ? "bg-gray-800/50 text-white border border-blue-500/20"
                         : "text-gray-300 hover:text-white hover:bg-gray-800/50"
                     }`}
                   >
                     <div
-                      className={`p-2 rounded-xl bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
+                      className={`p-2 rounded-lg bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
                     >
                       <item.icon className="h-4 w-4 text-white" />
                     </div>
@@ -1568,7 +1584,7 @@ function AppContent() {
                         {item.badge}
                       </span>
                     )}
-                  </a>
+                  </Link>
                 );
               })}
             </nav>

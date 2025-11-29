@@ -47,7 +47,7 @@ const EnhancedReportDetails = () => {
   // Early return if reportId is invalid
   if (!reportId || reportId === "undefined" || reportId === "null") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="glass-container rounded-2xl p-8 text-center">
             <ExclamationTriangleIcon className="h-16 w-16 text-amber-500 mx-auto mb-4" />
@@ -154,7 +154,7 @@ const EnhancedReportDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-12">
             <RefreshIcon className="h-8 w-8 text-blue-400 animate-spin mr-3" />
@@ -167,7 +167,7 @@ const EnhancedReportDetails = () => {
 
   if (isError || !report) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="glass-container rounded-2xl p-8 text-center">
             <ExclamationTriangleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
