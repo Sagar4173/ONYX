@@ -477,8 +477,8 @@ const Analytics = () => {
 
   // Fetch recent reports
   const { data: reportsData, isLoading: reportsLoading } = useQuery({
-    queryKey: ["reports", { limit: 10 }],
-    queryFn: () => reportsAPI.getReports({ limit: 10 }),
+    queryKey: ["reports", { limit: 50 }],
+    queryFn: () => reportsAPI.getReports({ limit: 50 }),
   });
 
   const isLoading = analyticsLoading || reportsLoading || projectLoading;
@@ -489,35 +489,160 @@ const Analytics = () => {
   const topProjects = analytics?.top_projects || [];
   const scannerPerformance = analytics?.scanner_performance || {};
 
-  // Calculate total vulnerabilities
+  // If analytics endpoint doesn't return data, calculate from reports
+  const reports = reportsData?.reports || [];
+
+  // Calculate vulnerabilities from reports if not in analytics
+  let calculatedVulnSummary = { ...vulnSummary };
+  let calculatedTotalFindings = 0;
+
+  if (reports.length > 0) {
+    // Aggregate findings from reports
+    const aggregatedFindings = {
+      critical: 0,
+      high: 0,
+      medium: 0,
+      low: 0,
+      info: 0,
+    };
+
+    reports.forEach((report) => {
+      if (report.findings_by_severity) {
+        aggregatedFindings.critical +=
+          report.findings_by_severity.critical || 0;
+        aggregatedFindings.high += report.findings_by_severity.high || 0;
+        aggregatedFindings.medium += report.findings_by_severity.medium || 0;
+        aggregatedFindings.low += report.findings_by_severity.low || 0;
+        aggregatedFindings.info += report.findings_by_severity.info || 0;
+      }
+      calculatedTotalFindings += report.total_findings || 0;
+    });
+
+    // Use aggregated if analytics is empty
+    const analyticsTotal =
+      (vulnSummary.critical || 0) +
+      (vulnSummary.high || 0) +
+      (vulnSummary.medium || 0) +
+      (vulnSummary.low || 0) +
+      (vulnSummary.info || 0);
+
+    const aggregatedTotal =
+      aggregatedFindings.critical +
+      aggregatedFindings.high +
+      aggregatedFindings.medium +
+      aggregatedFindings.low +
+      aggregatedFindings.info;
+
+    if (
+      analyticsTotal === 0 &&
+      (calculatedTotalFindings > 0 || aggregatedTotal > 0)
+    ) {
+      calculatedVulnSummary = aggregatedFindings;
+      // If we have total_findings but no severity breakdown, classify as "info"
+      if (aggregatedTotal === 0 && calculatedTotalFindings > 0) {
+        calculatedVulnSummary.info = calculatedTotalFindings;
+      }
+    }
+  }
+
+  // Calculate total vulnerabilities - use calculated total if available
   const totalVulnerabilities =
-    (vulnSummary.critical || 0) +
-    (vulnSummary.high || 0) +
-    (vulnSummary.medium || 0) +
-    (vulnSummary.low || 0) +
-    (vulnSummary.info || 0);
+    calculatedTotalFindings > 0
+      ? calculatedTotalFindings
+      : (calculatedVulnSummary.critical || 0) +
+        (calculatedVulnSummary.high || 0) +
+        (calculatedVulnSummary.medium || 0) +
+        (calculatedVulnSummary.low || 0) +
+        (calculatedVulnSummary.info || 0);
+
+  // Calculate top projects from reports if not in analytics
+  let calculatedTopProjects = topProjects;
+  if (topProjects.length === 0 && reports.length > 0) {
+    const projectMap = {};
+    reports.forEach((report) => {
+      const name = report.project_name || "Unknown";
+      if (!projectMap[name]) {
+        projectMap[name] = {
+          project_name: name,
+          total_findings: 0,
+          scans_count: 0,
+          critical_findings: 0,
+          high_findings: 0,
+        };
+      }
+      projectMap[name].scans_count += 1;
+      projectMap[name].total_findings += report.total_findings || 0;
+      projectMap[name].critical_findings +=
+        report.findings_by_severity?.critical || 0;
+      projectMap[name].high_findings += report.findings_by_severity?.high || 0;
+    });
+    calculatedTopProjects = Object.values(projectMap)
+      .sort((a, b) => b.total_findings - a.total_findings)
+      .slice(0, 10);
+  }
+
+  // Calculate scanner performance from reports if not in analytics
+  let calculatedScannerPerformance = scannerPerformance;
+  if (Object.keys(scannerPerformance).length === 0 && reports.length > 0) {
+    const scannerMap = {};
+    reports.forEach((report) => {
+      if (report.scan_results) {
+        report.scan_results.forEach((result) => {
+          const scanner = result.scanner || "unknown";
+          if (!scannerMap[scanner]) {
+            scannerMap[scanner] = {
+              total_runs: 0,
+              successful_runs: 0,
+              total_findings: 0,
+              avg_duration: 0,
+              total_duration: 0,
+            };
+          }
+          scannerMap[scanner].total_runs += 1;
+          if (result.status === "completed") {
+            scannerMap[scanner].successful_runs += 1;
+            scannerMap[scanner].total_findings += result.findings?.length || 0;
+            if (result.duration_seconds) {
+              scannerMap[scanner].total_duration += result.duration_seconds;
+            }
+          }
+        });
+      }
+    });
+    // Calculate averages
+    Object.values(scannerMap).forEach((stats) => {
+      if (stats.successful_runs > 0) {
+        stats.avg_duration = stats.total_duration / stats.successful_runs;
+      }
+    });
+    calculatedScannerPerformance = scannerMap;
+  }
 
   // Use project analytics for additional data
   const avgSecurityScore = projectAnalytics?.average_security_score || 0;
   const totalProjects = projectAnalytics?.total_projects || 0;
 
+  // Calculate scan summary from reports if needed
+  const completedScans = reports.filter((r) => r.status === "completed").length;
+  const failedScans = reports.filter((r) => r.status === "failed").length;
+  const totalScans = scanSummary.total_scans || reports.length || 0;
+  const successRate =
+    totalScans > 0
+      ? Math.round((completedScans / totalScans) * 100)
+      : scanSummary.success_rate || 0;
+
   // Calculate stats
   const stats = [
     {
       title: "Total Scans",
-      value: isLoading
-        ? "..."
-        : (
-            scanSummary.total_scans ||
-            reportsData?.pagination?.total ||
-            0
-          ).toString(),
-      change:
-        scanSummary.total_scans > 0
-          ? `${Math.round(scanSummary.success_rate || 0)}% success`
-          : null,
+      value: isLoading ? "..." : totalScans.toString(),
+      change: totalScans > 0 ? `${successRate}% success` : null,
       changeType:
-        (scanSummary.success_rate || 0) >= 80 ? "positive" : "neutral",
+        successRate >= 80
+          ? "positive"
+          : successRate >= 50
+          ? "neutral"
+          : "negative",
       icon: DocumentTextIcon,
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-500/10 to-cyan-500/10",
@@ -526,8 +651,17 @@ const Analytics = () => {
       title: "Total Vulnerabilities",
       value: isLoading ? "..." : totalVulnerabilities.toString(),
       change:
-        vulnSummary.critical > 0 ? `${vulnSummary.critical} critical` : null,
-      changeType: vulnSummary.critical > 0 ? "negative" : "positive",
+        calculatedVulnSummary.critical > 0
+          ? `${calculatedVulnSummary.critical} critical`
+          : calculatedVulnSummary.high > 0
+          ? `${calculatedVulnSummary.high} high`
+          : null,
+      changeType:
+        calculatedVulnSummary.critical > 0
+          ? "negative"
+          : calculatedVulnSummary.high > 0
+          ? "negative"
+          : "positive",
       icon: ExclamationTriangleIcon,
       gradient: "from-red-500 to-pink-500",
       bgGradient: "from-red-500/10 to-pink-500/10",
@@ -615,7 +749,7 @@ const Analytics = () => {
           {isLoading ? (
             <LoadingState message="Loading severity data..." />
           ) : (
-            <SeverityDistribution data={vulnSummary} />
+            <SeverityDistribution data={calculatedVulnSummary} />
           )}
         </GlassCard>
 
@@ -628,7 +762,7 @@ const Analytics = () => {
           {isLoading ? (
             <LoadingState message="Loading scan data..." />
           ) : (
-            <ScanTypeDistribution data={scannerPerformance} />
+            <ScanTypeDistribution data={calculatedScannerPerformance} />
           )}
         </GlassCard>
       </div>
@@ -644,7 +778,7 @@ const Analytics = () => {
           {isLoading ? (
             <LoadingState message="Loading project data..." />
           ) : (
-            <TopProjects projects={topProjects} />
+            <TopProjects projects={calculatedTopProjects} />
           )}
         </GlassCard>
 
@@ -657,7 +791,7 @@ const Analytics = () => {
           {isLoading ? (
             <LoadingState message="Loading scanner data..." />
           ) : (
-            <ScannerPerformance scanners={scannerPerformance} />
+            <ScannerPerformance scanners={calculatedScannerPerformance} />
           )}
         </GlassCard>
       </div>
@@ -671,7 +805,7 @@ const Analytics = () => {
         {reportsLoading ? (
           <LoadingState message="Loading recent scans..." />
         ) : (
-          <RecentScansTimeline scans={reportsData?.reports || []} />
+          <RecentScansTimeline scans={reports} />
         )}
       </GlassCard>
     </PageContainer>

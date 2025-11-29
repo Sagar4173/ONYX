@@ -257,13 +257,23 @@ const Settings = () => {
                           parseInt(e.target.value)
                         )
                       }
-                      className="px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                     >
-                      <option value={15}>15 minutes</option>
-                      <option value={30}>30 minutes</option>
-                      <option value={60}>1 hour</option>
-                      <option value={120}>2 hours</option>
-                      <option value={480}>8 hours</option>
+                      <option value={15} className="bg-gray-800 text-white">
+                        15 minutes
+                      </option>
+                      <option value={30} className="bg-gray-800 text-white">
+                        30 minutes
+                      </option>
+                      <option value={60} className="bg-gray-800 text-white">
+                        1 hour
+                      </option>
+                      <option value={120} className="bg-gray-800 text-white">
+                        2 hours
+                      </option>
+                      <option value={480} className="bg-gray-800 text-white">
+                        8 hours
+                      </option>
                     </select>
                   </SettingCard>
 
@@ -459,13 +469,23 @@ const Settings = () => {
                           parseInt(e.target.value)
                         )
                       }
-                      className="px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                     >
-                      <option value={180}>3 minutes</option>
-                      <option value={300}>5 minutes</option>
-                      <option value={600}>10 minutes</option>
-                      <option value={1200}>20 minutes</option>
-                      <option value={1800}>30 minutes</option>
+                      <option value={180} className="bg-gray-800 text-white">
+                        3 minutes
+                      </option>
+                      <option value={300} className="bg-gray-800 text-white">
+                        5 minutes
+                      </option>
+                      <option value={600} className="bg-gray-800 text-white">
+                        10 minutes
+                      </option>
+                      <option value={1200} className="bg-gray-800 text-white">
+                        20 minutes
+                      </option>
+                      <option value={1800} className="bg-gray-800 text-white">
+                        30 minutes
+                      </option>
                     </select>
                   </SettingCard>
 
@@ -482,13 +502,23 @@ const Settings = () => {
                           parseInt(e.target.value)
                         )
                       }
-                      className="px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                     >
-                      <option value={1}>1 scan</option>
-                      <option value={2}>2 scans</option>
-                      <option value={3}>3 scans</option>
-                      <option value={5}>5 scans</option>
-                      <option value={10}>10 scans</option>
+                      <option value={1} className="bg-gray-800 text-white">
+                        1 scan
+                      </option>
+                      <option value={2} className="bg-gray-800 text-white">
+                        2 scans
+                      </option>
+                      <option value={3} className="bg-gray-800 text-white">
+                        3 scans
+                      </option>
+                      <option value={5} className="bg-gray-800 text-white">
+                        5 scans
+                      </option>
+                      <option value={10} className="bg-gray-800 text-white">
+                        10 scans
+                      </option>
                     </select>
                   </SettingCard>
 

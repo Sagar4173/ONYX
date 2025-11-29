@@ -685,11 +685,17 @@ const ComplianceReport = () => {
               <select
                 value={reportFormat}
                 onChange={(e) => setReportFormat(e.target.value)}
-                className="block w-full px-3 py-2 bg-gray-800/80 border border-gray-600 rounded-lg text-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="block w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors [&>option]:bg-gray-800 [&>option]:text-white"
               >
-                <option value="detailed">Detailed Report</option>
-                <option value="summary">Executive Summary</option>
-                <option value="technical">Technical Report</option>
+                <option value="detailed" className="bg-gray-800 text-white">
+                  Detailed Report
+                </option>
+                <option value="summary" className="bg-gray-800 text-white">
+                  Executive Summary
+                </option>
+                <option value="technical" className="bg-gray-800 text-white">
+                  Technical Report
+                </option>
               </select>
             </div>
 

@@ -494,14 +494,26 @@ const EnhancedReportDetails = () => {
                   <select
                     value={severityFilter}
                     onChange={(e) => setSeverityFilter(e.target.value)}
-                    className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm"
+                    className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm [&>option]:bg-gray-800 [&>option]:text-white"
                   >
-                    <option value="all">All Severities</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                    <option value="info">Info</option>
+                    <option value="all" className="bg-gray-800 text-white">
+                      All Severities
+                    </option>
+                    <option value="critical" className="bg-gray-800 text-white">
+                      Critical
+                    </option>
+                    <option value="high" className="bg-gray-800 text-white">
+                      High
+                    </option>
+                    <option value="medium" className="bg-gray-800 text-white">
+                      Medium
+                    </option>
+                    <option value="low" className="bg-gray-800 text-white">
+                      Low
+                    </option>
+                    <option value="info" className="bg-gray-800 text-white">
+                      Info
+                    </option>
                   </select>
                 </div>
               </div>

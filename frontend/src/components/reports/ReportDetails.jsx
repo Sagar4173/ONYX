@@ -674,22 +674,32 @@ const ReportDetails = () => {
   const FindingsTab = () => (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white shadow rounded-lg p-4">
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-300">
               Filter by severity:
             </span>
             <select
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-1 bg-gray-800 border border-gray-600 rounded-md text-sm text-white focus:ring-blue-500 focus:border-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
             >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="all" className="bg-gray-800 text-white">
+                All Severities
+              </option>
+              <option value="critical" className="bg-gray-800 text-white">
+                Critical
+              </option>
+              <option value="high" className="bg-gray-800 text-white">
+                High
+              </option>
+              <option value="medium" className="bg-gray-800 text-white">
+                Medium
+              </option>
+              <option value="low" className="bg-gray-800 text-white">
+                Low
+              </option>
             </select>
           </div>
 

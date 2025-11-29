@@ -463,10 +463,14 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                             category: e.target.value,
                           }))
                         }
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                       >
                         {templates?.categories.map((category) => (
-                          <option key={category.value} value={category.value}>
+                          <option
+                            key={category.value}
+                            value={category.value}
+                            className="bg-gray-800 text-white"
+                          >
                             {category.label}
                           </option>
                         ))}
@@ -504,10 +508,14 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                           priority: e.target.value,
                         }))
                       }
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                     >
                       {templates?.priorities.map((priority) => (
-                        <option key={priority.value} value={priority.value}>
+                        <option
+                          key={priority.value}
+                          value={priority.value}
+                          className="bg-gray-800 text-white"
+                        >
                           {priority.label}
                         </option>
                       ))}
@@ -916,12 +924,20 @@ export const ProjectManagement = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, status: e.target.value }))
                 }
-                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px]"
+                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px] [&>option]:bg-gray-800 [&>option]:text-white"
               >
-                <option value="">All Status</option>
-                <option value="active">🟢 Active</option>
-                <option value="inactive">🟡 Inactive</option>
-                <option value="archived">⚪ Archived</option>
+                <option value="" className="bg-gray-800 text-white">
+                  All Status
+                </option>
+                <option value="active" className="bg-gray-800 text-white">
+                  🟢 Active
+                </option>
+                <option value="inactive" className="bg-gray-800 text-white">
+                  🟡 Inactive
+                </option>
+                <option value="archived" className="bg-gray-800 text-white">
+                  ⚪ Archived
+                </option>
               </select>
 
               <select
@@ -929,16 +945,41 @@ export const ProjectManagement = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, category: e.target.value }))
                 }
-                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[160px]"
+                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[160px] [&>option]:bg-gray-800 [&>option]:text-white"
               >
-                <option value="">All Categories</option>
-                <option value="web_application">🌐 Web Application</option>
-                <option value="mobile_application">📱 Mobile App</option>
-                <option value="api_service">🔌 API Service</option>
-                <option value="infrastructure">🏗️ Infrastructure</option>
-                <option value="microservice">⚡ Microservice</option>
-                <option value="library">📚 Library</option>
-                <option value="other">📦 Other</option>
+                <option value="" className="bg-gray-800 text-white">
+                  All Categories
+                </option>
+                <option
+                  value="web_application"
+                  className="bg-gray-800 text-white"
+                >
+                  🌐 Web Application
+                </option>
+                <option
+                  value="mobile_application"
+                  className="bg-gray-800 text-white"
+                >
+                  📱 Mobile App
+                </option>
+                <option value="api_service" className="bg-gray-800 text-white">
+                  🔌 API Service
+                </option>
+                <option
+                  value="infrastructure"
+                  className="bg-gray-800 text-white"
+                >
+                  🏗️ Infrastructure
+                </option>
+                <option value="microservice" className="bg-gray-800 text-white">
+                  ⚡ Microservice
+                </option>
+                <option value="library" className="bg-gray-800 text-white">
+                  📚 Library
+                </option>
+                <option value="other" className="bg-gray-800 text-white">
+                  📦 Other
+                </option>
               </select>
 
               <select
@@ -946,13 +987,23 @@ export const ProjectManagement = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, priority: e.target.value }))
                 }
-                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px]"
+                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px] [&>option]:bg-gray-800 [&>option]:text-white"
               >
-                <option value="">All Priorities</option>
-                <option value="low">🟢 Low</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="high">🟠 High</option>
-                <option value="critical">🔴 Critical</option>
+                <option value="" className="bg-gray-800 text-white">
+                  All Priorities
+                </option>
+                <option value="low" className="bg-gray-800 text-white">
+                  🟢 Low
+                </option>
+                <option value="medium" className="bg-gray-800 text-white">
+                  🟡 Medium
+                </option>
+                <option value="high" className="bg-gray-800 text-white">
+                  🟠 High
+                </option>
+                <option value="critical" className="bg-gray-800 text-white">
+                  🔴 Critical
+                </option>
               </select>
 
               {(filters.status || filters.category || filters.priority) && (
@@ -1307,10 +1358,14 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
                             category: e.target.value,
                           }))
                         }
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                       >
                         {templates?.categories?.map((category) => (
-                          <option key={category.value} value={category.value}>
+                          <option
+                            key={category.value}
+                            value={category.value}
+                            className="bg-gray-800 text-white"
+                          >
                             {category.label}
                           </option>
                         ))}
@@ -1348,10 +1403,14 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
                           priority: e.target.value,
                         }))
                       }
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                     >
                       {templates?.priorities?.map((priority) => (
-                        <option key={priority.value} value={priority.value}>
+                        <option
+                          key={priority.value}
+                          value={priority.value}
+                          className="bg-gray-800 text-white"
+                        >
                           {priority.label}
                         </option>
                       ))}

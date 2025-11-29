@@ -232,23 +232,37 @@ const Reports = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            className="px-4 py-2.5 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
           >
-            <option value="all">All Status</option>
-            <option value="completed">Completed</option>
-            <option value="running">Running</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
+            <option value="all" className="bg-gray-800 text-white">
+              All Status
+            </option>
+            <option value="completed" className="bg-gray-800 text-white">
+              Completed
+            </option>
+            <option value="running" className="bg-gray-800 text-white">
+              Running
+            </option>
+            <option value="pending" className="bg-gray-800 text-white">
+              Pending
+            </option>
+            <option value="failed" className="bg-gray-800 text-white">
+              Failed
+            </option>
           </select>
 
           {/* Sort */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            className="px-4 py-2.5 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
           >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
+            <option value="newest" className="bg-gray-800 text-white">
+              Newest First
+            </option>
+            <option value="oldest" className="bg-gray-800 text-white">
+              Oldest First
+            </option>
           </select>
         </div>
 

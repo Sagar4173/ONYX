@@ -514,13 +514,29 @@ const UserManagement = () => {
                     onChange={(e) =>
                       setFilters((prev) => ({ ...prev, role: e.target.value }))
                     }
-                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   >
-                    <option value="">All Roles</option>
-                    <option value="admin">Admin</option>
-                    <option value="security_manager">Security Manager</option>
-                    <option value="developer">Developer</option>
-                    <option value="viewer">Viewer</option>
+                    <option value="" className="bg-gray-800 text-white">
+                      All Roles
+                    </option>
+                    <option value="admin" className="bg-gray-800 text-white">
+                      Admin
+                    </option>
+                    <option
+                      value="security_manager"
+                      className="bg-gray-800 text-white"
+                    >
+                      Security Manager
+                    </option>
+                    <option
+                      value="developer"
+                      className="bg-gray-800 text-white"
+                    >
+                      Developer
+                    </option>
+                    <option value="viewer" className="bg-gray-800 text-white">
+                      Viewer
+                    </option>
                   </select>
                   <select
                     value={filters.status}
@@ -530,13 +546,29 @@ const UserManagement = () => {
                         status: e.target.value,
                       }))
                     }
-                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   >
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="suspended">Suspended</option>
-                    <option value="pending_verification">Pending</option>
+                    <option value="" className="bg-gray-800 text-white">
+                      All Status
+                    </option>
+                    <option value="active" className="bg-gray-800 text-white">
+                      Active
+                    </option>
+                    <option value="inactive" className="bg-gray-800 text-white">
+                      Inactive
+                    </option>
+                    <option
+                      value="suspended"
+                      className="bg-gray-800 text-white"
+                    >
+                      Suspended
+                    </option>
+                    <option
+                      value="pending_verification"
+                      className="bg-gray-800 text-white"
+                    >
+                      Pending
+                    </option>
                   </select>
                 </div>
               </div>

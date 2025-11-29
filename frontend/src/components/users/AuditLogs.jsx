@@ -201,7 +201,7 @@ const AuditLogs = () => {
           breadcrumb={["Audit Logs"]}
           actions={
             <button
-              onClick={exportLogs}
+              onClick={() => handleExport("json")}
               className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all"
             >
               <ArrowDownTrayIcon className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -273,11 +273,15 @@ const AuditLogs = () => {
                       ),
                     })
                   }
-                  className="w-full px-3 lg:px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   size="5"
                 >
                   {eventTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
+                    <option
+                      key={type.value}
+                      value={type.value}
+                      className="bg-gray-800 text-white"
+                    >
                       {type.label}
                     </option>
                   ))}
@@ -301,11 +305,15 @@ const AuditLogs = () => {
                       ),
                     })
                   }
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 bg-gray-800 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   size="5"
                 >
                   {usersData?.users?.map((user) => (
-                    <option key={user} value={user}>
+                    <option
+                      key={user}
+                      value={user}
+                      className="bg-gray-800 text-white"
+                    >
                       {user}
                     </option>
                   ))}
@@ -348,11 +356,17 @@ const AuditLogs = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, severity: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 bg-gray-800 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                 >
-                  <option value="">All Severities</option>
+                  <option value="" className="bg-gray-800 text-white">
+                    All Severities
+                  </option>
                   {severityLevels.map((level) => (
-                    <option key={level} value={level}>
+                    <option
+                      key={level}
+                      value={level}
+                      className="bg-gray-800 text-white"
+                    >
                       {level.toUpperCase()}
                     </option>
                   ))}

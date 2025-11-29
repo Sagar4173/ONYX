@@ -420,7 +420,7 @@ const ProjectList = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 lg:px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {statusOptions.map((option) => (
                     <option
@@ -436,7 +436,7 @@ const ProjectList = () => {
                 <select
                   value={severityFilter}
                   onChange={(e) => setSeverityFilter(e.target.value)}
-                  className="px-3 lg:px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {severityOptions.map((option) => (
                     <option
@@ -456,7 +456,7 @@ const ProjectList = () => {
                     setSortBy(field);
                     setSortOrder(order);
                   }}
-                  className="hidden sm:block px-3 lg:px-4 py-2 bg-gray-900/50 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  className="hidden sm:block px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {sortOptions.map((option) => (
                     <React.Fragment key={option.value}>
