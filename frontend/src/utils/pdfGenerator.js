@@ -329,27 +329,145 @@ export const applyPDFStyles = (element) => {
       el.style.width = "auto";
     }
 
-    // Badges/Pills
+    // ===== FLEXBOX ALIGNMENT =====
+    // Preserve flex container alignment for proper icon/text alignment in PDF
+    if (el.classList.contains("flex")) {
+      el.style.display = "flex";
+    }
+    if (el.classList.contains("inline-flex")) {
+      el.style.display = "inline-flex";
+    }
+    if (el.classList.contains("items-center")) {
+      el.style.alignItems = "center";
+    }
+    if (el.classList.contains("items-start")) {
+      el.style.alignItems = "flex-start";
+    }
+    if (el.classList.contains("items-end")) {
+      el.style.alignItems = "flex-end";
+    }
+    if (el.classList.contains("justify-center")) {
+      el.style.justifyContent = "center";
+    }
+    if (el.classList.contains("justify-between")) {
+      el.style.justifyContent = "space-between";
+    }
+    if (el.classList.contains("gap-1")) {
+      el.style.gap = "4px";
+    }
+    if (el.classList.contains("gap-2")) {
+      el.style.gap = "8px";
+    }
+    if (el.classList.contains("gap-3")) {
+      el.style.gap = "12px";
+    }
+    if (el.classList.contains("gap-4")) {
+      el.style.gap = "16px";
+    }
+
+    // Badges/Pills (severity badges like Medium, High, etc.)
     if (
       el.classList.contains("rounded-full") &&
       (el.classList.contains("px-2") || el.classList.contains("px-3"))
     ) {
       el.style.display = "inline-block";
-      el.style.padding = "2px 8px";
+      el.style.padding = "5px 12px";
       el.style.borderRadius = "9999px";
       el.style.fontSize = "11px";
       el.style.fontWeight = "500";
+      el.style.lineHeight = "1.2";
+      el.style.verticalAlign = "middle";
+      el.style.textAlign = "center";
+      el.style.boxSizing = "border-box";
     }
 
-    // Icons - hide or style appropriately
+    // Compliance status badges with rounded-lg (Non-Compliant, Compliant)
+    if (
+      el.classList.contains("rounded-lg") &&
+      el.classList.contains("border") &&
+      (el.classList.contains("px-3") || el.classList.contains("py-1.5"))
+    ) {
+      el.style.display = "inline-flex";
+      el.style.alignItems = "center";
+      el.style.padding = "6px 12px";
+      el.style.borderRadius = "8px";
+      el.style.fontSize = "12px";
+      el.style.fontWeight = "500";
+      el.style.lineHeight = "1";
+    }
+
+    // Icons - ensure proper sizing and alignment
     if (
       el.tagName === "svg" ||
       el.classList.contains("h-4") ||
       el.classList.contains("h-5") ||
       el.classList.contains("h-6")
     ) {
-      // Keep icons but ensure they're visible
+      // Keep icons but ensure they're visible and properly sized
       el.style.color = "inherit";
+      el.style.flexShrink = "0";
+      el.style.display = "inline-block";
+      el.style.verticalAlign = "middle";
+      if (el.classList.contains("h-4")) {
+        el.style.width = "16px";
+        el.style.height = "16px";
+      }
+      if (el.classList.contains("h-5")) {
+        el.style.width = "20px";
+        el.style.height = "20px";
+      }
+      if (el.classList.contains("h-6")) {
+        el.style.width = "24px";
+        el.style.height = "24px";
+      }
+    }
+
+    // Handle margin classes for icon spacing
+    if (el.classList.contains("mr-1")) {
+      el.style.marginRight = "4px";
+    }
+    if (el.classList.contains("mr-1.5")) {
+      el.style.marginRight = "6px";
+    }
+    if (el.classList.contains("mr-2")) {
+      el.style.marginRight = "8px";
+    }
+
+    // Handle padding classes for badges - override with equal padding for centering
+    if (
+      el.classList.contains("py-1") &&
+      el.classList.contains("rounded-full")
+    ) {
+      el.style.paddingTop = "5px";
+      el.style.paddingBottom = "5px";
+    }
+    if (el.classList.contains("py-0.5")) {
+      el.style.paddingTop = "2px";
+      el.style.paddingBottom = "2px";
+    }
+
+    // Ensure text inside severity badges is vertically centered
+    if (
+      el.classList.contains("text-xs") &&
+      el.classList.contains("font-medium") &&
+      el.classList.contains("rounded-full")
+    ) {
+      el.style.lineHeight = "1.2";
+      el.style.display = "inline-block";
+      el.style.textAlign = "center";
+      el.style.verticalAlign = "middle";
+    }
+
+    // Ensure SVG icons inside flex containers align properly
+    if (el.tagName === "svg") {
+      el.style.display = "inline-block";
+      el.style.verticalAlign = "middle";
+      el.style.flexShrink = "0";
+      // Ensure the SVG maintains its aspect ratio and size
+      if (!el.style.width) {
+        el.style.width = "1em";
+        el.style.height = "1em";
+      }
     }
 
     // Remove animations
