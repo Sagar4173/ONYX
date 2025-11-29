@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import html2pdf from "html2pdf.js";
+import { generatePDF } from "../../utils/pdfGenerator";
 import {
   ArrowLeftIcon,
   ExclamationTriangleIcon,
@@ -134,16 +134,11 @@ const EnhancedReportDetails = () => {
 
     setIsGenerating(true);
     try {
-      const element = reportRef.current;
-      const opt = {
-        margin: 0.5,
-        filename: `report-${reportId}-view.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-      };
-
-      await html2pdf().set(opt).from(element).save();
+      await generatePDF(reportRef.current, {
+        filename: `security-report-${reportId}.pdf`,
+        title: "Security Analysis Report",
+        subtitle: report?.scan_type || "Vulnerability Scan",
+      });
       toast.success("PDF generated successfully");
     } catch (error) {
       console.error("PDF generation error:", error);
