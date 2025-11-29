@@ -501,32 +501,50 @@ export const reportsAPI = {
     }
   },
 
-  // Get scan status by scan ID
+  // Get scan status by scan ID (using new dedicated endpoint)
   getScanStatus: async (scanId) => {
     try {
-      // Try to find the scan in reports
-      const reports = await api.get("/reports/");
-      const scanReport = reports.data.reports?.find(
-        (report) => report.scan_id === scanId
-      );
-
-      if (scanReport) {
-        return {
-          scan_id: scanReport.scan_id,
-          status: scanReport.status,
-          project_name: scanReport.project_name,
-          total_findings: scanReport.total_findings,
-          findings_by_severity: scanReport.findings_by_severity,
-          created_at: scanReport.created_at,
-          completed_at: scanReport.completed_at,
-          duration_seconds: scanReport.duration_seconds,
-          error_message: scanReport.error_message,
-        };
-      }
-
-      return null;
+      const response = await api.get(`/webhook/scan/${scanId}/status`);
+      return response.data;
     } catch (error) {
       console.error("❌ Error getting scan status:", error);
+      // Fallback to reports if endpoint not available
+      if (error.response?.status === 404) {
+        const reports = await api.get("/reports/");
+        const scanReport = reports.data.reports?.find(
+          (report) => report.scan_id === scanId
+        );
+        if (scanReport) {
+          return {
+            scan_id: scanReport.scan_id,
+            status: scanReport.status,
+            project_name: scanReport.project_name,
+            total_findings: scanReport.total_findings,
+            findings_by_severity: scanReport.findings_by_severity,
+            created_at: scanReport.created_at,
+            completed_at: scanReport.completed_at,
+            duration_seconds: scanReport.duration_seconds,
+            error_message: scanReport.error_message,
+            progress:
+              scanReport.progress ||
+              (scanReport.status === "completed" ? 100 : 0),
+            current_scanner: scanReport.current_scanner || null,
+          };
+        }
+      }
+      throw error;
+    }
+  },
+
+  // Stop a running scan
+  stopScan: async (scanId) => {
+    try {
+      console.log("🛑 Stopping scan:", scanId);
+      const response = await api.post(`/webhook/scan/${scanId}/stop`);
+      console.log("✅ Scan stopped successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error stopping scan:", error);
       throw error;
     }
   },

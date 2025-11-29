@@ -54,13 +54,13 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "text-green-400 bg-green-500/20";
+        return "text-green-400 bg-green-500/20 border border-green-500/30";
       case "inactive":
-        return "text-yellow-400 bg-yellow-500/20";
+        return "text-yellow-400 bg-yellow-500/20 border border-yellow-500/30";
       case "archived":
-        return "text-gray-400 bg-gray-500/20";
+        return "text-gray-400 bg-gray-500/20 border border-gray-500/30";
       default:
-        return "text-gray-400 bg-gray-500/20";
+        return "text-gray-400 bg-gray-500/20 border border-gray-500/30";
     }
   };
 
@@ -89,11 +89,21 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
     project.vulnerability_count.medium +
     project.vulnerability_count.low;
 
+  const getScoreColor = (score) => {
+    if (score >= 80) return "text-green-400";
+    if (score >= 60) return "text-yellow-400";
+    if (score >= 40) return "text-orange-400";
+    return "text-red-400";
+  };
+
   return (
     <div className="relative group">
       <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl group-hover:scale-105 transition-all duration-300" />
 
-      <div className="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6 hover:border-gray-600/50 transition-all duration-300">
+      <div
+        className="relative bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-5 lg:p-6 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer"
+        onClick={() => onView(project)}
+      >
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
@@ -184,19 +194,29 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="text-center">
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="text-center p-3 rounded-xl bg-gray-800/50">
             <div className="text-lg font-bold text-white">
               {project.total_scans}
             </div>
             <div className="text-xs text-gray-400">Scans</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-white">{totalVulns}</div>
+          <div className="text-center p-3 rounded-xl bg-gray-800/50">
+            <div
+              className={`text-lg font-bold ${
+                totalVulns > 0 ? "text-orange-400" : "text-green-400"
+              }`}
+            >
+              {totalVulns}
+            </div>
             <div className="text-xs text-gray-400">Issues</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-white">
+          <div className="text-center p-3 rounded-xl bg-gray-800/50">
+            <div
+              className={`text-lg font-bold ${getScoreColor(
+                project.security_score || 0
+              )}`}
+            >
               {Math.round(project.security_score || 0)}
             </div>
             <div className="text-xs text-gray-400">Score</div>
@@ -205,22 +225,42 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
 
         {/* Vulnerability Breakdown */}
         {totalVulns > 0 && (
-          <div className="flex items-center justify-between text-xs mb-4">
-            <div className="flex items-center space-x-1 text-red-400">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span>{project.vulnerability_count.critical}</span>
+          <div className="flex items-center justify-between text-xs mb-4 p-3 rounded-xl bg-gray-800/30 border border-gray-700/30">
+            <div
+              className="flex items-center space-x-1.5 text-red-400"
+              title="Critical"
+            >
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="font-medium">
+                {project.vulnerability_count.critical}
+              </span>
             </div>
-            <div className="flex items-center space-x-1 text-orange-400">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span>{project.vulnerability_count.high}</span>
+            <div
+              className="flex items-center space-x-1.5 text-orange-400"
+              title="High"
+            >
+              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
+              <span className="font-medium">
+                {project.vulnerability_count.high}
+              </span>
             </div>
-            <div className="flex items-center space-x-1 text-yellow-400">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <span>{project.vulnerability_count.medium}</span>
+            <div
+              className="flex items-center space-x-1.5 text-yellow-400"
+              title="Medium"
+            >
+              <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
+              <span className="font-medium">
+                {project.vulnerability_count.medium}
+              </span>
             </div>
-            <div className="flex items-center space-x-1 text-blue-400">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>{project.vulnerability_count.low}</span>
+            <div
+              className="flex items-center space-x-1.5 text-blue-400"
+              title="Low"
+            >
+              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
+              <span className="font-medium">
+                {project.vulnerability_count.low}
+              </span>
             </div>
           </div>
         )}
@@ -774,96 +814,114 @@ export const ProjectManagement = () => {
 
       {/* Analytics Cards */}
       {analytics && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500">
-                <UsersIcon className="h-6 w-6 text-white" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          {[
+            {
+              title: "Total Projects",
+              value: analytics.total_projects,
+              icon: UsersIcon,
+              gradient: "from-blue-500 to-cyan-500",
+              bgGradient: "from-blue-500/10 to-cyan-500/10",
+            },
+            {
+              title: "Active Projects",
+              value: analytics.active_projects,
+              icon: CheckCircleIcon,
+              gradient: "from-green-500 to-emerald-500",
+              bgGradient: "from-green-500/10 to-emerald-500/10",
+            },
+            {
+              title: "Total Scans",
+              value: analytics.total_scans,
+              icon: ChartBarSolid,
+              gradient: "from-purple-500 to-pink-500",
+              bgGradient: "from-purple-500/10 to-pink-500/10",
+            },
+            {
+              title: "Total Issues",
+              value: analytics.total_vulnerabilities,
+              icon: ExclamationTriangleIcon,
+              gradient: "from-orange-500 to-red-500",
+              bgGradient: "from-orange-500/10 to-red-500/10",
+            },
+          ].map((stat, index) => (
+            <div
+              key={stat.title}
+              className="relative group cursor-pointer animate-fade-in-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl group-hover:scale-105 transition-all duration-300" />
+              <div
+                className={`relative p-4 sm:p-6 rounded-2xl border border-gray-800/50 bg-gradient-to-br ${stat.bgGradient} backdrop-blur-xl hover:border-gray-700/50 hover:scale-105 transition-all duration-300`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div
+                    className={`p-2 lg:p-3 rounded-xl bg-gradient-to-r ${stat.gradient} shadow-lg group-hover:shadow-xl transition-all`}
+                  >
+                    <stat.icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
+                  {stat.value}
+                </h3>
+                <p className="text-gray-400 font-medium text-sm">
+                  {stat.title}
+                </p>
               </div>
-              <span className="text-2xl font-bold text-white">
-                {analytics.total_projects}
-              </span>
             </div>
-            <h3 className="text-gray-400 font-medium">Total Projects</h3>
-          </div>
-
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
-                <CheckCircleIcon className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">
-                {analytics.active_projects}
-              </span>
-            </div>
-            <h3 className="text-gray-400 font-medium">Active Projects</h3>
-          </div>
-
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
-                <ChartBarSolid className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">
-                {analytics.total_scans}
-              </span>
-            </div>
-            <h3 className="text-gray-400 font-medium">Total Scans</h3>
-          </div>
-
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500">
-                <ExclamationTriangleIcon className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">
-                {analytics.total_vulnerabilities}
-              </span>
-            </div>
-            <h3 className="text-gray-400 font-medium">Total Issues</h3>
-          </div>
+          ))}
         </div>
       )}
 
       {/* Filters */}
-      <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Search & Filter</h3>
+      <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800/50 p-4 lg:p-6 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <MagnifyingGlassIcon className="h-5 w-5 text-blue-400" />
+            Search & Filter
+          </h3>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all"
+            className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${
+              showFilters
+                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+            }`}
           >
             <FunnelIcon className="h-5 w-5" />
+            <span className="text-sm font-medium sm:hidden lg:inline">
+              {showFilters ? "Hide Filters" : "Show Filters"}
+            </span>
           </button>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               value={filters.search}
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, search: e.target.value }))
               }
-              placeholder="Search projects..."
-              className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              placeholder="Search by project name, description, or tags..."
+              className="w-full pl-12 pr-4 py-3.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
             />
           </div>
 
           {showFilters && (
-            <>
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               <select
                 value={filters.status}
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, status: e.target.value }))
                 }
-                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px]"
               >
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="archived">Archived</option>
+                <option value="active">🟢 Active</option>
+                <option value="inactive">🟡 Inactive</option>
+                <option value="archived">⚪ Archived</option>
               </select>
 
               <select
@@ -871,16 +929,16 @@ export const ProjectManagement = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, category: e.target.value }))
                 }
-                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[160px]"
               >
                 <option value="">All Categories</option>
-                <option value="web_application">Web Application</option>
-                <option value="mobile_application">Mobile Application</option>
-                <option value="api_service">API Service</option>
-                <option value="infrastructure">Infrastructure</option>
-                <option value="microservice">Microservice</option>
-                <option value="library">Library</option>
-                <option value="other">Other</option>
+                <option value="web_application">🌐 Web Application</option>
+                <option value="mobile_application">📱 Mobile App</option>
+                <option value="api_service">🔌 API Service</option>
+                <option value="infrastructure">🏗️ Infrastructure</option>
+                <option value="microservice">⚡ Microservice</option>
+                <option value="library">📚 Library</option>
+                <option value="other">📦 Other</option>
               </select>
 
               <select
@@ -888,21 +946,37 @@ export const ProjectManagement = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, priority: e.target.value }))
                 }
-                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px]"
               >
                 <option value="">All Priorities</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🟠 High</option>
+                <option value="critical">🔴 Critical</option>
               </select>
-            </>
+
+              {(filters.status || filters.category || filters.priority) && (
+                <button
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      status: "",
+                      category: "",
+                      priority: "",
+                    }))
+                  }
+                  className="px-4 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 hover:bg-red-500/30 transition-all text-sm font-medium"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {projectsData?.projects?.map((project) => (
           <ProjectCard
             key={project.id}
@@ -916,27 +990,54 @@ export const ProjectManagement = () => {
 
       {/* Empty State */}
       {projectsData?.projects?.length === 0 && (
-        <div className="text-center py-16">
-          <div className="p-4 rounded-2xl bg-gray-800/50 inline-block mb-4">
-            <UsersIcon className="h-12 w-12 text-gray-400" />
+        <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800/50 p-8 lg:p-12 text-center">
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 inline-block mb-6">
+            <UsersIcon className="h-12 w-12 lg:h-16 lg:w-16 text-blue-400" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">
-            No Projects Found
-          </h3>
-          <p className="text-gray-400 mb-6">
+          <h3 className="text-xl lg:text-2xl font-bold text-white mb-3">
             {filters.search ||
             filters.status ||
             filters.category ||
             filters.priority
-              ? "No projects match your current filters"
-              : "Get started by creating your first project"}
+              ? "No Projects Match Your Filters"
+              : "No Projects Yet"}
+          </h3>
+          <p className="text-gray-400 mb-8 max-w-md mx-auto">
+            {filters.search ||
+            filters.status ||
+            filters.category ||
+            filters.priority
+              ? "Try adjusting your search criteria or clearing the filters to see all projects."
+              : "Get started by creating your first security scanning project. Connect your repository and start monitoring for vulnerabilities."}
           </p>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
-          >
-            Create First Project
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {(filters.search ||
+              filters.status ||
+              filters.category ||
+              filters.priority) && (
+              <button
+                onClick={() =>
+                  setFilters({
+                    search: "",
+                    status: "",
+                    category: "",
+                    priority: "",
+                  })
+                }
+                className="px-6 py-3 bg-gray-700/50 text-white font-medium rounded-xl hover:bg-gray-700 transition-all flex items-center gap-2"
+              >
+                <XMarkIcon className="h-5 w-5" />
+                Clear Filters
+              </button>
+            )}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-lg"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Create First Project
+            </button>
+          </div>
         </div>
       )}
 

@@ -21,10 +21,14 @@ from services.enhanced_scanning_workflow import enhanced_workflow
 from services.ai_processor import get_ai_processor
 from services.notifier import notification_service
 from services.real_scanner import RealSecurityScanner
+from services.project_service import ProjectService
 from utils.repo_clone import repo_cloner
 from config import settings
 
 logger = logging.getLogger(__name__)
+
+# Initialize services
+project_service = ProjectService()
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 
@@ -35,6 +39,110 @@ class ScanRequest(BaseModel):
     branch: str = "main"
     scan_types: list[str] = ["sast", "secrets", "container"]
     access_token: Optional[str] = None
+    project_id: Optional[str] = None
+
+
+# Store for tracking active scans (in production, use Redis)
+active_scans: Dict[str, bool] = {}
+
+
+@router.get("/scan/{scan_id}/status")
+async def get_scan_status(scan_id: str) -> JSONResponse:
+    """
+    Get the current status of a scan
+    
+    Args:
+        scan_id: The scan ID to check
+        
+    Returns:
+        Current scan status and details
+    """
+    try:
+        scan_report = await ScanReport.find_one(ScanReport.scan_id == scan_id)
+        
+        if not scan_report:
+            raise HTTPException(status_code=404, detail="Scan not found")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "id": str(scan_report.id),  # MongoDB ObjectId for report link
+                "scan_id": scan_id,
+                "status": scan_report.status.value if hasattr(scan_report.status, 'value') else str(scan_report.status),
+                "project_name": scan_report.project_name,
+                "total_findings": scan_report.total_findings,
+                "findings_by_severity": scan_report.findings_by_severity,
+                "created_at": scan_report.created_at.isoformat() if scan_report.created_at else None,
+                "started_at": scan_report.started_at.isoformat() if hasattr(scan_report, 'started_at') and scan_report.started_at else None,
+                "completed_at": scan_report.completed_at.isoformat() if scan_report.completed_at else None,
+                "progress": getattr(scan_report, 'progress', 0),
+                "current_scanner": getattr(scan_report, 'current_scanner', None),
+                "error_message": getattr(scan_report, 'error_message', None),
+                "is_cancelled": scan_id in active_scans and not active_scans[scan_id]
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get scan status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get scan status: {str(e)}")
+
+
+@router.post("/scan/{scan_id}/stop")
+async def stop_scan(scan_id: str) -> JSONResponse:
+    """
+    Stop/cancel a running scan
+    
+    Args:
+        scan_id: The scan ID to stop
+        
+    Returns:
+        Confirmation of cancellation
+    """
+    try:
+        scan_report = await ScanReport.find_one(ScanReport.scan_id == scan_id)
+        
+        if not scan_report:
+            raise HTTPException(status_code=404, detail="Scan not found")
+        
+        # Check if scan is still running
+        if scan_report.status not in [ScanStatus.PENDING, ScanStatus.RUNNING]:
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "message": "Scan is already completed or failed",
+                    "scan_id": scan_id,
+                    "status": scan_report.status.value if hasattr(scan_report.status, 'value') else str(scan_report.status)
+                }
+            )
+        
+        # Mark scan as cancelled
+        active_scans[scan_id] = False
+        
+        # Update scan status in database
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update({
+            "$set": {
+                "status": ScanStatus.FAILED,
+                "error_message": "Scan cancelled by user",
+                "completed_at": datetime.now(timezone.utc)
+            }
+        })
+        
+        logger.info(f"🛑 Scan {scan_id} cancelled by user")
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "message": "Scan cancelled successfully",
+                "scan_id": scan_id,
+                "status": "cancelled"
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to stop scan: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to stop scan: {str(e)}")
 
 
 @router.post("/scan")
@@ -148,20 +256,73 @@ async def process_real_scan(
         git_metadata: Git repository metadata
     """
     try:
-        # Update scan status to running
+        # Mark scan as active
+        active_scans[scan_id] = True
+        
+        # Update scan status to running with initial progress
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
-            {"$set": {"status": ScanStatus.RUNNING, "started_at": datetime.now(timezone.utc)}}
+            {"$set": {
+                "status": ScanStatus.RUNNING, 
+                "started_at": datetime.now(timezone.utc),
+                "progress": 5,
+                "current_scanner": "🚀 Initializing security scan environment..."
+            }}
         )
         
         logger.info(f"🔍 Starting real security scan for {scan_id}")
         
+        # Check if cancelled
+        if not active_scans.get(scan_id, True):
+            logger.info(f"🛑 Scan {scan_id} was cancelled before starting")
+            return
+        
+        # Update progress - Cloning repository
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+            {"$set": {"progress": 10, "current_scanner": "📥 Cloning repository and preparing codebase..."}}
+        )
+        
         # Initialize real scanner
         scanner = RealSecurityScanner()
+        
+        # Check if cancelled
+        if not active_scans.get(scan_id, True):
+            logger.info(f"🛑 Scan {scan_id} was cancelled")
+            return
+        
+        # Update progress - Starting SAST scan
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+            {"$set": {"progress": 20, "current_scanner": "🔍 Running SAST (Static Application Security Testing)..."}}
+        )
+        
+        # Small delay for UI update
+        await asyncio.sleep(0.5)
+        
+        # Update progress - Running secrets detection
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+            {"$set": {"progress": 35, "current_scanner": "🔑 Scanning for exposed secrets and credentials..."}}
+        )
+        
+        await asyncio.sleep(0.5)
+        
+        # Update progress - Running dependency scan
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+            {"$set": {"progress": 50, "current_scanner": "📦 Analyzing dependencies for known vulnerabilities..."}}
+        )
         
         # Perform real security scan
         scan_results = await scanner.scan_repository(
             repository_url=str(scan_request.repository_url),
             branch=scan_request.branch
+        )
+        
+        # Check if cancelled
+        if not active_scans.get(scan_id, True):
+            logger.info(f"🛑 Scan {scan_id} was cancelled after scan")
+            return
+        
+        # Update progress - Processing results
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+            {"$set": {"progress": 70, "current_scanner": "📊 Processing and categorizing findings..."}}
         )
         
         # Extract results
@@ -261,11 +422,14 @@ async def process_real_scan(
             )
             scan_results_list.append(scan_result)
         
-        # Update the scan report with properly structured results
+        # Update progress - Saving results
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+            {"$set": {"progress": 80, "current_scanner": "💾 Saving scan results to database..."}}
+        )
+        
+        # Save the scan results first (without marking as complete)
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update({
             "$set": {
-                "status": ScanStatus.COMPLETED,
-                "completed_at": datetime.now(timezone.utc),
                 "duration_seconds": scan_duration,
                 "total_findings": total_findings,
                 "findings_by_severity": findings_by_severity,
@@ -274,6 +438,7 @@ async def process_real_scan(
                 "git_metadata.commit_message": git_metadata.commit_message,
                 "git_metadata.commit_author": git_metadata.commit_author,
                 "updated_at": datetime.now(timezone.utc),
+                "progress": 85,
                 "metadata.findings": detailed_findings,
                 "metadata.scan_completed": True,
                 "metadata.scan_types": scan_request.scan_types,
@@ -284,8 +449,14 @@ async def process_real_scan(
         })
         
         # Now process AI analysis with the properly structured data
+        ai_analysis_result = None
         try:
             logger.info(f"🤖 Starting AI analysis for scan {scan_id}")
+            
+            # Update progress - Running AI analysis
+            await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
+                {"$set": {"progress": 90, "current_scanner": "✨ AI analyzing vulnerabilities and generating remediation advice..."}}
+            )
             
             # Get the AI processor
             from services.ai_processor import get_ai_processor
@@ -297,20 +468,13 @@ async def process_real_scan(
                 
                 if updated_report and updated_report.scan_results:
                     # Generate AI analysis
-                    ai_analysis = await ai_processor.analyze_scan_results(
+                    ai_analysis_result = await ai_processor.analyze_scan_results(
                         project_name=updated_report.project_name,
                         scan_results=updated_report.scan_results,
                         repository_url=str(updated_report.git_metadata.repository_url) if updated_report.git_metadata else ""
                     )
                     
-                    if ai_analysis:
-                        # Update report with AI analysis
-                        await ScanReport.find_one(ScanReport.scan_id == scan_id).update({
-                            "$set": {
-                                "ai_analysis": ai_analysis.model_dump(),
-                                "updated_at": datetime.now(timezone.utc)
-                            }
-                        })
+                    if ai_analysis_result:
                         logger.info(f"✅ AI analysis completed for scan {scan_id}")
                     else:
                         logger.warning(f"⚠️ AI analysis returned empty results for scan {scan_id}")
@@ -323,6 +487,50 @@ async def process_real_scan(
             logger.error(f"❌ AI analysis failed for scan {scan_id}: {str(ai_error)}")
             logger.exception("Full AI analysis error:")
         
+        # Final update - mark as completed with 100% progress
+        final_update = {
+            "status": ScanStatus.COMPLETED,
+            "completed_at": datetime.now(timezone.utc),
+            "progress": 100,
+            "current_scanner": None,
+            "updated_at": datetime.now(timezone.utc)
+        }
+        if ai_analysis_result:
+            final_update["ai_analysis"] = ai_analysis_result.model_dump()
+        
+        await ScanReport.find_one(ScanReport.scan_id == scan_id).update({"$set": final_update})
+        
+        # Update project statistics with scan results
+        try:
+            scan_results_for_project = {
+                "severity_distribution": findings_by_severity,
+                "security_score": 100 - (findings_by_severity.get('critical', 0) * 25 + 
+                                        findings_by_severity.get('high', 0) * 15 + 
+                                        findings_by_severity.get('medium', 0) * 5 + 
+                                        findings_by_severity.get('low', 0) * 1),
+                "compliance_score": 100 - (findings_by_severity.get('critical', 0) * 20 + 
+                                          findings_by_severity.get('high', 0) * 10)
+            }
+            # Ensure scores don't go below 0
+            scan_results_for_project["security_score"] = max(0, scan_results_for_project["security_score"])
+            scan_results_for_project["compliance_score"] = max(0, scan_results_for_project["compliance_score"])
+            
+            updated_project = await project_service.update_project_from_scan(
+                project_name=scan_request.project_id or "",  # Project ID/name from scan request
+                scan_results=scan_results_for_project,
+                repository_url=str(scan_request.repository_url)
+            )
+            if updated_project:
+                logger.info(f"✅ Updated project stats for: {updated_project.name}")
+            else:
+                logger.warning(f"⚠️ Could not find project to update stats for repo: {scan_request.repository_url}")
+        except Exception as proj_error:
+            logger.warning(f"⚠️ Could not update project stats: {str(proj_error)}")
+        
+        # Clean up active_scans
+        if scan_id in active_scans:
+            del active_scans[scan_id]
+        
         logger.info(f"✅ Real scan {scan_id} completed successfully with {total_findings} findings")
         logger.info(f"   - Critical: {findings_by_severity.get('critical', 0)}")
         logger.info(f"   - High: {findings_by_severity.get('high', 0)}")
@@ -331,16 +539,36 @@ async def process_real_scan(
         logger.info(f"   - Info: {findings_by_severity.get('info', 0)}")
         
     except Exception as e:
-        logger.error(f"❌ Real scan {scan_id} failed: {str(e)}")
+        error_str = str(e)
+        # Extract more user-friendly error message
+        if "No space left on device" in error_str:
+            user_error = "Disk space is full. Please free up disk space and try again."
+        elif "Could not find remote ref" in error_str or "not found" in error_str.lower():
+            user_error = "Branch or repository not found. Please check the repository URL and branch name."
+        elif "Authentication failed" in error_str or "403" in error_str:
+            user_error = "Authentication failed. The repository may be private or require access token."
+        elif "timeout" in error_str.lower():
+            user_error = "Connection timed out. Please check your network connection."
+        else:
+            # For other errors, use a shortened version
+            user_error = error_str[:200] if len(error_str) > 200 else error_str
+            
+        logger.error(f"❌ Real scan {scan_id} failed: {error_str}")
         logger.exception("Full real scan error:")
         
+        # Clean up active_scans
+        if scan_id in active_scans:
+            del active_scans[scan_id]
+            
         # Update scan status to failed
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
             {
                 "$set": {
                     "status": ScanStatus.FAILED,
                     "completed_at": datetime.now(timezone.utc),
-                    "error_message": str(e),
+                    "error_message": user_error,
+                    "progress": 0,
+                    "current_scanner": None,
                     "updated_at": datetime.now(timezone.utc)
                 }
             }

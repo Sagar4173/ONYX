@@ -174,11 +174,20 @@ async def get_report(report_id: str) -> Dict[str, Any]:
             try:
                 report = await ScanReport.get(ObjectId(report_id))
             except Exception as db_error:
-                logger.warning(f"Database error when fetching report {report_id}: {db_error}")
+                logger.warning(f"Database error when fetching report by ObjectId {report_id}: {db_error}")
+        
+        # If not found by ObjectId, try searching by scan_id (UUID format)
+        if not report:
+            try:
+                report = await ScanReport.find_one(ScanReport.scan_id == report_id)
+                if report:
+                    logger.info(f"Found report by scan_id: {report_id}")
+            except Exception as db_error:
+                logger.warning(f"Database error when fetching report by scan_id {report_id}: {db_error}")
         
         # If not found in database, return 404
         if not report:
-            logger.info(f"Report {report_id} not found in database")
+            logger.info(f"Report {report_id} not found in database (tried ObjectId and scan_id)")
             raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
         
         # If we have a real database report, format it properly
@@ -246,14 +255,18 @@ async def get_report(report_id: str) -> Dict[str, Any]:
                                 "id": finding.id,
                                 "title": finding.title,
                                 "description": finding.description,
-                                "severity": finding.severity.value,
-                                "confidence": finding.confidence.value if finding.confidence else None,
-                                "category": finding.category,
-                                "file_path": finding.location.file_path if finding.location else "",
-                                "line_number": finding.location.line_number if finding.location else None,
-                                "column_number": finding.location.column_number if finding.location else None,
-                                "code_snippet": finding.location.code_snippet if finding.location else "",
-                                "remediation": finding.remediation
+                                "severity": finding.severity.value if hasattr(finding.severity, 'value') else finding.severity,
+                                "confidence": finding.confidence if isinstance(finding.confidence, str) else (finding.confidence.value if finding.confidence and hasattr(finding.confidence, 'value') else finding.confidence),
+                                "category": getattr(finding, 'category', None),
+                                "file_path": getattr(finding, 'file_path', '') or (finding.location.file_path if hasattr(finding, 'location') and finding.location else ''),
+                                "line_number": getattr(finding, 'line_start', None) or (finding.location.line_number if hasattr(finding, 'location') and finding.location else None),
+                                "column_number": getattr(finding, 'column_start', None) or (finding.location.column_number if hasattr(finding, 'location') and finding.location else None),
+                                "code_snippet": getattr(finding, 'code_snippet', '') or (finding.location.code_snippet if hasattr(finding, 'location') and finding.location else ''),
+                                "remediation": getattr(finding, 'remediation', None),
+                                "cwe_id": getattr(finding, 'cwe_id', None),
+                                "cve_id": getattr(finding, 'cve_id', None),
+                                "owasp_category": getattr(finding, 'owasp_category', None),
+                                "references": getattr(finding, 'references', [])
                             }
                             scanner_data["findings"].append(finding_data)
                     

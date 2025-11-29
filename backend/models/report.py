@@ -266,6 +266,10 @@ class ScanReport(Document):
     completed_at: Optional[datetime] = Field(None)
     duration_seconds: Optional[float] = Field(None)
     
+    # Progress tracking
+    progress: int = Field(default=0, description="Scan progress percentage (0-100)")
+    current_scanner: Optional[str] = Field(None, description="Currently running scanner or stage")
+    
     # Scanner results
     scan_results: List[ScanResult] = Field(default_factory=list)
     

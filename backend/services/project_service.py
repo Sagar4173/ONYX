@@ -2,6 +2,7 @@
 Project Management Service for SecureDevOps Platform
 Handles project CRUD operations, team management, and business logic
 """
+import logging
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any, Tuple
 from bson import ObjectId
@@ -15,9 +16,9 @@ from models.project import (
     ProjectMember, ScanConfiguration
 )
 from models.user import User, UserRole
-from models.report import ScanReport
+from models.report import ScanReport, WebhookEvent
 
-
+logger = logging.getLogger(__name__)
 class ProjectService:
     """Service for managing projects"""
     
@@ -98,12 +99,24 @@ class ProjectService:
             Or(
                 Project.owner_id == user_id,
                 Project.team_members.user_id == user_id
-            )
+            ),
+            # Always exclude deleted projects unless explicitly filtering for them
+            Project.status != ProjectStatus.DELETED
         ]
         
-        # Add filters
+        # Add filters (if user explicitly wants deleted projects, they can filter)
         if status_filter:
-            base_conditions.append(Project.status == status_filter)
+            # If filtering for deleted, remove the exclusion and add the filter
+            if status_filter == ProjectStatus.DELETED:
+                base_conditions = [
+                    Or(
+                        Project.owner_id == user_id,
+                        Project.team_members.user_id == user_id
+                    ),
+                    Project.status == status_filter
+                ]
+            else:
+                base_conditions.append(Project.status == status_filter)
         
         if category_filter:
             base_conditions.append(Project.category == category_filter)
@@ -163,8 +176,8 @@ class ProjectService:
         await project.save()
         return project
     
-    async def delete_project(self, project_id: str, user_id: str) -> bool:
-        """Delete project (soft delete)"""
+    async def delete_project(self, project_id: str, user_id: str, hard_delete: bool = True) -> bool:
+        """Delete project permanently or soft delete, including all related data"""
         project = await self.get_project_by_id(project_id, user_id)
         if not project:
             raise HTTPException(
@@ -179,12 +192,50 @@ class ProjectService:
                 detail="Only project owner can delete the project"
             )
         
-        # Soft delete
-        project.status = ProjectStatus.DELETED
-        project.updated_at = datetime.now(timezone.utc)
-        project.updated_by = user_id
+        if hard_delete:
+            # Delete all related scan reports first
+            # Match by project name and repository URL
+            deleted_reports_count = 0
+            deleted_events_count = 0
+            
+            try:
+                # Delete reports by project name
+                result = await ScanReport.find(
+                    ScanReport.project_name == project.name
+                ).delete()
+                if result:
+                    deleted_reports_count += result.deleted_count if hasattr(result, 'deleted_count') else 0
+                
+                # Also delete by repository URL if available
+                if project.repository and project.repository.url:
+                    result2 = await ScanReport.find(
+                        ScanReport.git_metadata.repository_url == project.repository.url
+                    ).delete()
+                    if result2:
+                        deleted_reports_count += result2.deleted_count if hasattr(result2, 'deleted_count') else 0
+                    
+                    # Delete webhook events by repository URL
+                    result3 = await WebhookEvent.find(
+                        WebhookEvent.repository_url == project.repository.url
+                    ).delete()
+                    if result3:
+                        deleted_events_count += result3.deleted_count if hasattr(result3, 'deleted_count') else 0
+                
+                logger.info(f"Deleted {deleted_reports_count} scan reports and {deleted_events_count} webhook events for project {project_id}")
+            except Exception as e:
+                logger.warning(f"Error deleting related data for project {project_id}: {e}")
+            
+            # Permanently delete the project from database
+            await project.delete()
+            logger.info(f"Project {project_id} and all related data permanently deleted by user {user_id}")
+        else:
+            # Soft delete - just change status
+            project.status = ProjectStatus.DELETED
+            project.updated_at = datetime.now(timezone.utc)
+            project.updated_by = user_id
+            await project.save()
+            logger.info(f"Project {project_id} soft deleted by user {user_id}")
         
-        await project.save()
         return True
     
     async def add_team_member(
@@ -398,10 +449,33 @@ class ProjectService:
         
         return stats
     
-    async def update_project_from_scan(self, project_name: str, scan_results: Dict[str, Any]) -> Optional[Project]:
-        """Update project statistics from scan results"""
-        # Find project by name (this might need adjustment based on how you link scans to projects)
-        project = await Project.find_one(Project.name == project_name)
+    async def update_project_from_scan(self, project_name: str, scan_results: Dict[str, Any], repository_url: str = None) -> Optional[Project]:
+        """Update project statistics from scan results
+        
+        Tries to find the project by:
+        1. Project ID (if project_name is a valid ObjectId)
+        2. Project name
+        3. Repository URL
+        """
+        from bson import ObjectId
+        
+        project = None
+        
+        # First, try to find by project ID if it looks like an ObjectId
+        if project_name and len(project_name) == 24:
+            try:
+                project = await Project.get(ObjectId(project_name))
+            except:
+                pass
+        
+        # If not found, try by project name
+        if not project and project_name:
+            project = await Project.find_one(Project.name == project_name)
+        
+        # If still not found, try by repository URL
+        if not project and repository_url:
+            project = await Project.find_one(Project.repository.url == repository_url)
+        
         if not project:
             return None
         

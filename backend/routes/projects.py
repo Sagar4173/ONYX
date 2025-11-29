@@ -52,7 +52,11 @@ async def create_project(
         
         project = await project_service.create_project(project_data, str(current_user.id))
         logger.info(f"✅ Project created successfully: {project.name}")
-        return ProjectResponse.model_validate(project.model_dump())
+        
+        # Convert to response with proper ID serialization
+        project_dict = project.model_dump()
+        project_dict["id"] = str(project.id)
+        return ProjectResponse.model_validate(project_dict)
     except HTTPException:
         raise
     except Exception as e:
@@ -130,7 +134,10 @@ async def get_project(
             detail="Project not found"
         )
     
-    return ProjectResponse.model_validate(project.model_dump())
+    # Convert to response with proper ID serialization
+    project_dict = project.model_dump()
+    project_dict["id"] = str(project.id)
+    return ProjectResponse.model_validate(project_dict)
 
 
 @router.put("/{project_id}", response_model=ProjectResponse)
@@ -148,7 +155,10 @@ async def update_project(
         project = await project_service.update_project(
             project_id, update_data, str(current_user.id)
         )
-        return ProjectResponse.model_validate(project.model_dump())
+        # Convert to response with proper ID serialization
+        project_dict = project.model_dump()
+        project_dict["id"] = str(project.id)
+        return ProjectResponse.model_validate(project_dict)
     except HTTPException:
         raise
     except Exception as e:

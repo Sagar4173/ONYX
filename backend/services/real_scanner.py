@@ -8,6 +8,8 @@ import tempfile
 import shutil
 import subprocess
 import logging
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -16,6 +18,9 @@ from git import Repo
 import requests
 
 logger = logging.getLogger(__name__)
+
+# Thread pool for running blocking operations
+_executor = ThreadPoolExecutor(max_workers=4)
 
 class RealSecurityScanner:
     """
@@ -102,19 +107,31 @@ class RealSecurityScanner:
             # Cleanup
             await self._cleanup(repo_path if 'repo_path' in locals() else None)
     
-    async def _clone_repository(self, repository_url: str, branch: str) -> str:
-        """Clone repository to temporary directory"""
-        repo_name = repository_url.split('/')[-1].replace('.git', '')
-        clone_path = os.path.join(self.temp_dir, repo_name)
-        
+    def _clone_repository_sync(self, repository_url: str, branch: str, clone_path: str) -> str:
+        """Synchronous clone operation to run in thread pool"""
         try:
             logger.info(f"📥 Cloning repository to {clone_path}")
-            repo = Repo.clone_from(repository_url, clone_path, branch=branch, depth=1)
+            Repo.clone_from(repository_url, clone_path, branch=branch, depth=1)
             logger.info(f"✅ Repository cloned successfully")
             return clone_path
         except Exception as e:
             logger.error(f"❌ Failed to clone repository: {e}")
             raise
+    
+    async def _clone_repository(self, repository_url: str, branch: str) -> str:
+        """Clone repository to temporary directory (non-blocking)"""
+        repo_name = repository_url.split('/')[-1].replace('.git', '')
+        clone_path = os.path.join(self.temp_dir, repo_name)
+        
+        # Run blocking git clone in thread pool to avoid blocking event loop
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            _executor, 
+            self._clone_repository_sync, 
+            repository_url, 
+            branch, 
+            clone_path
+        )
     
     async def _run_sast_scan(self, repo_path: str) -> List[Dict[str, Any]]:
         """Run Static Application Security Testing using Bandit (Python)"""
@@ -129,12 +146,13 @@ class RealSecurityScanner:
             
             logger.info(f"Found {len(python_files)} Python files to scan")
             
-            # Run Bandit scan
+            # Run Bandit scan (in thread to avoid blocking event loop)
             bandit_cmd = [
                 'bandit', '-r', repo_path, '-f', 'json', '--quiet'
             ]
             
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 bandit_cmd,
                 capture_output=True,
                 text=True,
@@ -176,12 +194,13 @@ class RealSecurityScanner:
         findings = []
         
         try:
-            # Run detect-secrets scan
+            # Run detect-secrets scan (in thread to avoid blocking event loop)
             secrets_cmd = [
                 'detect-secrets', 'scan', '--all-files', '--force-use-all-plugins', repo_path
             ]
             
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 secrets_cmd,
                 capture_output=True,
                 text=True,
@@ -240,12 +259,13 @@ class RealSecurityScanner:
             
             logger.info(f"Found dependency files: {found_req_files}")
             
-            # Run Safety check
+            # Run Safety check (in thread to avoid blocking event loop)
             for req_file in found_req_files:
                 if req_file == 'requirements.txt':
                     safety_cmd = ['safety', 'check', '--json', '-r', req_file]
                     
-                    result = subprocess.run(
+                    result = await asyncio.to_thread(
+                        subprocess.run,
                         safety_cmd,
                         capture_output=True,
                         text=True,

@@ -1418,20 +1418,43 @@ function AppContent() {
     });
 
     const { data: reportsData } = useQuery({
-      queryKey: ["reports", { limit: 1000 }],
-      queryFn: () => reportsAPI.getReports({ limit: 1000 }),
+      queryKey: ["reports", { limit: 100 }],
+      queryFn: () => reportsAPI.getReports({ limit: 100 }),
     });
 
-    const totalProjects = reportsData?.pagination?.total || 0;
-    const criticalIssues = analytics?.severity_distribution?.critical || 0;
-    const avgSecurityScore = analytics?.average_security_score || 0;
-    const scansToday = analytics?.scans_last_24h || 0;
+    // Calculate correct metrics from API response
+    const uniqueProjects = analytics?.top_projects?.length || 0;
+    const totalScans = analytics?.scan_summary?.total_scans || 0;
+    const criticalIssues = analytics?.vulnerability_summary?.critical || 0;
+    const highIssues = analytics?.vulnerability_summary?.high || 0;
+
+    // Calculate security score based on findings (inverse of vulnerability density)
+    const totalFindings =
+      (analytics?.vulnerability_summary?.critical || 0) * 10 +
+      (analytics?.vulnerability_summary?.high || 0) * 5 +
+      (analytics?.vulnerability_summary?.medium || 0) * 2 +
+      (analytics?.vulnerability_summary?.low || 0);
+    const avgSecurityScore =
+      totalScans > 0
+        ? Math.max(
+            0,
+            Math.min(100, 100 - Math.min(totalFindings / totalScans, 100))
+          )
+        : 100;
+
+    // Scans from reports data
+    const scansToday =
+      reportsData?.reports?.filter((r) => {
+        const today = new Date();
+        const scanDate = new Date(r.created_at);
+        return scanDate.toDateString() === today.toDateString();
+      }).length || 0;
 
     const stats = [
       {
-        title: "Total Projects",
-        value: analyticsLoading ? "..." : totalProjects.toString(),
-        change: analytics?.projects_change || "+0%",
+        title: "Active Projects",
+        value: analyticsLoading ? "..." : uniqueProjects.toString(),
+        change: `${totalScans} scans`,
         icon: DocumentReportIcon,
         gradient: "from-blue-500 to-cyan-500",
         bgGradient: "from-blue-500/10 to-cyan-500/10",
@@ -1439,7 +1462,7 @@ function AppContent() {
       {
         title: "Critical Issues",
         value: analyticsLoading ? "..." : criticalIssues.toString(),
-        change: analytics?.critical_change || "0%",
+        change: `${highIssues} high`,
         icon: ExclamationTriangleIcon,
         gradient: "from-red-500 to-pink-500",
         bgGradient: "from-red-500/10 to-pink-500/10",
@@ -1447,7 +1470,12 @@ function AppContent() {
       {
         title: "Security Score",
         value: analyticsLoading ? "..." : `${Math.round(avgSecurityScore)}/100`,
-        change: analytics?.score_change || "+0%",
+        change:
+          avgSecurityScore >= 80
+            ? "Good"
+            : avgSecurityScore >= 50
+            ? "Fair"
+            : "Needs Work",
         icon: ShieldCheckIcon,
         gradient: "from-green-500 to-emerald-500",
         bgGradient: "from-green-500/10 to-emerald-500/10",
@@ -1455,7 +1483,7 @@ function AppContent() {
       {
         title: "Scans Today",
         value: analyticsLoading ? "..." : scansToday.toString(),
-        change: analytics?.scans_change || "+0%",
+        change: "24h",
         icon: BoltIcon,
         gradient: "from-purple-500 to-violet-500",
         bgGradient: "from-purple-500/10 to-violet-500/10",

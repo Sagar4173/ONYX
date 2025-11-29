@@ -22,6 +22,9 @@ import {
   UserIcon,
   BuildingOfficeIcon as OfficeBuildingIcon,
   ArrowPathIcon as RefreshIcon,
+  ChartBarIcon,
+  LightBulbIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
@@ -528,12 +531,20 @@ const ComplianceReport = () => {
   );
 
   const SeverityBadge = ({ severity }) => {
-    const colorClass = utils.getSeverityColor(severity);
+    const severityColors = {
+      critical: "bg-red-500/20 text-red-400 border-red-500/30",
+      high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+      medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+      low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      info: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+    };
+    const colorClass =
+      severityColors[severity?.toLowerCase()] || severityColors.info;
     return (
       <span
         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorClass} border`}
       >
-        {severity.charAt(0).toUpperCase() + severity.slice(1)}
+        {severity?.charAt(0).toUpperCase() + severity?.slice(1)}
       </span>
     );
   };
@@ -541,18 +552,18 @@ const ComplianceReport = () => {
   const ComplianceStatus = ({ isCompliant, riskLevel }) => {
     if (isCompliant) {
       return (
-        <div className="flex items-center text-green-600">
-          <CheckCircleIcon className="h-4 w-4 mr-1" />
-          <span className="text-sm">Compliant</span>
+        <div className="flex items-center text-green-400 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/30">
+          <CheckCircleIcon className="h-4 w-4 mr-1.5" />
+          <span className="text-sm font-medium">Compliant</span>
         </div>
       );
     }
 
     const riskColors = {
-      low: "text-yellow-600",
-      medium: "text-orange-600",
-      high: "text-red-600",
-      critical: "text-red-700",
+      low: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+      medium: "text-orange-400 bg-orange-500/10 border-orange-500/30",
+      high: "text-red-400 bg-red-500/10 border-red-500/30",
+      critical: "text-red-400 bg-red-600/20 border-red-500/30",
     };
 
     const riskIcons = {
@@ -563,484 +574,594 @@ const ComplianceReport = () => {
     };
 
     const Icon = riskIcons[riskLevel] || ExclamationTriangleIcon;
+    const colorClass = riskColors[riskLevel] || riskColors.medium;
 
     return (
-      <div className={`flex items-center ${riskColors[riskLevel]}`}>
-        <Icon className="h-4 w-4 mr-1" />
-        <span className="text-sm">Non-Compliant ({riskLevel})</span>
+      <div
+        className={`flex items-center px-3 py-1.5 rounded-lg border ${colorClass}`}
+      >
+        <Icon className="h-4 w-4 mr-1.5" />
+        <span className="text-sm font-medium">Non-Compliant ({riskLevel})</span>
       </div>
     );
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8 no-print">
-        <div className="flex items-center mb-4">
-          <Link
-            to={`/report/${reportId}`}
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-1" />
-            Back to Report Details
-          </Link>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Compliance Report
-            </h1>
-            <p className="mt-2 text-gray-600">{report.project_name}</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8 no-print">
+          <div className="flex items-center mb-4">
+            <Link
+              to={`/report/${reportId}`}
+              className="inline-flex items-center text-sm text-gray-400 hover:text-white transition-colors duration-200"
+            >
+              <ArrowLeftIcon className="h-4 w-4 mr-1" />
+              Back to Report Details
+            </Link>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={printReport}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              <PrinterIcon className="h-4 w-4 mr-2" />
-              Print
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                <DocumentTextIcon className="h-8 w-8 text-blue-400" />
+                Compliance Report
+              </h1>
+              <p className="mt-2 text-gray-400">{report.project_name}</p>
+            </div>
 
-            <button
-              onClick={generatePDF}
-              disabled={isGenerating}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isGenerating ? (
-                <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <DownloadIcon className="h-4 w-4 mr-2" />
-              )}
-              {isGenerating ? "Generating..." : "Download PDF"}
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={printReport}
+                className="inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-lg text-gray-300 bg-gray-800/50 hover:bg-gray-700/50 hover:text-white transition-all duration-200"
+              >
+                <PrinterIcon className="h-4 w-4 mr-2" />
+                Print
+              </button>
+
+              <button
+                onClick={generatePDF}
+                disabled={isGenerating}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 transition-all duration-200 shadow-lg shadow-blue-500/25"
+              >
+                {isGenerating ? (
+                  <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <DownloadIcon className="h-4 w-4 mr-2" />
+                )}
+                {isGenerating ? "Generating..." : "Download PDF"}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Configuration Panel */}
-      <div className="bg-white shadow rounded-lg p-6 mb-8 no-print">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Report Configuration
-        </h3>
+        {/* Configuration Panel */}
+        <div className="glass-container rounded-2xl p-6 mb-8 no-print border border-gray-700/50">
+          <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
+            <ShieldCheckIcon className="h-5 w-5 text-blue-400" />
+            Report Configuration
+          </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Compliance Standards
-            </label>
-            <div className="space-y-2">
-              {Object.keys(complianceStandards).map((standard) => (
-                <label key={standard} className="flex items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Compliance Standards
+              </label>
+              <div className="space-y-2">
+                {Object.keys(complianceStandards).map((standard) => (
+                  <label
+                    key={standard}
+                    className="flex items-center cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedStandards.includes(standard)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedStandards([
+                            ...selectedStandards,
+                            standard,
+                          ]);
+                        } else {
+                          setSelectedStandards(
+                            selectedStandards.filter((s) => s !== standard)
+                          );
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-500 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-offset-gray-900"
+                    />
+                    <span className="ml-2 text-sm text-gray-400 group-hover:text-gray-200 transition-colors">
+                      {complianceStandards[standard].name}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Report Format
+              </label>
+              <select
+                value={reportFormat}
+                onChange={(e) => setReportFormat(e.target.value)}
+                className="block w-full px-3 py-2 bg-gray-800/80 border border-gray-600 rounded-lg text-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="detailed">Detailed Report</option>
+                <option value="summary">Executive Summary</option>
+                <option value="technical">Technical Report</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Additional Options
+              </label>
+              <div className="space-y-2">
+                <label className="flex items-center cursor-pointer group">
                   <input
                     type="checkbox"
-                    checked={selectedStandards.includes(standard)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedStandards([...selectedStandards, standard]);
-                      } else {
-                        setSelectedStandards(
-                          selectedStandards.filter((s) => s !== standard)
-                        );
-                      }
-                    }}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    checked={includeAIAnalysis}
+                    onChange={(e) => setIncludeAIAnalysis(e.target.checked)}
+                    className="h-4 w-4 text-blue-500 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-offset-gray-900"
                   />
-                  <span className="ml-2 text-sm text-gray-700">
-                    {complianceStandards[standard].name}
+                  <span className="ml-2 text-sm text-gray-400 group-hover:text-gray-200 transition-colors">
+                    Include AI Analysis
                   </span>
                 </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Report Format
-            </label>
-            <select
-              value={reportFormat}
-              onChange={(e) => setReportFormat(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="detailed">Detailed Report</option>
-              <option value="summary">Executive Summary</option>
-              <option value="technical">Technical Report</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Additional Options
-            </label>
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={includeAIAnalysis}
-                  onChange={(e) => setIncludeAIAnalysis(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Include AI Analysis
-                </span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={includeCodeSnippets}
-                  onChange={(e) => setIncludeCodeSnippets(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Include Code Snippets
-                </span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* PDF Content */}
-      <div ref={reportRef} className="bg-white">
-        {/* Report Header */}
-        <div className="border-b border-gray-200 pb-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Security Compliance Report
-              </h1>
-              <h2 className="text-xl text-gray-600 mt-2">
-                {report.project_name}
-              </h2>
-            </div>
-            <div className="text-right text-sm text-gray-500">
-              <div>Generated: {new Date().toLocaleDateString()}</div>
-              <div>Report ID: {report.id}</div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
-            <div>
-              <div className="text-sm font-medium text-gray-500">Project</div>
-              <div className="text-gray-900">{report.project_name}</div>
-            </div>
-            <div>
-              <div className="text-sm font-medium text-gray-500">Branch</div>
-              <div className="text-gray-900">{report.branch}</div>
-            </div>
-            <div>
-              <div className="text-sm font-medium text-gray-500">Scan Date</div>
-              <div className="text-gray-900">
-                {utils.formatDate(report.created_at)}
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={includeCodeSnippets}
+                    onChange={(e) => setIncludeCodeSnippets(e.target.checked)}
+                    className="h-4 w-4 text-blue-500 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-offset-gray-900"
+                  />
+                  <span className="ml-2 text-sm text-gray-400 group-hover:text-gray-200 transition-colors">
+                    Include Code Snippets
+                  </span>
+                </label>
               </div>
             </div>
-            <div>
-              <div className="text-sm font-medium text-gray-500">Status</div>
-              <div className="text-gray-900 capitalize">{report.status}</div>
-            </div>
           </div>
         </div>
 
-        {/* Executive Summary */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Executive Summary
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-            {Object.entries(report.findings_by_severity || {}).map(
-              ([severity, count]) => (
-                <div key={severity} className="bg-gray-50 p-4 rounded-lg">
-                  <div className="text-sm font-medium text-gray-500 capitalize">
-                    {severity} Issues
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {count}
-                  </div>
+        {/* PDF Content */}
+        <div
+          ref={reportRef}
+          className="glass-container rounded-2xl p-8 border border-gray-700/50"
+        >
+          {/* Report Header */}
+          <div className="border-b border-gray-700/50 pb-8 mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-white">
+                  Security Compliance Report
+                </h1>
+                <h2 className="text-xl text-gray-400 mt-2">
+                  {report.project_name}
+                </h2>
+              </div>
+              <div className="text-right text-sm text-gray-400">
+                <div>Generated: {new Date().toLocaleDateString()}</div>
+                <div className="text-gray-500">Report ID: {report.id}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
+                <div className="text-sm font-medium text-gray-400">Project</div>
+                <div className="text-white mt-1">{report.project_name}</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
+                <div className="text-sm font-medium text-gray-400">Branch</div>
+                <div className="text-white mt-1">{report.branch}</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
+                <div className="text-sm font-medium text-gray-400">
+                  Scan Date
                 </div>
-              )
-            )}
-          </div>
-
-          <div className="prose max-w-none">
-            <p className="text-gray-700">
-              This security compliance report provides an assessment of{" "}
-              {report.project_name} against industry-standard security
-              frameworks. The analysis identified {allFindings.length}
-              security findings across {selectedStandards.join(", ")} compliance
-              frameworks.
-            </p>
-
-            {aiAnalysis?.overall_risk_assessment && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                <h3 className="text-lg font-medium text-blue-900 mb-2">
-                  AI Risk Assessment
-                </h3>
-                <p className="text-blue-800">
-                  {aiAnalysis.overall_risk_assessment}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Compliance Analysis */}
-        {selectedStandards.map((standardKey) => {
-          const standard = complianceMapping[standardKey];
-          const totalCategories = Object.keys(standard.categories).length;
-          const compliantCategories = Object.values(standard.coverage).filter(
-            (c) => c.compliant
-          ).length;
-          const complianceRate = (
-            (compliantCategories / totalCategories) *
-            100
-          ).toFixed(1);
-
-          return (
-            <div key={standardKey} className="mb-8 page-break-before">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {standard.name} Compliance Analysis
-              </h2>
-
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">
-                      Compliance Rate
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {complianceRate}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">
-                      Compliant Controls
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {compliantCategories}/{totalCategories}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">
-                      Total Findings
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {standard.findings.length}
-                    </div>
-                  </div>
+                <div className="text-white mt-1">
+                  {utils.formatDate(report.created_at)}
                 </div>
               </div>
-
-              <div className="space-y-4">
-                {Object.entries(standard.coverage).map(
-                  ([categoryKey, coverage]) => (
-                    <div
-                      key={categoryKey}
-                      className="border border-gray-200 rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {categoryKey}: {standard.categories[categoryKey]}
-                          </h3>
-                        </div>
-                        <ComplianceStatus
-                          isCompliant={coverage.compliant}
-                          riskLevel={coverage.risk_level}
-                        />
-                      </div>
-
-                      {!coverage.compliant && coverage.findings.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">
-                            Non-Compliance Issues ({coverage.findings.length})
-                          </h4>
-                          <div className="space-y-2">
-                            {coverage.findings
-                              .slice(0, reportFormat === "summary" ? 3 : 10)
-                              .map((finding, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-start space-x-3 text-sm"
-                                >
-                                  <SeverityBadge severity={finding.severity} />
-                                  <div className="flex-1">
-                                    <div className="font-medium text-gray-900">
-                                      {finding.title}
-                                    </div>
-                                    <div className="text-gray-600">
-                                      {finding.file_path}:{finding.line_number}
-                                    </div>
-                                    {reportFormat === "detailed" && (
-                                      <div className="text-gray-700 mt-1">
-                                        {finding.description}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            {coverage.findings.length >
-                              (reportFormat === "summary" ? 3 : 10) && (
-                              <div className="text-sm text-gray-500">
-                                ... and{" "}
-                                {coverage.findings.length -
-                                  (reportFormat === "summary" ? 3 : 10)}{" "}
-                                more findings
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                )}
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/30">
+                <div className="text-sm font-medium text-gray-400">Status</div>
+                <div className="text-white mt-1 capitalize">
+                  {report.status}
+                </div>
               </div>
             </div>
-          );
-        })}
+          </div>
 
-        {/* Detailed Findings */}
-        {reportFormat === "detailed" && (
-          <div className="mb-8 page-break-before">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Detailed Findings
+          {/* Executive Summary */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <ChartBarIcon className="h-6 w-6 text-blue-400" />
+              Executive Summary
             </h2>
-            <div className="space-y-6">
-              {allFindings.map((finding, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-200 rounded-lg p-6"
-                >
-                  <div className="flex items-start justify-between mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {Object.entries(report.findings_by_severity || {}).map(
+                ([severity, count]) => {
+                  const severityColors = {
+                    critical:
+                      "from-red-500/20 to-red-600/10 border-red-500/30 text-red-400",
+                    high: "from-orange-500/20 to-orange-600/10 border-orange-500/30 text-orange-400",
+                    medium:
+                      "from-yellow-500/20 to-yellow-600/10 border-yellow-500/30 text-yellow-400",
+                    low: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400",
+                    info: "from-gray-500/20 to-gray-600/10 border-gray-500/30 text-gray-400",
+                  };
+                  const colorClass =
+                    severityColors[severity] || severityColors.info;
+                  return (
+                    <div
+                      key={severity}
+                      className={`bg-gradient-to-br ${colorClass} p-4 rounded-xl border`}
+                    >
+                      <div className="text-sm font-medium capitalize">
+                        {severity} Issues
+                      </div>
+                      <div className="text-3xl font-bold text-white mt-1">
+                        {count}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+
+            <div className="prose prose-invert max-w-none">
+              <p className="text-gray-300">
+                This security compliance report provides an assessment of{" "}
+                <span className="text-white font-medium">
+                  {report.project_name}
+                </span>{" "}
+                against industry-standard security frameworks. The analysis
+                identified{" "}
+                <span className="text-blue-400 font-medium">
+                  {allFindings.length}
+                </span>{" "}
+                security findings across {selectedStandards.join(", ")}{" "}
+                compliance frameworks.
+              </p>
+
+              {aiAnalysis?.overall_risk_assessment && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mt-4">
+                  <h3 className="text-lg font-medium text-blue-400 mb-2 flex items-center gap-2">
+                    <SparklesIcon className="h-5 w-5" />
+                    AI Risk Assessment
+                  </h3>
+                  <p className="text-blue-200">
+                    {aiAnalysis.overall_risk_assessment}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Compliance Analysis */}
+          {selectedStandards.map((standardKey) => {
+            const standard = complianceMapping[standardKey];
+            const totalCategories = Object.keys(standard.categories).length;
+            const compliantCategories = Object.values(standard.coverage).filter(
+              (c) => c.compliant
+            ).length;
+            const complianceRate = (
+              (compliantCategories / totalCategories) *
+              100
+            ).toFixed(1);
+
+            return (
+              <div key={standardKey} className="mb-8 page-break-before">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                  <ShieldCheckIcon className="h-6 w-6 text-green-400" />
+                  {standard.name} Compliance Analysis
+                </h2>
+
+                <div className="bg-gray-800/50 p-6 rounded-xl mb-6 border border-gray-700/30">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {finding.title}
-                      </h3>
-                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                        <SeverityBadge severity={finding.severity} />
-                        <span>CWE-{finding.cwe_id || "N/A"}</span>
-                        <span>
-                          {finding.file_path}:{finding.line_number}
+                      <div className="text-sm font-medium text-gray-400">
+                        Compliance Rate
+                      </div>
+                      <div className="text-3xl font-bold text-white mt-1">
+                        <span
+                          className={
+                            complianceRate >= 80
+                              ? "text-green-400"
+                              : complianceRate >= 50
+                              ? "text-yellow-400"
+                              : "text-red-400"
+                          }
+                        >
+                          {complianceRate}%
                         </span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">
-                        Description
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {finding.description}
-                      </p>
-                    </div>
-
-                    {includeCodeSnippets && finding.code_snippet && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">
-                          Code Snippet
-                        </h4>
-                        <pre className="bg-gray-900 text-white p-3 rounded text-xs overflow-x-auto">
-                          <code>{finding.code_snippet}</code>
-                        </pre>
+                      <div className="text-sm font-medium text-gray-400">
+                        Compliant Controls
                       </div>
-                    )}
+                      <div className="text-3xl font-bold text-white mt-1">
+                        <span className="text-green-400">
+                          {compliantCategories}
+                        </span>
+                        <span className="text-gray-500">
+                          /{totalCategories}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-400">
+                        Total Findings
+                      </div>
+                      <div className="text-3xl font-bold text-white mt-1">
+                        {standard.findings.length}
+                      </div>
+                    </div>
+                  </div>
 
-                    {includeAIAnalysis &&
-                      aiAnalysis?.findings_analysis?.[finding.id] && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-blue-900 mb-2">
-                            AI Analysis
-                          </h4>
-                          <div className="space-y-2 text-sm text-blue-800">
-                            <div>
-                              <strong>Impact:</strong>{" "}
-                              {
-                                aiAnalysis.findings_analysis[finding.id]
-                                  .impact_assessment
-                              }
-                            </div>
-                            <div>
-                              <strong>Remediation:</strong>
-                              <ul className="list-disc list-inside mt-1">
-                                {aiAnalysis.findings_analysis[
-                                  finding.id
-                                ].remediation_steps?.map((step, i) => (
-                                  <li key={i}>{step}</li>
-                                ))}
-                              </ul>
-                            </div>
+                  {/* Compliance Progress Bar */}
+                  <div className="mt-4">
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-500 ${
+                          complianceRate >= 80
+                            ? "bg-green-500"
+                            : complianceRate >= 50
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                        style={{ width: `${complianceRate}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {Object.entries(standard.coverage).map(
+                    ([categoryKey, coverage]) => (
+                      <div
+                        key={categoryKey}
+                        className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-5 hover:bg-gray-800/50 transition-colors duration-200"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h3 className="text-lg font-medium text-white">
+                              {categoryKey}: {standard.categories[categoryKey]}
+                            </h3>
                           </div>
+                          <ComplianceStatus
+                            isCompliant={coverage.compliant}
+                            riskLevel={coverage.risk_level}
+                          />
                         </div>
-                      )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Recommendations */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Recommendations
-          </h2>
-          <div className="space-y-4">
-            {aiAnalysis?.priority_recommendations ? (
-              aiAnalysis.priority_recommendations.map(
-                (recommendation, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <span className="text-blue-600 font-medium">
-                      {index + 1}.
-                    </span>
-                    <span className="text-gray-700">{recommendation}</span>
-                  </div>
-                )
-              )
-            ) : (
-              <div className="space-y-4 text-gray-700">
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-medium">1.</span>
-                  <span>
-                    Address all critical and high severity findings as a
-                    priority
-                  </span>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-medium">2.</span>
-                  <span>
-                    Implement secure coding practices and regular security
-                    reviews
-                  </span>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-medium">3.</span>
-                  <span>
-                    Establish automated security testing in the CI/CD pipeline
-                  </span>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-600 font-medium">4.</span>
-                  <span>
-                    Conduct regular security assessments and penetration testing
-                  </span>
+                        {!coverage.compliant &&
+                          coverage.findings.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-700/50">
+                              <h4 className="text-sm font-medium text-gray-300 mb-3">
+                                Non-Compliance Issues (
+                                {coverage.findings.length})
+                              </h4>
+                              <div className="space-y-3">
+                                {coverage.findings
+                                  .slice(0, reportFormat === "summary" ? 3 : 10)
+                                  .map((finding, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-start space-x-3 text-sm bg-gray-900/50 rounded-lg p-3"
+                                    >
+                                      <SeverityBadge
+                                        severity={finding.severity}
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-white">
+                                          {finding.title}
+                                        </div>
+                                        <div className="text-gray-400 truncate">
+                                          {finding.file_path}:
+                                          {finding.line_number}
+                                        </div>
+                                        {reportFormat === "detailed" && (
+                                          <div className="text-gray-500 mt-1">
+                                            {finding.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                {coverage.findings.length >
+                                  (reportFormat === "summary" ? 3 : 10) && (
+                                  <div className="text-sm text-gray-500 pl-3">
+                                    ... and{" "}
+                                    {coverage.findings.length -
+                                      (reportFormat === "summary"
+                                        ? 3
+                                        : 10)}{" "}
+                                    more findings
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
+            );
+          })}
 
-        {/* Footer */}
-        <div className="border-t border-gray-200 pt-8 text-center text-sm text-gray-500">
-          <p>
-            This report was generated by SecureDevOps AI Platform on{" "}
-            {new Date().toLocaleDateString()}
-          </p>
-          <p>
-            Report ID: {report.id} | Project: {report.project_name}
-          </p>
+          {/* Detailed Findings */}
+          {reportFormat === "detailed" && (
+            <div className="mb-8 page-break-before">
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <ExclamationTriangleIcon className="h-6 w-6 text-amber-400" />
+                Detailed Findings
+              </h2>
+              <div className="space-y-4">
+                {allFindings.map((finding, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/50 transition-colors duration-200"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-medium text-white">
+                          {finding.title}
+                        </h3>
+                        <div className="flex items-center flex-wrap gap-3 mt-2 text-sm text-gray-400">
+                          <SeverityBadge severity={finding.severity} />
+                          <span className="bg-gray-700/50 px-2 py-0.5 rounded">
+                            CWE-{finding.cwe_id || "N/A"}
+                          </span>
+                          <span className="truncate max-w-xs">
+                            {finding.file_path}:{finding.line_number}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-300 mb-1">
+                          Description
+                        </h4>
+                        <p className="text-sm text-gray-400">
+                          {finding.description}
+                        </p>
+                      </div>
+
+                      {includeCodeSnippets && finding.code_snippet && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-300 mb-2">
+                            Code Snippet
+                          </h4>
+                          <pre className="bg-gray-900 text-gray-300 p-4 rounded-lg text-xs overflow-x-auto border border-gray-700/50">
+                            <code>{finding.code_snippet}</code>
+                          </pre>
+                        </div>
+                      )}
+
+                      {includeAIAnalysis &&
+                        aiAnalysis?.findings_analysis?.[finding.id] && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                            <h4 className="text-sm font-medium text-blue-400 mb-2 flex items-center gap-2">
+                              <SparklesIcon className="h-4 w-4" />
+                              AI Analysis
+                            </h4>
+                            <div className="space-y-2 text-sm text-blue-200">
+                              <div>
+                                <strong className="text-blue-300">
+                                  Impact:
+                                </strong>{" "}
+                                {
+                                  aiAnalysis.findings_analysis[finding.id]
+                                    .impact_assessment
+                                }
+                              </div>
+                              <div>
+                                <strong className="text-blue-300">
+                                  Remediation:
+                                </strong>
+                                <ul className="list-disc list-inside mt-1 text-blue-200/80">
+                                  {aiAnalysis.findings_analysis[
+                                    finding.id
+                                  ].remediation_steps?.map((step, i) => (
+                                    <li key={i}>{step}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recommendations */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <LightBulbIcon className="h-6 w-6 text-yellow-400" />
+              Recommendations
+            </h2>
+            <div className="bg-gray-800/30 rounded-xl p-6 border border-gray-700/50">
+              <div className="space-y-4">
+                {aiAnalysis?.priority_recommendations ? (
+                  aiAnalysis.priority_recommendations.map(
+                    (recommendation, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start space-x-4 p-3 bg-gray-900/50 rounded-lg"
+                      >
+                        <span className="flex-shrink-0 w-7 h-7 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </span>
+                        <span className="text-gray-300">{recommendation}</span>
+                      </div>
+                    )
+                  )
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-4 p-3 bg-gray-900/50 rounded-lg">
+                      <span className="flex-shrink-0 w-7 h-7 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center text-sm font-medium">
+                        1
+                      </span>
+                      <span className="text-gray-300">
+                        Address all critical and high severity findings as a
+                        priority
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-4 p-3 bg-gray-900/50 rounded-lg">
+                      <span className="flex-shrink-0 w-7 h-7 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center text-sm font-medium">
+                        2
+                      </span>
+                      <span className="text-gray-300">
+                        Implement secure coding practices and regular security
+                        reviews
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-4 p-3 bg-gray-900/50 rounded-lg">
+                      <span className="flex-shrink-0 w-7 h-7 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-sm font-medium">
+                        3
+                      </span>
+                      <span className="text-gray-300">
+                        Establish automated security testing in the CI/CD
+                        pipeline
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-4 p-3 bg-gray-900/50 rounded-lg">
+                      <span className="flex-shrink-0 w-7 h-7 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-sm font-medium">
+                        4
+                      </span>
+                      <span className="text-gray-300">
+                        Conduct regular security assessments and penetration
+                        testing
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-gray-700/50 pt-8 text-center text-sm text-gray-500">
+            <p>
+              This report was generated by{" "}
+              <span className="text-blue-400">SecureDevOps AI Platform</span> on{" "}
+              {new Date().toLocaleDateString()}
+            </p>
+            <p className="mt-1">
+              Report ID: <span className="text-gray-400">{report.id}</span> |
+              Project:{" "}
+              <span className="text-gray-400">{report.project_name}</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
