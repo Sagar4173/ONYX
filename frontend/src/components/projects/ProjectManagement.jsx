@@ -27,8 +27,8 @@ import {
 } from "@heroicons/react/24/solid";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useAuth } from "./auth";
-import { projectsAPI } from "../services/api";
+import { useAuth } from "../auth";
+import { projectsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 
 // Project Card Component

@@ -25,7 +25,7 @@ import {
   ExclamationTriangleIcon as ExclamationTriangleSolid,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
-import { useAuth } from "./auth";
+import { useAuth } from "../auth";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("security");

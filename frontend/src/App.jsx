@@ -52,19 +52,26 @@ import {
   SparklesIcon as SparklesSolid,
 } from "@heroicons/react/24/solid";
 
-// Components
-import ProjectList from "./components/ProjectList";
-import ReportDetails from "./components/ReportDetails";
-import EnhancedReportDetails from "./components/EnhancedReportDetails";
-import ComplianceReport from "./components/ComplianceReport";
-import ProjectManagement from "./components/ProjectManagement";
-import ProjectDetails from "./components/ProjectDetails";
-import Settings from "./components/Settings";
-import UserManagement from "./components/UserManagement";
-import AuditLogs from "./components/AuditLogs";
-import DataRetentionPolicies from "./components/DataRetentionPolicies";
-import AdvancedCompliance from "./components/AdvancedCompliance";
-import LandingPage from "./components/LandingPage";
+// Components - Organized by category
+import {
+  ProjectList,
+  ProjectManagement,
+  ProjectDetails,
+} from "./components/projects";
+import {
+  ReportDetails,
+  EnhancedReportDetails,
+  ComplianceReport,
+} from "./components/reports";
+import {
+  AdvancedCompliance,
+  DataRetentionPolicies,
+} from "./components/compliance";
+import { UserManagement, AuditLogs } from "./components/users";
+import { Settings } from "./components/settings";
+import { LandingPage } from "./components/marketing";
+import { Analytics, Reports, NotFound } from "./pages";
+import { PageContainer, PageHeader, GlassCard, SectionHeader } from "./layouts";
 import {
   AuthProvider,
   useAuth,
@@ -438,7 +445,7 @@ const EmailVerificationPage = () => {
   const handleVerificationSuccess = () => {
     if (isAuthenticated) {
       // User is logged in - redirect to dashboard
-      navigate("/", {
+      navigate("/dashboard", {
         state: {
           message: "Email verified successfully!",
           from: "verification",
@@ -460,7 +467,7 @@ const EmailVerificationPage = () => {
   };
 
   const handleVerificationError = () => {
-    navigate("/");
+    navigate("/login");
   };
 
   return (
@@ -482,7 +489,7 @@ const PasswordResetPage = () => {
   const token = searchParams.get("token");
 
   const handleResetSuccess = () => {
-    navigate("/", {
+    navigate("/dashboard", {
       state: {
         message:
           "Password reset successfully! Please log in with your new password.",
@@ -491,7 +498,7 @@ const PasswordResetPage = () => {
   };
 
   const handleSwitchToLogin = () => {
-    navigate("/");
+    navigate("/login");
   };
 
   if (!token) {
@@ -861,59 +868,71 @@ function AppContent() {
   }
 
   const navigation = [
+    // Primary Navigation
     {
       name: "Dashboard",
-      href: "/",
+      href: "/dashboard",
       icon: HomeIcon,
       gradient: "from-blue-500 to-cyan-500",
+      category: "main",
     },
     {
       name: "Projects",
       href: "/projects",
       icon: UsersIcon,
       gradient: "from-indigo-500 to-purple-500",
-    },
-    {
-      name: "Users",
-      href: "/users",
-      icon: UserCircleIcon,
-      gradient: "from-teal-500 to-blue-500",
+      category: "main",
     },
     {
       name: "Reports",
       href: "/reports",
       icon: DocumentReportIcon,
       gradient: "from-purple-500 to-pink-500",
+      category: "main",
     },
     {
       name: "Analytics",
       href: "/analytics",
       icon: ChartBarIcon,
       gradient: "from-green-500 to-emerald-500",
+      category: "main",
+    },
+    // Enterprise Features
+    {
+      name: "User Management",
+      href: "/users",
+      icon: UserCircleIcon,
+      gradient: "from-teal-500 to-blue-500",
+      category: "enterprise",
     },
     {
       name: "Audit Logs",
       href: "/audit-logs",
       icon: ClockIcon,
-      gradient: "from-purple-500 to-pink-500",
+      gradient: "from-amber-500 to-orange-500",
+      category: "enterprise",
     },
     {
       name: "Data Retention",
       href: "/retention-policies",
       icon: ArchiveBoxIcon,
-      gradient: "from-blue-500 to-cyan-500",
+      gradient: "from-rose-500 to-pink-500",
+      category: "enterprise",
     },
     {
       name: "Compliance",
       href: "/compliance",
       icon: BuildingOfficeIcon,
-      gradient: "from-green-500 to-emerald-500",
+      gradient: "from-cyan-500 to-blue-500",
+      category: "enterprise",
     },
+    // Settings
     {
       name: "Settings",
       href: "/settings",
       icon: CogIcon,
-      gradient: "from-orange-500 to-red-500",
+      gradient: "from-gray-500 to-gray-600",
+      category: "settings",
     },
   ];
 
@@ -961,43 +980,141 @@ function AppContent() {
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-6 space-y-2 overflow-y-auto">
-          {navigation.map((item) => {
-            const isActive =
-              location.pathname === item.href ||
-              (item.href === "/" && location.pathname === "/") ||
-              (item.href !== "/" && location.pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`flex items-center px-3 lg:px-4 py-3 lg:py-4 rounded-xl lg:rounded-2xl transition-all group ${
-                  isActive
-                    ? "bg-gray-800/50 text-white shadow-lg"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/30"
-                }`}
-              >
-                <div
-                  className={`p-1.5 lg:p-2 rounded-lg lg:rounded-xl bg-gradient-to-r ${
-                    item.gradient
-                  } ${
-                    isActive
-                      ? "shadow-lg"
-                      : "opacity-60 group-hover:opacity-100"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
-                </div>
-                <span className="ml-2 lg:ml-3 font-medium text-sm lg:text-base">
-                  {item.name}
-                </span>
-                {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                )}
-              </Link>
-            );
-          })}
+        {/* Navigation - Grouped */}
+        <nav className="flex-1 px-6 overflow-y-auto">
+          {/* Main Navigation */}
+          <div className="mb-6">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+              Main
+            </p>
+            <div className="space-y-1">
+              {navigation
+                .filter((item) => item.category === "main")
+                .map((item) => {
+                  const isActive =
+                    location.pathname === item.href ||
+                    (item.href === "/dashboard" &&
+                      location.pathname === "/dashboard") ||
+                    (item.href !== "/dashboard" &&
+                      location.pathname.startsWith(item.href));
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-3 rounded-xl transition-all group ${
+                        isActive
+                          ? "bg-gray-800/50 text-white shadow-lg border border-gray-700/30"
+                          : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-xl bg-gradient-to-r ${
+                          item.gradient
+                        } ${
+                          isActive
+                            ? "shadow-lg"
+                            : "opacity-60 group-hover:opacity-100"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="ml-3 font-medium text-sm">
+                        {item.name}
+                      </span>
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600" />
+                      )}
+                    </Link>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Enterprise Features */}
+          <div className="mb-6">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+              Enterprise
+            </p>
+            <div className="space-y-1">
+              {navigation
+                .filter((item) => item.category === "enterprise")
+                .map((item) => {
+                  const isActive =
+                    location.pathname === item.href ||
+                    (item.href !== "/" &&
+                      location.pathname.startsWith(item.href));
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-3 rounded-xl transition-all group ${
+                        isActive
+                          ? "bg-gray-800/50 text-white shadow-lg border border-gray-700/30"
+                          : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-xl bg-gradient-to-r ${
+                          item.gradient
+                        } ${
+                          isActive
+                            ? "shadow-lg"
+                            : "opacity-60 group-hover:opacity-100"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="ml-3 font-medium text-sm">
+                        {item.name}
+                      </span>
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600" />
+                      )}
+                    </Link>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Settings */}
+          <div className="mb-6">
+            <div className="space-y-1">
+              {navigation
+                .filter((item) => item.category === "settings")
+                .map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-3 rounded-xl transition-all group ${
+                        isActive
+                          ? "bg-gray-800/50 text-white shadow-lg border border-gray-700/30"
+                          : "text-gray-400 hover:text-white hover:bg-gray-800/30"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-xl bg-gradient-to-r ${
+                          item.gradient
+                        } ${
+                          isActive
+                            ? "shadow-lg"
+                            : "opacity-60 group-hover:opacity-100"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="ml-3 font-medium text-sm">
+                        {item.name}
+                      </span>
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600" />
+                      )}
+                    </Link>
+                  );
+                })}
+            </div>
+          </div>
         </nav>
 
         {/* Enhanced Connection Status */}
@@ -1346,23 +1463,26 @@ function AppContent() {
     ];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
-        {/* Hero Section */}
-        <div className="relative px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl" />
-          <div className="relative">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-4">
-              Security Command Center
-            </h1>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl">
-              AI-powered security insights and vulnerability management for your
-              entire codebase
-            </p>
-          </div>
-        </div>
+      <PageContainer>
+        {/* Page Header */}
+        <PageHeader
+          title="Dashboard"
+          description="AI-powered security insights and vulnerability management"
+          icon={HomeIcon}
+          breadcrumb={["Dashboard"]}
+          actions={
+            <button
+              onClick={() => setScanModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-lg"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span>New Scan</span>
+            </button>
+          }
+        />
 
         {/* Stats Grid */}
-        <div className="px-4 sm:px-6 lg:px-8 mb-8 lg:mb-12">
+        <div className="mb-8 lg:mb-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {stats.map((stat, index) => (
               <div
@@ -1405,109 +1525,95 @@ function AppContent() {
         </div>
 
         {/* Activity and Trends */}
-        <div className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:mb-12">
           {/* Recent Activity */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-            <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl h-full">
-              <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <h3 className="text-lg lg:text-xl font-bold text-white">
-                  Recent Activity
-                </h3>
-                <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20">
-                  <BoltIcon className="h-4 w-4 lg:h-5 lg:w-5 text-blue-400" />
-                </div>
-              </div>
-              <div className="space-y-3 lg:space-y-4 max-h-64 lg:max-h-80 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="text-center py-6 lg:py-8">
-                    <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/50 inline-block mb-3 lg:mb-4">
-                      <SparklesIcon className="h-6 w-6 lg:h-8 lg:w-8 text-gray-400" />
-                    </div>
-                    <p className="text-gray-400 text-sm lg:text-base">
-                      No recent activity
-                    </p>
-                    <p className="text-xs lg:text-sm text-gray-500 mt-1 lg:mt-2">
-                      Start a scan to see activity here
-                    </p>
+          <GlassCard>
+            <SectionHeader
+              title="Recent Activity"
+              description="Latest security scan updates"
+            />
+            <div className="space-y-3 lg:space-y-4 max-h-64 lg:max-h-80 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="text-center py-6 lg:py-8">
+                  <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/50 inline-block mb-3 lg:mb-4">
+                    <SparklesIcon className="h-6 w-6 lg:h-8 lg:w-8 text-gray-400" />
                   </div>
-                ) : (
-                  notifications.slice(0, 5).map((notification) => (
-                    <div
-                      key={notification.id}
-                      className="flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/30 hover:bg-gray-800/50 transition-all"
-                    >
-                      <div className="p-1.5 lg:p-2 rounded-lg lg:rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex-shrink-0">
-                        <CheckCircleIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs lg:text-sm font-medium text-white truncate">
-                          {notification.data?.project_name || "Unknown Project"}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate">
-                          {notification.message}
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-500 flex-shrink-0">
-                        {notification.timestamp.toLocaleTimeString()}
-                      </span>
+                  <p className="text-gray-400 text-sm lg:text-base">
+                    No recent activity
+                  </p>
+                  <p className="text-xs lg:text-sm text-gray-500 mt-1 lg:mt-2">
+                    Start a scan to see activity here
+                  </p>
+                </div>
+              ) : (
+                notifications.slice(0, 5).map((notification) => (
+                  <div
+                    key={notification.id}
+                    className="flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/30 hover:bg-gray-800/50 transition-all"
+                  >
+                    <div className="p-1.5 lg:p-2 rounded-lg lg:rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex-shrink-0">
+                      <CheckCircleIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-white" />
                     </div>
-                  ))
-                )}
-              </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs lg:text-sm font-medium text-white truncate">
+                        {notification.data?.project_name || "Unknown Project"}
+                      </p>
+                      <p className="text-xs text-gray-400 truncate">
+                        {notification.message}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 flex-shrink-0">
+                      {notification.timestamp.toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
-          </div>
+          </GlassCard>
 
-          {/* Security Trends Chart Placeholder */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-            <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl h-full flex flex-col">
-              <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <h3 className="text-lg lg:text-xl font-bold text-white">
-                  Security Trends
-                </h3>
-                <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20">
-                  <ChartBarIcon className="h-4 w-4 lg:h-5 lg:w-5 text-purple-400" />
-                </div>
+          {/* Security Trends */}
+          <GlassCard>
+            <SectionHeader
+              title="Security Trends"
+              description="Vulnerability insights over time"
+            />
+            <div className="flex-1 flex flex-col items-center justify-center py-8 lg:py-12">
+              <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 inline-block mb-3 lg:mb-4">
+                <ChartBarIcon className="h-8 w-8 lg:h-12 lg:w-12 text-purple-400" />
               </div>
-              <div className="flex-1 flex flex-col items-center justify-center py-8 lg:py-12">
-                <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 inline-block mb-3 lg:mb-4">
-                  <ChartBarIcon className="h-8 w-8 lg:h-12 lg:w-12 text-purple-400" />
-                </div>
-                <p className="text-gray-400 text-sm lg:text-base mb-1 lg:mb-2">
-                  Advanced Analytics Dashboard
-                </p>
-                <p className="text-xs lg:text-sm text-gray-500 text-center">
-                  Interactive charts and trend analysis coming soon
-                </p>
-              </div>
+              <p className="text-gray-400 text-sm lg:text-base mb-1 lg:mb-2">
+                Advanced Analytics
+              </p>
+              <p className="text-xs lg:text-sm text-gray-500 text-center">
+                View detailed trends in the Analytics section
+              </p>
+              <Link
+                to="/analytics"
+                className="mt-4 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm transition-colors"
+              >
+                View Analytics →
+              </Link>
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* Recent Projects */}
-        <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-            <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-4 lg:mb-6">
-                <h3 className="text-lg lg:text-xl font-bold text-white">
-                  Your Projects
-                </h3>
-                <button
-                  onClick={() => setScanModalOpen(true)}
-                  className="px-3 lg:px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs lg:text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-1.5"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  <span className="hidden sm:inline">Add Project</span>
-                  <span className="sm:hidden">Add</span>
-                </button>
-              </div>
-              <ProjectList />
-            </div>
-          </div>
-        </div>
-      </div>
+        <GlassCard>
+          <SectionHeader
+            title="Recent Scan Reports"
+            description="Your latest security scan results"
+            action={
+              <Link
+                to="/reports"
+                className="px-3 lg:px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800 transition-all text-xs lg:text-sm"
+              >
+                View All Reports
+              </Link>
+            }
+          />
+          <ProjectList />
+        </GlassCard>
+      </PageContainer>
     );
   };
 
@@ -1555,38 +1661,111 @@ function AppContent() {
               </button>
             </div>
 
-            <nav className="px-4 py-4 space-y-2">
-              {navigation.map((item) => {
-                const isActive =
-                  location.pathname === item.href ||
-                  (item.href === "/" && location.pathname === "/") ||
-                  (item.href !== "/" &&
-                    location.pathname.startsWith(item.href));
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center px-3 py-3 rounded-xl transition-all ${
-                      isActive
-                        ? "bg-gray-800/50 text-white border border-blue-500/20"
-                        : "text-gray-300 hover:text-white hover:bg-gray-800/50"
-                    }`}
-                  >
-                    <div
-                      className={`p-2 rounded-lg bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
-                    >
-                      <item.icon className="h-4 w-4 text-white" />
-                    </div>
-                    <span className="font-medium text-sm">{item.name}</span>
-                    {item.badge && (
-                      <span className="ml-auto px-2 py-1 text-xs font-bold bg-red-500 text-white rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+            <nav className="px-4 py-4">
+              {/* Main Navigation */}
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
+                  Main
+                </p>
+                <div className="space-y-1">
+                  {navigation
+                    .filter((item) => item.category === "main")
+                    .map((item) => {
+                      const isActive =
+                        location.pathname === item.href ||
+                        (item.href === "/dashboard" &&
+                          location.pathname === "/dashboard") ||
+                        (item.href !== "/dashboard" &&
+                          location.pathname.startsWith(item.href));
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center px-3 py-2.5 rounded-xl transition-all ${
+                            isActive
+                              ? "bg-gray-800/50 text-white border border-blue-500/20"
+                              : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                          }`}
+                        >
+                          <div
+                            className={`p-2 rounded-lg bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
+                          >
+                            <item.icon className="h-4 w-4 text-white" />
+                          </div>
+                          <span className="font-medium text-sm">
+                            {item.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Enterprise Features */}
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
+                  Enterprise
+                </p>
+                <div className="space-y-1">
+                  {navigation
+                    .filter((item) => item.category === "enterprise")
+                    .map((item) => {
+                      const isActive =
+                        location.pathname === item.href ||
+                        location.pathname.startsWith(item.href);
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center px-3 py-2.5 rounded-xl transition-all ${
+                            isActive
+                              ? "bg-gray-800/50 text-white border border-blue-500/20"
+                              : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                          }`}
+                        >
+                          <div
+                            className={`p-2 rounded-lg bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
+                          >
+                            <item.icon className="h-4 w-4 text-white" />
+                          </div>
+                          <span className="font-medium text-sm">
+                            {item.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Settings */}
+              <div className="space-y-1">
+                {navigation
+                  .filter((item) => item.category === "settings")
+                  .map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center px-3 py-2.5 rounded-xl transition-all ${
+                          isActive
+                            ? "bg-gray-800/50 text-white border border-blue-500/20"
+                            : "text-gray-300 hover:text-white hover:bg-gray-800/50"
+                        }`}
+                      >
+                        <div
+                          className={`p-2 rounded-lg bg-gradient-to-r ${item.gradient} mr-3 flex-shrink-0`}
+                        >
+                          <item.icon className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="font-medium text-sm">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+              </div>
             </nav>
           </div>
         </div>
@@ -1603,8 +1782,10 @@ function AppContent() {
 
         <main className="relative min-h-screen">
           <Routes>
+            {/* Redirect root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route
-              path="/"
+              path="/dashboard"
               element={<ModernDashboard notifications={notifications} />}
             />
             <Route
@@ -1640,19 +1821,7 @@ function AppContent() {
               element={<DataRetentionPolicies />}
             />
             <Route path="/compliance" element={<AdvancedCompliance />} />
-            <Route
-              path="/reports"
-              element={
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
-                    <div className="relative p-4 sm:p-6 lg:p-8 rounded-2xl lg:rounded-3xl border border-gray-800/50 bg-gray-900/50 backdrop-blur-xl">
-                      <ProjectList />
-                    </div>
-                  </div>
-                </div>
-              }
-            />
+            <Route path="/reports" element={<Reports />} />
             <Route
               path="/report/:reportId"
               element={<EnhancedReportDetails />}
@@ -1661,10 +1830,7 @@ function AppContent() {
               path="/compliance/:reportId"
               element={<ComplianceReport />}
             />
-            <Route
-              path="/analytics"
-              element={<ModernDashboard notifications={notifications} />}
-            />
+            <Route path="/analytics" element={<Analytics />} />
             <Route
               path="/settings"
               element={
@@ -1694,7 +1860,7 @@ function AppContent() {
                 </div>
               }
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </div>

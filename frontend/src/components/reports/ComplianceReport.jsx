@@ -23,7 +23,7 @@ import {
   BuildingOfficeIcon as OfficeBuildingIcon,
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
-import { reportsAPI, utils } from "../services/api";
+import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 
 const ComplianceReport = () => {

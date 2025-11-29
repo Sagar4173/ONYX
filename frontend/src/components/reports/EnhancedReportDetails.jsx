@@ -31,7 +31,7 @@ import {
   DocumentTextIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { reportsAPI, utils } from "../services/api";
+import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 
 const EnhancedReportDetails = () => {

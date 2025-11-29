@@ -22,7 +22,7 @@ import {
   GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { enterpriseAPI, utils } from "../services/api";
+import { enterpriseAPI, utils } from "../../services/api";
 
 const AuditLogs = () => {
   const [filters, setFilters] = useState({

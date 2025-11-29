@@ -22,7 +22,7 @@ import {
   InformationCircleIcon,
   FireIcon,
 } from "@heroicons/react/24/outline";
-import { reportsAPI, utils } from "../services/api";
+import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";

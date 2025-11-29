@@ -29,7 +29,7 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
-import { projectsAPI, reportsAPI, utils } from "../services/api";
+import { projectsAPI, reportsAPI, utils } from "../../services/api";
 
 const ProjectDetails = () => {
   const { projectId } = useParams();

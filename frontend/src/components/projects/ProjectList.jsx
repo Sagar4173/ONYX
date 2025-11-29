@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from "react";
+/**
+ * ProjectList Component - Security scan reports dashboard
+ * Lists all security scan reports with filtering and search
+ */
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
@@ -15,7 +19,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
-import { reportsAPI, utils } from "../services/api";
+import { reportsAPI, utils } from "../../services/api";
 
 const ProjectList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,7 +81,6 @@ const ProjectList = () => {
     try {
       toast.loading("Preparing download...", { id: "download" });
 
-      // Use the configured API base URL from environment variables
       const API_BASE_URL =
         import.meta.env.VITE_API_URL ||
         import.meta.env.VITE_API_BASE_URL ||
@@ -105,10 +108,7 @@ const ProjectList = () => {
 
       const blob = await response.blob();
 
-      // Verify blob type for PDF
       if (format === "pdf" && !blob.type.includes("pdf")) {
-        console.warn("Downloaded blob type:", blob.type);
-        // Force PDF MIME type
         const pdfBlob = new Blob([blob], { type: "application/pdf" });
         utils.downloadFile(pdfBlob, `security-report-${reportId}.pdf`);
       } else {
@@ -150,6 +150,7 @@ const ProjectList = () => {
     { value: "status", label: "Status" },
   ];
 
+  // Sub-components
   const SecurityScoreBadge = ({ findingsBySeverity }) => {
     const score = utils.calculateSecurityScore(findingsBySeverity);
     const colorClass = utils.getScoreColor(score);
@@ -289,6 +290,7 @@ const ProjectList = () => {
     );
   };
 
+  // Error state
   if (isError) {
     return (
       <div className="p-4 sm:p-6">
@@ -532,7 +534,7 @@ const ProjectList = () => {
               </div>
             </div>
           ) : (
-            reports.map((report, index) => (
+            reports.map((report) => (
               <div
                 key={report.id}
                 className="group bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:bg-gray-800/70 hover:border-gray-600/50 transition-all duration-300"

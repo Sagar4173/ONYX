@@ -19,7 +19,7 @@ import {
   BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { enterpriseAPI } from "../services/api";
+import { enterpriseAPI } from "../../services/api";
 
 const AdvancedCompliance = () => {
   const queryClient = useQueryClient();
