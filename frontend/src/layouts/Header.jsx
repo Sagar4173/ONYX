@@ -276,9 +276,22 @@ const UserMenu = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
       >
+        {/* Avatar - Show photo if available, otherwise initials */}
+        {user?.avatar_url ? (
+          <img
+            src={user.avatar_url}
+            alt={user?.full_name || user?.name || "User"}
+            className="w-8 h-8 rounded-full object-cover border-2 border-slate-700"
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.nextSibling.style.display = "flex";
+            }}
+          />
+        ) : null}
         <div
-          className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
-                       flex items-center justify-center text-white text-sm font-semibold"
+          className={`w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
+                       flex items-center justify-center text-white text-sm font-semibold
+                       ${user?.avatar_url ? "hidden" : ""}`}
         >
           {getInitials()}
         </div>
@@ -302,11 +315,28 @@ const UserMenu = () => {
           className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 
                        rounded-xl shadow-xl z-50 overflow-hidden"
         >
-          <div className="px-4 py-3 border-b border-slate-700">
-            <p className="text-sm font-medium text-white">
-              {user?.full_name || user?.name}
-            </p>
-            <p className="text-xs text-slate-400">{user?.email}</p>
+          <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-3">
+            {/* Avatar in dropdown */}
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt=""
+                className="w-10 h-10 rounded-full object-cover border-2 border-slate-700"
+              />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
+                            flex items-center justify-center text-white text-sm font-semibold"
+              >
+                {getInitials()}
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-white">
+                {user?.full_name || user?.name}
+              </p>
+              <p className="text-xs text-slate-400">{user?.email}</p>
+            </div>
           </div>
           <div className="py-1">
             <Link
