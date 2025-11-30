@@ -23,3 +23,6 @@ export * from "./settings";
 
 // Marketing/Public components
 export * from "./marketing";
+
+// Security components (Enterprise features)
+export * from "./security";

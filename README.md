@@ -102,6 +102,29 @@ We combine our diverse expertise to create a comprehensive, AI-powered security 
 - **Trend Analysis** and security posture tracking
 - **Export Capabilities** (PDF with professional formatting, JSON, CSV)
 
+### 🏢 **Enterprise Security Features**
+
+- **OSV/NVD Integration** - Real-time vulnerability database access
+  - Google OSV API for open source vulnerabilities
+  - NIST NVD API for CVE data and CVSS scores
+  - EPSS (Exploit Prediction Scoring) data
+- **SBOM Generation** - Software Bill of Materials
+  - SPDX 2.3 and CycloneDX 1.5 format support
+  - Multi-language dependency parsing
+  - License detection and compliance
+  - Executive Order 14028 compliant
+- **Security Trends Dashboard** - Track security posture over time
+  - Historical severity trends
+  - Mean Time to Remediate (MTTR) metrics
+  - Fix velocity analytics
+  - Period-over-period comparison
+  - 30-day score projections
+- **Scan Comparison** - Delta analysis between scans
+  - Fixed/New/Reintroduced vulnerability tracking
+  - Branch-to-branch comparison
+  - Remediation progress tracking
+  - Regression detection
+
 ### 🔗 **Seamless Integrations**
 
 - **Git Webhooks** for automatic scanning on commits/PRs

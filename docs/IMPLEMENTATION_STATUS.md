@@ -279,6 +279,61 @@
   - Text search indexes
   - Query optimization
 
+#### **🏢 Enterprise Security Features**
+
+- [x] **OSV/NVD Vulnerability Database Integration** - Enhanced vulnerability intelligence
+  - Google OSV API integration for open source vulnerabilities
+  - NIST NVD API integration for CVE data
+  - CVSS score enrichment (v2, v3.0, v3.1)
+  - EPSS (Exploit Prediction Scoring System) data
+  - SQLite caching for performance
+  - Async batch processing
+  - Package vulnerability lookup by ecosystem
+  - Real-time CVE details retrieval
+- [x] **SBOM Generation (SPDX/CycloneDX)** - Software Bill of Materials
+  - SPDX 2.3 format generation (Linux Foundation standard)
+  - CycloneDX 1.5 format generation (OWASP standard)
+  - Multi-language dependency parsing:
+    - Python (requirements.txt, Pipfile, pyproject.toml)
+    - Node.js (package.json, package-lock.json)
+    - Go (go.mod, go.sum)
+    - Rust (Cargo.toml, Cargo.lock)
+    - Java (pom.xml, build.gradle)
+    - Ruby (Gemfile, Gemfile.lock)
+    - .NET (\*.csproj, packages.config)
+  - License detection and compliance
+  - Vulnerability enrichment from OSV/NVD
+  - JSON and XML export formats
+  - Executive Order 14028 compliance ready
+  - NTIA minimum elements compliant
+- [x] **Security Trends Dashboard** - Security posture analytics
+  - Historical severity tracking (daily/weekly/monthly/quarterly)
+  - Security score trends (0-100)
+  - Risk score trends (0-100, lower is better)
+  - Mean Time to Remediate (MTTR) calculation
+  - Fix velocity metrics by severity
+  - Period-over-period comparison
+  - Trend direction indicators (improving/stable/degrading)
+  - 30-day score projections using linear regression
+  - Time-to-target-score estimation
+  - Scanner breakdown analytics
+  - Notable changes detection
+  - Compliance rate tracking
+  - Coverage percentage metrics
+- [x] **Scan Comparison & Delta Analysis** - Remediation tracking
+  - Compare any two scans
+  - Fixed vulnerabilities identification
+  - New vulnerabilities detection
+  - Reintroduced vulnerability tracking
+  - Severity change monitoring
+  - Improvement score calculation
+  - Net change metrics
+  - Branch-to-branch comparison
+  - Remediation progress over time
+  - Fix velocity by severity
+  - Actionable recommendations generation
+  - Regression detection alerts
+
 ---
 
 ## 🚧 **In Development (Next 3 Months)**
@@ -295,28 +350,6 @@
   - Real-time security linting
   - Integration with project scanning
 
-### **📦 Enhanced Dependency Scanning**
-
-- [ ] **OSV (Open Source Vulnerabilities) Integration**
-  - Google OSV API integration
-  - Expanded vulnerability database
-  - Real-time vulnerability updates
-- [ ] **NVD (National Vulnerability Database) Integration**
-  - NIST NVD feeds
-  - CVE enrichment
-  - CVSS score enhancement
-
-### **📋 SBOM (Software Bill of Materials)**
-
-- [ ] **SPDX Format Export**
-  - Industry-standard SBOM generation
-  - Dependency tree visualization
-  - License compliance tracking
-- [ ] **CycloneDX Format Export**
-  - Component inventory
-  - Vulnerability correlation
-  - Supply chain security
-
 ### **🐳 Container Registry Integration**
 
 - [ ] **Multi-Registry Support**
@@ -329,17 +362,6 @@
 
 ### **📊 Enhanced Analytics Dashboard**
 
-- [ ] **Advanced Scan Visualization**
-  - Interactive scan result charts
-  - Vulnerability trend analysis over time
-  - Severity distribution graphs
-  - Scanner comparison metrics
-  - Scan-to-scan comparison
-- [ ] **Real-time Scan Monitoring**
-  - Live scan progress indicators
-  - Resource usage monitoring
-  - Performance analytics
-  - Scan queue management
 - [ ] **Custom Dashboard Widgets**
   - Configurable dashboard layouts
   - Personalized metric views

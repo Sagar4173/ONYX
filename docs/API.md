@@ -1299,6 +1299,284 @@ api_token = os.getenv('SECUREDEVOPS_API_TOKEN')
 
 For more detailed API documentation and interactive testing, visit the **Swagger UI** at `/docs` when running the platform locally.
 
+---
+
+## 🏢 Enterprise Security API
+
+### OSV/NVD Vulnerability Integration
+
+#### Get CVE Details
+
+Retrieve detailed vulnerability information from NIST NVD.
+
+```http
+GET /api/enterprise/vulnerabilities/cve/{cve_id}
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "cve_id": "CVE-2024-1234",
+    "description": "SQL Injection vulnerability in...",
+    "cvss_v3": {
+      "score": 9.8,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "severity": "critical"
+    },
+    "cvss_v2": {
+      "score": 10.0,
+      "severity": "high"
+    },
+    "epss": {
+      "score": 0.85,
+      "percentile": 97.2
+    },
+    "references": [...],
+    "affected_products": [...]
+  }
+}
+```
+
+#### Check Package Vulnerabilities
+
+Check multiple packages for known vulnerabilities using Google OSV.
+
+```http
+POST /api/enterprise/vulnerabilities/packages
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "packages": [
+    {"name": "django", "version": "3.2.0", "ecosystem": "pypi"},
+    {"name": "lodash", "version": "4.17.20", "ecosystem": "npm"}
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "total_packages": 2,
+  "vulnerable_packages": 1,
+  "results": [
+    {
+      "package": "django",
+      "version": "3.2.0",
+      "ecosystem": "pypi",
+      "vulnerabilities": [...],
+      "vulnerable": true
+    }
+  ]
+}
+```
+
+### SBOM Generation
+
+#### Generate SBOM
+
+Generate Software Bill of Materials in SPDX or CycloneDX format.
+
+```http
+POST /api/enterprise/sbom/generate
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "repository_path": "/path/to/repository",
+  "format": "spdx",
+  "include_dev_deps": false,
+  "enrich_vulnerabilities": true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "format": "spdx",
+  "sbom": {
+    "spdxVersion": "SPDX-2.3",
+    "name": "my-project-sbom",
+    "packages": [...],
+    "relationships": [...]
+  }
+}
+```
+
+#### Get Supported Formats
+
+```http
+GET /api/enterprise/sbom/formats
+```
+
+**Response:**
+
+```json
+{
+  "formats": [
+    {
+      "id": "spdx",
+      "name": "SPDX 2.3",
+      "description": "Software Package Data Exchange - Linux Foundation standard",
+      "output_types": ["json", "xml"],
+      "compliance": ["NTIA", "Executive Order 14028"]
+    },
+    {
+      "id": "cyclonedx",
+      "name": "CycloneDX 1.5",
+      "description": "OWASP lightweight SBOM standard",
+      "output_types": ["json", "xml"],
+      "compliance": ["OWASP", "FDA", "NTIA"]
+    }
+  ],
+  "supported_languages": [
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "Go",
+    "Rust",
+    "Java",
+    "Ruby",
+    ".NET/C#"
+  ]
+}
+```
+
+### Security Trends
+
+#### Get Dashboard Data
+
+Retrieve complete security trends dashboard data in a single call.
+
+```http
+GET /api/enterprise/trends/dashboard?project_id=<optional>
+Authorization: Bearer <token>
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "current": {
+      "security_score": 78.5,
+      "risk_score": 32.1,
+      "severity_counts": {"critical": 2, "high": 8, "medium": 15, "low": 25, "total": 50},
+      "open_findings": 50,
+      "fixed_7d": 12,
+      "fixed_30d": 45,
+      "mttr_hours": 72.5,
+      "compliance_rate": 0.85
+    },
+    "trends": {
+      "direction": "improving",
+      "improvement_pct": 15.3,
+      "projected_score_30d": 82.1,
+      "time_to_target": 45,
+      "fix_rate": 1.2
+    },
+    "charts": {
+      "weekly": [...],
+      "daily": [...],
+      "by_scanner": {...}
+    },
+    "comparison": {...},
+    "notable_changes": [...]
+  }
+}
+```
+
+#### Get Severity Trends
+
+```http
+GET /api/enterprise/trends/severity?period=weekly&limit=12
+Authorization: Bearer <token>
+```
+
+#### Get Current Metrics
+
+```http
+GET /api/enterprise/trends/metrics
+Authorization: Bearer <token>
+```
+
+### Scan Comparison
+
+#### Compare Two Scans
+
+```http
+POST /api/enterprise/scans/compare
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "base_scan_id": "scan-001",
+  "compare_scan_id": "scan-002",
+  "include_unchanged": false
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "fixed": 15,
+      "new": 3,
+      "reintroduced": 1,
+      "modified": 2,
+      "net_change": -11,
+      "improvement_score": 45.2
+    },
+    "details": {
+      "fixed": [...],
+      "new": [...],
+      "reintroduced": [...],
+      "modified": [...]
+    },
+    "analysis": {
+      "summary": "15 vulnerabilities fixed. 3 new vulnerabilities introduced...",
+      "highlights": ["🎉 5 critical vulnerabilities fixed!"],
+      "recommendations": ["Prioritize fixing 2 critical/high severity issues"]
+    }
+  }
+}
+```
+
+#### Compare Branches
+
+```http
+GET /api/enterprise/scans/{project_id}/branches/compare?base_branch=main&compare_branch=feature
+Authorization: Bearer <token>
+```
+
+#### Get Remediation Progress
+
+```http
+GET /api/enterprise/scans/{project_id}/remediation-progress?days=30
+Authorization: Bearer <token>
+```
+
+#### Get Fix Velocity
+
+```http
+GET /api/enterprise/scans/{project_id}/fix-velocity?severity=high
+Authorization: Bearer <token>
+```
+
+---
+
 ## 📞 Support
 
 - **API Issues**: [GitHub Issues](https://github.com/Sagar4173/SecureDevOpsAI-Platform/issues)

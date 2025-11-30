@@ -8,16 +8,20 @@ SecureDevOps AI Platform positions itself as the **open-source enterprise altern
 
 ## 📊 **Feature Comparison Matrix**
 
-| Feature Category       | SecureDevOps AI               | GitHub Advanced Security | Snyk                 |
-| ---------------------- | ----------------------------- | ------------------------ | -------------------- |
-| **💰 Pricing**         | ✅ **Open Source/Free**       | ❌ $49/user/month        | ❌ $25-99/user/month |
-| **🏠 Deployment**      | ✅ **Self-hosted**            | ⚠️ GitHub.com only       | ⚠️ Cloud + on-prem   |
-| **🔓 Vendor Lock-in**  | ✅ **No lock-in**             | ❌ GitHub ecosystem      | ❌ Snyk ecosystem    |
-| **🤖 AI Analysis**     | ✅ **GPT-4 + Gemini**         | ⚠️ Basic AI features     | ⚠️ Limited AI        |
-| **📊 Custom Reports**  | ✅ **Fully customizable**     | ⚠️ Limited templates     | ⚠️ Fixed formats     |
-| **🔧 Extensibility**   | ✅ **Full source access**     | ❌ API-only              | ❌ Plugin system     |
-| **📋 Compliance**      | ✅ **OWASP/NIST/ISO/PCI-DSS** | ⚠️ Limited               | ⚠️ Basic compliance  |
-| **📑 Unified Reports** | ✅ **6-Tab Integrated View**  | ❌ Separate views        | ❌ Separate views    |
+| Feature Category           | SecureDevOps AI               | GitHub Advanced Security | Snyk                 |
+| -------------------------- | ----------------------------- | ------------------------ | -------------------- |
+| **💰 Pricing**             | ✅ **Open Source/Free**       | ❌ $49/user/month        | ❌ $25-99/user/month |
+| **🏠 Deployment**          | ✅ **Self-hosted**            | ⚠️ GitHub.com only       | ⚠️ Cloud + on-prem   |
+| **🔓 Vendor Lock-in**      | ✅ **No lock-in**             | ❌ GitHub ecosystem      | ❌ Snyk ecosystem    |
+| **🤖 AI Analysis**         | ✅ **GPT-4 + Gemini**         | ⚠️ Basic AI features     | ⚠️ Limited AI        |
+| **📊 Custom Reports**      | ✅ **Fully customizable**     | ⚠️ Limited templates     | ⚠️ Fixed formats     |
+| **🔧 Extensibility**       | ✅ **Full source access**     | ❌ API-only              | ❌ Plugin system     |
+| **📋 Compliance**          | ✅ **OWASP/NIST/ISO/PCI-DSS** | ⚠️ Limited               | ⚠️ Basic compliance  |
+| **📑 Unified Reports**     | ✅ **6-Tab Integrated View**  | ❌ Separate views        | ❌ Separate views    |
+| **📦 SBOM Generation**     | ✅ **SPDX + CycloneDX**       | ⚠️ Basic SBOM            | ✅ Available         |
+| **🗄️ OSV/NVD Integration** | ✅ **Google OSV + NIST NVD**  | ⚠️ GitHub Advisory only  | ⚠️ Snyk DB only      |
+| **📈 Security Trends**     | ✅ **Full Dashboard**         | ⚠️ Basic trends          | ⚠️ Limited trends    |
+| **🔄 Scan Comparison**     | ✅ **Full Delta Analysis**    | ❌ Not available         | ⚠️ Limited           |
 
 ---
 
