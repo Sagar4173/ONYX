@@ -1,494 +1,910 @@
-/**
- * Enhanced Sidebar Component
- * Modern sidebar with collapsible sections, badges, and improved UX
- */
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+// f:\Project\SecureDevOpsAI-Platform\frontend\src\layouts\Sidebar.jsx
+// Enterprise Premium Sidebar with Real API Integration
+// Features: Real-time stats, smooth animations, glassmorphism, professional navigation
+
+import { useState, useEffect, useCallback, memo, useMemo } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   XMarkIcon,
-  PlusIcon,
   ChevronDownIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
-  ShieldCheckIcon,
-  WifiIcon,
-  SparklesIcon,
-  ArrowTrendingUpIcon,
+  Bars3Icon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
+import clsx from "clsx";
+
+// Import navigation configuration
 import { navigation, getNavigationByCategory } from "../config/navigation";
 
-/**
- * Connection Status Component
- */
-const ConnectionStatus = ({ isConnected = true }) => {
-  return (
-    <div
-      className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
-        isConnected
-          ? "bg-green-500/10 text-green-400"
-          : "bg-red-500/10 text-red-400"
-      }`}
-    >
-      <div className="relative">
-        <WifiIcon className="h-4 w-4" />
-        {isConnected && (
-          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        )}
-      </div>
-      <span className="text-xs font-medium">
-        {isConnected ? "Live Sync" : "Offline"}
-      </span>
-    </div>
-  );
-};
+// Import real dashboard service
+import dashboardService from "../services/dashboardService";
 
-/**
- * Badge Component for navigation items
- */
-const NavBadge = ({ count, type = "default" }) => {
-  if (!count) return null;
+// ============================================================================
+// QUICK STATS COMPONENT - REAL API DATA
+// ============================================================================
+const QuickStats = memo(function QuickStats({ collapsed }) {
+  const [stats, setStats] = useState({
+    projects: { value: "-", trend: null },
+    scans: { value: "-", trend: null },
+    issues: { value: "-", trend: null },
+    score: { value: "-", trend: null },
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const colors = {
-    default: "bg-gray-700 text-gray-300",
-    primary: "bg-blue-500 text-white",
-    warning: "bg-yellow-500 text-black",
-    danger: "bg-red-500 text-white",
-    success: "bg-green-500 text-white",
-  };
+  // Fetch real stats from API
+  useEffect(() => {
+    let isMounted = true;
+    let retryTimeout = null;
 
-  return (
-    <span
-      className={`ml-auto px-2 py-0.5 text-xs font-medium rounded-full ${colors[type]}`}
-    >
-      {count > 99 ? "99+" : count}
-    </span>
-  );
-};
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-/**
- * Navigation Link Component
- */
-const NavLink = ({ item, isCollapsed, isActive }) => {
-  const Icon = item.icon;
-  const path = item.path || item.href;
+        const data = await dashboardService.getQuickStats();
 
-  if (isCollapsed) {
+        if (isMounted) {
+          setStats({
+            projects: {
+              value: data.totalProjects?.toString() || "0",
+              trend: data.projectsTrend || null,
+              color: "from-blue-500 to-cyan-500",
+            },
+            scans: {
+              value: data.totalScans?.toString() || "0",
+              trend: data.scansTrend || null,
+              color: "from-violet-500 to-purple-500",
+            },
+            issues: {
+              value: data.openIssues?.toString() || "0",
+              trend: data.issuesTrend || null,
+              color: "from-amber-500 to-orange-500",
+            },
+            score: {
+              value: data.avgSecurityScore
+                ? `${Math.round(data.avgSecurityScore)}%`
+                : "-",
+              trend: data.scoreTrend || null,
+              color: "from-emerald-500 to-green-500",
+            },
+          });
+          setIsLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Failed to fetch quick stats:", err);
+          setError("Unable to load stats");
+          setIsLoading(false);
+
+          // Retry after 30 seconds on error
+          retryTimeout = setTimeout(fetchStats, 30000);
+        }
+      }
+    };
+
+    fetchStats();
+
+    // Refresh stats every 2 minutes
+    const interval = setInterval(fetchStats, 120000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
+  }, []);
+
+  // Collapsed view - compact stat icons
+  if (collapsed) {
     return (
-      <Link
-        to={path}
-        className={`group relative flex items-center justify-center p-3 rounded-xl transition-all ${
-          isActive
-            ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white"
-            : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-        }`}
-        title={item.name}
-      >
-        <Icon className={`h-5 w-5 ${isActive ? "text-blue-400" : ""}`} />
-        {item.badge && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
-            {item.badge > 9 ? "9+" : item.badge}
-          </span>
-        )}
-        {/* Tooltip */}
-        <div className="absolute left-full ml-3 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
-          {item.name}
-          {item.badge && (
-            <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-xs rounded-full">
-              {item.badge}
-            </span>
-          )}
-        </div>
-      </Link>
+      <div className="px-2 py-3 space-y-2">
+        {Object.entries(stats)
+          .slice(0, 4)
+          .map(([key, stat], index) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              className="relative group"
+            >
+              <div
+                className={clsx(
+                  "w-10 h-10 mx-auto rounded-xl flex items-center justify-center",
+                  "bg-gradient-to-br shadow-lg transition-all duration-300",
+                  "hover:scale-110 hover:shadow-xl cursor-default",
+                  stat.color || "from-gray-500 to-gray-600"
+                )}
+              >
+                <span className="text-xs font-bold text-white">
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    stat.value?.toString().slice(0, 3) || "-"
+                  )}
+                </span>
+              </div>
+
+              {/* Tooltip */}
+              <div
+                className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50
+                          opacity-0 group-hover:opacity-100 pointer-events-none
+                          transition-opacity duration-200"
+              >
+                <div
+                  className="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg shadow-xl
+                            whitespace-nowrap border border-white/10"
+                >
+                  <span className="capitalize">{key}</span>: {stat.value}
+                  {stat.trend && (
+                    <span
+                      className={clsx(
+                        "ml-2",
+                        stat.trend > 0 ? "text-green-400" : "text-red-400"
+                      )}
+                    >
+                      {stat.trend > 0 ? "↑" : "↓"} {Math.abs(stat.trend)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+      </div>
     );
   }
 
+  // Expanded view - full stats grid
+  const statItems = [
+    { key: "projects", label: "Projects", icon: "📁" },
+    { key: "scans", label: "Scans", icon: "🔍" },
+    { key: "issues", label: "Issues", icon: "⚠️" },
+    { key: "score", label: "Score", icon: "🛡️" },
+  ];
+
   return (
-    <Link
-      to={path}
-      className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-        isActive
-          ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border-l-4 border-blue-500"
-          : "text-gray-400 hover:text-white hover:bg-gray-800/50"
-      }`}
-    >
-      <Icon
-        className={`h-5 w-5 flex-shrink-0 ${
-          isActive ? "text-blue-400" : "group-hover:text-blue-400"
-        }`}
-      />
-      <span className="text-sm font-medium flex-1">{item.name}</span>
-      <NavBadge count={item.badge} type={item.badgeType} />
-    </Link>
-  );
-};
+    <div className="px-4 py-4">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          Quick Stats
+        </h3>
+        {isLoading && (
+          <div className="w-3 h-3 border border-blue-400/50 border-t-blue-400 rounded-full animate-spin" />
+        )}
+      </div>
 
-/**
- * Navigation Section Component
- */
-const NavSection = ({ title, items, isCollapsed }) => {
-  const [isOpen, setIsOpen] = useState(true);
-  const location = useLocation();
+      {/* Error State */}
+      {error && (
+        <div className="text-xs text-red-400 mb-2 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+          {error}
+        </div>
+      )}
 
-  if (isCollapsed) {
-    return (
-      <div className="space-y-1">
-        {items.map((item) => {
-          const path = item.path || item.href;
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {statItems.map((item, index) => {
+          const stat = stats[item.key];
           return (
-            <NavLink
-              key={path}
-              item={item}
-              isCollapsed={isCollapsed}
-              isActive={location.pathname === path}
-            />
+            <motion.div
+              key={item.key}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className={clsx(
+                "relative overflow-hidden rounded-xl p-3",
+                "bg-gradient-to-br backdrop-blur-sm",
+                "border border-white/10 dark:border-slate-700/50",
+                "hover:border-white/20 transition-all duration-300",
+                "group cursor-default"
+              )}
+              style={{
+                background: `linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.4) 100%)`,
+              }}
+            >
+              {/* Gradient Overlay */}
+              <div
+                className={clsx(
+                  "absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity",
+                  "bg-gradient-to-br",
+                  stat?.color || "from-gray-500 to-gray-600"
+                )}
+              />
+
+              {/* Content */}
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm">{item.icon}</span>
+                  {stat?.trend && (
+                    <span
+                      className={clsx(
+                        "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
+                        stat.trend > 0
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-red-500/20 text-red-400"
+                      )}
+                    >
+                      {stat.trend > 0 ? "+" : ""}
+                      {stat.trend}%
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-lg font-bold text-white">
+                  {isLoading ? (
+                    <div className="h-6 w-12 bg-slate-700/50 rounded animate-pulse" />
+                  ) : (
+                    stat?.value || "-"
+                  )}
+                </div>
+
+                <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wide mt-0.5">
+                  {item.label}
+                </div>
+              </div>
+            </motion.div>
           );
         })}
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {title && (
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-300 transition-colors"
-        >
-          <span>{title}</span>
-          <ChevronDownIcon
-            className={`h-3 w-3 transition-transform ${
-              isOpen ? "rotate-0" : "-rotate-90"
-            }`}
-          />
-        </button>
-      )}
-      {isOpen && (
-        <div className="space-y-1">
-          {items.map((item) => {
-            const path = item.path || item.href;
-            return (
-              <NavLink
-                key={path}
-                item={item}
-                isCollapsed={isCollapsed}
-                isActive={location.pathname === path}
-              />
-            );
-          })}
-        </div>
-      )}
     </div>
   );
-};
+});
 
-/**
- * Quick Stats Component (Sidebar Footer)
- */
-const QuickStats = ({ isCollapsed }) => {
-  const stats = [
-    { label: "Projects", value: 12, trend: "+3" },
-    { label: "Scans Today", value: 47, trend: "+12" },
-    { label: "Issues Fixed", value: 89, trend: "+24" },
-  ];
+// ============================================================================
+// CONNECTION STATUS COMPONENT
+// ============================================================================
+const ConnectionStatus = memo(function ConnectionStatus({ collapsed }) {
+  const [status, setStatus] = useState({
+    api: { connected: false, latency: null },
+    websocket: { connected: false },
+  });
 
-  if (isCollapsed) {
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkStatus = async () => {
+      try {
+        const start = performance.now();
+        const healthData = await dashboardService.getSystemHealth();
+        const latency = Math.round(performance.now() - start);
+
+        if (isMounted) {
+          setStatus({
+            api: {
+              connected:
+                healthData?.status === "healthy" || healthData !== null,
+              latency,
+            },
+            websocket: {
+              connected: healthData?.websocket?.connected ?? false,
+            },
+          });
+        }
+      } catch {
+        if (isMounted) {
+          setStatus({
+            api: { connected: false, latency: null },
+            websocket: { connected: false },
+          });
+        }
+      }
+    };
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  if (collapsed) {
     return (
-      <div className="p-2">
-        <div className="flex flex-col items-center gap-2 p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl">
-          <ArrowTrendingUpIcon className="h-5 w-5 text-green-400" />
-          <span className="text-xs text-gray-400">+24</span>
-        </div>
+      <div className="px-2 py-2 flex justify-center">
+        <div
+          className={clsx(
+            "w-2.5 h-2.5 rounded-full",
+            status.api.connected
+              ? "bg-green-400 shadow-lg shadow-green-400/50 animate-pulse"
+              : "bg-red-400 shadow-lg shadow-red-400/50"
+          )}
+        />
       </div>
     );
   }
 
   return (
-    <div className="p-4 border-t border-gray-800/50">
-      <div className="p-4 bg-gradient-to-r from-gray-800/50 to-gray-800/30 rounded-2xl border border-gray-700/30">
-        <div className="flex items-center gap-2 mb-3">
-          <ArrowTrendingUpIcon className="h-4 w-4 text-green-400" />
-          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Quick Stats
+    <div className="px-4 py-3 border-t border-white/5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className={clsx(
+              "w-2 h-2 rounded-full",
+              status.api.connected
+                ? "bg-green-400 shadow-md shadow-green-400/50 animate-pulse"
+                : "bg-red-400 shadow-md shadow-red-400/50"
+            )}
+          />
+          <span className="text-xs text-slate-400">
+            {status.api.connected ? "API Connected" : "API Disconnected"}
           </span>
         </div>
-        <div className="space-y-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">{stat.label}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-white">
-                  {stat.value}
-                </span>
-                <span className="text-xs text-green-400">{stat.trend}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+
+        {status.api.connected && status.api.latency && (
+          <span
+            className={clsx(
+              "text-[10px] font-mono px-1.5 py-0.5 rounded",
+              status.api.latency < 100
+                ? "text-green-400 bg-green-500/10"
+                : status.api.latency < 300
+                ? "text-amber-400 bg-amber-500/10"
+                : "text-red-400 bg-red-500/10"
+            )}
+          >
+            {status.api.latency}ms
+          </span>
+        )}
       </div>
     </div>
   );
-};
+});
 
-/**
- * User Profile Section (Bottom of Sidebar)
- */
-const UserSection = ({ user, isCollapsed }) => {
-  const navigate = useNavigate();
+// ============================================================================
+// NAV LINK COMPONENT
+// ============================================================================
+const NavItem = memo(function NavItem({ item, collapsed, depth = 0 }) {
+  const location = useLocation();
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  if (isCollapsed) {
+  const isActive =
+    location.pathname === item.path ||
+    location.pathname.startsWith(item.path + "/");
+
+  const hasChildren = item.children && item.children.length > 0;
+
+  // Auto-expand if child is active
+  useEffect(() => {
+    if (hasChildren) {
+      const childActive = item.children.some(
+        (child) =>
+          location.pathname === child.path ||
+          location.pathname.startsWith(child.path + "/")
+      );
+      if (childActive) setIsExpanded(true);
+    }
+  }, [location.pathname, hasChildren, item.children]);
+
+  const Icon = item.icon;
+
+  // Collapsed state - icon only
+  if (collapsed) {
     return (
-      <div className="p-2">
-        <button
-          onClick={() => navigate("/settings")}
-          className="w-full flex items-center justify-center p-3 rounded-xl hover:bg-gray-800/50 transition-all group"
+      <div className="relative group">
+        <NavLink
+          to={item.path}
+          className={({ isActive: active }) =>
+            clsx(
+              "flex items-center justify-center w-10 h-10 mx-auto rounded-xl",
+              "transition-all duration-300 relative overflow-hidden group",
+              active || isActive
+                ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400 shadow-lg shadow-blue-500/20"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            )
+          }
         >
-          <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-              {user?.full_name?.[0]?.toUpperCase() ||
-                user?.email?.[0]?.toUpperCase() ||
-                "U"}
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900" />
+          {/* Glow effect */}
+          {isActive && (
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-xl" />
+          )}
+
+          {Icon && <Icon className="w-5 h-5 relative z-10" />}
+
+          {/* Badge */}
+          {item.badge && (
+            <span
+              className={clsx(
+                "absolute -top-1 -right-1 min-w-[16px] h-4 px-1",
+                "flex items-center justify-center rounded-full",
+                "text-[9px] font-bold text-white",
+                item.badge.type === "error"
+                  ? "bg-red-500"
+                  : item.badge.type === "warning"
+                  ? "bg-amber-500"
+                  : item.badge.type === "success"
+                  ? "bg-green-500"
+                  : "bg-blue-500"
+              )}
+            >
+              {item.badge.count}
+            </span>
+          )}
+        </NavLink>
+
+        {/* Tooltip */}
+        <div
+          className="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50
+                      opacity-0 group-hover:opacity-100 pointer-events-none
+                      transition-opacity duration-200"
+        >
+          <div
+            className="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg shadow-xl
+                        whitespace-nowrap border border-white/10 font-medium"
+          >
+            {item.name}
+            {item.beta && (
+              <span className="ml-2 px-1.5 py-0.5 text-[9px] bg-purple-500/30 text-purple-300 rounded">
+                BETA
+              </span>
+            )}
           </div>
-        </button>
+        </div>
       </div>
     );
   }
 
+  // Expanded state - full nav item
   return (
-    <div className="p-4 border-t border-gray-800/50">
-      <button
-        onClick={() => navigate("/settings")}
-        className="w-full flex items-center gap-3 p-3 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-all group"
-      >
-        <div className="relative">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm shadow-lg">
-            {user?.full_name?.[0]?.toUpperCase() ||
-              user?.email?.[0]?.toUpperCase() ||
-              "U"}
-          </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900" />
-        </div>
-        <div className="flex-1 text-left min-w-0">
-          <p className="text-sm font-medium text-white truncate">
-            {user?.full_name || "User"}
-          </p>
-          <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-        </div>
-        <ChevronRightIcon className="h-4 w-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
-      </button>
+    <div>
+      {hasChildren ? (
+        <>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={clsx(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl",
+              "transition-all duration-300 group relative",
+              isExpanded
+                ? "bg-white/5 text-white"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            )}
+            style={{ paddingLeft: `${12 + depth * 12}px` }}
+          >
+            {Icon && (
+              <Icon
+                className={clsx(
+                  "w-5 h-5 flex-shrink-0 transition-colors",
+                  isExpanded ? "text-blue-400" : "group-hover:text-blue-400"
+                )}
+              />
+            )}
+            <span className="flex-1 text-sm font-medium text-left truncate">
+              {item.name}
+            </span>
+            <ChevronDownIcon
+              className={clsx(
+                "w-4 h-4 transition-transform duration-300",
+                isExpanded && "rotate-180"
+              )}
+            />
+          </button>
+
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="py-1 ml-3 border-l border-white/10">
+                  {item.children.map((child) => (
+                    <NavItem
+                      key={child.path}
+                      item={child}
+                      collapsed={false}
+                      depth={depth + 1}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      ) : (
+        <NavLink
+          to={item.path}
+          className={({ isActive: active }) =>
+            clsx(
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl",
+              "transition-all duration-300 group relative overflow-hidden",
+              active || isActive
+                ? "bg-gradient-to-r from-blue-500/15 to-purple-500/15 text-white shadow-lg"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            )
+          }
+          style={{ paddingLeft: `${12 + depth * 12}px` }}
+        >
+          {/* Active indicator */}
+          {isActive && (
+            <>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-blue-400 to-purple-400 rounded-r-full" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent" />
+            </>
+          )}
+
+          {Icon && (
+            <Icon
+              className={clsx(
+                "w-5 h-5 flex-shrink-0 transition-colors relative z-10",
+                isActive ? "text-blue-400" : "group-hover:text-blue-400"
+              )}
+            />
+          )}
+
+          <span className="flex-1 text-sm font-medium truncate relative z-10">
+            {item.name}
+          </span>
+
+          {/* Badges */}
+          {item.badge && (
+            <span
+              className={clsx(
+                "px-2 py-0.5 rounded-full text-[10px] font-bold relative z-10",
+                item.badge.type === "error"
+                  ? "bg-red-500/20 text-red-400"
+                  : item.badge.type === "warning"
+                  ? "bg-amber-500/20 text-amber-400"
+                  : item.badge.type === "success"
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-blue-500/20 text-blue-400"
+              )}
+            >
+              {item.badge.count}
+            </span>
+          )}
+
+          {item.beta && (
+            <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-purple-500/20 text-purple-400 rounded relative z-10">
+              BETA
+            </span>
+          )}
+
+          {item.new && (
+            <span className="px-1.5 py-0.5 text-[9px] font-semibold bg-green-500/20 text-green-400 rounded relative z-10">
+              NEW
+            </span>
+          )}
+        </NavLink>
+      )}
     </div>
   );
-};
+});
 
-/**
- * Desktop Sidebar Component
- */
-export const DesktopSidebar = ({ user, isCollapsed, onToggleCollapse }) => {
-  const navigate = useNavigate();
+// ============================================================================
+// NAV SECTION COMPONENT
+// ============================================================================
+const NavSection = memo(function NavSection({ title, items, collapsed }) {
+  if (!items || items.length === 0) return null;
 
   return (
-    <aside
-      className={`hidden lg:flex flex-col bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-72"
-      }`}
-    >
-      {/* Header */}
-      <div className="p-4 border-b border-gray-800/50">
-        <div className="flex items-center justify-between">
-          {!isCollapsed && (
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg group-hover:shadow-xl transition-shadow">
-                <ShieldCheckIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">SecureDevOps</h1>
-                <p className="text-xs text-gray-400">AI Security Platform</p>
-              </div>
-            </Link>
-          )}
-          {isCollapsed && (
-            <Link
-              to="/"
-              className="mx-auto p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg"
-            >
-              <ShieldCheckIcon className="h-6 w-6 text-white" />
-            </Link>
-          )}
-          <button
-            onClick={onToggleCollapse}
-            className={`p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all ${
-              isCollapsed ? "hidden" : ""
-            }`}
-          >
-            <ChevronLeftIcon className="h-4 w-4" />
-          </button>
-        </div>
+    <div className="space-y-1">
+      {!collapsed && title && (
+        <h4 className="px-4 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2">
+          {title}
+        </h4>
+      )}
+      <div className="space-y-1 px-2">
+        {items.map((item) => (
+          <NavItem key={item.path} item={item} collapsed={collapsed} />
+        ))}
+      </div>
+    </div>
+  );
+});
 
-        {/* Expand button when collapsed */}
-        {isCollapsed && (
+// ============================================================================
+// SIDEBAR HEADER COMPONENT
+// ============================================================================
+const SidebarHeader = memo(function SidebarHeader({
+  collapsed,
+  onToggle,
+  onClose,
+  isMobile,
+}) {
+  return (
+    <div
+      className={clsx(
+        "h-16 flex items-center border-b border-white/5",
+        collapsed ? "justify-center px-2" : "justify-between px-4"
+      )}
+    >
+      {/* Logo */}
+      {!collapsed && (
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-3"
+        >
+          <div className="relative">
+            <div
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 
+                          flex items-center justify-center shadow-lg shadow-blue-500/25"
+            >
+              <span className="text-white font-bold text-lg">S</span>
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900" />
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-white tracking-tight">
+              SecureDevOps
+            </h1>
+            <p className="text-[10px] text-slate-400 font-medium">
+              AI Security Platform
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {collapsed && (
+        <div
+          className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 
+                      flex items-center justify-center shadow-lg shadow-blue-500/25"
+        >
+          <span className="text-white font-bold text-lg">S</span>
+        </div>
+      )}
+
+      {/* Toggle/Close Button */}
+      {isMobile ? (
+        <button
+          onClick={onClose}
+          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+        >
+          <XMarkIcon className="w-5 h-5" />
+        </button>
+      ) : (
+        !collapsed && (
           <button
-            onClick={onToggleCollapse}
-            className="w-full mt-3 p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all flex items-center justify-center"
+            onClick={onToggle}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors
+                   opacity-0 group-hover/sidebar:opacity-100"
           >
-            <ChevronRightIcon className="h-4 w-4" />
+            <ArrowLeftIcon className="w-4 h-4" />
           </button>
-        )}
+        )
+      )}
+    </div>
+  );
+});
+
+// ============================================================================
+// DESKTOP SIDEBAR
+// ============================================================================
+const DesktopSidebar = memo(function DesktopSidebar({ collapsed, onToggle }) {
+  const categorizedNav = useMemo(() => getNavigationByCategory(), []);
+
+  return (
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? 72 : 280 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      className={clsx(
+        "fixed left-0 top-0 h-screen z-40",
+        "bg-slate-900/95 backdrop-blur-xl",
+        "border-r border-white/5",
+        "flex flex-col",
+        "group/sidebar",
+        // Glass effect
+        "shadow-2xl shadow-black/20"
+      )}
+    >
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900/98 to-slate-950 pointer-events-none" />
+
+      {/* Subtle pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      {/* Header */}
+      <div className="relative z-10">
+        <SidebarHeader collapsed={collapsed} onToggle={onToggle} />
       </div>
 
-      {/* New Project Button */}
-      <div className="p-4">
-        {isCollapsed ? (
-          <button
-            onClick={() => navigate("/projects?action=new")}
-            className="w-full flex items-center justify-center p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
-            title="New Project"
-          >
-            <PlusIcon className="h-5 w-5" />
-          </button>
-        ) : (
-          <button
-            onClick={() => navigate("/projects?action=new")}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
-          >
-            <PlusIcon className="h-5 w-5" />
-            <span>New Project</span>
-            <SparklesIcon className="h-4 w-4 opacity-60" />
-          </button>
-        )}
+      {/* Quick Stats */}
+      <div className="relative z-10">
+        <QuickStats collapsed={collapsed} />
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-4">
+      <nav
+        className="flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 relative z-10
+                    scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+      >
         {/* Main Navigation */}
         <NavSection
-          items={getNavigationByCategory("main")}
-          isCollapsed={isCollapsed}
+          title="Main"
+          items={categorizedNav.main}
+          collapsed={collapsed}
         />
 
-        {/* Enterprise Navigation */}
+        {/* Security Section */}
         <NavSection
-          title="Enterprise"
-          items={getNavigationByCategory("enterprise")}
-          isCollapsed={isCollapsed}
+          title="Security"
+          items={categorizedNav.security}
+          collapsed={collapsed}
         />
 
-        {/* Settings Navigation */}
+        {/* Analysis Section */}
+        <NavSection
+          title="Analysis"
+          items={categorizedNav.analysis}
+          collapsed={collapsed}
+        />
+
+        {/* Reports Section */}
+        <NavSection
+          title="Reports"
+          items={categorizedNav.reports}
+          collapsed={collapsed}
+        />
+
+        {/* Settings Section */}
         <NavSection
           title="Settings"
-          items={getNavigationByCategory("settings")}
-          isCollapsed={isCollapsed}
+          items={categorizedNav.settings}
+          collapsed={collapsed}
         />
       </nav>
 
-      {/* Quick Stats */}
-      <QuickStats isCollapsed={isCollapsed} />
-
       {/* Connection Status */}
-      <div className={`px-4 pb-2 ${isCollapsed ? "px-2" : ""}`}>
-        {isCollapsed ? (
-          <div className="flex justify-center">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          </div>
-        ) : (
-          <ConnectionStatus isConnected={true} />
-        )}
+      <div className="relative z-10">
+        <ConnectionStatus collapsed={collapsed} />
       </div>
 
-      {/* User Section */}
-      <UserSection user={user} isCollapsed={isCollapsed} />
-    </aside>
+      {/* Collapse toggle button (visible on hover when not collapsed) */}
+      {collapsed && (
+        <button
+          onClick={onToggle}
+          className="absolute -right-3 top-20 w-6 h-6 
+                   bg-slate-800 border border-white/10 rounded-full
+                   flex items-center justify-center
+                   text-slate-400 hover:text-white hover:bg-slate-700
+                   transition-all duration-200 shadow-lg
+                   opacity-0 group-hover/sidebar:opacity-100"
+        >
+          <ArrowRightIcon className="w-3 h-3" />
+        </button>
+      )}
+    </motion.aside>
   );
-};
+});
 
-/**
- * Mobile Sidebar Component
- */
-export const MobileSidebar = ({ isOpen, onClose, user }) => {
-  const navigate = useNavigate();
-
-  if (!isOpen) return null;
+// ============================================================================
+// MOBILE SIDEBAR
+// ============================================================================
+const MobileSidebar = memo(function MobileSidebar({ isOpen, onClose }) {
+  const categorizedNav = useMemo(() => getNavigationByCategory(), []);
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          />
 
-      {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-gray-900/98 backdrop-blur-xl border-r border-gray-800/50 z-50 lg:hidden flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-800/50">
-          <div className="flex items-center justify-between">
-            <Link to="/" onClick={onClose} className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <ShieldCheckIcon className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">SecureDevOps</h1>
-                <p className="text-xs text-gray-400">AI Security Platform</p>
-              </div>
-            </Link>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
-        </div>
-
-        {/* New Project Button */}
-        <div className="p-4">
-          <button
-            onClick={() => {
-              onClose();
-              navigate("/projects?action=new");
-            }}
-            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium shadow-lg"
+          {/* Sidebar */}
+          <motion.aside
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 250 }}
+            className={clsx(
+              "fixed left-0 top-0 h-screen w-80 z-50",
+              "bg-slate-900/98 backdrop-blur-xl",
+              "border-r border-white/5",
+              "flex flex-col",
+              "shadow-2xl"
+            )}
           >
-            <PlusIcon className="h-5 w-5" />
-            <span>New Project</span>
-            <SparklesIcon className="h-4 w-4 opacity-60" />
-          </button>
-        </div>
+            {/* Background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900/98 to-slate-950 pointer-events-none" />
 
-        {/* Navigation */}
-        <nav
-          className="flex-1 overflow-y-auto px-3 py-2 space-y-4"
-          onClick={onClose}
-        >
-          <NavSection
-            items={getNavigationByCategory("main")}
-            isCollapsed={false}
-          />
-          <NavSection
-            title="Enterprise"
-            items={getNavigationByCategory("enterprise")}
-            isCollapsed={false}
-          />
-          <NavSection
-            title="Settings"
-            items={getNavigationByCategory("settings")}
-            isCollapsed={false}
-          />
-        </nav>
+            {/* Header */}
+            <div className="relative z-10">
+              <SidebarHeader collapsed={false} onClose={onClose} isMobile />
+            </div>
 
-        {/* Quick Stats */}
-        <QuickStats isCollapsed={false} />
+            {/* Quick Stats */}
+            <div className="relative z-10">
+              <QuickStats collapsed={false} />
+            </div>
 
-        {/* Connection Status */}
-        <div className="px-4 pb-2">
-          <ConnectionStatus isConnected={true} />
-        </div>
+            {/* Navigation */}
+            <nav
+              className="flex-1 overflow-y-auto py-4 space-y-6 relative z-10
+                          scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+            >
+              <NavSection
+                title="Main"
+                items={categorizedNav.main}
+                collapsed={false}
+              />
+              <NavSection
+                title="Security"
+                items={categorizedNav.security}
+                collapsed={false}
+              />
+              <NavSection
+                title="Analysis"
+                items={categorizedNav.analysis}
+                collapsed={false}
+              />
+              <NavSection
+                title="Reports"
+                items={categorizedNav.reports}
+                collapsed={false}
+              />
+              <NavSection
+                title="Settings"
+                items={categorizedNav.settings}
+                collapsed={false}
+              />
+            </nav>
 
-        {/* User Section */}
-        <UserSection user={user} isCollapsed={false} />
-      </aside>
+            {/* Connection Status */}
+            <div className="relative z-10">
+              <ConnectionStatus collapsed={false} />
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+});
+
+// ============================================================================
+// MOBILE MENU BUTTON
+// ============================================================================
+export const MobileMenuButton = memo(function MobileMenuButton({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="p-2 rounded-xl text-slate-400 hover:text-white 
+               hover:bg-white/5 transition-all duration-200
+               active:scale-95"
+      aria-label="Open menu"
+    >
+      <Bars3Icon className="w-6 h-6" />
+    </button>
+  );
+});
+
+// ============================================================================
+// MAIN SIDEBAR EXPORT
+// ============================================================================
+export default function Sidebar({
+  collapsed = false,
+  onToggle,
+  mobileOpen = false,
+  onMobileClose,
+}) {
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <DesktopSidebar collapsed={collapsed} onToggle={onToggle} />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div className="lg:hidden">
+        <MobileSidebar isOpen={mobileOpen} onClose={onMobileClose} />
+      </div>
     </>
   );
-};
-
-export default { DesktopSidebar, MobileSidebar };
+}

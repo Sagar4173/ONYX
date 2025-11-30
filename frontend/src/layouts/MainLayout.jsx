@@ -5,9 +5,9 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, Routes, Route, Navigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { DesktopSidebar, MobileSidebar } from "./Sidebar";
-import { Header } from "./Header";
-import { CompactFooter } from "./Footer";
+import Sidebar, { MobileMenuButton } from "./Sidebar";
+import Header from "./Header";
+import Footer from "./Footer";
 import { useAuth } from "../components/auth";
 import { UserProfile } from "../components/auth/UserProfile";
 import { websocketService } from "../services/api";
@@ -114,25 +114,19 @@ export const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex">
-      {/* Mobile Sidebar */}
-      <MobileSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        user={user}
+    <div className="min-h-screen bg-slate-950 flex">
+      {/* Sidebar - Handles both mobile and desktop */}
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
       />
 
-      {/* Desktop Sidebar */}
-      <DesktopSidebar
-        user={user}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
-
-      {/* Main Content */}
+      {/* Main Content - Adjusts for sidebar width */}
       <div
         className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-          sidebarCollapsed ? "lg:pl-0" : "lg:pl-0"
+          sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[280px]"
         }`}
       >
         <Header
@@ -143,7 +137,7 @@ export const MainLayout = () => {
           onProfileClick={() => setProfileModalOpen(true)}
         />
 
-        <main className="flex-1 relative">
+        <main className="flex-1 relative overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route
@@ -175,7 +169,7 @@ export const MainLayout = () => {
         </main>
 
         {/* Footer */}
-        <CompactFooter />
+        <Footer />
       </div>
 
       {/* User Profile Modal */}

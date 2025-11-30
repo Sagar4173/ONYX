@@ -16,6 +16,6 @@ export {
 
 // Main Layout Components
 export { MainLayout } from "./MainLayout";
-export { DesktopSidebar, MobileSidebar } from "./Sidebar";
-export { Header } from "./Header";
-export { Footer, CompactFooter, FullFooter, MinimalFooter } from "./Footer";
+export { default as Sidebar, MobileMenuButton } from "./Sidebar";
+export { default as Header } from "./Header";
+export { default as Footer } from "./Footer";
