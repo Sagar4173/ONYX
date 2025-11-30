@@ -3,16 +3,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangion.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.0+-green.svg)](https://www.mongodb.com/)
-[![AI Powered](https://img.shields.io/badge/AI-GPT--4-orange.svg)](https://openai.com/)
+[![AI Powered](https://img.shields.io/badge/AI-GPT--4%20%7C%20Gemini-orange.svg)](https://openai.com/)
 
 [![Frontend Status](https://img.shields.io/badge/Frontend-Live-brightgreen.svg)](https://secure-dev-ops-ai-platform.vercel.app)
 [![Backend Status](https://img.shields.io/badge/Backend-Live-brightgreen.svg)](https://securedevopsai-platform-production.up.railway.app)
 [![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://securedevopsai-platform-production.up.railway.app/docs)
 
 > **The Next-Generation Open Source Alternative to GitHub Advanced Security & Snyk**  
-> _Comprehensive Security Scanning • AI-Powered Analysis • Enterprise-Ready_
+> _Comprehensive Security Scanning • Dual AI Analysis (GPT-4 + Gemini) • Enterprise-Ready_
 
 An intelligent, comprehensive security scanning and DevOps automation platform that integrates multiple security tools with AI-powered analysis to provide actionable insights for your development workflow.
 
@@ -77,18 +77,30 @@ We combine our diverse expertise to create a comprehensive, AI-powered security 
 
 ### 🤖 **AI-Powered Analysis**
 
-- **Intelligent Vulnerability Assessment** using OpenAI GPT-4
+- **Intelligent Vulnerability Assessment** using OpenAI GPT-4 & Google Gemini
+- **Risk Scoring** with AI-calculated security and risk metrics (0-100)
+- **Threat Intelligence** with categorized threat analysis
+- **Attack Vector Detection** identifying exploitation paths
 - **Risk Prioritization** with context-aware scoring
 - **Automated Remediation Suggestions** with code examples
 - **False Positive Reduction** through intelligent filtering
+- **Remediation Roadmap** with prioritized action plans
 
-### 📊 **Comprehensive Reporting**
+### 📊 **Comprehensive Unified Reporting**
 
+- **Single-View Security Report** - All security data in one unified interface
+- **6-Tab Report Structure:**
+  - **Overview** - Security scores, severity breakdown, key metrics
+  - **Security Findings** - Filterable vulnerability list with details
+  - **AI Analysis** - GPT-4/Gemini powered insights and threat categories
+  - **Compliance Mapping** - OWASP, NIST, ISO27001, PCI-DSS compliance analysis
+  - **Remediation Roadmap** - Prioritized timeline with immediate/short-term/long-term actions
+  - **Scanner Results** - Individual scanner performance and findings
+- **Interactive Compliance Dashboard** - Toggle between compliance frameworks
 - **Real-time Dashboards** with interactive visualizations
-- **Compliance Reports** (OWASP, CIS, PCI DSS, SOX)
-- **Executive Summaries** with business impact analysis
+- **Executive Summary PDF** with table of contents
 - **Trend Analysis** and security posture tracking
-- **Export Capabilities** (PDF, JSON, CSV)
+- **Export Capabilities** (PDF with professional formatting, JSON, CSV)
 
 ### 🔗 **Seamless Integrations**
 

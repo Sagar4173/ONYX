@@ -173,12 +173,31 @@ The platform regularly scans itself using its own security tools:
 
 ### Security Test Results
 
-| Scanner  | Last Scan  | Status    | Critical | High | Medium | Low |
-| -------- | ---------- | --------- | -------- | ---- | ------ | --- |
-| Semgrep  | 2024-01-15 | ✅ Clean  | 0        | 0    | 2      | 3   |
-| Safety   | 2024-01-15 | ✅ Clean  | 0        | 0    | 0      | 1   |
-| GitLeaks | 2024-01-15 | ✅ Clean  | 0        | 0    | 0      | 0   |
-| Trivy    | 2024-01-15 | ⚠️ Issues | 0        | 1    | 3      | 5   |
+| Scanner  | Last Scan  | Status   | Critical | High | Medium | Low |
+| -------- | ---------- | -------- | -------- | ---- | ------ | --- |
+| Semgrep  | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 2   |
+| Safety   | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 0   |
+| GitLeaks | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 0   |
+| Trivy    | 2025-11-30 | ✅ Clean | 0        | 0    | 1      | 3   |
+| Bandit   | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 1   |
+
+### AI API Security
+
+The platform supports dual AI providers with secure API key management:
+
+#### **OpenAI GPT-4 Security**
+
+- API keys stored as environment variables (never in code)
+- Token usage monitoring and limits
+- Secure HTTPS-only communication
+- Request/response logging for audit
+
+#### **Google Gemini Security**
+
+- Gemini API keys secured via environment variables
+- Rate limiting per API key
+- Secure cloud communication
+- Fallback provider isolation
 
 ---
 

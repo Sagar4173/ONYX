@@ -71,7 +71,9 @@ class VulnerabilityAIProcessor:
                 self._generate_priority_findings(findings_data),
                 self._generate_recommendations(findings_data, project_context),
                 self._generate_secure_code_examples(findings_data),
-                self._generate_compliance_impact(findings_data)
+                self._generate_compliance_impact(findings_data),
+                self._generate_attack_vectors(findings_data),
+                self._generate_remediation_roadmap(findings_data)
             ]
             
             results = await asyncio.gather(*analysis_tasks, return_exceptions=True)
@@ -83,6 +85,13 @@ class VulnerabilityAIProcessor:
             recommendations = results[3] if not isinstance(results[3], Exception) else []
             secure_code_examples = results[4] if not isinstance(results[4], Exception) else {}
             compliance_impact = results[5] if not isinstance(results[5], Exception) else {}
+            attack_vectors = results[6] if not isinstance(results[6], Exception) else []
+            remediation_roadmap = results[7] if not isinstance(results[7], Exception) else []
+            
+            # Calculate risk score and level
+            risk_score, risk_level = self._calculate_risk_score(findings_data)
+            security_score = self._calculate_security_score(findings_data)
+            threat_categories = self._categorize_threats(findings_data)
             
             # Estimate fix time
             estimated_fix_time = self._estimate_fix_time(findings_data)
@@ -92,11 +101,17 @@ class VulnerabilityAIProcessor:
                 generated_at=datetime.now(timezone.utc),
                 executive_summary=executive_summary,
                 risk_assessment=risk_assessment,
+                risk_score=risk_score,
+                risk_level=risk_level,
                 priority_findings=priority_findings,
                 recommendations=recommendations,
                 secure_code_examples=secure_code_examples,
                 compliance_impact=compliance_impact,
-                estimated_fix_time=estimated_fix_time
+                estimated_fix_time=estimated_fix_time,
+                attack_vectors=attack_vectors,
+                threat_categories=threat_categories,
+                remediation_roadmap=remediation_roadmap,
+                security_score=security_score
             )
             
             logger.info("AI analysis completed successfully")
@@ -145,21 +160,216 @@ class VulnerabilityAIProcessor:
         return AIAnalysis(
             model_used=self.model,
             generated_at=datetime.now(timezone.utc),
-            executive_summary="No security vulnerabilities were detected in this scan. The codebase appears to follow good security practices.",
-            risk_assessment="LOW - No immediate security risks identified. Continue following secure coding practices and regular security assessments.",
+            executive_summary="🎉 Excellent security posture! No security vulnerabilities were detected in this comprehensive scan. The codebase demonstrates strong adherence to security best practices and secure coding standards.",
+            risk_assessment="LOW - No immediate security risks identified. The application shows a mature security stance with no critical, high, or medium vulnerabilities detected. Continue following secure coding practices and regular security assessments.",
+            risk_score=5,
+            risk_level="LOW",
+            security_score=98,
             priority_findings=[],
             recommendations=[
-                "Maintain current security practices",
-                "Continue regular security scans",
-                "Keep dependencies updated",
-                "Implement security-focused code reviews"
+                "✅ Maintain current security practices and coding standards",
+                "🔄 Continue regular automated security scans in CI/CD pipeline",
+                "📦 Keep all dependencies updated to latest secure versions",
+                "👥 Implement security-focused peer code reviews",
+                "📚 Provide ongoing security training for development team"
             ],
             secure_code_examples={},
             compliance_impact={
-                "general": "Clean scan results support compliance with security standards"
+                "overall_impact": "Positive",
+                "analysis": "Clean scan results strongly support compliance requirements across all major frameworks",
+                "frameworks_affected": "SOC 2, ISO 27001, NIST, PCI-DSS, GDPR, HIPAA",
+                "required_actions": "No immediate actions required. Continue current security practices."
             },
-            estimated_fix_time="0 hours - No issues to fix"
+            estimated_fix_time="0 hours - No issues to fix",
+            attack_vectors=[],
+            threat_categories={},
+            remediation_roadmap=[]
         )
+    
+    def _calculate_risk_score(self, findings_data: Dict[str, Any]) -> tuple:
+        """Calculate numerical risk score and level based on findings"""
+        severity_counts = findings_data['severity_counts']
+        
+        # Weighted scoring: Critical=40, High=25, Medium=10, Low=3, Info=1
+        score = (
+            severity_counts['critical'] * 40 +
+            severity_counts['high'] * 25 +
+            severity_counts['medium'] * 10 +
+            severity_counts['low'] * 3 +
+            severity_counts['info'] * 1
+        )
+        
+        # Normalize to 0-100 scale (cap at 100)
+        risk_score = min(100, score)
+        
+        # Determine risk level
+        if severity_counts['critical'] > 0 or risk_score >= 70:
+            risk_level = "CRITICAL"
+        elif severity_counts['high'] > 0 or risk_score >= 40:
+            risk_level = "HIGH"
+        elif severity_counts['medium'] > 0 or risk_score >= 20:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "LOW"
+        
+        return risk_score, risk_level
+    
+    def _calculate_security_score(self, findings_data: Dict[str, Any]) -> int:
+        """Calculate overall security score (inverse of risk)"""
+        severity_counts = findings_data['severity_counts']
+        
+        # Start with 100 and deduct based on findings
+        score = 100
+        score -= severity_counts['critical'] * 20
+        score -= severity_counts['high'] * 12
+        score -= severity_counts['medium'] * 5
+        score -= severity_counts['low'] * 2
+        score -= severity_counts['info'] * 0.5
+        
+        return max(0, int(score))
+    
+    def _categorize_threats(self, findings_data: Dict[str, Any]) -> Dict[str, int]:
+        """Categorize findings into threat categories"""
+        categories = {
+            "Injection": 0,
+            "Authentication": 0,
+            "Sensitive Data": 0,
+            "Access Control": 0,
+            "Security Misconfiguration": 0,
+            "Cryptographic Issues": 0,
+            "Input Validation": 0,
+            "Other": 0
+        }
+        
+        for finding in findings_data.get('findings', []):
+            title = finding.get('title', '').lower()
+            desc = finding.get('description', '').lower()
+            owasp = finding.get('owasp_category', '').lower()
+            cwe = finding.get('cwe_id', '').lower()
+            
+            # Categorize based on keywords
+            if any(k in title + desc for k in ['sql', 'injection', 'sqli', 'command injection', 'ldap', 'xpath']):
+                categories["Injection"] += 1
+            elif any(k in title + desc for k in ['auth', 'password', 'credential', 'session', 'token', 'login']):
+                categories["Authentication"] += 1
+            elif any(k in title + desc for k in ['secret', 'key', 'api_key', 'private', 'sensitive', 'exposure']):
+                categories["Sensitive Data"] += 1
+            elif any(k in title + desc for k in ['access', 'permission', 'privilege', 'authorization', 'idor']):
+                categories["Access Control"] += 1
+            elif any(k in title + desc for k in ['config', 'setting', 'debug', 'verbose', 'default']):
+                categories["Security Misconfiguration"] += 1
+            elif any(k in title + desc for k in ['crypto', 'encrypt', 'hash', 'ssl', 'tls', 'certificate']):
+                categories["Cryptographic Issues"] += 1
+            elif any(k in title + desc for k in ['input', 'validation', 'sanitiz', 'xss', 'cross-site']):
+                categories["Input Validation"] += 1
+            else:
+                categories["Other"] += 1
+        
+        # Remove empty categories
+        return {k: v for k, v in categories.items() if v > 0}
+    
+    async def _generate_attack_vectors(self, findings_data: Dict[str, Any]) -> List[str]:
+        """Generate potential attack vectors based on findings"""
+        if not findings_data['findings']:
+            return []
+        
+        prompt = f"""
+        As a penetration testing expert, analyze these security vulnerabilities and identify specific attack vectors:
+        
+        Findings: {json.dumps(findings_data['findings'][:15], indent=2)}
+        
+        List 5-7 specific attack scenarios that could exploit these vulnerabilities.
+        Format each as a brief, actionable attack description.
+        Focus on real-world exploitation paths.
+        
+        Return ONLY a JSON array of strings.
+        Format: ["Attack vector 1", "Attack vector 2", ...]
+        """
+        
+        try:
+            response = await self._call_openai(prompt)
+            return json.loads(response.strip())[:7]
+        except:
+            # Generate based on findings
+            vectors = []
+            severity_counts = findings_data['severity_counts']
+            if severity_counts.get('critical', 0) > 0:
+                vectors.append("Critical vulnerability exploitation leading to system compromise")
+            if severity_counts.get('high', 0) > 0:
+                vectors.append("High-severity vulnerability chaining for escalated access")
+            return vectors
+    
+    async def _generate_remediation_roadmap(self, findings_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate step-by-step remediation roadmap"""
+        severity_counts = findings_data['severity_counts']
+        
+        roadmap = []
+        
+        # Phase 1: Critical (24 hours)
+        if severity_counts.get('critical', 0) > 0:
+            roadmap.append({
+                "phase": 1,
+                "title": "Emergency Response",
+                "timeline": "Within 24 hours",
+                "priority": "CRITICAL",
+                "tasks": [
+                    f"Address {severity_counts['critical']} critical vulnerabilities immediately",
+                    "Implement emergency patches or workarounds",
+                    "Enable enhanced monitoring for exploitation attempts",
+                    "Notify security team and stakeholders"
+                ],
+                "status": "pending"
+            })
+        
+        # Phase 2: High (1 week)
+        if severity_counts.get('high', 0) > 0:
+            roadmap.append({
+                "phase": 2,
+                "title": "High Priority Fixes",
+                "timeline": "Within 1 week",
+                "priority": "HIGH",
+                "tasks": [
+                    f"Remediate {severity_counts['high']} high-severity findings",
+                    "Update vulnerable dependencies",
+                    "Implement security controls and hardening",
+                    "Conduct security code review"
+                ],
+                "status": "pending"
+            })
+        
+        # Phase 3: Medium (2 weeks)
+        if severity_counts.get('medium', 0) > 0:
+            roadmap.append({
+                "phase": 3,
+                "title": "Security Hardening",
+                "timeline": "Within 2 weeks",
+                "priority": "MEDIUM",
+                "tasks": [
+                    f"Address {severity_counts['medium']} medium-severity issues",
+                    "Implement additional security best practices",
+                    "Enhance input validation and sanitization",
+                    "Review and update security configurations"
+                ],
+                "status": "pending"
+            })
+        
+        # Phase 4: Low & Cleanup (1 month)
+        if severity_counts.get('low', 0) > 0 or severity_counts.get('info', 0) > 0:
+            roadmap.append({
+                "phase": 4,
+                "title": "Security Posture Improvement",
+                "timeline": "Within 1 month",
+                "priority": "LOW",
+                "tasks": [
+                    f"Address {severity_counts.get('low', 0)} low-severity findings",
+                    "Implement security best practices",
+                    "Update documentation and security policies",
+                    "Conduct security awareness training"
+                ],
+                "status": "pending"
+            })
+        
+        return roadmap
     
     async def _generate_executive_summary(
         self,
@@ -410,9 +620,17 @@ def get_ai_processor() -> VulnerabilityAIProcessor:
     """Get or create the global AI processor instance"""
     global _ai_processor
     if _ai_processor is None:
-        # Use factory function from gemini_ai_processor for provider selection
-        from .gemini_ai_processor import create_ai_processor
-        _ai_processor = create_ai_processor()
+        try:
+            # Use factory function from gemini_ai_processor for provider selection
+            from .gemini_ai_processor import create_ai_processor
+            _ai_processor = create_ai_processor()
+            logger.info("AI processor initialized successfully")
+        except ValueError as e:
+            logger.error(f"Failed to initialize AI processor: {e}")
+            raise AIProcessorError(f"AI processor initialization failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error initializing AI processor: {e}")
+            raise AIProcessorError(f"AI processor initialization failed: {e}")
     return _ai_processor
 
 # Create function to get the processor when needed

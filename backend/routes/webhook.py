@@ -459,19 +459,29 @@ async def process_real_scan(
             )
             
             # Get the AI processor
-            from services.ai_processor import get_ai_processor
-            ai_processor = get_ai_processor()
+            from services.ai_processor import get_ai_processor, AIProcessorError
+            try:
+                ai_processor = get_ai_processor()
+            except AIProcessorError as e:
+                logger.warning(f"⚠️ AI processor not available: {e}. Skipping AI analysis.")
+                ai_processor = None
             
             if ai_processor and scan_results_list:
                 # Get the updated report for AI analysis
                 updated_report = await ScanReport.find_one(ScanReport.scan_id == scan_id)
                 
                 if updated_report and updated_report.scan_results:
-                    # Generate AI analysis
+                    # Build project context for AI analysis
+                    project_context = {
+                        "project_name": updated_report.project_name,
+                        "repository_url": str(updated_report.git_metadata.repository_url) if updated_report.git_metadata else "",
+                        "branch": updated_report.git_metadata.branch if updated_report.git_metadata else "main"
+                    }
+                    
+                    # Generate AI analysis with correct parameters
                     ai_analysis_result = await ai_processor.analyze_scan_results(
-                        project_name=updated_report.project_name,
-                        scan_results=updated_report.scan_results,
-                        repository_url=str(updated_report.git_metadata.repository_url) if updated_report.git_metadata else ""
+                        updated_report.scan_results,
+                        project_context
                     )
                     
                     if ai_analysis_result:

@@ -8,14 +8,16 @@ SecureDevOps AI Platform positions itself as the **open-source enterprise altern
 
 ## 📊 **Feature Comparison Matrix**
 
-| Feature Category      | SecureDevOps AI           | GitHub Advanced Security | Snyk                 |
-| --------------------- | ------------------------- | ------------------------ | -------------------- |
-| **💰 Pricing**        | ✅ **Open Source/Free**   | ❌ $49/user/month        | ❌ $25-99/user/month |
-| **🏠 Deployment**     | ✅ **Self-hosted**        | ⚠️ GitHub.com only       | ⚠️ Cloud + on-prem   |
-| **🔓 Vendor Lock-in** | ✅ **No lock-in**         | ❌ GitHub ecosystem      | ❌ Snyk ecosystem    |
-| **🤖 AI Analysis**    | ✅ **GPT-4 powered**      | ⚠️ Basic AI features     | ⚠️ Limited AI        |
-| **📊 Custom Reports** | ✅ **Fully customizable** | ⚠️ Limited templates     | ⚠️ Fixed formats     |
-| **🔧 Extensibility**  | ✅ **Full source access** | ❌ API-only              | ❌ Plugin system     |
+| Feature Category       | SecureDevOps AI               | GitHub Advanced Security | Snyk                 |
+| ---------------------- | ----------------------------- | ------------------------ | -------------------- |
+| **💰 Pricing**         | ✅ **Open Source/Free**       | ❌ $49/user/month        | ❌ $25-99/user/month |
+| **🏠 Deployment**      | ✅ **Self-hosted**            | ⚠️ GitHub.com only       | ⚠️ Cloud + on-prem   |
+| **🔓 Vendor Lock-in**  | ✅ **No lock-in**             | ❌ GitHub ecosystem      | ❌ Snyk ecosystem    |
+| **🤖 AI Analysis**     | ✅ **GPT-4 + Gemini**         | ⚠️ Basic AI features     | ⚠️ Limited AI        |
+| **📊 Custom Reports**  | ✅ **Fully customizable**     | ⚠️ Limited templates     | ⚠️ Fixed formats     |
+| **🔧 Extensibility**   | ✅ **Full source access**     | ❌ API-only              | ❌ Plugin system     |
+| **📋 Compliance**      | ✅ **OWASP/NIST/ISO/PCI-DSS** | ⚠️ Limited               | ⚠️ Basic compliance  |
+| **📑 Unified Reports** | ✅ **6-Tab Integrated View**  | ❌ Separate views        | ❌ Separate views    |
 
 ---
 
@@ -40,13 +42,17 @@ SecureDevOps AI Platform positions itself as the **open-source enterprise altern
 
 #### **🤖 Superior AI Capabilities**
 
-| Feature                    | SecureDevOps AI                 | GHAS                        |
-| -------------------------- | ------------------------------- | --------------------------- |
-| **AI Model**               | ✅ GPT-4 (latest)               | ⚠️ GitHub Copilot (limited) |
-| **Vulnerability Analysis** | ✅ Comprehensive AI analysis    | ⚠️ Basic suggestions        |
-| **Risk Assessment**        | ✅ Business impact analysis     | ❌ Technical only           |
-| **Fix Recommendations**    | ✅ Code examples + explanations | ⚠️ Basic suggestions        |
-| **Compliance Impact**      | ✅ SOC2, PCI, GDPR analysis     | ❌ Not available            |
+| Feature                    | SecureDevOps AI                   | GHAS                        |
+| -------------------------- | --------------------------------- | --------------------------- |
+| **AI Models**              | ✅ GPT-4 + Gemini (dual AI)       | ⚠️ GitHub Copilot (limited) |
+| **Vulnerability Analysis** | ✅ Comprehensive AI analysis      | ⚠️ Basic suggestions        |
+| **Risk Scoring**           | ✅ AI-calculated 0-100 scores     | ❌ No scoring               |
+| **Threat Categories**      | ✅ Categorized threat analysis    | ❌ Not available            |
+| **Attack Vectors**         | ✅ Exploitation path detection    | ❌ Not available            |
+| **Risk Assessment**        | ✅ Business impact analysis       | ❌ Technical only           |
+| **Fix Recommendations**    | ✅ Code examples + explanations   | ⚠️ Basic suggestions        |
+| **Remediation Roadmap**    | ✅ Prioritized timeline           | ❌ Not available            |
+| **Compliance Impact**      | ✅ OWASP/NIST/ISO/PCI-DSS mapping | ❌ Not available            |
 
 #### **🔧 Customization & Extensibility**
 
@@ -69,13 +75,17 @@ class CustomSecurityScanner:
 
 #### **📊 Advanced Reporting**
 
-| Report Type              | SecureDevOps AI             | GHAS                  |
-| ------------------------ | --------------------------- | --------------------- |
-| **Executive Dashboards** | ✅ Business-focused metrics | ⚠️ Developer-focused  |
-| **Compliance Reports**   | ✅ Multi-framework support  | ⚠️ Limited compliance |
-| **Custom Templates**     | ✅ Unlimited customization  | ❌ Fixed templates    |
-| **White-label Reports**  | ✅ Full branding control    | ❌ GitHub branding    |
-| **Export Formats**       | ✅ PDF, JSON, CSV, XML      | ⚠️ Limited formats    |
+| Report Type              | SecureDevOps AI                | GHAS                  |
+| ------------------------ | ------------------------------ | --------------------- |
+| **Unified Report View**  | ✅ 6-Tab integrated interface  | ❌ Separate pages     |
+| **Executive Dashboards** | ✅ Business-focused metrics    | ⚠️ Developer-focused  |
+| **Compliance Reports**   | ✅ OWASP/NIST/ISO27001/PCI-DSS | ⚠️ Limited compliance |
+| **Remediation Roadmap**  | ✅ AI-prioritized timeline     | ❌ Not available      |
+| **Risk/Security Scores** | ✅ AI-calculated 0-100 scores  | ❌ No scoring         |
+| **Custom Templates**     | ✅ Unlimited customization     | ❌ Fixed templates    |
+| **White-label Reports**  | ✅ Full branding control       | ❌ GitHub branding    |
+| **PDF Export**           | ✅ Executive summary + TOC     | ⚠️ Basic export       |
+| **Export Formats**       | ✅ PDF, JSON, CSV, XML         | ⚠️ Limited formats    |
 
 ### **⚠️ GHAS Advantages**
 
@@ -139,16 +149,22 @@ jobs:
 class AIAnalysis:
     executive_summary: str          # Business-focused summary
     risk_assessment: str            # Detailed risk analysis
+    risk_score: int                 # AI-calculated 0-100 score
+    security_score: int             # Security posture 0-100
+    threat_categories: List[str]    # Categorized threats
+    attack_vectors: List[str]       # Exploitation paths
     priority_findings: List[str]    # AI-ranked vulnerabilities
     recommendations: List[str]      # Actionable guidance
+    remediation_roadmap: List[Dict] # Prioritized action plan
     secure_code_examples: Dict      # Fix demonstrations
-    compliance_impact: Dict         # Framework analysis
+    compliance_impact: Dict         # OWASP/NIST/ISO/PCI mapping
     estimated_fix_time: str         # Resource planning
 
 # Snyk - Basic recommendations
 # Limited AI analysis
 # No business impact assessment
-# No compliance analysis
+# No unified compliance analysis
+# No AI-calculated risk scores
 ```
 
 #### **🏠 Data Control & Privacy**

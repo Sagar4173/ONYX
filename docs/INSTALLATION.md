@@ -174,6 +174,12 @@ OPENAI_API_KEY=sk-your-openai-api-key-here
 SECRET_KEY=your-super-secure-secret-key-256-bits
 MONGODB_URI=mongodb://localhost:27017/securedevops
 
+# Alternative AI Provider (Optional - use Gemini instead of/alongside OpenAI)
+GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_MODEL=gemini-pro
+GEMINI_MAX_TOKENS=4096
+AI_PROVIDER=openai  # Options: "openai" or "gemini"
+
 # Optional Settings
 ENVIRONMENT=development
 DEBUG=true

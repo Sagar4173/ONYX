@@ -54,6 +54,17 @@
   - Context-aware analysis
   - Natural language explanations
   - Multi-prompt analysis pipeline
+- [x] **Google Gemini AI Integration** - Alternative AI processor
+  - Gemini Pro model support
+  - Fallback AI provider option
+  - Cost-effective alternative to GPT-4
+  - Full feature parity with OpenAI processor
+- [x] **Enhanced AI Analysis Fields** - Comprehensive threat intelligence
+  - Risk Score (0-100) - AI-calculated overall risk
+  - Security Score (0-100) - Security posture assessment
+  - Threat Categories - Categorized security threats
+  - Attack Vectors - Potential exploitation paths
+  - Remediation Roadmap - Prioritized action timeline
 - [x] **Executive Summaries** - Business-focused security reports
   - Technical leadership oriented
   - Risk-based prioritization
@@ -118,9 +129,23 @@
   - Trend visualization
 - [x] **Export Capabilities** - Multi-format report generation
   - JSON structured data export
-  - PDF report generation (planned)
+  - PDF report generation with Executive Summary & Table of Contents
   - CSV data export
   - API-based data access
+- [x] **Unified 6-Tab Report Interface** - Comprehensive security reporting
+  - Overview Tab - Security scores, severity breakdown, key metrics
+  - Security Findings Tab - Filterable vulnerability list
+  - AI Analysis Tab - GPT-4/Gemini powered insights
+  - Compliance Mapping Tab - OWASP, NIST, ISO27001, PCI-DSS analysis
+  - Remediation Roadmap Tab - Prioritized timeline (Immediate/Short/Long-term)
+  - Scanner Results Tab - Individual scanner performance
+- [x] **Interactive Compliance Dashboard** - Multi-framework compliance tracking
+  - OWASP Top 10 (2021) - A01-A10 categories
+  - NIST Cybersecurity Framework (1.1) - Identify/Protect/Detect/Respond/Recover
+  - ISO 27001:2013 - A.8-A.18 controls
+  - PCI DSS - Requirements 1-12
+  - Real-time compliance rate calculation
+  - Finding-to-control mapping
 
 #### **🔗 Integration & Automation**
 
@@ -258,13 +283,58 @@
 
 ## 🚧 **In Development (Next 3 Months)**
 
-### **� Enhanced Scanning Dashboard**
+### **🔌 IDE Extensions & Developer Tools**
+
+- [ ] **VS Code Extension**
+  - Inline vulnerability warnings
+  - Quick-fix suggestions from AI
+  - Scan on save functionality
+  - Direct link to full reports
+- [ ] **IntelliJ Plugin**
+  - Java/Kotlin vulnerability detection
+  - Real-time security linting
+  - Integration with project scanning
+
+### **📦 Enhanced Dependency Scanning**
+
+- [ ] **OSV (Open Source Vulnerabilities) Integration**
+  - Google OSV API integration
+  - Expanded vulnerability database
+  - Real-time vulnerability updates
+- [ ] **NVD (National Vulnerability Database) Integration**
+  - NIST NVD feeds
+  - CVE enrichment
+  - CVSS score enhancement
+
+### **📋 SBOM (Software Bill of Materials)**
+
+- [ ] **SPDX Format Export**
+  - Industry-standard SBOM generation
+  - Dependency tree visualization
+  - License compliance tracking
+- [ ] **CycloneDX Format Export**
+  - Component inventory
+  - Vulnerability correlation
+  - Supply chain security
+
+### **🐳 Container Registry Integration**
+
+- [ ] **Multi-Registry Support**
+  - Docker Hub integration
+  - Azure Container Registry (ACR)
+  - Amazon ECR
+  - Google Container Registry (GCR)
+  - Scheduled image scans
+  - Base image tracking
+
+### **📊 Enhanced Analytics Dashboard**
 
 - [ ] **Advanced Scan Visualization**
   - Interactive scan result charts
-  - Vulnerability trend analysis
+  - Vulnerability trend analysis over time
   - Severity distribution graphs
   - Scanner comparison metrics
+  - Scan-to-scan comparison
 - [ ] **Real-time Scan Monitoring**
   - Live scan progress indicators
   - Resource usage monitoring

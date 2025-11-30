@@ -1,7 +1,8 @@
 /**
  * Enhanced Report Details Component - Comprehensive security report viewer
+ * Unified Security Analysis & Compliance Report
  */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { generatePDF } from "../../utils/pdfGenerator";
@@ -30,10 +31,63 @@ import {
   PrinterIcon,
   DocumentTextIcon,
   SparklesIcon,
+  ArrowTrendingUpIcon,
+  ShieldExclamationIcon,
+  RocketLaunchIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 import { PageContainer, PageHeader } from "../../layouts";
+
+// Compliance Standards Configuration
+const COMPLIANCE_STANDARDS = {
+  OWASP: {
+    name: "OWASP Top 10",
+    version: "2021",
+    icon: "🔐",
+    description: "Open Web Application Security Project Top 10 Security Risks",
+    categories: {
+      A01: "Broken Access Control",
+      A02: "Cryptographic Failures",
+      A03: "Injection",
+      A04: "Insecure Design",
+      A05: "Security Misconfiguration",
+      A06: "Vulnerable and Outdated Components",
+      A07: "Identification and Authentication Failures",
+      A08: "Software and Data Integrity Failures",
+      A09: "Security Logging and Monitoring Failures",
+      A10: "Server-Side Request Forgery (SSRF)",
+    },
+  },
+  NIST: {
+    name: "NIST CSF",
+    version: "1.1",
+    icon: "🏛️",
+    description:
+      "National Institute of Standards and Technology Cybersecurity Framework",
+    categories: {
+      ID: "Identify",
+      PR: "Protect",
+      DE: "Detect",
+      RS: "Respond",
+      RC: "Recover",
+    },
+  },
+  ISO27001: {
+    name: "ISO/IEC 27001",
+    version: "2013",
+    icon: "📋",
+    description: "Information Security Management Systems Requirements",
+    categories: {
+      "A.8": "Asset Management",
+      "A.9": "Access Control",
+      "A.10": "Cryptography",
+      "A.12": "Operations Security",
+      "A.14": "System Development",
+    },
+  },
+};
 
 const EnhancedReportDetails = () => {
   const { reportId } = useParams();
@@ -44,6 +98,107 @@ const EnhancedReportDetails = () => {
   const [expandedFindings, setExpandedFindings] = useState(new Set());
   const [showCodeContext, setShowCodeContext] = useState(new Set());
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedStandards, setSelectedStandards] = useState(["OWASP", "NIST"]);
+
+  // Map findings to compliance categories
+  const mapFindingToCompliance = (finding, standard) => {
+    const description = (
+      finding.description ||
+      finding.title ||
+      ""
+    ).toLowerCase();
+    const categories = [];
+
+    switch (standard) {
+      case "OWASP":
+        if (
+          description.includes("access") ||
+          description.includes("authorization") ||
+          description.includes("permission")
+        ) {
+          categories.push("A01");
+        }
+        if (
+          description.includes("crypto") ||
+          description.includes("encryption") ||
+          description.includes("hash") ||
+          description.includes("password")
+        ) {
+          categories.push("A02");
+        }
+        if (
+          description.includes("injection") ||
+          description.includes("sql") ||
+          description.includes("xss") ||
+          description.includes("command")
+        ) {
+          categories.push("A03");
+        }
+        if (
+          description.includes("misconfiguration") ||
+          description.includes("default") ||
+          description.includes("config")
+        ) {
+          categories.push("A05");
+        }
+        if (
+          description.includes("component") ||
+          description.includes("dependency") ||
+          description.includes("outdated") ||
+          description.includes("vulnerable")
+        ) {
+          categories.push("A06");
+        }
+        if (
+          description.includes("auth") ||
+          description.includes("session") ||
+          description.includes("token")
+        ) {
+          categories.push("A07");
+        }
+        if (categories.length === 0) categories.push("A05");
+        break;
+      case "NIST":
+        categories.push("ID");
+        if (
+          description.includes("protect") ||
+          description.includes("secure") ||
+          description.includes("encrypt")
+        ) {
+          categories.push("PR");
+        }
+        if (
+          description.includes("detect") ||
+          description.includes("monitor") ||
+          description.includes("log")
+        ) {
+          categories.push("DE");
+        }
+        break;
+      case "ISO27001":
+        if (
+          description.includes("access") ||
+          description.includes("authentication")
+        ) {
+          categories.push("A.9");
+        }
+        if (
+          description.includes("crypto") ||
+          description.includes("encryption")
+        ) {
+          categories.push("A.10");
+        }
+        if (
+          description.includes("development") ||
+          description.includes("code")
+        ) {
+          categories.push("A.14");
+        }
+        if (categories.length === 0) categories.push("A.12");
+        break;
+    }
+    return categories;
+  };
 
   // Early return if reportId is invalid
   if (!reportId || reportId === "undefined" || reportId === "null") {
@@ -133,21 +288,69 @@ const EnhancedReportDetails = () => {
     }
   };
 
-  // Generate PDF from current view
+  // Generate PDF from current view with enhanced options
   const generateViewPDF = async () => {
     if (!reportRef.current) return;
 
     setIsGenerating(true);
     try {
+      // Calculate total findings
+      let totalFindings = 0;
+      if (report?.findings) {
+        totalFindings = report.findings.length;
+      } else if (report?.scan_results) {
+        report.scan_results.forEach((sr) => {
+          if (sr.findings) totalFindings += sr.findings.length;
+        });
+      }
+
+      // Prepare report data for PDF executive summary
+      const reportData = {
+        totalFindings: totalFindings,
+        critical: report?.findings_by_severity?.critical || 0,
+        high: report?.findings_by_severity?.high || 0,
+        medium: report?.findings_by_severity?.medium || 0,
+        low: report?.findings_by_severity?.low || 0,
+        info: report?.findings_by_severity?.info || 0,
+        riskScore:
+          aiAnalysis?.risk_score ||
+          Math.min(
+            100,
+            (report?.findings_by_severity?.critical || 0) * 25 +
+              (report?.findings_by_severity?.high || 0) * 15 +
+              (report?.findings_by_severity?.medium || 0) * 5
+          ),
+        securityScore:
+          aiAnalysis?.security_score ||
+          Math.max(
+            0,
+            100 -
+              ((report?.findings_by_severity?.critical || 0) * 20 +
+                (report?.findings_by_severity?.high || 0) * 10)
+          ),
+      };
+
       await generatePDF(reportRef.current, {
-        filename: `security-report-${reportId}.pdf`,
-        title: "Security Analysis Report",
-        subtitle: report?.scan_type || "Vulnerability Scan",
+        filename: `security-report-${report?.project_name || reportId}-${
+          new Date().toISOString().split("T")[0]
+        }.pdf`,
+        title: "SecureDevOps AI",
+        subtitle: `Security Analysis Report - ${
+          report?.project_name || "Vulnerability Scan"
+        }`,
+        showExecutiveSummary: true,
+        showTableOfContents: false,
+        reportData: reportData,
+        companyName: report?.project_name,
+        confidential: true,
       });
-      toast.success("PDF generated successfully");
+      toast.success("🎉 PDF report generated successfully!", {
+        icon: "📄",
+        duration: 3000,
+      });
     } catch (error) {
       console.error("PDF generation error:", error);
-      toast.error("Failed to generate PDF");
+      toast.error("Failed to generate PDF. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -201,11 +404,36 @@ const EnhancedReportDetails = () => {
   }
 
   const tabs = [
-    { id: "overview", name: "Overview", icon: ChartBarIcon },
-    { id: "findings", name: "Security Findings", icon: ShieldCheckIcon },
-    { id: "ai-analysis", name: "AI Analysis", icon: SparklesIcon },
-    { id: "scanners", name: "Scanner Results", icon: CpuChipIcon },
-    { id: "compliance", name: "Compliance", icon: DocumentTextIcon },
+    {
+      id: "overview",
+      name: "Overview",
+      icon: ChartBarIcon,
+      desc: "Summary & AI Assessment",
+    },
+    {
+      id: "findings",
+      name: "Findings",
+      icon: ShieldCheckIcon,
+      desc: "Security Issues & Fixes",
+    },
+    {
+      id: "ai-analysis",
+      name: "AI Analysis",
+      icon: SparklesIcon,
+      desc: "Intelligent Insights",
+    },
+    {
+      id: "compliance",
+      name: "Compliance",
+      icon: DocumentTextIcon,
+      desc: "OWASP, NIST, ISO",
+    },
+    {
+      id: "scanners",
+      name: "Scanners",
+      icon: CpuChipIcon,
+      desc: "Tool Results",
+    },
   ];
 
   const SeverityBadge = ({ severity }) => {
@@ -587,13 +815,108 @@ const EnhancedReportDetails = () => {
                 </div>
               ) : aiAnalysis && aiAnalysis.has_analysis ? (
                 <>
+                  {/* Security Score Dashboard */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Security Score */}
+                    <div className="glass-container rounded-xl p-6 text-center">
+                      <h4 className="text-sm font-medium text-gray-400 mb-3">
+                        Security Score
+                      </h4>
+                      <div className="relative inline-flex items-center justify-center">
+                        <svg className="w-24 h-24 transform -rotate-90">
+                          <circle
+                            cx="48"
+                            cy="48"
+                            r="40"
+                            stroke="currentColor"
+                            strokeWidth="8"
+                            fill="transparent"
+                            className="text-gray-700"
+                          />
+                          <circle
+                            cx="48"
+                            cy="48"
+                            r="40"
+                            stroke="currentColor"
+                            strokeWidth="8"
+                            fill="transparent"
+                            className={`${
+                              (aiAnalysis.security_score || 0) >= 80
+                                ? "text-green-500"
+                                : (aiAnalysis.security_score || 0) >= 50
+                                ? "text-yellow-500"
+                                : "text-red-500"
+                            }`}
+                            strokeDasharray={`${
+                              (aiAnalysis.security_score || 0) * 2.51
+                            } 251`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <span className="absolute text-2xl font-bold text-white">
+                          {aiAnalysis.security_score || "N/A"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">out of 100</p>
+                    </div>
+
+                    {/* Risk Level */}
+                    <div className="glass-container rounded-xl p-6 text-center">
+                      <h4 className="text-sm font-medium text-gray-400 mb-3">
+                        Risk Level
+                      </h4>
+                      <div
+                        className={`inline-flex items-center justify-center w-24 h-24 rounded-full ${
+                          aiAnalysis.risk_level === "CRITICAL"
+                            ? "bg-red-500/20 border-2 border-red-500"
+                            : aiAnalysis.risk_level === "HIGH"
+                            ? "bg-orange-500/20 border-2 border-orange-500"
+                            : aiAnalysis.risk_level === "MEDIUM"
+                            ? "bg-yellow-500/20 border-2 border-yellow-500"
+                            : "bg-green-500/20 border-2 border-green-500"
+                        }`}
+                      >
+                        <span
+                          className={`text-lg font-bold ${
+                            aiAnalysis.risk_level === "CRITICAL"
+                              ? "text-red-400"
+                              : aiAnalysis.risk_level === "HIGH"
+                              ? "text-orange-400"
+                              : aiAnalysis.risk_level === "MEDIUM"
+                              ? "text-yellow-400"
+                              : "text-green-400"
+                          }`}
+                        >
+                          {aiAnalysis.risk_level || "N/A"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Risk Score: {aiAnalysis.risk_score || "N/A"}/100
+                      </p>
+                    </div>
+
+                    {/* Fix Time Estimate */}
+                    <div className="glass-container rounded-xl p-6 text-center">
+                      <h4 className="text-sm font-medium text-gray-400 mb-3">
+                        Estimated Fix Time
+                      </h4>
+                      <div className="flex items-center justify-center w-24 h-24 mx-auto bg-blue-500/20 rounded-full border-2 border-blue-500">
+                        <ClockIcon className="h-10 w-10 text-blue-400" />
+                      </div>
+                      <p className="text-sm font-medium text-white mt-3">
+                        {aiAnalysis.estimated_fix_time || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Executive Summary */}
                   {aiAnalysis.executive_summary && (
                     <div className="glass-container rounded-xl p-6">
                       <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                         <SparklesIcon className="h-5 w-5 mr-2 text-blue-400" />
                         Executive Summary
                       </h3>
-                      <p className="text-gray-300 leading-relaxed">
+                      <p className="text-gray-300 leading-relaxed whitespace-pre-line">
                         {aiAnalysis.executive_summary}
                       </p>
                     </div>
@@ -688,28 +1011,200 @@ const EnhancedReportDetails = () => {
                         <DocumentTextIcon className="h-5 w-5 mr-2 text-purple-400" />
                         Compliance Impact
                       </h3>
-                      <p className="text-gray-300 leading-relaxed">
-                        {aiAnalysis.compliance_impact}
-                      </p>
+                      {typeof aiAnalysis.compliance_impact === "string" ? (
+                        <p className="text-gray-300 leading-relaxed">
+                          {aiAnalysis.compliance_impact}
+                        </p>
+                      ) : (
+                        <div className="space-y-4">
+                          {aiAnalysis.compliance_impact.overall_impact && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-gray-400 font-medium">
+                                Overall Impact:
+                              </span>
+                              <span
+                                className={`px-2 py-1 rounded text-sm font-medium ${
+                                  aiAnalysis.compliance_impact.overall_impact
+                                    .toLowerCase()
+                                    .includes("high")
+                                    ? "bg-red-500/20 text-red-400"
+                                    : aiAnalysis.compliance_impact.overall_impact
+                                        .toLowerCase()
+                                        .includes("medium")
+                                    ? "bg-yellow-500/20 text-yellow-400"
+                                    : "bg-green-500/20 text-green-400"
+                                }`}
+                              >
+                                {aiAnalysis.compliance_impact.overall_impact}
+                              </span>
+                            </div>
+                          )}
+                          {aiAnalysis.compliance_impact.frameworks_affected && (
+                            <div>
+                              <span className="text-gray-400 font-medium">
+                                Frameworks Affected:
+                              </span>
+                              <p className="text-gray-300 mt-1">
+                                {
+                                  aiAnalysis.compliance_impact
+                                    .frameworks_affected
+                                }
+                              </p>
+                            </div>
+                          )}
+                          {aiAnalysis.compliance_impact.analysis && (
+                            <div>
+                              <span className="text-gray-400 font-medium">
+                                Analysis:
+                              </span>
+                              <p className="text-gray-300 mt-1 leading-relaxed">
+                                {aiAnalysis.compliance_impact.analysis}
+                              </p>
+                            </div>
+                          )}
+                          {aiAnalysis.compliance_impact.required_actions && (
+                            <div>
+                              <span className="text-gray-400 font-medium">
+                                Required Actions:
+                              </span>
+                              <p className="text-gray-300 mt-1">
+                                {aiAnalysis.compliance_impact.required_actions}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {aiAnalysis.estimated_fix_time && (
-                    <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                        <ClockIcon className="h-5 w-5 mr-2 text-blue-400" />
-                        Estimated Fix Time
-                      </h3>
-                      <p className="text-gray-300">
-                        {aiAnalysis.estimated_fix_time}
-                      </p>
-                    </div>
-                  )}
+                  {/* Threat Categories */}
+                  {aiAnalysis.threat_categories &&
+                    Object.keys(aiAnalysis.threat_categories).length > 0 && (
+                      <div className="glass-container rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <ChartBarIcon className="h-5 w-5 mr-2 text-orange-400" />
+                          Threat Categories Breakdown
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {Object.entries(aiAnalysis.threat_categories).map(
+                            ([category, count]) => (
+                              <div
+                                key={category}
+                                className="bg-gray-800/50 rounded-lg p-4 text-center"
+                              >
+                                <p className="text-2xl font-bold text-white">
+                                  {count}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  {category}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Attack Vectors */}
+                  {aiAnalysis.attack_vectors &&
+                    aiAnalysis.attack_vectors.length > 0 && (
+                      <div className="glass-container rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <BoltIcon className="h-5 w-5 mr-2 text-red-400" />
+                          Potential Attack Vectors
+                        </h3>
+                        <div className="space-y-3">
+                          {aiAnalysis.attack_vectors.map((vector, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start bg-red-900/20 border border-red-500/30 rounded-lg p-3"
+                            >
+                              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-300">{vector}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Remediation Roadmap */}
+                  {aiAnalysis.remediation_roadmap &&
+                    aiAnalysis.remediation_roadmap.length > 0 && (
+                      <div className="glass-container rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <DocumentTextIcon className="h-5 w-5 mr-2 text-green-400" />
+                          Remediation Roadmap
+                        </h3>
+                        <div className="space-y-4">
+                          {aiAnalysis.remediation_roadmap.map(
+                            (phase, index) => (
+                              <div
+                                key={index}
+                                className="border border-gray-700 rounded-lg overflow-hidden"
+                              >
+                                <div
+                                  className={`p-4 flex items-center justify-between ${
+                                    phase.priority === "CRITICAL"
+                                      ? "bg-red-900/30"
+                                      : phase.priority === "HIGH"
+                                      ? "bg-orange-900/30"
+                                      : phase.priority === "MEDIUM"
+                                      ? "bg-yellow-900/30"
+                                      : "bg-green-900/30"
+                                  }`}
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    <span
+                                      className={`px-2 py-1 rounded text-xs font-bold ${
+                                        phase.priority === "CRITICAL"
+                                          ? "bg-red-500 text-white"
+                                          : phase.priority === "HIGH"
+                                          ? "bg-orange-500 text-white"
+                                          : phase.priority === "MEDIUM"
+                                          ? "bg-yellow-500 text-black"
+                                          : "bg-green-500 text-white"
+                                      }`}
+                                    >
+                                      Phase {phase.phase}
+                                    </span>
+                                    <span className="font-semibold text-white">
+                                      {phase.title}
+                                    </span>
+                                  </div>
+                                  <span className="text-sm text-gray-400">
+                                    {phase.timeline}
+                                  </span>
+                                </div>
+                                <div className="p-4 bg-gray-800/30">
+                                  <ul className="space-y-2">
+                                    {phase.tasks &&
+                                      phase.tasks.map((task, taskIndex) => (
+                                        <li
+                                          key={taskIndex}
+                                          className="flex items-start"
+                                        >
+                                          <CheckCircleIcon className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
+                                          <span className="text-gray-300 text-sm">
+                                            {task}
+                                          </span>
+                                        </li>
+                                      ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                   {aiAnalysis.model_used && (
                     <div className="glass-container rounded-xl p-4 bg-gray-800/30">
                       <p className="text-xs text-gray-500 text-center">
-                        Analysis generated by {aiAnalysis.model_used}
+                        🤖 Analysis generated by{" "}
+                        <span className="text-blue-400">
+                          {aiAnalysis.model_used}
+                        </span>
                         {aiAnalysis.generated_at &&
                           ` on ${new Date(
                             aiAnalysis.generated_at
@@ -736,6 +1231,385 @@ const EnhancedReportDetails = () => {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "remediation" && (
+            <div className="space-y-6">
+              {/* Remediation Header */}
+              <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <RocketLaunchIcon className="h-6 w-6 text-green-400" />
+                      Remediation Roadmap
+                    </h3>
+                    <p className="text-gray-400 mt-1">
+                      Prioritized action plan to resolve security
+                      vulnerabilities
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-400">
+                        {
+                          getFilteredFindings().filter(
+                            (f) =>
+                              f.severity === "critical" || f.severity === "high"
+                          ).length
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">Critical/High</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-400">
+                        {
+                          getFilteredFindings().filter(
+                            (f) => f.severity === "medium"
+                          ).length
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">Medium</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-400">
+                        {
+                          getFilteredFindings().filter(
+                            (f) => f.severity === "low" || f.severity === "info"
+                          ).length
+                        }
+                      </div>
+                      <div className="text-xs text-gray-400">Low/Info</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Remediation Roadmap */}
+              {aiAnalysis?.remediation_roadmap &&
+              aiAnalysis.remediation_roadmap.length > 0 ? (
+                <div className="glass-container rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                    <SparklesIcon className="h-5 w-5 text-purple-400" />
+                    AI-Generated Remediation Plan
+                  </h4>
+                  <div className="relative">
+                    {/* Timeline line */}
+                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-green-500 via-yellow-500 to-blue-500" />
+
+                    <div className="space-y-6">
+                      {aiAnalysis.remediation_roadmap.map((item, idx) => {
+                        const priorityColors = {
+                          immediate: {
+                            bg: "bg-red-500",
+                            border: "border-red-500",
+                            text: "text-red-400",
+                            label: "Immediate",
+                          },
+                          short_term: {
+                            bg: "bg-orange-500",
+                            border: "border-orange-500",
+                            text: "text-orange-400",
+                            label: "Short-term",
+                          },
+                          medium_term: {
+                            bg: "bg-yellow-500",
+                            border: "border-yellow-500",
+                            text: "text-yellow-400",
+                            label: "Medium-term",
+                          },
+                          long_term: {
+                            bg: "bg-blue-500",
+                            border: "border-blue-500",
+                            text: "text-blue-400",
+                            label: "Long-term",
+                          },
+                        };
+                        const priority =
+                          priorityColors[item.priority] ||
+                          priorityColors.medium_term;
+
+                        return (
+                          <div key={idx} className="relative pl-16">
+                            {/* Timeline dot */}
+                            <div
+                              className={`absolute left-4 w-5 h-5 rounded-full ${priority.bg} border-4 border-gray-800`}
+                            />
+
+                            <div
+                              className={`glass-container rounded-xl p-5 border-l-4 ${priority.border}`}
+                            >
+                              <div className="flex flex-wrap items-center gap-3 mb-3">
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold ${priority.bg}/20 ${priority.text}`}
+                                >
+                                  {priority.label}
+                                </span>
+                                {item.category && (
+                                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+                                    {item.category}
+                                  </span>
+                                )}
+                                {item.effort && (
+                                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                                    ⏱️ {item.effort}
+                                  </span>
+                                )}
+                              </div>
+                              <h5 className="text-white font-semibold mb-2">
+                                {item.action || item.title}
+                              </h5>
+                              <p className="text-gray-400 text-sm mb-3">
+                                {item.description}
+                              </p>
+                              {item.impact && (
+                                <div className="flex items-start gap-2 text-sm">
+                                  <span className="text-green-400 font-medium">
+                                    Impact:
+                                  </span>
+                                  <span className="text-gray-300">
+                                    {item.impact}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="glass-container rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                    <ClockIcon className="h-5 w-5 text-blue-400" />
+                    Prioritized Remediation Timeline
+                  </h4>
+                  <div className="relative">
+                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-red-500 via-yellow-500 to-green-500" />
+
+                    {/* Immediate Priority - Critical/High */}
+                    <div className="relative pl-16 pb-8">
+                      <div className="absolute left-4 w-5 h-5 rounded-full bg-red-500 border-4 border-gray-800" />
+                      <div className="glass-container rounded-xl p-5 border-l-4 border-red-500">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
+                            Immediate (0-48 hours)
+                          </span>
+                          <span className="text-xs text-gray-500">Phase 1</span>
+                        </div>
+                        <h5 className="text-white font-semibold mb-3">
+                          Critical & High Severity Issues
+                        </h5>
+                        <div className="space-y-2">
+                          {getFilteredFindings()
+                            .filter(
+                              (f) =>
+                                f.severity === "critical" ||
+                                f.severity === "high"
+                            )
+                            .slice(0, 5)
+                            .map((finding, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 text-sm"
+                              >
+                                <ExclamationCircleIcon
+                                  className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                                    finding.severity === "critical"
+                                      ? "text-red-400"
+                                      : "text-orange-400"
+                                  }`}
+                                />
+                                <span className="text-gray-300">
+                                  {finding.title || finding.message}
+                                </span>
+                              </div>
+                            ))}
+                          {getFilteredFindings().filter(
+                            (f) =>
+                              f.severity === "critical" || f.severity === "high"
+                          ).length > 5 && (
+                            <p className="text-xs text-gray-500 pl-6">
+                              +
+                              {getFilteredFindings().filter(
+                                (f) =>
+                                  f.severity === "critical" ||
+                                  f.severity === "high"
+                              ).length - 5}{" "}
+                              more issues
+                            </p>
+                          )}
+                          {getFilteredFindings().filter(
+                            (f) =>
+                              f.severity === "critical" || f.severity === "high"
+                          ).length === 0 && (
+                            <div className="flex items-center gap-2 text-sm text-green-400">
+                              <CheckCircleIcon className="h-4 w-4" />
+                              No critical or high severity issues found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Short-term - Medium */}
+                    <div className="relative pl-16 pb-8">
+                      <div className="absolute left-4 w-5 h-5 rounded-full bg-yellow-500 border-4 border-gray-800" />
+                      <div className="glass-container rounded-xl p-5 border-l-4 border-yellow-500">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400">
+                            Short-term (1-2 weeks)
+                          </span>
+                          <span className="text-xs text-gray-500">Phase 2</span>
+                        </div>
+                        <h5 className="text-white font-semibold mb-3">
+                          Medium Severity Issues
+                        </h5>
+                        <div className="space-y-2">
+                          {getFilteredFindings()
+                            .filter((f) => f.severity === "medium")
+                            .slice(0, 5)
+                            .map((finding, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 text-sm"
+                              >
+                                <ExclamationCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-yellow-400" />
+                                <span className="text-gray-300">
+                                  {finding.title || finding.message}
+                                </span>
+                              </div>
+                            ))}
+                          {getFilteredFindings().filter(
+                            (f) => f.severity === "medium"
+                          ).length > 5 && (
+                            <p className="text-xs text-gray-500 pl-6">
+                              +
+                              {getFilteredFindings().filter(
+                                (f) => f.severity === "medium"
+                              ).length - 5}{" "}
+                              more issues
+                            </p>
+                          )}
+                          {getFilteredFindings().filter(
+                            (f) => f.severity === "medium"
+                          ).length === 0 && (
+                            <div className="flex items-center gap-2 text-sm text-green-400">
+                              <CheckCircleIcon className="h-4 w-4" />
+                              No medium severity issues found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Long-term - Low/Info */}
+                    <div className="relative pl-16">
+                      <div className="absolute left-4 w-5 h-5 rounded-full bg-green-500 border-4 border-gray-800" />
+                      <div className="glass-container rounded-xl p-5 border-l-4 border-green-500">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
+                            Long-term (1+ month)
+                          </span>
+                          <span className="text-xs text-gray-500">Phase 3</span>
+                        </div>
+                        <h5 className="text-white font-semibold mb-3">
+                          Low Severity & Improvements
+                        </h5>
+                        <div className="space-y-2">
+                          {getFilteredFindings()
+                            .filter(
+                              (f) =>
+                                f.severity === "low" || f.severity === "info"
+                            )
+                            .slice(0, 5)
+                            .map((finding, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-start gap-2 text-sm"
+                              >
+                                <InformationCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-400" />
+                                <span className="text-gray-300">
+                                  {finding.title || finding.message}
+                                </span>
+                              </div>
+                            ))}
+                          {getFilteredFindings().filter(
+                            (f) => f.severity === "low" || f.severity === "info"
+                          ).length > 5 && (
+                            <p className="text-xs text-gray-500 pl-6">
+                              +
+                              {getFilteredFindings().filter(
+                                (f) =>
+                                  f.severity === "low" || f.severity === "info"
+                              ).length - 5}{" "}
+                              more issues
+                            </p>
+                          )}
+                          {getFilteredFindings().filter(
+                            (f) => f.severity === "low" || f.severity === "info"
+                          ).length === 0 && (
+                            <div className="flex items-center gap-2 text-sm text-green-400">
+                              <CheckCircleIcon className="h-4 w-4" />
+                              No low severity issues found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Best Practices & Quick Wins */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="glass-container rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <SparklesIcon className="h-5 w-5 text-yellow-400" />
+                    Quick Wins
+                  </h4>
+                  <div className="space-y-3">
+                    {[
+                      "Enable dependency vulnerability scanning in CI/CD",
+                      "Add security linting to pre-commit hooks",
+                      "Configure SAST tools for automated code review",
+                      "Implement secret scanning in repositories",
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 p-3 bg-gray-800/50 rounded-lg"
+                      >
+                        <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300 text-sm">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-container rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ShieldCheckIcon className="h-5 w-5 text-blue-400" />
+                    Security Best Practices
+                  </h4>
+                  <div className="space-y-3">
+                    {[
+                      "Implement least privilege access controls",
+                      "Enable multi-factor authentication (MFA)",
+                      "Conduct regular security training for developers",
+                      "Establish incident response procedures",
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 p-3 bg-gray-800/50 rounded-lg"
+                      >
+                        <LightBulbIcon className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300 text-sm">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -840,23 +1714,343 @@ const EnhancedReportDetails = () => {
           )}
 
           {activeTab === "compliance" && (
-            <div className="glass-container rounded-xl p-6">
-              <div className="text-center">
-                <DocumentTextIcon className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  Compliance Analysis
-                </h3>
-                <p className="text-gray-400 mb-6">
-                  For detailed compliance analysis against industry frameworks
-                  (OWASP, NIST, ISO27001), use the dedicated compliance report.
-                </p>
-                <Link
-                  to={`/compliance/${reportId}`}
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
-                >
-                  <DocumentTextIcon className="h-4 w-4 mr-2" />
-                  View Compliance Report
-                </Link>
+            <div className="space-y-6">
+              {/* Compliance Header */}
+              <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
+                      Compliance Analysis
+                    </h3>
+                    <p className="text-gray-400 mt-1">
+                      Map security findings against industry compliance
+                      frameworks
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(COMPLIANCE_STANDARDS).map((std) => (
+                      <button
+                        key={std}
+                        onClick={() => {
+                          if (selectedStandards.includes(std)) {
+                            setSelectedStandards(
+                              selectedStandards.filter((s) => s !== std)
+                            );
+                          } else {
+                            setSelectedStandards([...selectedStandards, std]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          selectedStandards.includes(std)
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-700/50 text-gray-400 hover:bg-gray-700 hover:text-white"
+                        }`}
+                      >
+                        {COMPLIANCE_STANDARDS[std].icon} {std}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Compliance Standards Analysis */}
+              {selectedStandards.map((standardKey) => {
+                const standard = COMPLIANCE_STANDARDS[standardKey];
+                const allFindings = getFilteredFindings();
+
+                // Calculate compliance for each category
+                const categoryCompliance = {};
+                Object.keys(standard.categories).forEach((cat) => {
+                  categoryCompliance[cat] = {
+                    findings: [],
+                    compliant: true,
+                    riskLevel: "low",
+                  };
+                });
+
+                allFindings.forEach((finding) => {
+                  const mappedCats = mapFindingToCompliance(
+                    finding,
+                    standardKey
+                  );
+                  mappedCats.forEach((cat) => {
+                    if (categoryCompliance[cat]) {
+                      categoryCompliance[cat].findings.push(finding);
+                      categoryCompliance[cat].compliant = false;
+                      if (
+                        finding.severity === "critical" ||
+                        finding.severity === "high"
+                      ) {
+                        categoryCompliance[cat].riskLevel = finding.severity;
+                      } else if (
+                        categoryCompliance[cat].riskLevel === "low" &&
+                        finding.severity === "medium"
+                      ) {
+                        categoryCompliance[cat].riskLevel = "medium";
+                      }
+                    }
+                  });
+                });
+
+                const totalCategories = Object.keys(standard.categories).length;
+                const compliantCategories = Object.values(
+                  categoryCompliance
+                ).filter((c) => c.compliant).length;
+                const complianceRate = (
+                  (compliantCategories / totalCategories) *
+                  100
+                ).toFixed(0);
+
+                return (
+                  <div
+                    key={standardKey}
+                    className="glass-container rounded-xl overflow-hidden"
+                  >
+                    {/* Standard Header */}
+                    <div
+                      className={`p-6 border-b border-gray-700/50 bg-gradient-to-r ${
+                        standardKey === "OWASP"
+                          ? "from-orange-900/30 to-red-900/30"
+                          : standardKey === "NIST"
+                          ? "from-blue-900/30 to-cyan-900/30"
+                          : "from-purple-900/30 to-pink-900/30"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <span className="text-4xl">{standard.icon}</span>
+                          <div>
+                            <h4 className="text-lg font-bold text-white">
+                              {standard.name}
+                            </h4>
+                            <p className="text-sm text-gray-400">
+                              {standard.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div
+                            className={`text-3xl font-bold ${
+                              complianceRate >= 80
+                                ? "text-green-400"
+                                : complianceRate >= 50
+                                ? "text-yellow-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {complianceRate}%
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            Compliance Rate
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="mt-4">
+                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              complianceRate >= 80
+                                ? "bg-green-500"
+                                : complianceRate >= 50
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                            }`}
+                            style={{ width: `${complianceRate}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-2 text-xs text-gray-500">
+                          <span>
+                            {compliantCategories}/{totalCategories} Controls
+                            Compliant
+                          </span>
+                          <span>{allFindings.length} Related Findings</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Category Grid */}
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(standard.categories).map(
+                          ([catKey, catName]) => {
+                            const catData = categoryCompliance[catKey];
+                            const isCompliant = catData.compliant;
+                            const findingCount = catData.findings.length;
+
+                            return (
+                              <div
+                                key={catKey}
+                                className={`p-4 rounded-lg border transition-all duration-200 ${
+                                  isCompliant
+                                    ? "bg-green-900/10 border-green-500/30 hover:border-green-500/50"
+                                    : "bg-red-900/10 border-red-500/30 hover:border-red-500/50"
+                                }`}
+                              >
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start gap-3">
+                                    <div
+                                      className={`p-1.5 rounded-lg ${
+                                        isCompliant
+                                          ? "bg-green-500/20"
+                                          : "bg-red-500/20"
+                                      }`}
+                                    >
+                                      {isCompliant ? (
+                                        <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                                      ) : (
+                                        <XCircleIcon className="h-5 w-5 text-red-400" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-white">
+                                        {catKey}
+                                      </div>
+                                      <div className="text-sm text-gray-400">
+                                        {catName}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {!isCompliant && (
+                                    <span
+                                      className={`px-2 py-1 rounded text-xs font-medium ${
+                                        catData.riskLevel === "critical"
+                                          ? "bg-red-500/20 text-red-400"
+                                          : catData.riskLevel === "high"
+                                          ? "bg-orange-500/20 text-orange-400"
+                                          : "bg-yellow-500/20 text-yellow-400"
+                                      }`}
+                                    >
+                                      {findingCount} issue
+                                      {findingCount > 1 ? "s" : ""}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Show findings for non-compliant categories */}
+                                {!isCompliant &&
+                                  catData.findings.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-gray-700/50">
+                                      <div className="space-y-2">
+                                        {catData.findings
+                                          .slice(0, 3)
+                                          .map((finding, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="flex items-start gap-2 text-sm"
+                                            >
+                                              <span
+                                                className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                                                  finding.severity ===
+                                                  "critical"
+                                                    ? "bg-red-500"
+                                                    : finding.severity ===
+                                                      "high"
+                                                    ? "bg-orange-500"
+                                                    : finding.severity ===
+                                                      "medium"
+                                                    ? "bg-yellow-500"
+                                                    : "bg-blue-500"
+                                                }`}
+                                              />
+                                              <span className="text-gray-300 truncate">
+                                                {finding.title ||
+                                                  finding.message}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        {catData.findings.length > 3 && (
+                                          <div className="text-xs text-gray-500 pl-4">
+                                            +{catData.findings.length - 3} more
+                                            findings
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Recommendations based on compliance gaps */}
+              <div className="glass-container rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <LightBulbIcon className="h-5 w-5 text-yellow-400" />
+                  Compliance Recommendations
+                </h4>
+                <div className="space-y-3">
+                  {[
+                    {
+                      priority: "Critical",
+                      color: "red",
+                      text: "Address all critical and high severity findings to meet baseline compliance requirements.",
+                    },
+                    {
+                      priority: "High",
+                      color: "orange",
+                      text: "Implement secure coding practices and code review processes to prevent injection vulnerabilities.",
+                    },
+                    {
+                      priority: "Medium",
+                      color: "yellow",
+                      text: "Enable comprehensive security logging and monitoring for NIST DE (Detect) compliance.",
+                    },
+                    {
+                      priority: "Low",
+                      color: "blue",
+                      text: "Document security procedures and conduct regular compliance assessments.",
+                    },
+                  ].map((rec, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-start gap-3 p-3 rounded-lg bg-${rec.color}-500/10 border border-${rec.color}-500/20`}
+                    >
+                      <span
+                        className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-semibold bg-${rec.color}-500/20 text-${rec.color}-400`}
+                      >
+                        {rec.priority}
+                      </span>
+                      <span className="text-gray-300 text-sm">{rec.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Export Options */}
+              <div className="glass-container rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <DownloadIcon className="h-5 w-5 text-green-400" />
+                  Export Compliance Report
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={generateViewPDF}
+                    disabled={isGenerating}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors duration-200"
+                  >
+                    {isGenerating ? (
+                      <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <DocumentTextIcon className="h-4 w-4 mr-2" />
+                    )}
+                    Download PDF Report
+                  </button>
+                  <Link
+                    to={`/compliance/${reportId}`}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
+                  >
+                    <ExternalLinkIcon className="h-4 w-4 mr-2" />
+                    Full Compliance View
+                  </Link>
+                </div>
               </div>
             </div>
           )}

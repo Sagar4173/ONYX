@@ -148,15 +148,78 @@ This guide will help you get started with the platform, understand its features,
 
 ## 📋 Understanding Scan Reports
 
-### Report Overview
+### Unified Security Report Interface
 
-Each scan report provides:
+Each scan report provides a comprehensive, unified view with **6 interactive tabs**:
 
-- **Executive Summary**: High-level security assessment
-- **Risk Assessment**: Overall risk level and trends
-- **Findings Breakdown**: Detailed vulnerability listings
-- **AI Analysis**: Intelligent insights and recommendations
-- **Compliance Impact**: Effects on regulatory compliance
+#### **Tab 1: Overview**
+
+The overview tab gives you an at-a-glance summary:
+
+- **Security Score** (0-100) - AI-calculated overall security rating
+- **Risk Score** (0-100) - Aggregated risk assessment
+- **Severity Breakdown** - Critical, High, Medium, Low, Info counts
+- **Key Metrics** - Total findings, scanner results, scan duration
+- **Risk Trends** - Visual indicators of security posture
+
+#### **Tab 2: Security Findings**
+
+Detailed vulnerability listing with:
+
+- **Filterable List** - Filter by severity, scanner, file
+- **Vulnerability Details** - Title, severity, file location, line numbers
+- **Code Context** - Vulnerable code snippets with highlighting
+- **CWE/CVE References** - Links to vulnerability databases
+- **Quick Actions** - Copy code, expand details
+
+#### **Tab 3: AI Analysis**
+
+GPT-4 or Gemini-powered intelligent analysis:
+
+- **Executive Summary** - Natural language security assessment
+- **Risk Assessment** - AI-calculated risk score with breakdown
+- **Threat Categories** - Categorized security threats identified
+- **Attack Vectors** - Potential exploitation paths
+- **Priority Findings** - Top vulnerabilities requiring attention
+- **Compliance Impact** - Effects on regulatory compliance
+
+#### **Tab 4: Compliance Mapping**
+
+Interactive compliance framework analysis:
+
+- **Standard Toggles** - Select OWASP, NIST, ISO27001, PCI-DSS
+- **Compliance Rate** - Percentage compliance for each framework
+- **Category Breakdown** - Status of each compliance category
+- **Finding Mapping** - See which vulnerabilities affect each control
+- **Risk Indicators** - Visual severity indicators per category
+- **Recommendations** - Priority-based compliance improvement tips
+
+**Supported Compliance Frameworks:**
+
+- **OWASP Top 10 (2021)** - A01-A10 categories
+- **NIST Cybersecurity Framework (1.1)** - Identify, Protect, Detect, Respond, Recover
+- **ISO 27001:2013** - A.8-A.18 controls
+- **PCI DSS** - Requirements 1-12
+
+#### **Tab 5: Remediation Roadmap**
+
+Prioritized action plan with timeline:
+
+- **Immediate (0-48 hours)** - Critical and high severity issues
+- **Short-term (1-2 weeks)** - Medium severity issues
+- **Long-term (1+ month)** - Low severity and improvements
+- **AI Remediation Plan** - When available, AI-generated specific actions
+- **Quick Wins** - Easy security improvements to implement
+- **Best Practices** - Security recommendations
+
+#### **Tab 6: Scanner Results**
+
+Individual scanner performance:
+
+- **Scanner Status** - Success/failure for each tool
+- **Findings Count** - Vulnerabilities found per scanner
+- **Duration** - Execution time for each scan
+- **Error Details** - Any issues during scanning
 
 ### Reading Vulnerability Details
 
@@ -185,6 +248,13 @@ Confidence: High
 - Natural language summary of security posture
 - Key security concerns highlighted
 - Overall risk assessment
+- Security and risk scores (0-100)
+
+**Threat Intelligence:**
+
+- **Threat Categories** - Injection attacks, authentication issues, data exposure, etc.
+- **Attack Vectors** - How vulnerabilities could be exploited
+- **Affected Components** - Files and functions at risk
 
 **Priority Findings:**
 
@@ -197,11 +267,12 @@ Confidence: High
 - Specific fix suggestions for each vulnerability
 - Secure coding examples
 - Best practice recommendations
+- Prioritized roadmap with timeline
 
 **Compliance Impact:**
 
-- Effects on SOC2, PCI-DSS, GDPR compliance
-- Regulatory implications
+- Effects on OWASP, NIST, ISO27001, PCI-DSS compliance
+- Control mapping per framework
 - Audit preparation guidance
 
 ---

@@ -120,7 +120,8 @@ backend/
 │   └── admin.py            # Administrative functions
 ├── services/
 │   ├── scanner.py          # Security scanner orchestrator
-│   ├── ai_processor.py     # AI analysis engine
+│   ├── ai_processor.py     # OpenAI GPT-4 analysis engine
+│   ├── gemini_ai_processor.py  # Google Gemini AI analysis engine
 │   ├── notifier.py         # Notification service
 │   ├── real_scanner.py     # Real security tool integration
 │   ├── auth_service.py     # Authentication and session logic
@@ -249,21 +250,41 @@ class ScanReport(Document):
 class AIAnalysis(BaseModel):
     """AI-generated analysis and recommendations"""
 
-    model_used: str
+    model_used: str  # "gpt-4" or "gemini-pro"
     generated_at: datetime
 
     # Analysis Results
     executive_summary: str
     risk_assessment: str
+    risk_score: Optional[int]            # AI-calculated 0-100 score
+    security_score: Optional[int]        # Security posture 0-100
+    threat_categories: Optional[List[str]]  # Categorized threats
+    attack_vectors: Optional[List[str]]     # Potential exploitation paths
     priority_findings: List[str]
     recommendations: List[str]
+    remediation_roadmap: Optional[List[Dict]]  # Prioritized action plan
     secure_code_examples: Dict[str, str]
-    compliance_impact: Dict[str, str]
+    compliance_impact: Dict[str, str]    # OWASP/NIST/ISO27001/PCI-DSS mapping
     estimated_fix_time: str
 
     # Quality Metrics
     confidence_score: Optional[float]
     analysis_duration: Optional[float]
+```
+
+**Dual AI Provider Support:**
+
+```python
+# AI Provider Factory Pattern
+class AIProviderFactory:
+    @staticmethod
+    def get_processor(provider: str = "openai"):
+        if provider == "gemini":
+            from services.gemini_ai_processor import GeminiAIProcessor
+            return GeminiAIProcessor()
+        else:
+            from services.ai_processor import AIProcessor
+            return AIProcessor()
 ```
 
 ### User Management & Access Control

@@ -1087,11 +1087,17 @@ async def get_ai_analysis(report_id: str) -> Dict[str, Any]:
             "generated_at": ai_data.generated_at.isoformat() if ai_data.generated_at else None,
             "executive_summary": ai_data.executive_summary,
             "overall_risk_assessment": ai_data.risk_assessment,
+            "risk_score": getattr(ai_data, 'risk_score', None),
+            "risk_level": getattr(ai_data, 'risk_level', None),
+            "security_score": getattr(ai_data, 'security_score', None),
             "priority_findings": ai_data.priority_findings,
             "priority_recommendations": ai_data.recommendations,
             "secure_code_examples": ai_data.secure_code_examples,
             "compliance_impact": ai_data.compliance_impact,
             "estimated_fix_time": ai_data.estimated_fix_time,
+            "attack_vectors": getattr(ai_data, 'attack_vectors', []),
+            "threat_categories": getattr(ai_data, 'threat_categories', {}),
+            "remediation_roadmap": getattr(ai_data, 'remediation_roadmap', []),
             "findings_analysis": findings_analysis
         }
         

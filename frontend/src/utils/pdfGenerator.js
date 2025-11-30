@@ -491,6 +491,151 @@ export const applyPDFStyles = (element) => {
 };
 
 /**
+ * Generate executive summary section for PDF
+ * @param {Object} reportData - Report data containing findings
+ * @returns {HTMLElement}
+ */
+const createExecutiveSummarySection = (reportData) => {
+  const summary = document.createElement("div");
+  summary.style.cssText = `
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  `;
+
+  const totalFindings = reportData?.totalFindings || 0;
+  const criticalCount = reportData?.critical || 0;
+  const highCount = reportData?.high || 0;
+  const mediumCount = reportData?.medium || 0;
+  const lowCount = reportData?.low || 0;
+  const riskScore = reportData?.riskScore || 0;
+  const securityScore = reportData?.securityScore || 100;
+
+  summary.innerHTML = `
+    <div style="margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: #0369a1; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+        📊 Executive Summary
+      </h3>
+      <p style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5;">
+        This security assessment identified <strong style="color: #1e40af;">${totalFindings}</strong> total findings 
+        with a security score of <strong style="color: ${
+          securityScore >= 80
+            ? "#059669"
+            : securityScore >= 60
+            ? "#d97706"
+            : "#dc2626"
+        };">${securityScore}/100</strong>.
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 100px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #dc2626;">${criticalCount}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #991b1b; text-transform: uppercase;">Critical</div>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #ffedd5; border: 1px solid #fdba74; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #ea580c;">${highCount}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #9a3412; text-transform: uppercase;">High</div>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #d97706;">${mediumCount}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase;">Medium</div>
+      </div>
+      <div style="flex: 1; min-width: 100px; background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 24px; font-weight: 700; color: #2563eb;">${lowCount}</div>
+        <div style="font-size: 10px; font-weight: 600; color: #1e40af; text-transform: uppercase;">Low</div>
+      </div>
+    </div>
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #bae6fd;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 11px; color: #64748b;">
+          <strong>Risk Level:</strong> 
+          <span style="color: ${
+            riskScore <= 25
+              ? "#059669"
+              : riskScore <= 50
+              ? "#d97706"
+              : riskScore <= 75
+              ? "#ea580c"
+              : "#dc2626"
+          }; font-weight: 600;">
+            ${
+              riskScore <= 25
+                ? "Low"
+                : riskScore <= 50
+                ? "Medium"
+                : riskScore <= 75
+                ? "High"
+                : "Critical"
+            } (${riskScore}%)
+          </span>
+        </div>
+        <div style="font-size: 11px; color: #64748b;">
+          <strong>Security Score:</strong> 
+          <span style="color: ${
+            securityScore >= 80
+              ? "#059669"
+              : securityScore >= 60
+              ? "#d97706"
+              : "#dc2626"
+          }; font-weight: 600;">
+            ${securityScore}/100
+          </span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return summary;
+};
+
+/**
+ * Create a table of contents for the PDF
+ * @returns {HTMLElement}
+ */
+const createTableOfContents = () => {
+  const toc = document.createElement("div");
+  toc.style.cssText = `
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  `;
+
+  toc.innerHTML = `
+    <h3 style="font-size: 14px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+      📑 Table of Contents
+    </h3>
+    <div style="font-size: 11px; color: #475569; line-height: 1.8;">
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #cbd5e1;">
+        <span>1. Executive Summary</span>
+        <span style="color: #94a3b8;">Page 1</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #cbd5e1;">
+        <span>2. Security Overview</span>
+        <span style="color: #94a3b8;">Page 1</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #cbd5e1;">
+        <span>3. Compliance Analysis</span>
+        <span style="color: #94a3b8;">Page 2</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dotted #cbd5e1;">
+        <span>4. Detailed Findings</span>
+        <span style="color: #94a3b8;">Page 3</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+        <span>5. Recommendations</span>
+        <span style="color: #94a3b8;">Page 4</span>
+      </div>
+    </div>
+  `;
+
+  return toc;
+};
+
+/**
  * Generate a professional PDF from an HTML element
  * @param {HTMLElement} element - The element to convert to PDF
  * @param {Object} options - PDF generation options
@@ -508,6 +653,11 @@ export const generatePDF = async (element, options = {}) => {
     scale = 2,
     showHeader = true,
     showFooter = true,
+    showExecutiveSummary = true,
+    showTableOfContents = false,
+    reportData = null,
+    companyName = "",
+    confidential = true,
     onStart = () => {},
     onSuccess = () => {},
     onError = () => {},
@@ -522,56 +672,107 @@ export const generatePDF = async (element, options = {}) => {
     // Apply PDF-friendly styles
     applyPDFStyles(clonedElement);
 
-    // Add PDF header with branding
+    // Add PDF header with enhanced branding
     if (showHeader) {
       const header = document.createElement("div");
       header.style.cssText = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 0;
+        padding: 20px;
         margin-bottom: 24px;
-        border-bottom: 2px solid #3b82f6;
+        background: linear-gradient(135deg, #1e40af, #7c3aed);
+        border-radius: 12px;
+        color: white;
       `;
       header.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-            <span style="color: white; font-weight: bold; font-size: 18px;">S</span>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <span style="font-size: 24px;">🛡️</span>
           </div>
           <div>
-            <div style="font-size: 16px; font-weight: 700; color: #111827;">${title}</div>
-            <div style="font-size: 11px; color: #6b7280;">${subtitle}</div>
+            <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">${title}</div>
+            <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">${subtitle}</div>
           </div>
         </div>
-        <div style="text-align: right; font-size: 11px; color: #6b7280;">
-          <div>Generated: ${new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}</div>
-          <div>${new Date().toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}</div>
+        <div style="text-align: right;">
+          <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+            ${companyName || "Security Assessment Report"}
+          </div>
+          <div style="font-size: 11px; opacity: 0.8;">
+            ${new Date().toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+          ${
+            confidential
+              ? `<div style="font-size: 9px; margin-top: 4px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px; display: inline-block;">🔒 CONFIDENTIAL</div>`
+              : ""
+          }
         </div>
       `;
       clonedElement.insertBefore(header, clonedElement.firstChild);
     }
 
-    // Add PDF footer
+    // Add Table of Contents after header
+    if (showTableOfContents) {
+      const toc = createTableOfContents();
+      const firstChild = clonedElement.firstChild;
+      if (firstChild && firstChild.nextSibling) {
+        clonedElement.insertBefore(toc, firstChild.nextSibling);
+      } else {
+        clonedElement.appendChild(toc);
+      }
+    }
+
+    // Add Executive Summary after TOC or header
+    if (showExecutiveSummary && reportData) {
+      const summary = createExecutiveSummarySection(reportData);
+      const headerElement = clonedElement.firstChild;
+      if (headerElement) {
+        const insertAfter =
+          showTableOfContents && headerElement.nextSibling
+            ? headerElement.nextSibling
+            : headerElement;
+        if (insertAfter.nextSibling) {
+          clonedElement.insertBefore(summary, insertAfter.nextSibling);
+        } else {
+          clonedElement.appendChild(summary);
+        }
+      }
+    }
+
+    // Add PDF footer with enhanced styling
     if (showFooter) {
       const footer = document.createElement("div");
       footer.style.cssText = `
-        margin-top: 32px;
-        padding-top: 16px;
-        border-top: 1px solid #e5e7eb;
+        margin-top: 40px;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         text-align: center;
-        font-size: 10px;
-        color: #9ca3af;
       `;
       footer.innerHTML = `
-        <div>This report was automatically generated by SecureDevOps AI Platform</div>
-        <div style="margin-top: 4px;">© ${new Date().getFullYear()} SecureDevOps AI - Confidential</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 10px; color: #64748b;">
+            <strong>Generated by:</strong> SecureDevOps AI Platform
+          </div>
+          <div style="font-size: 10px; color: #64748b;">
+            <strong>Date:</strong> ${new Date().toLocaleString()}
+          </div>
+        </div>
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 10px; color: #94a3b8;">
+          <span>© ${new Date().getFullYear()} SecureDevOps AI</span>
+          <span>|</span>
+          <span>${
+            confidential ? "🔒 Confidential Document" : "Security Report"
+          }</span>
+          <span>|</span>
+          <span>v1.0</span>
+        </div>
       `;
       clonedElement.appendChild(footer);
     }
@@ -584,11 +785,12 @@ export const generatePDF = async (element, options = {}) => {
       top: 0;
       width: ${element.offsetWidth || 800}px;
       background: white;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     `;
     tempContainer.appendChild(clonedElement);
     document.body.appendChild(tempContainer);
 
-    // PDF options
+    // PDF options with enhanced settings
     const pdfOptions = {
       margin: Array.isArray(margin) ? margin : [margin, margin],
       filename,
@@ -600,13 +802,19 @@ export const generatePDF = async (element, options = {}) => {
         logging: false,
         backgroundColor: "#ffffff",
         windowWidth: element.offsetWidth || 800,
+        allowTaint: true,
       },
       jsPDF: {
         unit: "in",
         format,
         orientation,
+        compress: true,
       },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      pagebreak: {
+        mode: ["avoid-all", "css", "legacy"],
+        before: ".page-break-before",
+        after: ".page-break-after",
+      },
     };
 
     await html2pdf().set(pdfOptions).from(clonedElement).save();
@@ -622,4 +830,22 @@ export const generatePDF = async (element, options = {}) => {
   }
 };
 
-export default { generatePDF, applyPDFStyles };
+/**
+ * Generate a compliance-specific PDF with enhanced styling
+ * @param {HTMLElement} element - The element to convert to PDF
+ * @param {Object} options - PDF generation options
+ * @returns {Promise<void>}
+ */
+export const generateCompliancePDF = async (element, options = {}) => {
+  const enhancedOptions = {
+    ...options,
+    showTableOfContents: true,
+    showExecutiveSummary: true,
+    subtitle: options.subtitle || "Compliance Assessment Report",
+    confidential: true,
+  };
+
+  return generatePDF(element, enhancedOptions);
+};
+
+export default { generatePDF, generateCompliancePDF, applyPDFStyles };

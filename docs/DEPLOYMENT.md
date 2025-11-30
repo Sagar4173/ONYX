@@ -49,8 +49,13 @@ nano .env
 MONGODB_URL=mongodb://mongodb:27017/securedevops
 MONGODB_DB_NAME=securedevops
 
-# OpenAI API
+# OpenAI API (Primary AI Provider)
 OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Google Gemini API (Alternative AI Provider)
+GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_MODEL=gemini-pro
+AI_PROVIDER=openai  # Options: "openai" or "gemini"
 
 # JWT Authentication
 SECRET_KEY=your-super-secret-key-here

@@ -77,7 +77,8 @@ class GeminiVulnerabilityAIProcessor:
                 self._generate_priority_findings(findings_data),
                 self._generate_recommendations(findings_data, project_context),
                 self._generate_secure_code_examples(findings_data),
-                self._generate_compliance_impact(findings_data)
+                self._generate_compliance_impact(findings_data),
+                self._generate_attack_vectors(findings_data)
             ]
             
             results = await asyncio.gather(*analysis_tasks, return_exceptions=True)
@@ -89,8 +90,13 @@ class GeminiVulnerabilityAIProcessor:
             recommendations = results[3] if not isinstance(results[3], Exception) else []
             secure_code_examples = results[4] if not isinstance(results[4], Exception) else {}
             compliance_impact = results[5] if not isinstance(results[5], Exception) else {}
+            attack_vectors = results[6] if not isinstance(results[6], Exception) else []
             
-            # Estimate fix time
+            # Calculate scores and generate roadmap
+            risk_score, risk_level = self._calculate_risk_score(findings_data)
+            security_score = self._calculate_security_score(findings_data)
+            threat_categories = self._categorize_threats(findings_data)
+            remediation_roadmap = self._generate_remediation_roadmap(findings_data)
             estimated_fix_time = self._estimate_fix_time(findings_data)
             
             ai_analysis = AIAnalysis(
@@ -98,11 +104,17 @@ class GeminiVulnerabilityAIProcessor:
                 generated_at=datetime.now(timezone.utc),
                 executive_summary=executive_summary,
                 risk_assessment=risk_assessment,
+                risk_score=risk_score,
+                risk_level=risk_level,
+                security_score=security_score,
                 priority_findings=priority_findings,
                 recommendations=recommendations,
                 secure_code_examples=secure_code_examples,
                 compliance_impact=compliance_impact,
-                estimated_fix_time=estimated_fix_time
+                estimated_fix_time=estimated_fix_time,
+                attack_vectors=attack_vectors,
+                threat_categories=threat_categories,
+                remediation_roadmap=remediation_roadmap
             )
             
             logger.info("Gemini AI analysis completed successfully")
@@ -409,49 +421,242 @@ class GeminiVulnerabilityAIProcessor:
         
         return f"{total_hours:.1f} hours ({business_days} business days, {priority_hours} priority hours)"
     
+    def _calculate_risk_score(self, findings_data: Dict[str, Any]) -> tuple:
+        """Calculate numerical risk score and level based on findings"""
+        severity_counts = findings_data['severity_counts']
+        
+        score = (
+            severity_counts['critical'] * 40 +
+            severity_counts['high'] * 25 +
+            severity_counts['medium'] * 10 +
+            severity_counts['low'] * 3 +
+            severity_counts['info'] * 1
+        )
+        
+        risk_score = min(100, score)
+        
+        if severity_counts['critical'] > 0 or risk_score >= 70:
+            risk_level = "CRITICAL"
+        elif severity_counts['high'] > 0 or risk_score >= 40:
+            risk_level = "HIGH"
+        elif severity_counts['medium'] > 0 or risk_score >= 20:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "LOW"
+        
+        return risk_score, risk_level
+    
+    def _calculate_security_score(self, findings_data: Dict[str, Any]) -> int:
+        """Calculate overall security score (inverse of risk)"""
+        severity_counts = findings_data['severity_counts']
+        
+        score = 100
+        score -= severity_counts['critical'] * 20
+        score -= severity_counts['high'] * 12
+        score -= severity_counts['medium'] * 5
+        score -= severity_counts['low'] * 2
+        score -= severity_counts['info'] * 0.5
+        
+        return max(0, int(score))
+    
+    def _categorize_threats(self, findings_data: Dict[str, Any]) -> Dict[str, int]:
+        """Categorize findings into threat categories"""
+        categories = {
+            "Injection": 0,
+            "Authentication": 0,
+            "Sensitive Data": 0,
+            "Access Control": 0,
+            "Security Misconfiguration": 0,
+            "Cryptographic Issues": 0,
+            "Input Validation": 0,
+            "Other": 0
+        }
+        
+        for finding in findings_data.get('findings', []):
+            title = (finding.get('title') or '').lower()
+            desc = (finding.get('description') or '').lower()
+            
+            if any(k in title + desc for k in ['sql', 'injection', 'sqli', 'command injection', 'ldap', 'xpath']):
+                categories["Injection"] += 1
+            elif any(k in title + desc for k in ['auth', 'password', 'credential', 'session', 'token', 'login']):
+                categories["Authentication"] += 1
+            elif any(k in title + desc for k in ['secret', 'key', 'api_key', 'private', 'sensitive', 'exposure']):
+                categories["Sensitive Data"] += 1
+            elif any(k in title + desc for k in ['access', 'permission', 'privilege', 'authorization', 'idor']):
+                categories["Access Control"] += 1
+            elif any(k in title + desc for k in ['config', 'setting', 'debug', 'verbose', 'default']):
+                categories["Security Misconfiguration"] += 1
+            elif any(k in title + desc for k in ['crypto', 'encrypt', 'hash', 'ssl', 'tls', 'certificate']):
+                categories["Cryptographic Issues"] += 1
+            elif any(k in title + desc for k in ['input', 'validation', 'sanitiz', 'xss', 'cross-site']):
+                categories["Input Validation"] += 1
+            else:
+                categories["Other"] += 1
+        
+        return {k: v for k, v in categories.items() if v > 0}
+    
+    async def _generate_attack_vectors(self, findings_data: Dict[str, Any]) -> List[str]:
+        """Generate potential attack vectors based on findings"""
+        if not findings_data['findings']:
+            return []
+        
+        severity_counts = findings_data['severity_counts']
+        vectors = []
+        
+        try:
+            prompt = f"""
+            As a penetration testing expert, identify 5-7 specific attack vectors based on these vulnerabilities:
+            
+            Findings: {json.dumps(findings_data['findings'][:10], indent=2)}
+            
+            Focus on real-world exploitation paths. Format as a brief list.
+            """
+            
+            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            
+            for line in response.text.strip().split('\n'):
+                line = line.strip()
+                if line and (line.startswith('-') or line.startswith('•') or line.startswith('*') or line[0].isdigit()):
+                    clean_line = line.lstrip('-•*0123456789. ').strip()
+                    if clean_line:
+                        vectors.append(clean_line)
+            
+            return vectors[:7]
+        except Exception as e:
+            logger.warning(f"Error generating attack vectors: {e}")
+            if severity_counts.get('critical', 0) > 0:
+                vectors.append("Critical vulnerability exploitation leading to system compromise")
+            if severity_counts.get('high', 0) > 0:
+                vectors.append("High-severity vulnerability chaining for escalated access")
+            return vectors
+    
+    def _generate_remediation_roadmap(self, findings_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate step-by-step remediation roadmap"""
+        severity_counts = findings_data['severity_counts']
+        roadmap = []
+        
+        if severity_counts.get('critical', 0) > 0:
+            roadmap.append({
+                "phase": 1,
+                "title": "Emergency Response",
+                "timeline": "Within 24 hours",
+                "priority": "CRITICAL",
+                "tasks": [
+                    f"Address {severity_counts['critical']} critical vulnerabilities immediately",
+                    "Implement emergency patches or workarounds",
+                    "Enable enhanced monitoring for exploitation attempts",
+                    "Notify security team and stakeholders"
+                ],
+                "status": "pending"
+            })
+        
+        if severity_counts.get('high', 0) > 0:
+            roadmap.append({
+                "phase": 2,
+                "title": "High Priority Fixes",
+                "timeline": "Within 1 week",
+                "priority": "HIGH",
+                "tasks": [
+                    f"Remediate {severity_counts['high']} high-severity findings",
+                    "Update vulnerable dependencies",
+                    "Implement security controls and hardening",
+                    "Conduct security code review"
+                ],
+                "status": "pending"
+            })
+        
+        if severity_counts.get('medium', 0) > 0:
+            roadmap.append({
+                "phase": 3,
+                "title": "Security Hardening",
+                "timeline": "Within 2 weeks",
+                "priority": "MEDIUM",
+                "tasks": [
+                    f"Address {severity_counts['medium']} medium-severity issues",
+                    "Implement additional security best practices",
+                    "Enhance input validation and sanitization",
+                    "Review and update security configurations"
+                ],
+                "status": "pending"
+            })
+        
+        if severity_counts.get('low', 0) > 0 or severity_counts.get('info', 0) > 0:
+            roadmap.append({
+                "phase": 4,
+                "title": "Security Posture Improvement",
+                "timeline": "Within 1 month",
+                "priority": "LOW",
+                "tasks": [
+                    f"Address {severity_counts.get('low', 0)} low-severity findings",
+                    "Implement security best practices",
+                    "Update documentation and security policies",
+                    "Conduct security awareness training"
+                ],
+                "status": "pending"
+            })
+        
+        return roadmap
+    
     def _create_clean_analysis(self) -> AIAnalysis:
         """Create analysis for clean scans with no findings"""
         return AIAnalysis(
             model_used=settings.gemini_model,
             generated_at=datetime.now(timezone.utc),
-            executive_summary="Security scan completed successfully with no vulnerabilities detected. The codebase demonstrates good security practices.",
-            risk_assessment="Low risk profile. No immediate security concerns identified. Continue monitoring and maintain current security practices.",
+            executive_summary="🎉 Excellent security posture! No security vulnerabilities were detected in this comprehensive scan. The codebase demonstrates strong adherence to security best practices.",
+            risk_assessment="LOW - No immediate security risks identified. Continue following secure coding practices and regular security assessments.",
+            risk_score=5,
+            risk_level="LOW",
+            security_score=98,
             priority_findings=[],
             recommendations=[
-                "Maintain current security practices",
-                "Continue regular security scanning",
-                "Keep dependencies updated",
-                "Monitor for new security threats"
+                "✅ Maintain current security practices and coding standards",
+                "🔄 Continue regular automated security scans in CI/CD pipeline",
+                "📦 Keep all dependencies updated to latest secure versions",
+                "👥 Implement security-focused peer code reviews",
+                "📚 Provide ongoing security training for development team"
             ],
             secure_code_examples={},
             compliance_impact={
                 "overall_impact": "Positive",
-                "analysis": "Clean security scan supports compliance requirements",
-                "frameworks_affected": "SOC 2, ISO 27001, NIST",
-                "required_actions": "Continue current security practices"
+                "analysis": "Clean security scan strongly supports compliance requirements across all major frameworks",
+                "frameworks_affected": "SOC 2, ISO 27001, NIST, PCI-DSS, GDPR, HIPAA",
+                "required_actions": "No immediate actions required. Continue current security practices."
             },
-            estimated_fix_time="0 hours (0 business days, 0 priority hours)"
+            estimated_fix_time="0 hours - No issues to fix",
+            attack_vectors=[],
+            threat_categories={},
+            remediation_roadmap=[]
         )
 
 
 # Factory function to create the appropriate AI processor
 def create_ai_processor():
     """Create AI processor based on configuration"""
-    if settings.ai_provider.lower() == "gemini":
+    provider = settings.ai_provider.lower() if settings.ai_provider else "openai"
+    
+    logger.info(f"Creating AI processor with provider: {provider}")
+    
+    if provider == "gemini":
         if not settings.gemini_api_key:
             logger.warning("Gemini API key not configured, falling back to OpenAI")
             if settings.openai_api_key:
                 from .ai_processor import VulnerabilityAIProcessor
+                logger.info("Using OpenAI as fallback AI processor")
                 return VulnerabilityAIProcessor()
             else:
-                raise ValueError("No AI provider API key configured")
+                logger.error("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
+                raise ValueError("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
+        logger.info("Using Gemini AI processor")
         return GeminiVulnerabilityAIProcessor()
     else:
         if not settings.openai_api_key:
             logger.warning("OpenAI API key not configured, trying Gemini")
             if settings.gemini_api_key:
+                logger.info("Using Gemini as fallback AI processor")
                 return GeminiVulnerabilityAIProcessor()
             else:
-                raise ValueError("No AI provider API key configured")
+                logger.error("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
+                raise ValueError("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
+        logger.info("Using OpenAI AI processor")
         from .ai_processor import VulnerabilityAIProcessor
         return VulnerabilityAIProcessor()

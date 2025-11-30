@@ -619,9 +619,22 @@ Authorization: Bearer <token>
   ],
   "ai_analysis": {
     "model_used": "gpt-4",
-    "generated_at": "2024-01-15T09:16:00Z",
+    "generated_at": "2025-11-30T09:16:00Z",
     "executive_summary": "The scan identified 15 security vulnerabilities...",
     "risk_assessment": "HIGH - Multiple critical vulnerabilities found...",
+    "risk_score": 72,
+    "security_score": 58,
+    "threat_categories": [
+      "Injection Attacks",
+      "Authentication Issues",
+      "Data Exposure",
+      "Security Misconfiguration"
+    ],
+    "attack_vectors": [
+      "SQL injection through user input fields",
+      "XSS via unsanitized profile data",
+      "Credential theft through exposed API keys"
+    ],
     "priority_findings": [
       "SQL injection vulnerability in user authentication",
       "Cross-site scripting (XSS) in user profile component",
@@ -632,13 +645,34 @@ Authorization: Bearer <token>
       "Sanitize user input before rendering in React components",
       "Move sensitive configuration to environment variables"
     ],
+    "remediation_roadmap": [
+      {
+        "priority": "immediate",
+        "action": "Fix SQL injection vulnerabilities",
+        "effort": "4-8 hours",
+        "impact": "Prevents database compromise"
+      },
+      {
+        "priority": "short_term",
+        "action": "Implement input sanitization",
+        "effort": "1-2 days",
+        "impact": "Eliminates XSS attack surface"
+      },
+      {
+        "priority": "medium_term",
+        "action": "Rotate exposed credentials",
+        "effort": "2-4 hours",
+        "impact": "Secures API access"
+      }
+    ],
     "secure_code_examples": {
       "sql-injection": "// Vulnerable code\nconst query = `SELECT * FROM users WHERE id = ${userId}`;\n\n// Secure code\nconst query = 'SELECT * FROM users WHERE id = ?';\ndb.query(query, [userId]);"
     },
     "compliance_impact": {
-      "SOC2": "High impact - Data access controls compromised",
-      "PCI-DSS": "Medium impact - Potential payment data exposure",
-      "GDPR": "High impact - Personal data protection at risk"
+      "OWASP": "A03:2021 Injection - High impact",
+      "NIST": "PR.DS-1, DE.CM-4 - Data security controls affected",
+      "ISO27001": "A.14.2.5 - Secure development principles violated",
+      "PCI_DSS": "Requirement 6.5 - Application security issues"
     },
     "estimated_fix_time": "2.5 days (20 hours)"
   }

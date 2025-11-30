@@ -211,17 +211,23 @@ class AIAnalysis(BaseModel):
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     executive_summary: str = Field(..., description="Executive summary of findings")
     risk_assessment: str = Field(..., description="Overall risk assessment")
+    risk_score: Optional[int] = Field(None, description="Numerical risk score 0-100")
+    risk_level: Optional[str] = Field(None, description="Risk level: CRITICAL, HIGH, MEDIUM, LOW")
     priority_findings: List[str] = Field(default_factory=list, description="Priority vulnerabilities")
     recommendations: List[str] = Field(default_factory=list, description="Remediation recommendations")
     secure_code_examples: Dict[str, str] = Field(
         default_factory=dict, 
         description="Secure code examples for fixes"
     )
-    compliance_impact: Dict[str, str] = Field(
+    compliance_impact: Dict[str, Any] = Field(
         default_factory=dict,
         description="Impact on compliance frameworks"
     )
     estimated_fix_time: Optional[str] = Field(None, description="Estimated time to fix issues")
+    attack_vectors: Optional[List[str]] = Field(default_factory=list, description="Potential attack vectors")
+    threat_categories: Optional[Dict[str, int]] = Field(default_factory=dict, description="Threat categories breakdown")
+    remediation_roadmap: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="Step-by-step remediation plan")
+    security_score: Optional[int] = Field(None, description="Overall security score 0-100")
     raw_response: Optional[str] = Field(None, description="Raw AI response")
 
 
