@@ -614,7 +614,7 @@ _Solutions:_
 
 **Community Support:**
 
-- [GitHub Discussions](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions)
+- [GitHub Discussions](https://github.com/Sagar4173/ONYX/discussions)
 - [User Forum](https://forum.onyx-security.ai)
 - [Community Slack](https://slack.onyx-security.ai)
 

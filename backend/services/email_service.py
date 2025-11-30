@@ -1,5 +1,5 @@
 """
-Email Service for SecureDevOps AI Platform
+Email Service for ONYX Security Intelligence Platform
 DEPRECATED: This file is maintained for backward compatibility only.
 
 The email service has been refactored into a modular structure.

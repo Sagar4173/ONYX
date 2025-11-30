@@ -1,5 +1,5 @@
 """
-Configuration settings for SecureDevOps Platform
+Configuration settings for ONYX Security Intelligence Platform
 """
 import os
 import logging
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings with environment variable support"""
     
     # Application
-    app_name: str = "SecureDevOps AI Platform"
+    app_name: str = "ONYX - Security Intelligence Platform"
     app_version: str = "1.0.0"
     debug: bool = Field(default=False, env="DEBUG")
     host: str = Field(default="0.0.0.0", env="HOST")
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     
     # Database
     mongodb_uri: str = Field(..., env="MONGODB_URI")
-    database_name: str = Field(default="securedevops", env="DATABASE_NAME")
+    database_name: str = Field(default="onyx", env="DATABASE_NAME")
     mongo_password: Optional[str] = Field(default=None, env="MONGO_PASSWORD")
     
     # Security
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = Field(default=True, env="SMTP_USE_TLS")
     smtp_use_ssl: bool = Field(default=False, env="SMTP_USE_SSL")
     email_from: Optional[str] = Field(default=None, env="EMAIL_FROM")
-    email_from_name: str = Field(default="SecureDevOps Platform", env="EMAIL_FROM_NAME")
+    email_from_name: str = Field(default="ONYX Platform", env="EMAIL_FROM_NAME")
     
     # Email Provider Presets (for easy configuration)
     email_provider: Optional[str] = Field(default=None, env="EMAIL_PROVIDER")  # gmail, sendgrid, outlook, etc.
@@ -133,7 +133,7 @@ class Settings(BaseSettings):
     websocket_heartbeat_interval: int = Field(default=30, env="WEBSOCKET_HEARTBEAT_INTERVAL")
     
     # Storage
-    temp_dir: str = Field(default="/tmp/securedevops", env="TEMP_DIR")
+    temp_dir: str = Field(default="/tmp/onyx", env="TEMP_DIR")
     cleanup_after_scan: bool = Field(default=True, env="CLEANUP_AFTER_SCAN")
     
     @property

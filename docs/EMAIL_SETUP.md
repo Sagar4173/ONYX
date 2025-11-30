@@ -43,7 +43,7 @@ EMAIL_PROVIDER=sendgrid
 SMTP_USERNAME=apikey
 SMTP_PASSWORD=your-sendgrid-api-key
 EMAIL_FROM=noreply@yourdomain.com
-EMAIL_FROM_NAME="SecureDevOps Platform"
+EMAIL_FROM_NAME="ONYX Platform"
 ```
 
 **Setup Steps:**
@@ -61,7 +61,7 @@ EMAIL_PROVIDER=outlook
 SMTP_USERNAME=your-email@outlook.com
 SMTP_PASSWORD=your-password
 EMAIL_FROM=your-email@outlook.com
-EMAIL_FROM_NAME="SecureDevOps Platform"
+EMAIL_FROM_NAME="ONYX Platform"
 ```
 
 ### Custom SMTP Server
@@ -76,7 +76,7 @@ SMTP_PASSWORD=your-password
 SMTP_USE_TLS=true
 SMTP_USE_SSL=false
 EMAIL_FROM=noreply@yourdomain.com
-EMAIL_FROM_NAME="SecureDevOps Platform"
+EMAIL_FROM_NAME="ONYX Platform"
 ```
 
 ## Environment Variables
@@ -92,7 +92,7 @@ EMAIL_FROM_NAME="SecureDevOps Platform"
 | `SMTP_USE_TLS`    | Use STARTTLS                                              | `true`                  | No          |
 | `SMTP_USE_SSL`    | Use SSL/TLS connection                                    | `false`                 | No          |
 | `EMAIL_FROM`      | Sender email address                                      | `SMTP_USERNAME`         | No          |
-| `EMAIL_FROM_NAME` | Sender display name                                       | "SecureDevOps Platform" | No          |
+| `EMAIL_FROM_NAME` | Sender display name                                       | "ONYX Platform" | No          |
 | `FRONTEND_URL`    | Frontend URL for email links                              | `http://localhost:5173` | Yes         |
 
 ## Testing Email Configuration
@@ -188,9 +188,9 @@ EMAIL_ENABLED=true
 EMAIL_PROVIDER=sendgrid
 SMTP_USERNAME=apikey
 SMTP_PASSWORD=${SENDGRID_API_KEY}
-EMAIL_FROM=noreply@securedevops.com
-EMAIL_FROM_NAME="SecureDevOps Platform"
-FRONTEND_URL=https://app.securedevops.com
+EMAIL_FROM=noreply@onyx-security.ai
+EMAIL_FROM_NAME="ONYX Platform"
+FRONTEND_URL=https://app.onyx-security.ai
 ```
 
 ## API Integration

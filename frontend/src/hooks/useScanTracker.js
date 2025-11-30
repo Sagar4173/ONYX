@@ -15,8 +15,6 @@ export const useScanTracker = (scanId, onStatusChange) => {
     if (!scanId || isTracking) return;
 
     setIsTracking(true);
-    console.log(`📊 Starting to track scan: ${scanId}`);
-
     // Show initial tracking toast
     toastRef.current = toast.loading(
       `🔄 Tracking scan progress... (ID: ${scanId.slice(-8)})`,
@@ -80,9 +78,7 @@ export const useScanTracker = (scanId, onStatusChange) => {
       toastRef.current = null;
     }
 
-    setIsTracking(false);
-    console.log(`🛑 Stopped tracking scan: ${scanId}`);
-  };
+    setIsTracking(false);  };
 
   // Auto-start tracking when scanId is provided
   useEffect(() => {

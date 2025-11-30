@@ -1,3 +1,3 @@
 """
-Routes package for SecureDevOps Platform
+Routes package for ONYX Platform
 """

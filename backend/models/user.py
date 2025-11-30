@@ -1,5 +1,5 @@
 """
-User Models for SecureDevOps AI Platform
+User Models for ONYX Security Intelligence Platform
 Handles user authentication, roles, and profile management
 """
 from datetime import datetime, timedelta

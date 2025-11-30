@@ -5,7 +5,7 @@ Governance & Compliance Engine
 Enterprise governance framework mapping findings to compliance standards
 (PCI-DSS, SOC 2, ISO 27001, NIST, CIS) with Git-based audit trails.
 
-Author: SecureDevOpsAI Platform
+Author: ONYX Platform
 Date: August 2025
 """
 

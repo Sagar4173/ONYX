@@ -1,5 +1,5 @@
 """
-Models package for SecureDevOps Platform
+Models package for ONYX Platform
 """
 from .report import *
 

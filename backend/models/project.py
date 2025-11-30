@@ -1,5 +1,5 @@
 """
-Project Management Models for SecureDevOps Platform
+Project Management Models for ONYX Platform
 Handles project creation, management, and organization
 """
 from datetime import datetime, timezone

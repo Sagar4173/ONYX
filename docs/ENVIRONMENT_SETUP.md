@@ -66,7 +66,7 @@ nano .env
 ### 🗄️ Database
 
 - `MONGODB_URI` - MongoDB connection string
-- `DATABASE_NAME` - Database name (default: securedevops)
+- `DATABASE_NAME` - Database name (default: onyx)
 
 ### 🔐 Security
 
@@ -103,7 +103,7 @@ Instead of multiple files, use a single `.env` file and change values based on y
 DEBUG=true
 ENVIRONMENT=development
 LOG_LEVEL=DEBUG
-MONGODB_URI=mongodb://localhost:27017/securedevops_dev
+MONGODB_URI=mongodb://localhost:27017/onyx_dev
 USE_MOCK_SCANNERS=true
 ```
 
@@ -114,7 +114,7 @@ USE_MOCK_SCANNERS=true
 DEBUG=false
 ENVIRONMENT=production
 LOG_LEVEL=WARNING
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/securedevops
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/onyx
 USE_MOCK_SCANNERS=false
 FORCE_HTTPS=true
 ```
@@ -160,7 +160,7 @@ echo ".env.production" >> .gitignore
 ### MongoDB Atlas
 
 ```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/securedevops
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/onyx
 ```
 
 ### Gmail SMTP

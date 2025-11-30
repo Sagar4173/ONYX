@@ -1,5 +1,5 @@
 /**
- * API Service Layer for SecureDevOps Platform
+ * API Service Layer for ONYX Platform
  * Handles REST API calls and WebSocket connections
  */
 import axios from "axios";
@@ -23,16 +23,7 @@ const WS_BASE_URL = import.meta.env.DEV
       window.location.host;
 
 // Debug: Log the configuration values (only in development)
-if (import.meta.env.DEV) {
-  console.log("🔧 API Configuration:", {
-    API_BASE_URL,
-    WS_BASE_URL,
-    VITE_API_URL: import.meta.env.VITE_API_URL,
-    VITE_WS_URL: import.meta.env.VITE_WS_URL,
-    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-    VITE_WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL,
-  });
-}
+if (import.meta.env.DEV) {}
 
 // Utility function to clean parameters by removing empty values
 const cleanParams = (params = {}) => {
@@ -89,12 +80,7 @@ api.interceptors.request.use(
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    console.log(
-      `🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`
-    );
-    return config;
+    }    return config;
   },
   (error) => {
     console.error("❌ API Request Error:", error);
@@ -453,9 +439,7 @@ export const reportsAPI = {
       return response.data;
     } catch (error) {
       // Don't throw error if AI analysis is not available - just return null
-      if (error.response?.status === 404) {
-        console.log("AI analysis not available for this report");
-        return null;
+      if (error.response?.status === 404) {        return null;
       }
       console.error("Error fetching AI analysis:", error);
       throw error;
@@ -494,11 +478,7 @@ export const reportsAPI = {
 
   // Start a new scan
   startScan: async (scanData) => {
-    try {
-      console.log("🚀 Starting scan with data:", scanData);
-      const response = await api.post("/webhook/scan", scanData);
-      console.log("✅ Scan started successfully:", response.data);
-      return response.data;
+    try {      const response = await api.post("/webhook/scan", scanData);      return response.data;
     } catch (error) {
       console.error("❌ Error starting scan:", error);
 
@@ -554,11 +534,7 @@ export const reportsAPI = {
 
   // Stop a running scan
   stopScan: async (scanId) => {
-    try {
-      console.log("🛑 Stopping scan:", scanId);
-      const response = await api.post(`/webhook/scan/${scanId}/stop`);
-      console.log("✅ Scan stopped successfully:", response.data);
-      return response.data;
+    try {      const response = await api.post(`/webhook/scan/${scanId}/stop`);      return response.data;
     } catch (error) {
       console.error("❌ Error stopping scan:", error);
       throw error;
@@ -903,19 +879,11 @@ class WebSocketService {
       // Close existing connection if it's in a bad state
       if (this.ws && this.ws.readyState === WebSocket.CLOSING) {
         this.ws = null;
-      }
-
-      console.log(
-        "🔌 Attempting WebSocket connection to:",
-        WS_BASE_URL.endsWith("/ws") ? WS_BASE_URL : `${WS_BASE_URL}/ws`
-      );
-      this.ws = new WebSocket(
+      }      this.ws = new WebSocket(
         WS_BASE_URL.endsWith("/ws") ? WS_BASE_URL : `${WS_BASE_URL}/ws`
       );
 
-      this.ws.onopen = () => {
-        console.log("🔌 WebSocket connected successfully");
-        this.reconnectAttempts = 0;
+      this.ws.onopen = () => {        this.reconnectAttempts = 0;
 
         // Emit connected event
         this.listeners.forEach((callback, type) => {
@@ -932,8 +900,6 @@ class WebSocketService {
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log("📨 WebSocket message:", data);
-
           // Notify all listeners
           this.listeners.forEach((callback, type) => {
             if (!type || data.type === type || type === "message") {
@@ -963,8 +929,6 @@ class WebSocketService {
       };
 
       this.ws.onclose = (event) => {
-        console.log("🔌 WebSocket disconnected:", event.code, event.reason);
-
         // Emit disconnected event
         this.listeners.forEach((callback, type) => {
           if (type === "disconnected") {
@@ -983,12 +947,6 @@ class WebSocketService {
           this.reconnectAttempts < this.maxReconnectAttempts
         ) {
           this.reconnectAttempts++;
-          console.log(
-            `🔄 Attempting to reconnect (${this.reconnectAttempts}/${
-              this.maxReconnectAttempts
-            }) in ${this.reconnectInterval / 1000}s...`
-          );
-
           setTimeout(() => {
             this.connect();
           }, this.reconnectInterval);

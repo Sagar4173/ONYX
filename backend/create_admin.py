@@ -1,5 +1,5 @@
 """
-Create Initial Admin User for SecureDevOps Platform
+Create Initial Admin User for ONYX Platform
 Run this script to create the first admin user after initial setup
 """
 import asyncio
@@ -21,7 +21,7 @@ from services.auth_service import auth_service
 async def create_admin_user():
     """Create the initial admin user"""
     
-    print("🔐 SecureDevOps Platform - Initial Admin Setup")
+    print("🔐 ONYX Platform - Initial Admin Setup")
     print("=" * 50)
     
     # Initialize database

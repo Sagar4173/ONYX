@@ -5,7 +5,7 @@ Unified Security Orchestration Engine
 Complete integration of Threat Intelligence, Vulnerability Management,
 and Metrics/KPIs with automated workflow orchestration.
 
-Author: SecureDevOpsAI Platform
+Author: ONYX Platform
 Date: August 2025
 """
 

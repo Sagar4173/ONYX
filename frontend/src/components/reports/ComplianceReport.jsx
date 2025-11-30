@@ -54,13 +54,6 @@ const ComplianceReport = () => {
   const [expandedStandard, setExpandedStandard] = useState(null);
 
   // Debug logging
-  console.log(
-    "ComplianceReport - reportId:",
-    reportId,
-    "type:",
-    typeof reportId
-  );
-
   // Early return if reportId is invalid
   if (!reportId || reportId === "undefined" || reportId === "null") {
     return (

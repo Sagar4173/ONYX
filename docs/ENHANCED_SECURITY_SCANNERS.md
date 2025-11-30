@@ -102,7 +102,7 @@ class SecurityScanner:
 #### 2. Caching and Performance
 
 - **Trivy database caching**: Daily updates with local storage
-- **Custom cache directories**: `/opt/securedevops/cache/trivy`
+- **Custom cache directories**: `/opt/onyx/cache/trivy`
 - **Scanner output caching**: Reduces redundant scans
 
 #### 3. Custom Configuration Support
@@ -204,7 +204,7 @@ export CUSTOM_SEMGREP_RULES_REPO="/path/to/custom/rules"
 export CUSTOM_GITLEAKS_CONFIG="/path/to/gitleaks-custom.toml"
 
 # Caching
-export TRIVY_CACHE_DIR="/opt/securedevops/cache/trivy"
+export TRIVY_CACHE_DIR="/opt/onyx/cache/trivy"
 export TRIVY_DB_UPDATE_INTERVAL="24"  # hours
 ```
 
@@ -336,10 +336,10 @@ async def enhanced_scan_repository(request: ScanRequest):
 
 ```bash
 # Run health check
-/opt/securedevops/health_check.sh
+/opt/onyx/health_check.sh
 
 # Windows
-PowerShell -File "C:\ProgramData\SecureDevOps\health_check.ps1"
+PowerShell -File "C:\ProgramData\ONYX\health_check.ps1"
 ```
 
 ### Logging Configuration
@@ -382,32 +382,32 @@ echo $PATH
 which semgrep trivy gitleaks bandit safety
 
 # Health check
-/opt/securedevops/health_check.sh
+/opt/onyx/health_check.sh
 ```
 
 #### Permission Errors
 
 ```bash
 # Fix cache directory permissions
-sudo chown -R $(whoami):$(whoami) /opt/securedevops
-chmod -R 755 /opt/securedevops
+sudo chown -R $(whoami):$(whoami) /opt/onyx
+chmod -R 755 /opt/onyx
 ```
 
 #### Database Update Failures
 
 ```bash
 # Manual Trivy database update
-trivy image --download-db-only --cache-dir /opt/securedevops/cache/trivy
+trivy image --download-db-only --cache-dir /opt/onyx/cache/trivy
 ```
 
 ### Log Analysis
 
 ```bash
 # Scanner logs location
-tail -f /opt/securedevops/logs/scanner.log
+tail -f /opt/onyx/logs/scanner.log
 
 # Error patterns
-grep "ERROR" /opt/securedevops/logs/scanner.log
+grep "ERROR" /opt/onyx/logs/scanner.log
 ```
 
 ## Future Enhancements

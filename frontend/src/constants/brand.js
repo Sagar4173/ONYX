@@ -215,7 +215,7 @@ export const FEATURE_COLORS = {
 
 // Social/External Links
 export const LINKS = {
-  github: "https://github.com/Sagar4173/SecureDevOpsAI-Platform",
+  github: "https://github.com/Sagar4173/ONYX",
   documentation: "/docs",
   support: "/support",
 };

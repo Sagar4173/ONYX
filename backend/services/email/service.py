@@ -1,5 +1,5 @@
 """
-Email Service for SecureDevOps AI Platform
+Email Service for ONYX Security Intelligence Platform
 Handles SMTP email sending with support for multiple providers
 Refactored for modularity and maintainability
 """
@@ -215,12 +215,12 @@ class EmailService:
             template = self.jinja_env.get_template('verification')
             html_body = template.render(
                 verification_url=verification_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="🔐 Verify Your Email - SecureDevOps Platform",
+                subject="🔐 Verify Your Email - ONYX Platform",
                 html_body=html_body
             )
             
@@ -236,12 +236,12 @@ class EmailService:
             template = self.jinja_env.get_template('password_reset')
             html_body = template.render(
                 reset_url=reset_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="🔑 Password Reset - SecureDevOps Platform",
+                subject="🔑 Password Reset - ONYX Platform",
                 html_body=html_body
             )
             
@@ -258,12 +258,12 @@ class EmailService:
             html_body = template.render(
                 user_name=user_name,
                 dashboard_url=dashboard_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="🎉 Welcome to SecureDevOps Platform - Let's Get Started!",
+                subject="🎉 Welcome to ONYX Platform - Let's Get Started!",
                 html_body=html_body
             )
             
@@ -432,7 +432,7 @@ class EmailService:
             
             return await self.send_email(
                 to_email=email,
-                subject="🔐 New Login to Your Account - SecureDevOps Platform",
+                subject="🔐 New Login to Your Account - ONYX Platform",
                 html_body=html_body
             )
             
@@ -522,12 +522,12 @@ class EmailService:
                 enabled_at=enabled_at,
                 device_info=device_info or "Unknown Device",
                 security_settings_url=security_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="✅ Two-Factor Authentication Enabled - SecureDevOps Platform",
+                subject="✅ Two-Factor Authentication Enabled - ONYX Platform",
                 html_body=html_body
             )
             
@@ -548,12 +548,12 @@ class EmailService:
                 ip_address=ip_address or "Unknown",
                 enable_2fa_url=enable_2fa_url,
                 secure_account_url=security_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="⚠️ Two-Factor Authentication Disabled - SecureDevOps Platform",
+                subject="⚠️ Two-Factor Authentication Disabled - ONYX Platform",
                 html_body=html_body
             )
             
@@ -573,12 +573,12 @@ class EmailService:
                 ip_address=ip_address or "Unknown",
                 remaining_codes=remaining_codes,
                 security_url=security_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="🔑 Recovery Code Used - SecureDevOps Platform",
+                subject="🔑 Recovery Code Used - ONYX Platform",
                 html_body=html_body
             )
             
@@ -598,12 +598,12 @@ class EmailService:
                 ip_address=ip_address or "Unknown",
                 device=device or "Unknown",
                 secure_account_url=security_url,
-                platform_name="SecureDevOps Platform"
+                platform_name="ONYX Platform"
             )
             
             return await self.send_email(
                 to_email=email,
-                subject="🔐 Password Changed - SecureDevOps Platform",
+                subject="🔐 Password Changed - ONYX Platform",
                 html_body=html_body
             )
             

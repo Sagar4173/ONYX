@@ -47,7 +47,7 @@ DEBUG=true
 ENVIRONMENT=development
 LOG_LEVEL=DEBUG
 USE_MOCK_SCANNERS=true
-MONGODB_URI=mongodb://localhost:27017/securedevops_dev
+MONGODB_URI=mongodb://localhost:27017/onyx_dev
 ```
 
 ### For Production

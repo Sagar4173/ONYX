@@ -197,7 +197,7 @@ SMTP_PASSWORD=your-password
 
 # Sender Info
 EMAIL_FROM=noreply@example.com
-EMAIL_FROM_NAME=SecureDevOps Platform
+EMAIL_FROM_NAME=ONYX Platform
 
 # Frontend URL (for email links)
 FRONTEND_URL=https://yourapp.com

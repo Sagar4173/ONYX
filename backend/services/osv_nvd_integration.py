@@ -120,7 +120,7 @@ class OSVNVDIntegrationService:
         
         self._session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=30),
-            headers={"User-Agent": "SecureDevOpsAI-Platform/1.0"}
+            headers={"User-Agent": "ONYX/1.0"}
         )
         
         # Load CISA KEV list

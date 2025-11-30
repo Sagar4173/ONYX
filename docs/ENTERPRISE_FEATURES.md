@@ -379,7 +379,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@example.com
 SMTP_PASSWORD=your-password
-FROM_EMAIL=noreply@securedevops.ai
+FROM_EMAIL=noreply@onyx-security.ai
 
 # Slack Configuration
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...

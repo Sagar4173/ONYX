@@ -377,13 +377,13 @@ class NotificationService:
         
         notification_status = NotificationStatus()
         test_message = {
-            "text": "🔒 SecureDevOps Platform Test Notification",
+            "text": "🔒 ONYX Platform Test Notification",
             "blocks": [
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "This is a test notification from the SecureDevOps AI Platform. Your notification configuration is working correctly!"
+                        "text": "This is a test notification from the ONYX Platform. Your notification configuration is working correctly!"
                     }
                 }
             ]
@@ -421,11 +421,11 @@ class NotificationService:
                 "@type": "MessageCard",
                 "@context": "http://schema.org/extensions",
                 "themeColor": "32CD32",
-                "summary": "SecureDevOps Platform Test",
+                "summary": "ONYX Platform Test",
                 "sections": [
                     {
-                        "activityTitle": "🔒 SecureDevOps Platform Test Notification",
-                        "text": "This is a test notification from the SecureDevOps AI Platform. Your notification configuration is working correctly!"
+                        "activityTitle": "🔒 ONYX Platform Test Notification",
+                        "text": "This is a test notification from the ONYX Platform. Your notification configuration is working correctly!"
                     }
                 ]
             }

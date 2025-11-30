@@ -454,9 +454,9 @@ class ProductionConfig(BaseConfig):
 
 ### Security Team
 
-- **Security Lead**: security-lead@securedevops.ai
-- **DevSecOps Engineer**: devsecops@securedevops.ai
-- **Platform Security**: platform-security@securedevops.ai
+- **Security Lead**: security-lead@onyx-security.ai
+- **DevSecOps Engineer**: devsecops@onyx-security.ai
+- **Platform Security**: platform-security@onyx-security.ai
 
 ### Incident Response Team
 
@@ -469,7 +469,7 @@ class ProductionConfig(BaseConfig):
 ### Security Resources
 
 - **Security Documentation**: [docs/security/](security/)
-- **Security Advisories**: [GitHub Security Advisories](https://github.com/Sagar4173/SecureDevOpsAI-Platform/security/advisories)
+- **Security Advisories**: [GitHub Security Advisories](https://github.com/Sagar4173/ONYX/security/advisories)
 - **CVE Database**: [MITRE CVE](https://cve.mitre.org/)
 - **OWASP Resources**: [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 
@@ -545,12 +545,12 @@ _Bounty amounts depend on impact, quality of report, and fix complexity._
 
 ## 👥 Security Team
 
-**SecureDevOps AI Platform Security** is overseen by our dedicated team:
+**ONYX Platform Security** is overseen by our dedicated team:
 
 - **🔒 Piyush More** ([@MorePiyush55](https://github.com/MorePiyush55)) - Security Expert & Vulnerability Assessment Lead
 - **🧑‍💻 Sagar Wavhal** ([@Sagar4173](https://github.com/Sagar4173)) - Lead Developer & Security Implementation
 - **⚙️ Rushikesh Phalke** ([@RushiPhalke247](https://github.com/RushiPhalke247)) - DevOps Engineer & Infrastructure Security
 
-Thank you for helping keep SecureDevOps AI Platform secure! 🔒
+Thank you for helping keep ONYX Platform secure! 🔒
 
 **Remember**: Security is everyone's responsibility. If you see something, say something.

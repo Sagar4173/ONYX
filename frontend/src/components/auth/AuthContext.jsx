@@ -335,7 +335,6 @@ export const AuthProvider = ({ children }) => {
           await refreshUserProfile();
         } catch (profileError) {
           // Ignore profile refresh errors - verification still succeeded
-          console.log("Could not refresh profile, but verification succeeded");
         }
       }
       return response;

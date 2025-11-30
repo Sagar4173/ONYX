@@ -1,5 +1,5 @@
 """
-Project Management API Routes for SecureDevOps Platform
+Project Management API Routes for ONYX Platform
 Handles project CRUD operations, team management, and analytics
 """
 from typing import List, Optional, Dict, Any

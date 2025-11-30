@@ -44,8 +44,6 @@ const ReportDetails = () => {
   const [showCodeContext, setShowCodeContext] = useState(new Set());
 
   // Debug logging
-  console.log("ReportDetails - reportId:", reportId, "type:", typeof reportId);
-
   // Early return if reportId is invalid
   if (!reportId || reportId === "undefined" || reportId === "null") {
     return (

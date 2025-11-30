@@ -6,12 +6,12 @@ ONYX - Security Intelligence Platform provides a comprehensive REST API for mana
 
 **Base URLs**:
 
-- **Production**: `https://securedevopsai-platform-production.up.railway.app`
+- **Production**: `https://onyx-backend.onrender.com`
 - **Development**: `http://localhost:8000`
 
 **API Documentation**:
 
-- **Live Demo**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
+- **Live Demo**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
 - **Local Development**: Visit `/docs` for interactive Swagger UI documentation
 
 ---
@@ -1080,7 +1080,7 @@ All API errors follow a consistent format:
 import requests
 from typing import Dict, List, Optional
 
-class SecureDevOpsClient:
+class ONYXClient:
     def __init__(self, base_url: str, api_token: str):
         self.base_url = base_url.rstrip('/')
         self.headers = {
@@ -1132,7 +1132,7 @@ class SecureDevOpsClient:
         raise TimeoutError(f'Scan {scan_id} did not complete within {timeout} seconds')
 
 # Usage example
-client = SecureDevOpsClient('http://localhost:8000', 'your-api-token')
+client = ONYXClient('http://localhost:8000', 'your-api-token')
 
 # Submit scan
 scan_result = client.submit_scan('https://github.com/user/repo.git')
@@ -1146,7 +1146,7 @@ print(f"Scan completed with {report['total_findings']} findings")
 ### JavaScript/Node.js SDK
 
 ```javascript
-class SecureDevOpsClient {
+class ONYXClient {
   constructor(baseUrl, apiToken) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.headers = {
@@ -1207,10 +1207,7 @@ class SecureDevOpsClient {
 }
 
 // Usage example
-const client = new SecureDevOpsClient(
-  "http://localhost:8000",
-  "your-api-token"
-);
+const client = new ONYXClient("http://localhost:8000", "your-api-token");
 
 async function runScan() {
   try {
@@ -1289,7 +1286,7 @@ X-RateLimit-Window: 60
 ```python
 # Good: Secure token storage
 import os
-api_token = os.getenv('SECUREDEVOPS_API_TOKEN')
+api_token = os.getenv('ONYX_API_TOKEN')
 
 # Bad: Hardcoded token
 # api_token = 'sk-abc123...'  # Never do this!
@@ -1579,6 +1576,6 @@ Authorization: Bearer <token>
 
 ## 📞 Support
 
-- **API Issues**: [GitHub Issues](https://github.com/Sagar4173/SecureDevOpsAI-Platform/issues)
-- **Integration Help**: [GitHub Discussions](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions)
-- **Enterprise Support**: enterprise@securedevops.ai
+- **API Issues**: [GitHub Issues](https://github.com/Sagar4173/ONYXAI-Platform/issues)
+- **Integration Help**: [GitHub Discussions](https://github.com/Sagar4173/ONYXAI-Platform/discussions)
+- **Enterprise Support**: enterprise@ONYX.ai

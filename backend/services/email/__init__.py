@@ -1,6 +1,6 @@
 """
 Email Service Package
-Provides email functionality for the SecureDevOps AI Platform
+Provides email functionality for the ONYX Security Intelligence Platform
 
 This module has been refactored for better maintainability:
 - templates/ - Modular email template components

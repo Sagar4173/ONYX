@@ -1,5 +1,5 @@
 """
-SecureDevOps AI Platform - Main FastAPI Application
+ONYX Security Intelligence Platform - Main FastAPI Application
 Production-ready application with MongoDB Atlas integration and realistic security scanning
 """
 import asyncio
@@ -57,17 +57,17 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown"""
     # Startup
-    logger.info("🚀 Starting SecureDevOps AI Platform...")
+    logger.info("🚀 Starting ONYX Security Intelligence Platform...")
     await init_database()
     yield
     # Shutdown
-    logger.info("🛑 Shutting down SecureDevOps AI Platform...")
+    logger.info("🛑 Shutting down ONYX Security Intelligence Platform...")
     await close_database()
 
 # Create FastAPI app with lifespan
 app = FastAPI(
-    title="SecureDevOps AI Platform",
-    description="Intelligent Security Scanning Platform",
+    title="ONYX - Security Intelligence Platform",
+    description="AI-Powered Security Analysis & Vulnerability Detection",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -299,12 +299,12 @@ class ReportModel(BaseModel):
 @app.get("/")
 async def root():
     """Root endpoint"""
-    return {"message": "SecureDevOps AI Platform - Local Development", "status": "running"}
+    return {"message": "ONYX Security Intelligence Platform - Local Development", "status": "running"}
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    # Basic health check without database dependency for Railway
+    # Basic health check without database dependency for Render
     health_data = {
         "status": "healthy",
         "environment": os.getenv("ENVIRONMENT", "production"),
@@ -354,7 +354,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.send_json({
             "type": "connection",
             "data": {
-                "message": "Connected to SecureDevOps Platform",
+                "message": "Connected to ONYX Platform",
                 "timestamp": datetime.now().isoformat()
             }
         })
@@ -397,7 +397,7 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info(f"WebSocket connection with {client_host} closed")
 
 if __name__ == "__main__":
-    print("🛡️ Starting SecureDevOps AI Platform - Production Server")
+    print("🛡️ Starting ONYX Security Intelligence Platform - Production Server")
     print(f"📖 API Documentation: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/docs")
     print(f"🏥 Health Check: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/health")
     print(f"🔧 Frontend should run on: {settings.frontend_url or 'Frontend URL not configured'}")

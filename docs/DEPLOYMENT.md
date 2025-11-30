@@ -4,10 +4,10 @@
 
 **ONYX Platform is currently live and running:**
 
-- 🌐 **Frontend (Vercel)**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
-- 🔌 **Backend (Railway)**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
-- 📚 **API Docs**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
-- 🏥 **Health Check**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)
+- 🌐 **Frontend (Vercel)**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
+- 🔌 **Backend (Render)**: [https://onyx-backend.onrender.com](https://onyx-backend.onrender.com)
+- 📚 **API Docs**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
+- 🏥 **Health Check**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
 
 ## Overview
 
@@ -28,8 +28,8 @@ ONYX - Security Intelligence Platform supports multiple deployment options to fi
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
-cd SecureDevOpsAI-Platform
+git clone https://github.com/Sagar4173/ONYX.git
+cd ONYX
 ```
 
 2. **Configure environment:**
@@ -46,8 +46,8 @@ nano .env
 
 ```env
 # Database
-MONGODB_URL=mongodb://mongodb:27017/securedevops
-MONGODB_DB_NAME=securedevops
+MONGODB_URL=mongodb://mongodb:27017/onyx
+MONGODB_DB_NAME=onyx
 
 # OpenAI API (Primary AI Provider)
 OPENAI_API_KEY=sk-your-openai-api-key-here
@@ -111,7 +111,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MONGODB_URL=mongodb://mongodb:27017/securedevops
+      - MONGODB_URL=mongodb://mongodb:27017/onyx
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - SECRET_KEY=${SECRET_KEY}
     depends_on:
@@ -124,7 +124,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - securedevops-network
+      - onyx-network
 
   frontend:
     build:
@@ -139,7 +139,7 @@ services:
     volumes:
       - ./ssl:/etc/nginx/ssl
     networks:
-      - securedevops-network
+      - onyx-network
 
   mongodb:
     image: mongo:7.0
@@ -151,10 +151,10 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=securedevops
+      - MONGO_INITDB_DATABASE=onyx
     restart: unless-stopped
     networks:
-      - securedevops-network
+      - onyx-network
 
   redis:
     image: redis:7.0-alpine
@@ -164,7 +164,7 @@ services:
       - redis_data:/data
     restart: unless-stopped
     networks:
-      - securedevops-network
+      - onyx-network
 
   nginx:
     image: nginx:alpine
@@ -179,14 +179,14 @@ services:
       - backend
     restart: unless-stopped
     networks:
-      - securedevops-network
+      - onyx-network
 
 volumes:
   mongodb_data:
   redis_data:
 
 networks:
-  securedevops-network:
+  onyx-network:
     driver: bridge
 ```
 
@@ -209,7 +209,7 @@ networks:
 ```yaml
 # cloudformation/ecs-deployment.yml
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "SecureDevOps AI Platform ECS Deployment"
+Description: "onyx AI Platform ECS Deployment"
 
 Parameters:
   VpcId:
@@ -229,7 +229,7 @@ Resources:
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: securedevops-cluster
+      ClusterName: onyx-cluster
       CapacityProviders:
         - FARGATE
         - FARGATE_SPOT
@@ -237,7 +237,7 @@ Resources:
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: securedevops-task
+      Family: onyx-task
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -247,18 +247,18 @@ Resources:
       TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:
         - Name: backend
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/securedevops-backend:latest
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/onyx-backend:latest
           PortMappings:
             - ContainerPort: 8000
           Environment:
             - Name: MONGODB_URL
-              Value: !Sub mongodb://${DocumentDBCluster.Endpoint}:27017/securedevops
+              Value: !Sub mongodb://${DocumentDBCluster.Endpoint}:27017/onyx
             - Name: OPENAI_API_KEY
               Value: !Ref OpenAIApiKey
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-group: /ecs/securedevops
+              awslogs-group: /ecs/onyx
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: backend
 
@@ -283,7 +283,7 @@ Resources:
   DocumentDBCluster:
     Type: AWS::DocDB::DBCluster
     Properties:
-      DBClusterIdentifier: securedevops-docdb
+      DBClusterIdentifier: onyx-docdb
       EngineVersion: 4.0.0
       MasterUsername: admin
       MasterUserPassword: !Ref DocumentDBPassword
@@ -302,7 +302,7 @@ Outputs:
 ```bash
 aws cloudformation deploy \
   --template-file cloudformation/ecs-deployment.yml \
-  --stack-name securedevops-platform \
+  --stack-name onyx-platform \
   --parameter-overrides \
     VpcId=vpc-12345678 \
     SubnetIds=subnet-12345678,subnet-87654321 \
@@ -330,12 +330,12 @@ chmod +x /usr/local/bin/docker-compose
 
 # Clone repository
 cd /opt
-git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
-cd SecureDevOpsAI-Platform
+git clone https://github.com/Sagar4173/ONYX.git
+cd ONYX
 
 # Configure environment
 cat > .env << EOF
-MONGODB_URL=mongodb://mongodb.cluster.amazonaws.com:27017/securedevops
+MONGODB_URL=mongodb://mongodb.cluster.amazonaws.com:27017/onyx
 OPENAI_API_KEY=${OpenAIApiKey}
 SECRET_KEY=${SecretKey}
 ENVIRONMENT=production
@@ -346,7 +346,7 @@ docker-compose -f docker-compose.prod.yml up -d
 
 # Configure log rotation
 cat > /etc/logrotate.d/docker-compose << EOF
-/opt/SecureDevOpsAI-Platform/logs/*.log {
+/opt/ONYX/logs/*.log {
     daily
     rotate 7
     compress
@@ -365,7 +365,7 @@ EOF
 
 ```bash
 # Create cluster
-gcloud container clusters create securedevops-cluster \
+gcloud container clusters create onyx-cluster \
   --num-nodes=3 \
   --machine-type=e2-standard-4 \
   --zone=us-central1-a \
@@ -374,7 +374,7 @@ gcloud container clusters create securedevops-cluster \
   --max-nodes=10
 
 # Get credentials
-gcloud container clusters get-credentials securedevops-cluster --zone=us-central1-a
+gcloud container clusters get-credentials onyx-cluster --zone=us-central1-a
 ```
 
 **2. Deploy with Kubernetes manifests:**
@@ -384,7 +384,7 @@ gcloud container clusters get-credentials securedevops-cluster --zone=us-central
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: securedevops
+  name: onyx
 
 ---
 # k8s/configmap.yml
@@ -392,9 +392,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: securedevops
+  namespace: onyx
 data:
-  MONGODB_URL: "mongodb://mongodb-service:27017/securedevops"
+  MONGODB_URL: "mongodb://mongodb-service:27017/onyx"
   ENVIRONMENT: "production"
   LOG_LEVEL: "info"
 
@@ -404,7 +404,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: app-secrets
-  namespace: securedevops
+  namespace: onyx
 type: Opaque
 data:
   OPENAI_API_KEY: <base64-encoded-key>
@@ -416,7 +416,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
-  namespace: securedevops
+  namespace: onyx
 spec:
   replicas: 3
   selector:
@@ -429,7 +429,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: gcr.io/your-project/securedevops-backend:latest
+          image: gcr.io/your-project/onyx-backend:latest
           ports:
             - containerPort: 8000
           envFrom:
@@ -463,7 +463,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: backend-service
-  namespace: securedevops
+  namespace: onyx
 spec:
   selector:
     app: backend
@@ -478,15 +478,15 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: securedevops-ingress
-  namespace: securedevops
+  name: onyx-ingress
+  namespace: onyx
   annotations:
     kubernetes.io/ingress.class: "gce"
-    kubernetes.io/ingress.global-static-ip-name: "securedevops-ip"
-    networking.gke.io/managed-certificates: "securedevops-ssl-cert"
+    kubernetes.io/ingress.global-static-ip-name: "onyx-ip"
+    networking.gke.io/managed-certificates: "onyx-ssl-cert"
 spec:
   rules:
-    - host: api.securedevops.com
+    - host: api.onyx.com
       http:
         paths:
           - path: /
@@ -505,12 +505,12 @@ spec:
 kubectl apply -f k8s/
 
 # Check deployment status
-kubectl get pods -n securedevops
-kubectl get services -n securedevops
-kubectl get ingress -n securedevops
+kubectl get pods -n onyx
+kubectl get services -n onyx
+kubectl get ingress -n onyx
 
 # View logs
-kubectl logs -f deployment/backend -n securedevops
+kubectl logs -f deployment/backend -n onyx
 ```
 
 ### Microsoft Azure
@@ -535,14 +535,14 @@ kubectl logs -f deployment/backend -n securedevops
     {
       "type": "Microsoft.ContainerInstance/containerGroups",
       "apiVersion": "2021-03-01",
-      "name": "securedevops-platform",
+      "name": "onyx-platform",
       "location": "[resourceGroup().location]",
       "properties": {
         "containers": [
           {
             "name": "backend",
             "properties": {
-              "image": "your-registry.azurecr.io/securedevops-backend:latest",
+              "image": "your-registry.azurecr.io/onyx-backend:latest",
               "ports": [
                 {
                   "port": 8000,
@@ -556,7 +556,7 @@ kubectl logs -f deployment/backend -n securedevops
                 },
                 {
                   "name": "MONGODB_URL",
-                  "value": "mongodb://cosmosdb-account.mongo.cosmos.azure.com:10255/securedevops"
+                  "value": "mongodb://cosmosdb-account.mongo.cosmos.azure.com:10255/onyx"
                 }
               ],
               "resources": {
@@ -588,16 +588,16 @@ kubectl logs -f deployment/backend -n securedevops
 
 ```bash
 # Create resource group
-az group create --name securedevops-rg --location eastus
+az group create --name onyx-rg --location eastus
 
 # Deploy template
 az deployment group create \
-  --resource-group securedevops-rg \
+  --resource-group onyx-rg \
   --template-file azure-deployment.json \
   --parameters openAIApiKey=sk-your-key-here
 
 # Get container IP
-az container show --resource-group securedevops-rg --name securedevops-platform --query ipAddress.ip
+az container show --resource-group onyx-rg --name onyx-platform --query ipAddress.ip
 ```
 
 ---
@@ -637,9 +637,9 @@ sudo dpkg -i trivy_0.48.0_Linux-64bit.deb
 ```bash
 # Clone repository
 cd /opt
-sudo git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
-sudo chown -R $USER:$USER SecureDevOpsAI-Platform
-cd SecureDevOpsAI-Platform
+sudo git clone https://github.com/Sagar4173/ONYX.git
+sudo chown -R $USER:$USER ONYX
+cd ONYX
 
 # Backend setup
 cd backend
@@ -660,20 +660,20 @@ nano .env  # Edit configuration
 
 **3. Service configuration:**
 
-**Backend systemd service (`/etc/systemd/system/securedevops-backend.service`):**
+**Backend systemd service (`/etc/systemd/system/onyx-backend.service`):**
 
 ```ini
 [Unit]
-Description=SecureDevOps AI Backend
+Description=onyx AI Backend
 After=network.target mongod.service
 Requires=mongod.service
 
 [Service]
 Type=simple
-User=securedevops
-WorkingDirectory=/opt/SecureDevOpsAI-Platform/backend
-Environment=PATH=/opt/SecureDevOpsAI-Platform/backend/venv/bin
-ExecStart=/opt/SecureDevOpsAI-Platform/backend/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
+User=onyx
+WorkingDirectory=/opt/ONYX/backend
+Environment=PATH=/opt/ONYX/backend/venv/bin
+ExecStart=/opt/ONYX/backend/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
 
@@ -681,7 +681,7 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-**Nginx configuration (`/etc/nginx/sites-available/securedevops`):**
+**Nginx configuration (`/etc/nginx/sites-available/onyx`):**
 
 ```nginx
 server {
@@ -694,12 +694,12 @@ server {
     listen 443 ssl http2;
     server_name your-domain.com;
 
-    ssl_certificate /etc/ssl/certs/securedevops.crt;
-    ssl_certificate_key /etc/ssl/private/securedevops.key;
+    ssl_certificate /etc/ssl/certs/onyx.crt;
+    ssl_certificate_key /etc/ssl/private/onyx.key;
 
     # Frontend
     location / {
-        root /opt/SecureDevOpsAI-Platform/frontend/dist;
+        root /opt/ONYX/frontend/dist;
         try_files $uri $uri/ /index.html;
     }
 
@@ -727,22 +727,22 @@ server {
 
 ```bash
 # Create user
-sudo useradd -r -s /bin/false securedevops
+sudo useradd -r -s /bin/false onyx
 
 # Set permissions
-sudo chown -R securedevops:securedevops /opt/SecureDevOpsAI-Platform
+sudo chown -R onyx:onyx /opt/ONYX
 
 # Enable and start services
-sudo systemctl enable securedevops-backend
-sudo systemctl start securedevops-backend
+sudo systemctl enable onyx-backend
+sudo systemctl start onyx-backend
 
 # Configure nginx
-sudo ln -s /etc/nginx/sites-available/securedevops /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/onyx /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 
 # Check status
-sudo systemctl status securedevops-backend
+sudo systemctl status onyx-backend
 sudo systemctl status nginx
 ```
 
@@ -795,11 +795,11 @@ db.createUser({
 })
 
 // Application user
-use securedevops
+use onyx
 db.createUser({
   user: "app",
   pwd: "app-password-here",
-  roles: [ { role: "readWrite", db: "securedevops" } ]
+  roles: [ { role: "readWrite", db: "onyx" } ]
 })
 ```
 
@@ -930,7 +930,7 @@ volumes:
 
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="/opt/backups/mongodb"
-DB_NAME="securedevops"
+DB_NAME="onyx"
 
 # Create backup directory
 mkdir -p $BACKUP_DIR
@@ -963,14 +963,14 @@ echo "Backup completed: mongodb_backup_$DATE.tar.gz"
 
 ```bash
 # Stop services
-sudo systemctl stop securedevops-backend
+sudo systemctl stop onyx-backend
 
 # Restore from backup
 tar -xzf mongodb_backup_20240115_020000.tar.gz
-mongorestore --db securedevops --drop securedevops/
+mongorestore --db onyx --drop onyx/
 
 # Start services
-sudo systemctl start securedevops-backend
+sudo systemctl start onyx-backend
 
 # Verify functionality
 curl http://localhost:8000/health
@@ -994,11 +994,11 @@ defaults
     timeout client 50000ms
     timeout server 50000ms
 
-frontend securedevops_frontend
+frontend onyx_frontend
     bind *:80
-    default_backend securedevops_backend
+    default_backend onyx_backend
 
-backend securedevops_backend
+backend onyx_backend
     balance roundrobin
     server backend1 10.0.1.10:8000 check
     server backend2 10.0.1.11:8000 check
@@ -1012,7 +1012,7 @@ backend securedevops_backend
 ```javascript
 // Initialize replica set
 rs.initiate({
-  _id: "securedevops-rs",
+  _id: "onyx-rs",
   members: [
     { _id: 0, host: "mongo1:27017", priority: 1 },
     { _id: 1, host: "mongo2:27017", priority: 0.5 },
@@ -1031,11 +1031,11 @@ rs.initiate({
 
 ```bash
 # Check logs
-sudo journalctl -u securedevops-backend -f
+sudo journalctl -u onyx-backend -f
 
 # Common fixes
-sudo systemctl restart securedevops-backend
-sudo systemctl status securedevops-backend
+sudo systemctl restart onyx-backend
+sudo systemctl status onyx-backend
 ```
 
 **2. Database connection issues:**
@@ -1095,4 +1095,4 @@ CACHE_TTL=3600
 
 ---
 
-For deployment support and troubleshooting, visit our [GitHub Issues](https://github.com/Sagar4173/SecureDevOpsAI-Platform/issues) or [Discussion Forum](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions).
+For deployment support and troubleshooting, visit our [GitHub Issues](https://github.com/Sagar4173/ONYX/issues) or [Discussion Forum](https://github.com/Sagar4173/ONYX/discussions).

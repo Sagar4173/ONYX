@@ -123,4 +123,4 @@ All enhanced security features are:
 - **Automated Compliance**: Policy-based compliance enforcement
 - **Comprehensive Monitoring**: Security posture visibility
 
-The SecureDevOps AI Platform now provides enterprise-grade security management capabilities with comprehensive policy enforcement, custom rule support, and historical baseline tracking!
+The ONYX Security Intelligence Platform now provides enterprise-grade security management capabilities with comprehensive policy enforcement, custom rule support, and historical baseline tracking!

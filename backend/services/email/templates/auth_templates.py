@@ -15,7 +15,7 @@ def get_verification_template() -> str:
         header_subtitle="Verify Your Email Address",
         content='''
         <h2 style="color: #f1f5f9; font-size: 24px; margin: 0 0 16px 0; font-weight: 600;">
-            Welcome to SecureDevOps! 👋
+            Welcome to ONYX! 👋
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
@@ -106,7 +106,7 @@ def get_password_reset_template() -> str:
 def get_welcome_template() -> str:
     """Welcome email template"""
     return get_base_template(
-        title="Welcome to SecureDevOps",
+        title="Welcome to ONYX",
         header_gradient=GRADIENTS["green"],
         header_icon="🎉",
         header_subtitle="Your Security Journey Begins",
@@ -116,7 +116,7 @@ def get_welcome_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            Your account is now active and ready to secure your codebase. Let's explore what you can accomplish with SecureDevOps Platform.
+            Your account is now active and ready to secure your codebase. Let's explore what you can accomplish with ONYX Platform.
         </p>
         
         <!-- Get Started Button -->
@@ -205,7 +205,7 @@ def get_login_alert_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            We noticed a new login to your SecureDevOps account. If this was you, no action is needed.
+            We noticed a new login to your ONYX account. If this was you, no action is needed.
         </p>
         
         <!-- Login Details -->
@@ -294,7 +294,7 @@ def get_2fa_enabled_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            Great news! Two-factor authentication has been successfully enabled on your SecureDevOps account. Your account is now more secure.
+            Great news! Two-factor authentication has been successfully enabled on your ONYX account. Your account is now more secure.
         </p>
         
         <!-- Success Badge -->
@@ -375,7 +375,7 @@ def get_2fa_disabled_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            Two-factor authentication has been disabled on your SecureDevOps account. Your account is now less secure.
+            Two-factor authentication has been disabled on your ONYX account. Your account is now less secure.
         </p>
         
         <!-- Warning Badge -->
@@ -468,7 +468,7 @@ def get_2fa_recovery_used_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            A recovery code was used to log into your SecureDevOps account. This may have been you, or someone with access to your backup codes.
+            A recovery code was used to log into your ONYX account. This may have been you, or someone with access to your backup codes.
         </p>
         
         <!-- Warning Badge -->
@@ -557,7 +557,7 @@ def get_password_changed_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            Your SecureDevOps account password was changed on {{ changed_at }}. If you made this change, no further action is needed.
+            Your ONYX account password was changed on {{ changed_at }}. If you made this change, no further action is needed.
         </p>
         
         <!-- Success Badge -->

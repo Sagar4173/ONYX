@@ -10,12 +10,6 @@ export default defineConfig(({ mode }) => {
   const backendUrl =
     env.BACKEND_URL || env.API_BASE_URL || "http://127.0.0.1:8000";
 
-  console.log("🔧 Vite Config:", {
-    mode,
-    backendUrl,
-    frontendPort: parseInt(env.FRONTEND_PORT) || 5173,
-  });
-
   return {
     plugins: [react()],
     base: "/",
@@ -27,11 +21,6 @@ export default defineConfig(({ mode }) => {
           target: backendUrl,
           changeOrigin: true,
           secure: false,
-          configure: (proxy, options) => {
-            proxy.on("error", (err, req, res) => {
-              console.log("API proxy error:", err.message);
-            });
-          },
         },
         // Temporarily disable WebSocket proxy to allow direct connection
         // "/ws": {
@@ -58,7 +47,8 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "dist",
-      sourcemap: true,
+      sourcemap: false, // Disable sourcemaps in production for security
+      minify: "esbuild",
       rollupOptions: {
         output: {
           manualChunks: {
@@ -76,9 +66,10 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: ["react", "react-dom", "@headlessui/react", "@heroicons/react"],
     },
-    // Add esbuild configuration to suppress warnings
+    // Add esbuild configuration - drop console in production
     esbuild: {
       logOverride: { "this-is-undefined-in-esm": "silent" },
+      drop: mode === "production" ? ["console", "debugger"] : [],
     },
     // Silence some warnings
     logLevel: mode === "development" ? "info" : "warn",

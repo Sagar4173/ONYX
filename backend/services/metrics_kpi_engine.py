@@ -5,7 +5,7 @@ Metrics and KPI Engine
 Comprehensive security metrics, KPIs, and SLA tracking for enterprise
 vulnerability management and security operations.
 
-Author: SecureDevOpsAI Platform
+Author: ONYX Platform
 Date: August 2025
 """
 

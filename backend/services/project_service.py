@@ -1,5 +1,5 @@
 """
-Project Management Service for SecureDevOps Platform
+Project Management Service for ONYX Platform
 Handles project CRUD operations, team management, and business logic
 """
 import logging

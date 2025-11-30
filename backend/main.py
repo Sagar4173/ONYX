@@ -1,11 +1,11 @@
-# Railway deployment entry point
-# This file is now in the backend directory
+# ONYX Backend - Development entry point
+# For production, use: gunicorn app:app -k uvicorn.workers.UvicornWorker
 
 import os
 import sys
 from pathlib import Path
 
-# We're already in the backend directory, so add current directory to Python path
+# Add current directory to Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Import and run the backend application
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         print(f"📍 Working directory: {os.getcwd()}")
         print(f"🏥 Health check will be available at: http://{host}:{port}/health")
         
-        # Start with minimal configuration for Railway
+        # Start development server
         uvicorn.run(
             app, 
             host=host, 

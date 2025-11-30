@@ -7,9 +7,9 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.0+-green.svg)](https://www.mongodb.com/)
 [![AI Powered](https://img.shields.io/badge/AI-GPT--4%20%7C%20Gemini-orange.svg)](https://openai.com/)
 
-[![Frontend Status](https://img.shields.io/badge/Frontend-Live-brightgreen.svg)](https://secure-dev-ops-ai-platform.vercel.app)
-[![Backend Status](https://img.shields.io/badge/Backend-Live-brightgreen.svg)](https://securedevopsai-platform-production.up.railway.app)
-[![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://securedevopsai-platform-production.up.railway.app/docs)
+[![Frontend Status](https://img.shields.io/badge/Frontend-Live-brightgreen.svg)](https://onyx-platform.vercel.app)
+[![Backend Status](https://img.shields.io/badge/Backend-Live-brightgreen.svg)](https://onyx-backend.onrender.com)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://onyx-backend.onrender.com/docs)
 
 > **The Next-Generation Open Source Alternative to GitHub Advanced Security & Snyk**  
 > _Comprehensive Security Scanning • Dual AI Analysis (GPT-4 + Gemini) • Enterprise-Ready_
@@ -20,10 +20,10 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 
 **Experience ONYX Security Intelligence Platform:**
 
-- 🌐 **Frontend Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
-- 🔌 **Backend API**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
-- 📚 **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
-- 🏥 **System Health**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)
+- 🌐 **Frontend Demo**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
+- 🔌 **Backend API**: [https://onyx-backend.onrender.com](https://onyx-backend.onrender.com)
+- 📚 **API Documentation**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
+- 🏥 **System Health**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
 
 > **Test Credentials**: Contact us for demo access or deploy your own instance using the guides below.
 
@@ -227,8 +227,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/securedevops-platform.git
-cd securedevops-platform
+git clone https://github.com/Sagar4173/ONYX.git
+cd ONYX
 ```
 
 ### 2. Setup Backend
@@ -288,9 +288,9 @@ npm run preview
 
 **Live Demo (Production):**
 
-- **Web Interface**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
-- **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
-- **Health Check**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)
+- **Web Interface**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
+- **API Documentation**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
+- **Health Check**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
 
 ## 📖 Installation Guide
 
@@ -299,8 +299,8 @@ npm run preview
 1. **Clone and Navigate**
 
    ```bash
-   git clone https://github.com/yourusername/securedevops-platform.git
-   cd securedevops-platform
+   git clone https://github.com/Sagar4173/ONYX.git
+   cd ONYX
    ```
 
 2. **Backend Setup**
@@ -334,7 +334,7 @@ npm run preview
    # Required
    OPENAI_API_KEY=sk-your-api-key
    SECRET_KEY=generate-a-secure-key
-   MONGODB_URI=mongodb://localhost:27017/securedevops
+   MONGODB_URI=mongodb://localhost:27017/onyx
 
    # Optional
    SLACK_WEBHOOK_URL=https://hooks.slack.com/...
@@ -399,15 +399,15 @@ npm run preview
 
 ### Environment Variables
 
-| Variable                | Description                    | Default                                  | Required |
-| ----------------------- | ------------------------------ | ---------------------------------------- | -------- |
-| `OPENAI_API_KEY`        | OpenAI API key for AI analysis | -                                        | ✅       |
-| `SECRET_KEY`            | JWT signing key                | -                                        | ✅       |
-| `MONGODB_URI`           | MongoDB connection string      | `mongodb://localhost:27017/securedevops` | ❌       |
-| `ALLOWED_ORIGINS`       | CORS allowed origins           | `http://localhost:5173`                  | ❌       |
-| `ENVIRONMENT`           | Runtime environment            | `development`                            | ❌       |
-| `LOG_LEVEL`             | Logging level                  | `INFO`                                   | ❌       |
-| `RATE_LIMIT_PER_MINUTE` | API rate limit                 | `100`                                    | ❌       |
+| Variable                | Description                    | Default                          | Required |
+| ----------------------- | ------------------------------ | -------------------------------- | -------- |
+| `OPENAI_API_KEY`        | OpenAI API key for AI analysis | -                                | ✅       |
+| `SECRET_KEY`            | JWT signing key                | -                                | ✅       |
+| `MONGODB_URI`           | MongoDB connection string      | `mongodb://localhost:27017/onyx` | ❌       |
+| `ALLOWED_ORIGINS`       | CORS allowed origins           | `http://localhost:5173`          | ❌       |
+| `ENVIRONMENT`           | Runtime environment            | `development`                    | ❌       |
+| `LOG_LEVEL`             | Logging level                  | `INFO`                           | ❌       |
+| `RATE_LIMIT_PER_MINUTE` | API rate limit                 | `100`                            | ❌       |
 
 ### Security Configuration
 
@@ -575,10 +575,10 @@ response = requests.post("http://localhost:8000/api/scan", json=payload)
 
    ```bash
    # Manual database backup
-   mongodump --uri="mongodb://localhost:27017/securedevops"
+   mongodump --uri="mongodb://localhost:27017/onyx"
 
    # Restore from backup
-   mongorestore --uri="mongodb://localhost:27017/securedevops" dump/
+   mongorestore --uri="mongodb://localhost:27017/onyx" dump/
    ```
 
 ## 📊 Monitoring and Maintenance
@@ -602,13 +602,13 @@ mongosh --eval "db.adminCommand('ping')"
 
 ```bash
 # Create database backup
-mongodump --uri="mongodb://localhost:27017/securedevops" --out=backup-$(date +%Y-%m-%d)
+mongodump --uri="mongodb://localhost:27017/onyx" --out=backup-$(date +%Y-%m-%d)
 
 # List backups
 ls -la backup-*/
 
 # Restore from backup
-mongorestore --uri="mongodb://localhost:27017/securedevops" backup-2025-08-10/securedevops/
+mongorestore --uri="mongodb://localhost:27017/onyx" backup-2025-08-10/onyx/
 ```
 
 ### Performance Tuning
@@ -721,7 +721,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/securedevops-platform.git
+git clone https://github.com/Sagar4173/ONYX.git
 
 # Setup development environment
 cd backend
@@ -748,12 +748,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Security Tools**: Semgrep, Trivy, GitLeaks, Lynis, Safety, Bandit
 - **AI Provider**: OpenAI for GPT-4 analysis
-- **Infrastructure**: Railway (Backend), Vercel (Frontend)
+- **Infrastructure**: Render (Backend), Vercel (Frontend)
 - **Open Source Community**: All contributors who help improve this platform
 
 ## 👥 Development Team
 
-**SecureDevOps AI Platform** is proudly built by:
+**ONYX Platform** is proudly built by:
 
 - **🧑‍💻 Sagar Wavhal** ([@Sagar4173](https://github.com/Sagar4173)) - Lead Developer & AI Integration Specialist
 - **🔒 Piyush More** ([@MorePiyush55](https://github.com/MorePiyush55)) - Cybersecurity Expert & Vulnerability Assessment
@@ -763,10 +763,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support & Contact
 
-- **🐛 Issues**: [GitHub Issues](https://github.com/Sagar4173/SecureDevOpsAI-Platform/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions)
+- **🐛 Issues**: [GitHub Issues](https://github.com/Sagar4173/ONYX/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/Sagar4173/ONYX/discussions)
 - **📧 Email**: Contact us through GitHub for business inquiries
-- **🌐 Live Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
+- **🌐 Live Demo**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
 
 ---
 
@@ -774,20 +774,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **⭐ Star this repository if you find it helpful!**
 
-[![GitHub stars](https://img.shields.io/github/stars/Sagar4173/SecureDevOpsAI-Platform?style=social)](https://github.com/Sagar4173/SecureDevOpsAI-Platform/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/Sagar4173/SecureDevOpsAI-Platform?style=social)](https://github.com/Sagar4173/SecureDevOpsAI-Platform/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/Sagar4173/ONYX?style=social)](https://github.com/Sagar4173/ONYX/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Sagar4173/ONYX?style=social)](https://github.com/Sagar4173/ONYX/network/members)
 
-**Made with ❤️ by the SecureDevOps AI Team**
+**Made with ❤️ by the ONYX Team**
 
 </div>
-- **Open Source Libraries**: FastAPI, React, MongoDB, and many others
 
 ## 📞 Support
 
 - **Documentation**: [Full Documentation](docs/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/securedevops-platform/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/securedevops-platform/discussions)
-- **Security Issues**: security@yourdomain.com
+- **Issues**: [GitHub Issues](https://github.com/Sagar4173/ONYX/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Sagar4173/ONYX/discussions)
+- **Security Issues**: security@onyx-security.ai
 
 ---
 

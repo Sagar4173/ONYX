@@ -1,3 +1,3 @@
 """
-Utilities package for SecureDevOps Platform
+Utilities package for ONYX Platform
 """

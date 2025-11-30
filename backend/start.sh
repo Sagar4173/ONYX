@@ -1,15 +1,10 @@
 #!/bin/bash
-# Railway startup script with virtual environment
+# Render startup script for ONYX Backend
 
-echo "🚀 Starting SecureDevOps AI Platform Backend"
+echo "🚀 Starting ONYX Security Intelligence Platform Backend"
 echo "📁 Current directory: $(pwd)"
-
-# Activate virtual environment
-source /opt/venv/bin/activate
-
 echo "🐍 Python version: $(python --version)"
-echo "📦 Pip version: $(pip --version)"
 
-# Start the application
-echo "🚀 Starting FastAPI application..."
-python main.py
+# Start the application with gunicorn
+echo "🚀 Starting FastAPI with Gunicorn..."
+exec gunicorn app:app -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000}

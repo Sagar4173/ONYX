@@ -427,7 +427,7 @@ POST /api/advanced-scanning/suppressions
 
 ```bash
 # Database
-MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/securedevops
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/onyx
 
 # DAST Configuration
 DAST_TARGET_ALLOWLIST=localhost,127.0.0.1,staging.example.com
@@ -593,7 +593,7 @@ curl -I https://api.github.com
 
 ```bash
 # Test MongoDB connection
-mongosh "mongodb+srv://user:password@cluster.mongodb.net/securedevops"
+mongosh "mongodb+srv://user:password@cluster.mongodb.net/onyx"
 
 # Check environment variables
 env | grep MONGODB
@@ -663,7 +663,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: securedevops/advanced-scanning:latest
+          image: onyx/advanced-scanning:latest
           env:
             - name: MONGODB_URI
               valueFrom:
@@ -725,4 +725,4 @@ async def health_check():
 - **✅ Scalable Architecture**: Async processing with resource management
 - **✅ Production Ready**: Docker deployment with monitoring and health checks
 
-Your SecureDevOpsAI Platform now provides enterprise-grade security scanning capabilities that go far beyond basic tools, with comprehensive coverage across SAST, DAST, IaC, and pentest methodologies! 🚀
+Your ONYX Security Intelligence Platform now provides enterprise-grade security scanning capabilities that go far beyond basic tools, with comprehensive coverage across SAST, DAST, IaC, and pentest methodologies! 🚀

@@ -30,11 +30,11 @@ We're excited that you're interested in contributing to ONYX - Security Intellig
 ```bash
 # Fork the repository on GitHub
 # Clone your fork
-git clone https://github.com/yourusername/SecureDevOpsAI-Platform.git
-cd SecureDevOpsAI-Platform
+git clone https://github.com/yourusername/ONYX.git
+cd ONYX
 
 # Add upstream remote
-git remote add upstream https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
+git remote add upstream https://github.com/Sagar4173/ONYX.git
 
 # Create development environment
 python -m venv venv
@@ -61,7 +61,7 @@ cp .env.example .env.dev
 ENVIRONMENT=development
 DEBUG=true
 OPENAI_API_KEY=sk-your-development-key
-MONGODB_URI=mongodb://localhost:27017/securedevops_dev
+MONGODB_URI=mongodb://localhost:27017/onyx_dev
 ```
 
 ---
@@ -668,7 +668,7 @@ We recognize all contributors in our [CONTRIBUTORS.md](CONTRIBUTORS.md) file and
 - **GitHub Discussions**: General questions and discussions
 - **GitHub Issues**: Bug reports and feature requests
 - **Discord**: Real-time chat with contributors
-- **Email**: security@securedevops.ai for sensitive issues
+- **Email**: security@onyx.ai for sensitive issues
 
 ### **Mentorship Program**
 
@@ -681,7 +681,7 @@ We recognize all contributors in our [CONTRIBUTORS.md](CONTRIBUTORS.md) file and
 
 ## � **Core Team & Maintainers**
 
-**SecureDevOps AI Platform** is maintained by a dedicated team of three specialists:
+**onyx AI Platform** is maintained by a dedicated team of three specialists:
 
 ### **🧑‍💻 Lead Developer**
 
@@ -739,6 +739,6 @@ For specific areas of contribution, you can reach out to the relevant team membe
 
 ---
 
-Thank you for considering contributing to SecureDevOps AI Platform! Together, we're building the future of open-source security scanning. 🚀
+Thank you for considering contributing to onyx AI Platform! Together, we're building the future of open-source security scanning. 🚀
 
-**Questions?** Reach out to us on [GitHub Discussions](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions) or [Discord](https://discord.gg/securedevops).
+**Questions?** Reach out to us on [GitHub Discussions](https://github.com/Sagar4173/ONYX/discussions) or [Discord](https://discord.gg/onyx).

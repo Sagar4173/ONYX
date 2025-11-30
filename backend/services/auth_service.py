@@ -1,5 +1,5 @@
 """
-Authentication Service for SecureDevOps AI Platform
+Authentication Service for ONYX Security Intelligence Platform
 Handles JWT token generation, validation, password management, and user sessions
 """
 import secrets

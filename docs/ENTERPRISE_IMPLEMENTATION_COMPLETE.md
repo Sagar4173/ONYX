@@ -175,7 +175,7 @@ All enterprise features are:
 
 ## 🏆 Project Status
 
-**The SecureDevOps AI Platform is now 100% feature-complete** with:
+**The ONYX Security Intelligence Platform is now 100% feature-complete** with:
 
 - ✅ Core security scanning (6 scanners)
 - ✅ AI-powered analysis (GPT-4)

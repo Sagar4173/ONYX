@@ -4,10 +4,10 @@
 
 **Try ONYX Platform without installation:**
 
-- 🌐 **Frontend Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
-- 🔌 **Backend API**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
-- 📚 **API Documentation**: [https://securedevopsai-platform-production.up.railway.app/docs](https://securedevopsai-platform-production.up.railway.app/docs)
-- 🏥 **System Health**: [https://securedevopsai-platform-production.up.railway.app/health](https://securedevopsai-platform-production.up.railway.app/health)
+- 🌐 **Frontend Demo**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
+- 🔌 **Backend API**: [https://onyx-backend.onrender.com](https://onyx-backend.onrender.com)
+- 📚 **API Documentation**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
+- 🏥 **System Health**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
 
 > **Note**: Demo environment has limited resources. For full functionality, deploy your own instance using the guides below.
 
@@ -80,8 +80,8 @@ ONYX - Security Intelligence Platform can be deployed in multiple configurations
 
 ```bash
 # Clone the repository
-git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
-cd SecureDevOpsAI-Platform
+git clone https://github.com/Sagar4173/ONYX.git
+cd ONYX
 
 # Verify directory structure
 ls -la
@@ -172,7 +172,7 @@ nano .env  # or your preferred editor
 # Required Settings
 OPENAI_API_KEY=sk-your-openai-api-key-here
 SECRET_KEY=your-super-secure-secret-key-256-bits
-MONGODB_URI=mongodb://localhost:27017/securedevops
+MONGODB_URI=mongodb://localhost:27017/onyx
 
 # Alternative AI Provider (Optional - use Gemini instead of/alongside OpenAI)
 GEMINI_API_KEY=your-gemini-api-key-here
@@ -260,28 +260,28 @@ version: "3.8"
 services:
   mongodb:
     image: mongo:7.0
-    container_name: securedevops-mongo
+    container_name: onyx-mongo
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: securedevops
+      MONGO_INITDB_DATABASE: onyx
     volumes:
       - mongodb_data:/data/db
       - ./backend/scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     ports:
       - "27017:27017"
     networks:
-      - securedevops-network
+      - onyx-network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: securedevops-backend
+    container_name: onyx-backend
     restart: unless-stopped
     environment:
-      MONGODB_URI: mongodb://admin:${MONGO_PASSWORD}@mongodb:27017/securedevops?authSource=admin
+      MONGODB_URI: mongodb://admin:${MONGO_PASSWORD}@mongodb:27017/onyx?authSource=admin
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SECRET_KEY: ${SECRET_KEY}
       ENVIRONMENT: production
@@ -294,7 +294,7 @@ services:
     depends_on:
       - mongodb
     networks:
-      - securedevops-network
+      - onyx-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -305,7 +305,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: securedevops-frontend
+    container_name: onyx-frontend
     restart: unless-stopped
     ports:
       - "80:80"
@@ -313,13 +313,13 @@ services:
     depends_on:
       - backend
     networks:
-      - securedevops-network
+      - onyx-network
     volumes:
       - ./ssl:/etc/nginx/ssl:ro
 
   redis:
     image: redis:7-alpine
-    container_name: securedevops-redis
+    container_name: onyx-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -327,7 +327,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - securedevops-network
+      - onyx-network
 
 volumes:
   mongodb_data:
@@ -335,7 +335,7 @@ volumes:
   scanner_cache:
 
 networks:
-  securedevops-network:
+  onyx-network:
     driver: bridge
 ```
 
@@ -387,9 +387,9 @@ docker-compose exec redis redis-cli ping
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: securedevops
+  name: onyx
   labels:
-    name: securedevops
+    name: onyx
 ```
 
 **ConfigMap:**
@@ -399,8 +399,8 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: securedevops-config
-  namespace: securedevops
+  name: onyx-config
+  namespace: onyx
 data:
   ENVIRONMENT: "production"
   DEBUG: "false"
@@ -417,11 +417,11 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: securedevops-secrets
-  namespace: securedevops
+  name: onyx-secrets
+  namespace: onyx
 type: Opaque
 stringData:
-  MONGODB_URI: "mongodb://admin:password@mongodb:27017/securedevops?authSource=admin"
+  MONGODB_URI: "mongodb://admin:password@mongodb:27017/onyx?authSource=admin"
   OPENAI_API_KEY: "sk-your-openai-api-key"
   SECRET_KEY: "your-super-secure-secret-key"
   SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
@@ -435,7 +435,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mongodb
-  namespace: securedevops
+  namespace: onyx
 spec:
   replicas: 1
   selector:
@@ -455,7 +455,7 @@ spec:
             - name: MONGO_INITDB_ROOT_PASSWORD
               value: "password"
             - name: MONGO_INITDB_DATABASE
-              value: "securedevops"
+              value: "onyx"
           ports:
             - containerPort: 27017
           volumeMounts:
@@ -477,7 +477,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mongodb
-  namespace: securedevops
+  namespace: onyx
 spec:
   selector:
     app: mongodb
@@ -493,26 +493,26 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: securedevops-backend
-  namespace: securedevops
+  name: onyx-backend
+  namespace: onyx
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: securedevops-backend
+      app: onyx-backend
   template:
     metadata:
       labels:
-        app: securedevops-backend
+        app: onyx-backend
     spec:
       containers:
         - name: backend
-          image: securedevops/backend:latest
+          image: onyx/backend:latest
           envFrom:
             - configMapRef:
-                name: securedevops-config
+                name: onyx-config
             - secretRef:
-                name: securedevops-secrets
+                name: onyx-secrets
           ports:
             - containerPort: 8000
           resources:
@@ -548,11 +548,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: securedevops-backend
-  namespace: securedevops
+  name: onyx-backend
+  namespace: onyx
 spec:
   selector:
-    app: securedevops-backend
+    app: onyx-backend
   ports:
     - port: 8000
       targetPort: 8000
@@ -566,8 +566,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: securedevops-ingress
-  namespace: securedevops
+  name: onyx-ingress
+  namespace: onyx
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -576,24 +576,24 @@ metadata:
 spec:
   tls:
     - hosts:
-        - securedevops.yourdomain.com
-      secretName: securedevops-tls
+        - onyx.yourdomain.com
+      secretName: onyx-tls
   rules:
-    - host: securedevops.yourdomain.com
+    - host: onyx.yourdomain.com
       http:
         paths:
           - path: /api
             pathType: Prefix
             backend:
               service:
-                name: securedevops-backend
+                name: onyx-backend
                 port:
                   number: 8000
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: securedevops-frontend
+                name: onyx-frontend
                 port:
                   number: 80
 ```
@@ -605,15 +605,15 @@ spec:
 kubectl apply -f k8s/
 
 # Check deployment status
-kubectl get pods -n securedevops
-kubectl get services -n securedevops
-kubectl get ingress -n securedevops
+kubectl get pods -n onyx
+kubectl get services -n onyx
+kubectl get ingress -n onyx
 
 # Check logs
-kubectl logs -f deployment/securedevops-backend -n securedevops
+kubectl logs -f deployment/onyx-backend -n onyx
 
 # Scale deployment
-kubectl scale deployment securedevops-backend --replicas=5 -n securedevops
+kubectl scale deployment onyx-backend --replicas=5 -n onyx
 ```
 
 ---
@@ -628,10 +628,10 @@ kubectl scale deployment securedevops-backend --replicas=5 -n securedevops
 # nginx.conf for frontend
 server {
     listen 443 ssl http2;
-    server_name securedevops.yourdomain.com;
+    server_name onyx.yourdomain.com;
 
-    ssl_certificate /etc/ssl/certs/securedevops.crt;
-    ssl_certificate_key /etc/ssl/private/securedevops.key;
+    ssl_certificate /etc/ssl/certs/onyx.crt;
+    ssl_certificate_key /etc/ssl/private/onyx.key;
 
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
@@ -678,7 +678,7 @@ net:
 ENVIRONMENT=production
 DEBUG=false
 SECRET_KEY=$(openssl rand -hex 32)
-MONGODB_URI=mongodb://user:password@mongodb:27017/securedevops?ssl=true&authSource=admin
+MONGODB_URI=mongodb://user:password@mongodb:27017/onyx?ssl=true&authSource=admin
 
 # Security headers
 FORCE_HTTPS=true
@@ -810,10 +810,10 @@ async def health_check():
 from prometheus_client import Counter, Histogram, Gauge, generate_latest
 
 # Define metrics
-SCAN_REQUESTS = Counter('securedevops_scan_requests_total', 'Total scan requests')
-SCAN_DURATION = Histogram('securedevops_scan_duration_seconds', 'Scan duration')
-ACTIVE_SCANS = Gauge('securedevops_active_scans', 'Number of active scans')
-VULNERABILITIES_FOUND = Counter('securedevops_vulnerabilities_total', 'Total vulnerabilities found', ['severity'])
+SCAN_REQUESTS = Counter('onyx_scan_requests_total', 'Total scan requests')
+SCAN_DURATION = Histogram('onyx_scan_duration_seconds', 'Scan duration')
+ACTIVE_SCANS = Gauge('onyx_active_scans', 'Number of active scans')
+VULNERABILITIES_FOUND = Counter('onyx_vulnerabilities_total', 'Total vulnerabilities found', ['severity'])
 
 @app.get("/metrics")
 async def metrics():
@@ -856,16 +856,16 @@ structlog.configure(
 
 BACKUP_DIR="/backup/mongodb"
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_PATH="$BACKUP_DIR/securedevops_$DATE"
+BACKUP_PATH="$BACKUP_DIR/onyx_$DATE"
 
 # Create backup directory
 mkdir -p $BACKUP_DIR
 
 # Create backup
-mongodump --uri="mongodb://admin:password@mongodb:27017/securedevops?authSource=admin" --out="$BACKUP_PATH"
+mongodump --uri="mongodb://admin:password@mongodb:27017/onyx?authSource=admin" --out="$BACKUP_PATH"
 
 # Compress backup
-tar -czf "$BACKUP_PATH.tar.gz" -C "$BACKUP_DIR" "securedevops_$DATE"
+tar -czf "$BACKUP_PATH.tar.gz" -C "$BACKUP_DIR" "onyx_$DATE"
 
 # Remove uncompressed backup
 rm -rf "$BACKUP_PATH"
@@ -939,7 +939,7 @@ tail -f backend/logs/app.log
 
 ```bash
 # Test MongoDB connectivity
-mongosh "mongodb://localhost:27017/securedevops" --eval "db.adminCommand('ping')"
+mongosh "mongodb://localhost:27017/onyx" --eval "db.adminCommand('ping')"
 
 # Check MongoDB service
 sudo systemctl status mongod
@@ -1054,4 +1054,4 @@ pip install --upgrade semgrep
 # GitLeaks updates via Go modules
 ```
 
-This comprehensive installation guide covers all deployment scenarios from development to enterprise production environments, ensuring successful deployment and operation of the SecureDevOps AI Platform.
+This comprehensive installation guide covers all deployment scenarios from development to enterprise production environments, ensuring successful deployment and operation of the ONYX Security Intelligence Platform.

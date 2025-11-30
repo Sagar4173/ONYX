@@ -1,3 +1,3 @@
 """
-Services package for SecureDevOps Platform
+Services package for ONYX Platform
 """

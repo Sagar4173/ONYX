@@ -51,7 +51,7 @@ class DatabaseManager:
             await self.client.admin.command('ping')
             
             # Get database
-            db_name = os.getenv('DATABASE_NAME', 'securedevops')
+            db_name = os.getenv('DATABASE_NAME', 'onyx')
             self.db = self.client[db_name]
             
             # Create indexes for better performance
@@ -380,7 +380,7 @@ async def init_database():
         
         # Create client for Beanie
         beanie_client = AsyncIOMotorClient(mongodb_uri)
-        db_name = os.getenv('DATABASE_NAME', 'securedevops')
+        db_name = os.getenv('DATABASE_NAME', 'onyx')
         beanie_db = beanie_client[db_name]
         
         # Import document models

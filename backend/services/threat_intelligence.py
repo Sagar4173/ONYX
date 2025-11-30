@@ -252,7 +252,7 @@ class ThreatIntelligenceEngine:
         try:
             self.session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=30),
-                headers={"User-Agent": "SecureDevOps-ThreatIntel/1.0"}
+                headers={"User-Agent": "ONYX-ThreatIntel/1.0"}
             )
             
             # Start background tasks

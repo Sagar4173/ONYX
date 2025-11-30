@@ -5,7 +5,7 @@ Enterprise Security Orchestration FastAPI Routes
 RESTful API endpoints for threat intelligence, vulnerability management,
 metrics/KPIs, and automated security orchestration workflows.
 
-Author: SecureDevOpsAI Platform
+Author: ONYX Platform
 Date: August 2025
 """
 

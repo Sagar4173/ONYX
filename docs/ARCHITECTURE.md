@@ -559,30 +559,30 @@ CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app"]
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: securedevops-platform
+  name: onyx-platform
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: securedevops
+      app: onyx
   template:
     metadata:
       labels:
-        app: securedevops
+        app: onyx
     spec:
       containers:
         - name: backend
-          image: securedevops/platform:latest
+          image: onyx/platform:latest
           env:
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:
-                  name: securedevops-secrets
+                  name: onyx-secrets
                   key: mongodb-uri
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: securedevops-secrets
+                  name: onyx-secrets
                   key: openai-api-key
           resources:
             requests:

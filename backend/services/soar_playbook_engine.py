@@ -5,7 +5,7 @@ SOAR Playbook Engine
 Security Orchestration, Automation, and Response (SOAR) playbooks for
 automated incident response, remediation workflows, and real-time alerting.
 
-Author: SecureDevOpsAI Platform  
+Author: ONYX Platform  
 Date: August 2025
 """
 

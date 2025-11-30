@@ -206,9 +206,7 @@ export const UserProfile = ({ onClose }) => {
           updates: prefs.updates ?? false,
           marketing: prefs.marketing ?? false,
         });
-      } catch (error) {
-        console.log("Could not fetch notification preferences, using defaults");
-      } finally {
+      } catch (error) {      } finally {
         setLoadingNotifications(false);
       }
     };
@@ -223,9 +221,7 @@ export const UserProfile = ({ onClose }) => {
         const status = await authAPI.get2FAStatus();
         setTwoFactorEnabled(status.enabled);
         setBackupCodesRemaining(status.backup_codes_remaining || 0);
-      } catch (error) {
-        console.log("Could not fetch 2FA status");
-      } finally {
+      } catch (error) {      } finally {
         setLoading2FA(false);
       }
     };
@@ -252,9 +248,7 @@ export const UserProfile = ({ onClose }) => {
             createdAt: session.created_at,
           }))
         );
-      } catch (error) {
-        console.log("Could not fetch sessions");
-        setActiveSessions([]);
+      } catch (error) {        setActiveSessions([]);
       } finally {
         setLoadingSessions(false);
       }

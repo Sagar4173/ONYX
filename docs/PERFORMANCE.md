@@ -390,7 +390,7 @@ version: "3.8"
 
 services:
   backend:
-    image: securedevops-backend:latest
+    image: onyx-backend:latest
     deploy:
       resources:
         limits:
@@ -555,12 +555,12 @@ server {
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: securedevops-hpa
+  name: onyx-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: securedevops-backend
+    name: onyx-backend
   minReplicas: 3
   maxReplicas: 20
   metrics:
@@ -913,7 +913,7 @@ class AIResponseCache:
 from locust import HttpUser, task, between
 import random
 
-class SecureDevOpsUser(HttpUser):
+class ONYXUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):

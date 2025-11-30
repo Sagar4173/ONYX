@@ -1,5 +1,5 @@
 """
-Authentication Routes for SecureDevOps AI Platform
+Authentication Routes for ONYX Security Intelligence Platform
 Handles user registration, login, logout, password management
 """
 import asyncio
@@ -252,7 +252,7 @@ async def setup_two_factor(
     totp = pyotp.TOTP(secret)
     qr_code_url = totp.provisioning_uri(
         name=current_user.email,
-        issuer_name="SecureDevOps AI"
+        issuer_name="ONYX"
     )
     
     return TwoFactorSetupResponse(
@@ -725,13 +725,13 @@ async def test_email_configuration(
         # Send test email
         success = await email_service.send_email(
             to_email=current_user.email,
-            subject="🧪 Test Email - SecureDevOps Platform",
+            subject="🧪 Test Email - ONYX Platform",
             html_body="""
             <html>
             <body style="font-family: Arial, sans-serif; padding: 20px;">
                 <h2 style="color: #4F46E5;">✅ Email Configuration Test</h2>
                 <p>Congratulations! Your email configuration is working correctly.</p>
-                <p>This test email was sent from the SecureDevOps Platform.</p>
+                <p>This test email was sent from the ONYX Platform.</p>
                 <hr style="margin: 20px 0;">
                 <p style="color: #666; font-size: 12px;">
                     Test performed at: {datetime.utcnow().isoformat()}

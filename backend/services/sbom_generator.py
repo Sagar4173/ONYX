@@ -139,9 +139,9 @@ class SBOMGeneratorService:
 
     CYCLONEDX_VERSION = "1.5"
     SPDX_VERSION = "SPDX-2.3"
-    TOOL_NAME = "SecureDevOps-AI-Platform"
+    TOOL_NAME = "ONYX-Platform"
     TOOL_VERSION = "1.0.0"
-    TOOL_VENDOR = "SecureDevOps"
+    TOOL_VENDOR = "ONYX"
 
     def __init__(self):
         self._package_parsers = {
@@ -681,8 +681,8 @@ class SBOMGeneratorService:
                 "version": self.TOOL_VERSION
             }],
             authors=[{
-                "name": "SecureDevOps AI Platform",
-                "email": "security@securedevops.ai"
+                "name": "ONYX Platform",
+                "email": "security@onyx-security.ai"
             }],
             component=Component(
                 bom_ref=f"pkg:generic/{project_name}@{project_version}",

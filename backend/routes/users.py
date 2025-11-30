@@ -1,5 +1,5 @@
 """
-User Management Routes for SecureDevOps AI Platform
+User Management Routes for ONYX Security Intelligence Platform
 Comprehensive user administration and profile management
 """
 from datetime import datetime

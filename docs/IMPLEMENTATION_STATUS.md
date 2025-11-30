@@ -697,8 +697,8 @@
 
 ```bash
 # Clone and setup development environment
-git clone https://github.com/Sagar4173/SecureDevOpsAI-Platform.git
-cd SecureDevOpsAI-Platform
+git clone https://github.com/Sagar4173/ONYX.git
+cd ONYX
 
 # Install dependencies
 pip install -r backend/requirements.txt
@@ -709,4 +709,4 @@ python backend/app.py &
 npm run dev --prefix frontend
 ```
 
-This roadmap provides a clear path for the continued development of SecureDevOps AI Platform into a world-class security scanning solution that can compete with and surpass existing commercial offerings.
+This roadmap provides a clear path for the continued development of ONYX Security Intelligence Platform into a world-class security scanning solution that can compete with and surpass existing commercial offerings.

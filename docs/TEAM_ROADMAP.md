@@ -242,7 +242,7 @@ This document outlines the role-based implementation plan for ONYX Security Inte
 
 ### **Current Responsibilities:**
 
-- ✅ **Deployment Setup**: Railway backend, Vercel frontend deployment
+- ✅ **Deployment Setup**: Render backend, Vercel frontend deployment
 - ✅ **Infrastructure Configuration**: Basic Docker and environment setup
 - ✅ **System Administration**: Linux-based deployment management
 

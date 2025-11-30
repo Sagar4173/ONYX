@@ -490,7 +490,7 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
             story = []
             
             # Professional Header
-            story.append(Paragraph("🛡️ SecureDevOps AI Platform", title_style))
+            story.append(Paragraph("🛡️ ONYX Security Intelligence Platform", title_style))
             story.append(Paragraph("Comprehensive Security Analysis Report", subtitle_style))
             story.append(Spacer(1, 20))
             
@@ -947,7 +947,7 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
                 textColor=reportlab_colors.grey
             )
             
-            story.append(Paragraph("🛡️ SecureDevOps AI Platform", footer_style))
+            story.append(Paragraph("🛡️ ONYX Security Intelligence Platform", footer_style))
             story.append(Paragraph(f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}", footer_style))
             story.append(Paragraph(f"Report ID: {report_data.get('scan_id', report_id)} | Project: {report_data.get('project_name', 'Unknown')}", footer_style))
             story.append(Paragraph("This report contains confidential security information. Handle with appropriate care.", footer_style))

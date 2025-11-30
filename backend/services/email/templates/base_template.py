@@ -62,7 +62,7 @@ def get_base_template(
                         <td style="background: {header_gradient}; background-color: #10b981; padding: 32px 24px; text-align: center; border-radius: 24px 24px 0 0;">
                             <div style="font-size: 40px; margin-bottom: 12px;">{header_icon}</div>
                             <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 700; letter-spacing: -0.5px;">
-                                SecureDevOps Platform
+                                ONYX Platform
                             </h1>
                             <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 14px; font-weight: 500;">
                                 {header_subtitle}
@@ -82,7 +82,7 @@ def get_base_template(
                         <td style="background-color: #0f172a; padding: 32px; text-align: center; border-top: 1px solid #334155; border-radius: 0 0 24px 24px;">
                             {f'<p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">{footer_text}</p>' if footer_text else ''}
                             <p style="color: #64748b; font-size: 12px; margin: 0;">
-                                © {current_year} SecureDevOps Platform. All rights reserved.
+                                © {current_year} ONYX Platform. All rights reserved.
                             </p>
                             <p style="margin-top: 16px; margin-bottom: 0;">
                                 <a href="{base_url}/privacy-policy" style="color: #64748b; text-decoration: none; font-size: 12px;">Privacy Policy</a>

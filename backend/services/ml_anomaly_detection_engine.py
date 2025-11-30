@@ -5,7 +5,7 @@ Machine Learning Anomaly Detection Engine
 ML-powered anomaly detection for security findings with pattern analysis,
 trend detection, and intelligent alerting for unusual activity.
 
-Author: SecureDevOpsAI Platform  
+Author: ONYX Platform  
 Date: August 2025
 """
 

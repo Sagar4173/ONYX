@@ -1,5 +1,5 @@
 """
-MongoDB models for SecureDevOps Platform
+MongoDB models for ONYX Platform
 """
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional

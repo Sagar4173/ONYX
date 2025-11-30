@@ -7,15 +7,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://securedevopsai-platform-production.up.railway.app/api/$1"
+      "destination": "https://onyx-backend.onrender.com/api/$1"
     },
     {
       "source": "/webhook/(.*)",
-      "destination": "https://securedevopsai-platform-production.up.railway.app/webhook/$1"
+      "destination": "https://onyx-backend.onrender.com/webhook/$1"
     },
     {
       "source": "/health",
-      "destination": "https://securedevopsai-platform-production.up.railway.app/health"
+      "destination": "https://onyx-backend.onrender.com/health"
     },
     {
       "source": "/((?!api/|webhook/|health).*)",
