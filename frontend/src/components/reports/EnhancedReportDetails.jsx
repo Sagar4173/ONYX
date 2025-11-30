@@ -334,7 +334,7 @@ const EnhancedReportDetails = () => {
         filename: `security-report-${report?.project_name || reportId}-${
           new Date().toISOString().split("T")[0]
         }.pdf`,
-        title: "SecureDevOps AI",
+        title: "ONYX Security",
         subtitle: `Security Analysis Report - ${
           report?.project_name || "Vulnerability Scan"
         }`,

@@ -414,7 +414,7 @@ const ComplianceReport = () => {
         filename: `compliance-report-${report.project_name}-${
           new Date().toISOString().split("T")[0]
         }.pdf`,
-        title: "SecureDevOps AI",
+        title: "ONYX Security",
         subtitle: `Compliance Report - ${report.project_name}`,
         showExecutiveSummary: true,
         showTableOfContents: true,
@@ -2001,7 +2001,7 @@ const ComplianceReport = () => {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-white">
-                      SecureDevOps AI Platform
+                      ONYX Security Intelligence
                     </div>
                     <div className="text-xs text-gray-500">
                       Automated Security Assessment & Compliance
@@ -2039,7 +2039,7 @@ const ComplianceReport = () => {
               </div>
 
               <div className="mt-6 pt-4 border-t border-gray-700/30 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500">
-                <span>© {new Date().getFullYear()} SecureDevOps AI</span>
+                <span>© {new Date().getFullYear()} ONYX Security</span>
                 <span className="w-1 h-1 rounded-full bg-gray-600"></span>
                 <span className="flex items-center gap-1">
                   🔒 Confidential Document

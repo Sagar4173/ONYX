@@ -1,9 +1,9 @@
 /**
- * Dashboard Page Component
- * Main dashboard with analytics overview and recent activity
+ * Dashboard Page - Enhanced Enterprise Version
+ * Real-time security overview with live data, charts, and actionable insights
  */
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ShieldCheckIcon,
@@ -12,144 +12,485 @@ import {
   SparklesIcon,
   PlusIcon,
   BoltIcon,
+  FolderIcon,
+  DocumentChartBarIcon,
+  ClockIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  PlayIcon,
+  ArrowRightIcon,
+  ChartBarIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { ChartBarIcon } from "@heroicons/react/24/solid";
 import {
   PageContainer,
   PageHeader,
   GlassCard,
   SectionHeader,
+  LoadingState,
 } from "../layouts";
-import { ProjectList } from "../components/projects";
-import { reportsAPI } from "../services/api";
+import { reportsAPI, projectsAPI } from "../services/api";
+import { dashboardAPI } from "../services/dashboardService";
 
 /**
- * Stat Card Component
+ * Animated Counter Component
  */
-const StatCard = ({ stat, index }) => (
-  <div
-    className="group relative bg-gray-800/30 rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300 hover:scale-[1.02]"
-    style={{ animationDelay: `${index * 0.1}s` }}
-  >
+const AnimatedCounter = ({ value, duration = 1000 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const numValue = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(numValue)) {
+      setCount(value);
+      return;
+    }
+
+    let start = 0;
+    const end = numValue;
+    const increment = end / (duration / 16);
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return (
+    <>
+      {typeof value === "string" && value.includes("%") ? `${count}%` : count}
+    </>
+  );
+};
+
+/**
+ * Enhanced Stat Card with animations
+ */
+const StatCard = ({ stat, index, onClick }) => {
+  const TrendIcon =
+    stat.trend >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
+  const trendColor = stat.trendPositive
+    ? stat.trend >= 0
+      ? "text-emerald-400"
+      : "text-red-400"
+    : stat.trend >= 0
+    ? "text-red-400"
+    : "text-emerald-400";
+
+  return (
     <div
-      className={`absolute inset-0 rounded-xl lg:rounded-2xl bg-gradient-to-r ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity`}
-    />
-    <div className="relative">
-      <div className="flex items-center justify-between mb-3 lg:mb-4">
-        <div
-          className={`p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r ${stat.gradient} shadow-lg`}
-        >
-          <stat.icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+      onClick={onClick}
+      className={`group relative bg-gray-800/30 rounded-2xl p-5 lg:p-6 border border-gray-700/30 
+                hover:border-gray-600/50 transition-all duration-500 hover:scale-[1.02] 
+                hover:shadow-xl hover:shadow-black/20 ${
+                  onClick ? "cursor-pointer" : ""
+                }`}
+      style={{ animationDelay: `${index * 0.1}s` }}
+    >
+      {/* Gradient overlay on hover */}
+      <div
+        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.gradient} opacity-0 
+                      group-hover:opacity-[0.08] transition-all duration-500`}
+      />
+
+      {/* Glow effect */}
+      <div
+        className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r ${stat.gradient} opacity-0 
+                      group-hover:opacity-20 blur-xl transition-all duration-500`}
+      />
+
+      <div className="relative">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div
+            className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg 
+                         group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}
+          >
+            <stat.icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+          </div>
+          {stat.trend !== undefined && stat.trend !== null && (
+            <div
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg 
+                           ${
+                             stat.trend >= 0
+                               ? "bg-emerald-500/10"
+                               : "bg-red-500/10"
+                           }`}
+            >
+              <TrendIcon className={`h-4 w-4 ${trendColor}`} />
+              <span className={`text-xs font-semibold ${trendColor}`}>
+                {Math.abs(stat.trend)}%
+              </span>
+            </div>
+          )}
         </div>
-        <span
-          className={`text-xs lg:text-sm font-medium ${
-            stat.trend >= 0 ? "text-green-400" : "text-red-400"
-          } flex items-center`}
-        >
-          {stat.trend >= 0 ? "↑" : "↓"} {Math.abs(stat.trend)}%
+
+        {/* Value */}
+        <h3 className="text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">
+          <AnimatedCounter value={stat.value} />
+        </h3>
+
+        {/* Label */}
+        <p className="text-sm text-gray-400 font-medium">{stat.label}</p>
+
+        {/* Subtitle */}
+        {stat.subtitle && (
+          <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Security Score Ring Chart
+ */
+const SecurityScoreChart = ({ score = 0, size = 160 }) => {
+  const radius = (size - 20) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
+
+  const getScoreColor = (s) => {
+    if (s >= 80)
+      return { stroke: "url(#scoreGreen)", text: "text-emerald-400" };
+    if (s >= 60) return { stroke: "url(#scoreYellow)", text: "text-amber-400" };
+    return { stroke: "url(#scoreRed)", text: "text-red-400" };
+  };
+
+  const colors = getScoreColor(score);
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        <defs>
+          <linearGradient id="scoreGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#22c55e" />
+          </linearGradient>
+          <linearGradient id="scoreYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#eab308" />
+          </linearGradient>
+          <linearGradient id="scoreRed" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#f43f5e" />
+          </linearGradient>
+        </defs>
+
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(75, 85, 99, 0.3)"
+          strokeWidth="12"
+        />
+
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={colors.stroke}
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+
+      {/* Center content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className={`text-4xl font-bold ${colors.text}`}>
+          <AnimatedCounter value={score} />
+        </span>
+        <span className="text-xs text-gray-400 uppercase tracking-wider mt-1">
+          Score
         </span>
       </div>
-      <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-        {stat.value}
-      </h3>
-      <p className="text-xs lg:text-sm text-gray-400">{stat.label}</p>
     </div>
-  </div>
-);
+  );
+};
 
 /**
- * Quick Action Card Component
+ * Severity Distribution Bar
  */
-const QuickActionCard = ({ action, index }) => (
-  <button
-    key={action.name}
-    onClick={action.action}
-    style={{ animationDelay: `${index * 0.1}s` }}
-    className="group relative p-4 lg:p-6 rounded-xl lg:rounded-2xl bg-gray-800/30 border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300 hover:scale-[1.02] text-left animate-fade-in-up"
-  >
-    <div
-      className={`absolute inset-0 rounded-xl lg:rounded-2xl bg-gradient-to-r ${action.gradient} opacity-0 group-hover:opacity-10 transition-opacity`}
-    />
-    <div className="relative flex items-center space-x-3 lg:space-x-4">
-      <div
-        className={`p-2.5 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r ${action.gradient} shadow-lg`}
-      >
-        <action.icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+const SeverityBar = ({ data }) => {
+  const total =
+    (data?.critical || 0) +
+    (data?.high || 0) +
+    (data?.medium || 0) +
+    (data?.low || 0);
+  if (total === 0)
+    return (
+      <p className="text-sm text-gray-500 text-center py-4">
+        No vulnerabilities found
+      </p>
+    );
+
+  const getWidth = (count) => `${(count / total) * 100}%`;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex h-3 rounded-full overflow-hidden bg-gray-800/50">
+        {data?.critical > 0 && (
+          <div
+            className="bg-gradient-to-r from-red-500 to-rose-500 transition-all duration-500"
+            style={{ width: getWidth(data.critical) }}
+          />
+        )}
+        {data?.high > 0 && (
+          <div
+            className="bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
+            style={{ width: getWidth(data.high) }}
+          />
+        )}
+        {data?.medium > 0 && (
+          <div
+            className="bg-gradient-to-r from-yellow-500 to-lime-500 transition-all duration-500"
+            style={{ width: getWidth(data.medium) }}
+          />
+        )}
+        {data?.low > 0 && (
+          <div
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
+            style={{ width: getWidth(data.low) }}
+          />
+        )}
       </div>
-      <div>
-        <h4 className="text-sm lg:text-base font-semibold text-white">
-          {action.name}
-        </h4>
-        <p className="text-xs lg:text-sm text-gray-400">{action.description}</p>
+
+      <div className="flex flex-wrap gap-4 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 to-rose-500" />
+          <span className="text-gray-400">
+            Critical:{" "}
+            <span className="text-white font-medium">
+              {data?.critical || 0}
+            </span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500" />
+          <span className="text-gray-400">
+            High:{" "}
+            <span className="text-white font-medium">{data?.high || 0}</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-yellow-500 to-lime-500" />
+          <span className="text-gray-400">
+            Medium:{" "}
+            <span className="text-white font-medium">{data?.medium || 0}</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500" />
+          <span className="text-gray-400">
+            Low:{" "}
+            <span className="text-white font-medium">{data?.low || 0}</span>
+          </span>
+        </div>
       </div>
     </div>
+  );
+};
+
+/**
+ * Quick Action Button
+ */
+const QuickAction = ({ action, index }) => (
+  <button
+    onClick={action.onClick}
+    className="group relative flex flex-col items-center justify-center p-5 rounded-xl bg-gray-800/30 
+             border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300 
+             hover:scale-[1.03] text-center flex-1 min-h-[120px]"
+    style={{ animationDelay: `${index * 0.05}s` }}
+  >
+    <div
+      className={`absolute inset-0 rounded-xl bg-gradient-to-br ${action.gradient} 
+                    opacity-0 group-hover:opacity-10 transition-opacity`}
+    />
+    <div
+      className={`p-3 rounded-xl bg-gradient-to-br ${action.gradient} shadow-lg mb-3
+                    group-hover:scale-110 transition-transform`}
+    >
+      <action.icon className="h-5 w-5 text-white" />
+    </div>
+    <span className="text-sm font-medium text-white">{action.name}</span>
+    <span className="text-xs text-gray-500 mt-1">{action.description}</span>
   </button>
 );
 
 /**
- * Activity Item Component
+ * Recent Scan Item
  */
-const ActivityItem = ({ notification }) => (
-  <div className="flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/30 hover:bg-gray-800/50 transition-all">
-    <div className="p-1.5 lg:p-2 rounded-lg lg:rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex-shrink-0">
-      <CheckCircleIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-white" />
+const RecentScanItem = ({ report, onClick }) => {
+  const statusConfig = {
+    completed: {
+      icon: CheckCircleIcon,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10",
+      label: "Completed",
+    },
+    in_progress: {
+      icon: ClockIcon,
+      color: "text-blue-400",
+      bg: "bg-blue-500/10",
+      label: "Running",
+    },
+    failed: {
+      icon: XCircleIcon,
+      color: "text-red-400",
+      bg: "bg-red-500/10",
+      label: "Failed",
+    },
+    pending: {
+      icon: ClockIcon,
+      color: "text-amber-400",
+      bg: "bg-amber-500/10",
+      label: "Pending",
+    },
+  };
+
+  const status = statusConfig[report.status] || statusConfig.pending;
+  const StatusIcon = status.icon;
+
+  const severityCount = report.findings_by_severity || {};
+  const hasCritical = (severityCount.critical || 0) > 0;
+  const hasHigh = (severityCount.high || 0) > 0;
+
+  return (
+    <div
+      onClick={onClick}
+      className="group flex items-center gap-4 p-4 rounded-xl bg-gray-800/20 hover:bg-gray-800/40 
+               border border-transparent hover:border-gray-700/50 transition-all cursor-pointer"
+    >
+      {/* Status Icon */}
+      <div className={`p-2.5 rounded-xl ${status.bg} flex-shrink-0`}>
+        <StatusIcon className={`h-5 w-5 ${status.color}`} />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <h4 className="text-sm font-medium text-white truncate">
+            {report.project_name || "Unknown Project"}
+          </h4>
+          {hasCritical && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-500/20 text-red-400">
+              CRITICAL
+            </span>
+          )}
+          {!hasCritical && hasHigh && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-orange-500/20 text-orange-400">
+              HIGH
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 text-xs text-gray-500">
+          <span>{report.scan_type || "Security"} Scan</span>
+          <span>•</span>
+          <span>{report.total_findings || 0} findings</span>
+          <span>•</span>
+          <span>{new Date(report.created_at).toLocaleDateString()}</span>
+        </div>
+      </div>
+
+      {/* Arrow */}
+      <ArrowRightIcon
+        className="w-4 h-4 text-gray-500 group-hover:text-white 
+                                group-hover:translate-x-1 transition-all flex-shrink-0"
+      />
     </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-xs lg:text-sm font-medium text-white truncate">
-        {notification.data?.project_name || "Unknown Project"}
-      </p>
-      <p className="text-xs text-gray-400 truncate">{notification.message}</p>
-    </div>
-    <span className="text-xs text-gray-500 flex-shrink-0">
-      {notification.timestamp.toLocaleTimeString()}
-    </span>
-  </div>
-);
+  );
+};
 
 /**
- * Dashboard Page
+ * Main Dashboard Component
  */
 const Dashboard = ({ notifications = [] }) => {
-  // Fetch analytics data
-  const { data: analyticsData } = useQuery({
-    queryKey: ["analytics-overview"],
-    queryFn: () => reportsAPI.getAnalyticsOverview(30),
+  const navigate = useNavigate();
+
+  // Fetch dashboard stats
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: () => dashboardAPI.getQuickStats(),
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: reportsData } = useQuery({
+  // Fetch recent reports
+  const { data: reportsData, isLoading: reportsLoading } = useQuery({
     queryKey: ["recent-reports"],
-    queryFn: () => reportsAPI.getReports({ limit: 100 }),
+    queryFn: () =>
+      reportsAPI.getReports({
+        limit: 10,
+        sort_by: "created_at",
+        sort_order: "desc",
+      }),
   });
 
-  // Calculate stats from real data
-  const stats = [
+  // Calculate severity distribution from all reports
+  const severityDistribution = React.useMemo(() => {
+    const reports = reportsData?.reports || reportsData?.data || [];
+    return reports.reduce(
+      (acc, report) => {
+        const severity = report.findings_by_severity || {};
+        acc.critical += severity.critical || 0;
+        acc.high += severity.high || 0;
+        acc.medium += severity.medium || 0;
+        acc.low += severity.low || 0;
+        return acc;
+      },
+      { critical: 0, high: 0, medium: 0, low: 0 }
+    );
+  }, [reportsData]);
+
+  // Stats cards data
+  const statsCards = [
     {
-      label: "Total Scans",
-      value: reportsData?.data?.length || 0,
-      trend: 12,
-      icon: ShieldCheckIcon,
+      label: "Total Projects",
+      value: stats?.totalProjects || 0,
+      trend: stats?.projectsTrend,
+      trendPositive: true,
+      icon: FolderIcon,
       gradient: "from-blue-500 to-cyan-500",
+      subtitle: "Active repositories",
     },
     {
-      label: "Critical Issues",
-      value: analyticsData?.critical_count || 0,
-      trend: -8,
+      label: "Security Scans",
+      value: stats?.totalScans || 0,
+      trend: stats?.scansTrend,
+      trendPositive: true,
+      icon: ShieldCheckIcon,
+      gradient: "from-violet-500 to-purple-500",
+      subtitle: "Total scans performed",
+    },
+    {
+      label: "Open Issues",
+      value: stats?.openIssues || 0,
+      trend: stats?.issuesTrend,
+      trendPositive: false, // Lower is better
       icon: ExclamationTriangleIcon,
-      gradient: "from-red-500 to-pink-500",
-    },
-    {
-      label: "Issues Resolved",
-      value: analyticsData?.fixed_count || 0,
-      trend: 24,
-      icon: CheckCircleIcon,
-      gradient: "from-green-500 to-emerald-500",
+      gradient: "from-orange-500 to-red-500",
+      subtitle: "Critical & high severity",
     },
     {
       label: "Security Score",
-      value: `${analyticsData?.security_score || 85}%`,
-      trend: 5,
+      value: `${Math.round(stats?.avgSecurityScore || 85)}%`,
+      trend: stats?.scoreTrend,
+      trendPositive: true,
       icon: SparklesIcon,
-      gradient: "from-purple-500 to-pink-500",
+      gradient: "from-emerald-500 to-green-500",
+      subtitle: "Overall health",
     },
   ];
 
@@ -157,29 +498,47 @@ const Dashboard = ({ notifications = [] }) => {
   const quickActions = [
     {
       name: "New Project",
-      description: "Create and scan a repository",
+      description: "Add repository",
       icon: PlusIcon,
       gradient: "from-blue-500 to-purple-600",
-      action: () => (window.location.href = "/projects?action=new"),
+      onClick: () => navigate("/projects?action=new"),
+    },
+    {
+      name: "Run Scan",
+      description: "Start security scan",
+      icon: PlayIcon,
+      gradient: "from-emerald-500 to-green-500",
+      onClick: () => navigate("/projects"),
     },
     {
       name: "View Reports",
-      description: "Review security findings",
-      icon: ShieldCheckIcon,
-      gradient: "from-green-500 to-emerald-500",
-      action: () => (window.location.href = "/reports"),
+      description: "See all findings",
+      icon: DocumentChartBarIcon,
+      gradient: "from-orange-500 to-amber-500",
+      onClick: () => navigate("/reports"),
     },
     {
       name: "Analytics",
-      description: "Explore security trends",
-      icon: BoltIcon,
-      gradient: "from-orange-500 to-red-500",
-      action: () => (window.location.href = "/analytics"),
+      description: "Explore trends",
+      icon: ChartBarIcon,
+      gradient: "from-pink-500 to-rose-500",
+      onClick: () => navigate("/analytics"),
     },
   ];
 
+  const recentReports = reportsData?.reports || reportsData?.data || [];
+
+  if (statsLoading) {
+    return (
+      <PageContainer>
+        <LoadingState message="Loading dashboard..." />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
+      {/* Header */}
       <PageHeader
         title="Security Dashboard"
         description="Real-time overview of your security posture"
@@ -188,7 +547,10 @@ const Dashboard = ({ notifications = [] }) => {
         actions={
           <Link
             to="/projects?action=new"
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-lg"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 
+                     text-white font-medium hover:from-blue-600 hover:to-purple-700 
+                     transition-all flex items-center gap-2 shadow-lg hover:shadow-xl
+                     hover:scale-105"
           >
             <PlusIcon className="h-4 w-4" />
             <span>New Project</span>
@@ -197,100 +559,140 @@ const Dashboard = ({ notifications = [] }) => {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8 lg:mb-12">
-        {stats.map((stat, index) => (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+        {statsCards.map((stat, index) => (
           <StatCard key={stat.label} stat={stat} index={index} />
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <GlassCard className="mb-8 lg:mb-12">
-        <SectionHeader
-          title="Quick Actions"
-          description="Common security operations"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4">
-          {quickActions.map((action, index) => (
-            <QuickActionCard key={action.name} action={action} index={index} />
-          ))}
-        </div>
-      </GlassCard>
-
-      {/* Activity and Trends */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8 lg:mb-12">
-        {/* Recent Activity */}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Security Score & Severity - Left Column */}
         <GlassCard>
           <SectionHeader
-            title="Recent Activity"
-            description="Latest security scan updates"
+            title="Security Overview"
+            description="Current security status"
           />
-          <div className="space-y-3 lg:space-y-4 max-h-64 lg:max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="text-center py-6 lg:py-8">
-                <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gray-800/50 inline-block mb-3 lg:mb-4">
-                  <SparklesIcon className="h-6 w-6 lg:h-8 lg:w-8 text-gray-400" />
+
+          <div className="flex flex-col items-center py-4">
+            <SecurityScoreChart
+              score={Math.round(stats?.avgSecurityScore || 85)}
+            />
+            <p className="text-sm text-gray-400 mt-4 text-center">
+              {(stats?.avgSecurityScore || 85) >= 80
+                ? "Your security posture is healthy"
+                : (stats?.avgSecurityScore || 85) >= 60
+                ? "Some issues need attention"
+                : "Critical issues detected"}
+            </p>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-800/50">
+            <h4 className="text-sm font-medium text-white mb-4">
+              Vulnerability Distribution
+            </h4>
+            <SeverityBar data={severityDistribution} />
+          </div>
+        </GlassCard>
+
+        {/* Quick Actions - Middle Column */}
+        <GlassCard>
+          <SectionHeader
+            title="Quick Actions"
+            description="Common security operations"
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            {quickActions.map((action, index) => (
+              <QuickAction key={action.name} action={action} index={index} />
+            ))}
+          </div>
+        </GlassCard>
+
+        {/* Recent Scans - Right Column */}
+        <GlassCard>
+          <div className="flex items-center justify-between mb-4">
+            <SectionHeader
+              title="Recent Scans"
+              description="Latest security scans"
+            />
+            <Link
+              to="/reports"
+              className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              View all →
+            </Link>
+          </div>
+
+          <div className="space-y-2">
+            {reportsLoading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto" />
+              </div>
+            ) : recentReports.length === 0 ? (
+              <div className="text-center py-4">
+                <div className="p-2.5 rounded-xl bg-gray-800/50 inline-block mb-2">
+                  <DocumentChartBarIcon className="h-5 w-5 text-gray-500" />
                 </div>
-                <p className="text-gray-400 text-sm lg:text-base">
-                  No recent activity
-                </p>
-                <p className="text-xs lg:text-sm text-gray-500 mt-1 lg:mt-2">
-                  Start a scan to see activity here
+                <p className="text-sm text-gray-400">No scans yet</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Create a project to start scanning
                 </p>
               </div>
             ) : (
-              notifications
-                .slice(0, 5)
-                .map((notification) => (
-                  <ActivityItem
-                    key={notification.id}
-                    notification={notification}
+              recentReports
+                .slice(0, 4)
+                .map((report) => (
+                  <RecentScanItem
+                    key={report.id || report._id}
+                    report={report}
+                    onClick={() =>
+                      navigate(`/report/${report.id || report._id}`)
+                    }
                   />
                 ))
             )}
           </div>
         </GlassCard>
-
-        {/* Security Trends */}
-        <GlassCard>
-          <SectionHeader
-            title="Security Trends"
-            description="Vulnerability insights over time"
-          />
-          <div className="flex-1 flex flex-col items-center justify-center py-8 lg:py-12">
-            <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 inline-block mb-3 lg:mb-4">
-              <ChartBarIcon className="h-8 w-8 lg:h-12 lg:w-12 text-purple-400" />
-            </div>
-            <p className="text-gray-400 text-sm lg:text-base mb-1 lg:mb-2">
-              Advanced Analytics
-            </p>
-            <p className="text-xs lg:text-sm text-gray-500 text-center">
-              View detailed trends in the Analytics section
-            </p>
-            <Link
-              to="/analytics"
-              className="mt-4 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm transition-colors"
-            >
-              View Analytics →
-            </Link>
-          </div>
-        </GlassCard>
       </div>
 
-      {/* Recent Projects */}
+      {/* Bottom Row - Live Activity */}
       <GlassCard>
         <SectionHeader
-          title="Recent Scan Reports"
-          description="Your latest security scan results"
-          action={
-            <Link
-              to="/reports"
-              className="px-3 lg:px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800 transition-all text-xs lg:text-sm"
-            >
-              View All Reports
-            </Link>
-          }
+          title="Live Activity"
+          description="Real-time notifications and updates"
         />
-        <ProjectList />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[200px] overflow-y-auto">
+          {notifications.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <div className="p-3 rounded-xl bg-gray-800/50 inline-block mb-3">
+                <BoltIcon className="h-6 w-6 text-gray-500" />
+              </div>
+              <p className="text-sm text-gray-400">No recent activity</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Updates will appear here in real-time
+              </p>
+            </div>
+          ) : (
+            notifications.slice(0, 6).map((notif) => (
+              <div
+                key={notif.id}
+                className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-colors"
+              >
+                <div className="p-2 rounded-lg bg-blue-500/10 flex-shrink-0">
+                  <BoltIcon className="w-4 h-4 text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white truncate">{notif.message}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(notif.timestamp).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </GlassCard>
     </PageContainer>
   );

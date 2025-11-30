@@ -1,7 +1,7 @@
 {
   "name": "securedevops-frontend",
   "version": "1.0.0",
-  "description": "React frontend for SecureDevOps AI Platform",
+  "description": "ONYX - Security Intelligence Platform",
   "private": true,
   "dependencies": {
     "@headlessui/react": "^1.7.17",

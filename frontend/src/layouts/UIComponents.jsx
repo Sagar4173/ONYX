@@ -1,6 +1,11 @@
 /**
- * DashboardLayout - Enterprise-level layout wrapper for authenticated pages
- * Provides consistent structure with sidebar, header, and main content area
+ * UIComponents - Shared UI Components Library
+ * Reusable components used across all pages:
+ * - PageContainer: Full-page wrapper with gradient background
+ * - PageHeader: Page title, description, breadcrumb, and actions
+ * - GlassCard: Glass morphism card container
+ * - SectionHeader: Section title with optional action button
+ * - EmptyState, LoadingState, ErrorState: State indicators
  */
 import React from "react";
 import { Link, useLocation } from "react-router-dom";

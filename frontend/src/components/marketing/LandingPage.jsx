@@ -1,730 +1,766 @@
-/**
- * LandingPage Component - Public-facing marketing page
- * Modern design showcasing platform features and benefits
- */
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ShieldCheckIcon,
   SparklesIcon,
-  BoltIcon,
+  CubeTransparentIcon,
   ChartBarIcon,
-  CodeBracketIcon,
-  LockClosedIcon,
   CloudArrowUpIcon,
-  CheckCircleIcon,
-  ArrowRightIcon,
-  PlayCircleIcon,
-  UserGroupIcon,
-  GlobeAltIcon,
-  ClockIcon,
-  DocumentTextIcon,
+  LockClosedIcon,
+  BoltIcon,
+  CommandLineIcon,
+  EyeIcon,
   CpuChipIcon,
+  ServerStackIcon,
+  CodeBracketIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  PlayIcon,
+  ChevronRightIcon,
   BeakerIcon,
+  FingerPrintIcon,
+  GlobeAltIcon,
   RocketLaunchIcon,
-  ShieldExclamationIcon,
-  ArchiveBoxIcon,
-  BuildingOfficeIcon,
-  Bars3Icon,
-  XMarkIcon,
-  ArrowUpIcon,
+  ArrowTrendingUpIcon,
+  UserGroupIcon,
+  BuildingOffice2Icon,
+  AcademicCapIcon,
+  DocumentCheckIcon,
+  ExclamationTriangleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
-import {
-  ShieldCheckIcon as ShieldCheckSolid,
-  SparklesIcon as SparklesSolid,
-  BoltIcon as BoltSolid,
-} from "@heroicons/react/24/solid";
+import { StarIcon } from "@heroicons/react/24/solid";
+import { OnyxLogo } from "../common";
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(0);
   const [scrollY, setScrollY] = useState(0);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [activeScannerDemo, setActiveScannerDemo] = useState(0);
-  const [vulnerabilityCount, setVulnerabilityCount] = useState(0);
-  const [scanCount, setScanCount] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [counters, setCounters] = useState({
+    scans: 0,
+    vulnerabilities: 0,
+    developers: 0,
+    uptime: 0,
+  });
+  const [isVisible, setIsVisible] = useState({});
+  const heroRef = useRef(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
-  // Smooth scroll function
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-      setMobileMenuOpen(false);
-    }
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+  // Handle scroll
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-      setShowBackToTop(window.scrollY > 500);
-    };
+    const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Auto-rotate features
+  // Handle mouse move for hero parallax
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % 6);
-    }, 5000);
-    return () => clearInterval(interval);
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   // Animate counters
   useEffect(() => {
-    const duration = 2000;
-    const steps = 50;
-    const increment = duration / steps;
-
-    let vulnStep = 0;
-    let scanStep = 0;
-
-    const vulnInterval = setInterval(() => {
-      vulnStep++;
-      setVulnerabilityCount(Math.floor((vulnStep / steps) * 45000));
-      if (vulnStep >= steps) clearInterval(vulnInterval);
-    }, increment);
-
-    const scanInterval = setInterval(() => {
-      scanStep++;
-      setScanCount(Math.floor((scanStep / steps) * 12000));
-      if (scanStep >= steps) clearInterval(scanInterval);
-    }, increment);
-
-    return () => {
-      clearInterval(vulnInterval);
-      clearInterval(scanInterval);
+    const targets = {
+      scans: 2847563,
+      vulnerabilities: 1583947,
+      developers: 50000,
+      uptime: 99.99,
     };
+    const duration = 2000;
+    const steps = 60;
+    const interval = duration / steps;
+
+    let step = 0;
+    const timer = setInterval(() => {
+      step++;
+      setCounters({
+        scans: Math.floor((targets.scans * step) / steps),
+        vulnerabilities: Math.floor((targets.vulnerabilities * step) / steps),
+        developers: Math.floor((targets.developers * step) / steps),
+        uptime: parseFloat(((targets.uptime * step) / steps).toFixed(2)),
+      });
+      if (step >= steps) clearInterval(timer);
+    }, interval);
+
+    return () => clearInterval(timer);
   }, []);
 
-  // Auto-rotate scanner demo
+  // Auto-rotate features
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveScannerDemo((prev) => (prev + 1) % 6);
-    }, 4000);
-    return () => clearInterval(interval);
+    const timer = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % features.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Auto-rotate testimonials
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(timer);
   }, []);
 
   const features = [
     {
-      icon: ShieldCheckIcon,
-      title: "6 Security Scanners",
+      icon: CpuChipIcon,
+      title: "AI-Powered Analysis",
       description:
-        "Semgrep, Trivy, GitLeaks, Lynis, Safety, and Bandit integrated",
-      gradient: "from-blue-500 to-cyan-500",
+        "Advanced machine learning models trained on millions of code patterns to detect sophisticated threats invisible to traditional scanners.",
+      gradient: "from-cyan-500 to-blue-600",
+      stats: "99.7% accuracy",
+      details: [
+        "Deep code semantic analysis",
+        "Zero-day threat prediction",
+        "Contextual vulnerability scoring",
+      ],
     },
     {
-      icon: SparklesIcon,
-      title: "AI-Powered Analysis",
-      description: "GPT-4 intelligence for smart vulnerability assessment",
-      gradient: "from-purple-500 to-pink-500",
+      icon: ShieldCheckIcon,
+      title: "Multi-Layer Protection",
+      description:
+        "Comprehensive defense-in-depth strategy with 12+ specialized security scanners working in parallel.",
+      gradient: "from-violet-500 to-purple-600",
+      stats: "12+ scanners",
+      details: [
+        "SAST, DAST, SCA integration",
+        "Container security scanning",
+        "Infrastructure as Code analysis",
+      ],
     },
     {
       icon: BoltIcon,
-      title: "Real-time Scanning",
-      description: "Instant security insights with WebSocket updates",
-      gradient: "from-orange-500 to-red-500",
-    },
-    {
-      icon: ChartBarIcon,
-      title: "Advanced Analytics",
-      description: "Comprehensive dashboards and trend analysis",
-      gradient: "from-green-500 to-emerald-500",
-    },
-    {
-      icon: ClockIcon,
-      title: "Audit Logging",
+      title: "Real-Time Detection",
       description:
-        "Complete audit trail for compliance and security monitoring",
-      gradient: "from-indigo-500 to-purple-500",
+        "Instant threat identification with sub-second response times. Never miss a vulnerability in your CI/CD pipeline.",
+      gradient: "from-amber-500 to-orange-600",
+      stats: "<100ms response",
+      details: [
+        "Live code monitoring",
+        "Instant PR/MR analysis",
+        "Automated blocking capabilities",
+      ],
     },
     {
-      icon: BuildingOfficeIcon,
-      title: "Multi-Framework Compliance",
-      description: "SOX, HIPAA, ISO 27001, PCI DSS, GDPR, and more",
-      gradient: "from-teal-500 to-cyan-500",
+      icon: GlobeAltIcon,
+      title: "Global Threat Intelligence",
+      description:
+        "Connected to worldwide vulnerability databases, CVE feeds, and proprietary threat intelligence networks.",
+      gradient: "from-emerald-500 to-teal-600",
+      stats: "500K+ CVEs tracked",
+      details: [
+        "NVD, MITRE integration",
+        "Dark web monitoring",
+        "Industry-specific threats",
+      ],
     },
+    {
+      icon: DocumentCheckIcon,
+      title: "Compliance Automation",
+      description:
+        "Automatic compliance checking against SOC2, HIPAA, PCI-DSS, GDPR, and 15+ regulatory frameworks.",
+      gradient: "from-rose-500 to-pink-600",
+      stats: "15+ frameworks",
+      details: [
+        "Automated audit reports",
+        "Policy enforcement",
+        "Continuous compliance monitoring",
+      ],
+    },
+    {
+      icon: RocketLaunchIcon,
+      title: "DevSecOps Integration",
+      description:
+        "Seamless integration with GitHub, GitLab, Azure DevOps, Jenkins, and all major CI/CD platforms.",
+      gradient: "from-indigo-500 to-blue-600",
+      stats: "50+ integrations",
+      details: ["Native Git hooks", "IDE plugins", "API-first architecture"],
+    },
+  ];
+
+  const securityMetrics = [
+    {
+      label: "Scans Completed",
+      value: counters.scans.toLocaleString(),
+      icon: ChartBarIcon,
+    },
+    {
+      label: "Vulnerabilities Found",
+      value: counters.vulnerabilities.toLocaleString(),
+      icon: ExclamationTriangleIcon,
+    },
+    {
+      label: "Developers Protected",
+      value: counters.developers.toLocaleString() + "+",
+      icon: UserGroupIcon,
+    },
+    { label: "Platform Uptime", value: counters.uptime + "%", icon: ClockIcon },
   ];
 
   const scanners = [
     {
       name: "Semgrep",
-      description: "Static Application Security Testing",
-      languages: "20+ Languages",
-      icon: CodeBracketIcon,
-      color: "from-blue-500 to-indigo-500",
+      category: "SAST",
+      description: "Semantic code analysis",
     },
     {
       name: "Trivy",
-      description: "Container & Dependency Scanning",
-      languages: "CVE Detection",
-      icon: ArchiveBoxIcon,
-      color: "from-purple-500 to-pink-500",
+      category: "Container",
+      description: "Container vulnerability scanning",
     },
-    {
-      name: "GitLeaks",
-      description: "Secret Detection",
-      languages: "Git History",
-      icon: LockClosedIcon,
-      color: "from-orange-500 to-red-500",
-    },
-    {
-      name: "Lynis",
-      description: "System Security Auditing",
-      languages: "Infrastructure",
-      icon: ShieldExclamationIcon,
-      color: "from-green-500 to-emerald-500",
-    },
-    {
-      name: "Safety",
-      description: "Python Dependency Scanning",
-      languages: "PyPI Packages",
-      icon: BeakerIcon,
-      color: "from-yellow-500 to-orange-500",
-    },
+    { name: "GitLeaks", category: "Secrets", description: "Secrets detection" },
     {
       name: "Bandit",
-      description: "Python Security Analysis",
-      languages: "AST-based",
-      icon: CpuChipIcon,
-      color: "from-cyan-500 to-blue-500",
-    },
-  ];
-
-  const stats = [
-    { label: "Security Scanners", value: "6+", icon: ShieldCheckIcon },
-    { label: "Languages Supported", value: "20+", icon: CodeBracketIcon },
-    { label: "Compliance Frameworks", value: "9", icon: DocumentTextIcon },
-    { label: "AI Analysis", value: "GPT-4", icon: SparklesIcon },
-  ];
-
-  const benefits = [
-    {
-      icon: BoltIcon,
-      title: "Lightning Fast",
-      description:
-        "Average scan completion in under 5 minutes with parallel processing",
+      category: "Python",
+      description: "Python security linting",
     },
     {
-      icon: SparklesIcon,
-      title: "AI-Powered",
-      description:
-        "GPT-4 intelligence provides context-aware vulnerability analysis",
+      name: "ESLint Security",
+      category: "JavaScript",
+      description: "JS/TS security rules",
     },
     {
-      icon: LockClosedIcon,
-      title: "Enterprise Security",
-      description:
-        "Bank-grade encryption, RBAC, and comprehensive audit logging",
+      name: "OWASP ZAP",
+      category: "DAST",
+      description: "Dynamic application testing",
     },
     {
-      icon: ChartBarIcon,
-      title: "Actionable Insights",
-      description:
-        "Clear remediation steps with code examples and priority ranking",
+      name: "Nuclei",
+      category: "Vulnerability",
+      description: "Template-based scanning",
     },
     {
-      icon: CloudArrowUpIcon,
-      title: "Cloud Native",
-      description: "Scalable architecture with MongoDB and async processing",
+      name: "Checkov",
+      category: "IaC",
+      description: "Infrastructure as Code scanning",
     },
-    {
-      icon: UserGroupIcon,
-      title: "Team Collaboration",
-      description: "Project-based organization with role-based access control",
-    },
-  ];
-
-  const useCases = [
-    {
-      title: "Development Teams",
-      description: "Integrate security into your CI/CD pipeline",
-      icon: CodeBracketIcon,
-      features: ["Pre-commit scanning", "PR automation", "Developer feedback"],
-    },
-    {
-      title: "Security Teams",
-      description: "Centralized security monitoring and compliance",
-      icon: ShieldCheckIcon,
-      features: [
-        "Vulnerability tracking",
-        "Compliance reports",
-        "Audit trails",
-      ],
-    },
-    {
-      title: "Enterprise",
-      description: "Scale security across multiple projects",
-      icon: BuildingOfficeIcon,
-      features: ["Multi-tenant", "SSO integration", "Custom policies"],
-    },
-  ];
-
-  const complianceFrameworks = [
-    "SOX",
-    "HIPAA",
-    "ISO 27001",
-    "PCI DSS",
-    "GDPR",
-    "SOC2",
-    "NIST",
-    "CIS",
-    "OWASP",
   ];
 
   const testimonials = [
     {
       name: "Sarah Chen",
-      role: "Head of Security, TechCorp",
-      avatar: "👩‍💼",
+      role: "CISO",
+      company: "TechCorp Global",
+      image: "SC",
       quote:
-        "SecureDevOps AI reduced our vulnerability response time by 70%. The AI-powered insights are game-changing.",
+        "ONYX transformed our security posture. We reduced vulnerability remediation time by 73% and achieved SOC2 compliance in record time.",
       rating: 5,
     },
     {
-      name: "Michael Rodriguez",
-      role: "DevOps Lead, StartupXYZ",
-      avatar: "👨‍💻",
+      name: "Marcus Rodriguez",
+      role: "VP of Engineering",
+      company: "FinanceFlow Inc.",
+      image: "MR",
       quote:
-        "Best security platform we've used. The integration with our CI/CD pipeline was seamless and scanning is incredibly fast.",
+        "The AI-powered analysis catches issues our previous tools missed entirely. The ROI was evident within the first month.",
       rating: 5,
     },
     {
       name: "Emily Watson",
-      role: "CTO, FinanceApp",
-      avatar: "👩‍💼",
+      role: "Security Lead",
+      company: "HealthTech Solutions",
+      image: "EW",
       quote:
-        "Compliance reporting alone saved us weeks of work. SOX and PCI DSS assessments are now automated.",
+        "HIPAA compliance automation alone saved us hundreds of hours. The platform is incredibly intuitive for our development teams.",
       rating: 5,
     },
   ];
 
   const pricingPlans = [
     {
-      name: "Free",
-      price: "$0",
+      name: "Starter",
+      price: "Free",
       period: "forever",
-      description: "Perfect for individual developers",
+      description: "Perfect for individual developers and small projects",
       features: [
-        "5 scans per month",
+        "Up to 3 repositories",
+        "100 scans per month",
         "Basic vulnerability detection",
         "Community support",
-        "Public repositories only",
-        "Email notifications",
+        "GitHub integration",
       ],
-      cta: "Start Free",
+      cta: "Get Started",
       popular: false,
       gradient: "from-gray-600 to-gray-700",
     },
     {
-      name: "Pro",
+      name: "Professional",
       price: "$49",
-      period: "per user/month",
-      description: "For professional development teams",
+      period: "per month",
+      description: "For growing teams that need advanced security",
       features: [
+        "Unlimited repositories",
         "Unlimited scans",
         "AI-powered analysis",
-        "Private repositories",
         "Priority support",
-        "Advanced analytics",
-        "Slack & Teams integration",
-        "Compliance reporting",
-        "API access",
+        "All integrations",
+        "Custom rules engine",
+        "Team collaboration",
+        "Compliance reports",
       ],
       cta: "Start Free Trial",
       popular: true,
-      gradient: "from-blue-600 to-purple-600",
+      gradient: "from-cyan-500 to-violet-600",
     },
     {
       name: "Enterprise",
       price: "Custom",
-      period: "contact sales",
-      description: "For large organizations",
+      period: "per year",
+      description: "For organizations requiring maximum security",
       features: [
-        "Everything in Pro",
-        "Custom compliance frameworks",
-        "Dedicated support",
-        "SSO & LDAP",
-        "On-premises deployment",
-        "SLA guarantees",
+        "Everything in Professional",
+        "Dedicated infrastructure",
+        "SSO / SAML integration",
+        "Custom SLA",
+        "On-premise deployment",
+        "Advanced threat intelligence",
+        "Dedicated success manager",
         "Custom integrations",
-        "Security training",
       ],
       cta: "Contact Sales",
       popular: false,
-      gradient: "from-purple-600 to-pink-600",
+      gradient: "from-violet-600 to-purple-700",
     },
   ];
 
-  const integrations = [
-    { name: "GitHub", logo: "🐙", connected: true },
-    { name: "GitLab", logo: "🦊", connected: true },
-    { name: "Slack", logo: "💬", connected: true },
-    { name: "Teams", logo: "👥", connected: true },
-    { name: "JIRA", logo: "📋", connected: false },
-    { name: "Jenkins", logo: "⚙️", connected: false },
+  const complianceFrameworks = [
+    { name: "SOC 2", icon: "🔒" },
+    { name: "HIPAA", icon: "🏥" },
+    { name: "PCI-DSS", icon: "💳" },
+    { name: "GDPR", icon: "🇪🇺" },
+    { name: "ISO 27001", icon: "📋" },
+    { name: "NIST", icon: "🏛️" },
+    { name: "FedRAMP", icon: "🦅" },
+    { name: "OWASP", icon: "🛡️" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gray-950 text-white overflow-x-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Gradient orbs */}
+        <div
+          className="absolute w-[800px] h-[800px] rounded-full opacity-20 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(34,211,238,0.4) 0%, transparent 70%)",
+            left: `${-200 + mousePosition.x * 0.02}px`,
+            top: `${-200 + mousePosition.y * 0.02}px`,
+            transform: `translateY(${scrollY * 0.2}px)`,
+          }}
+        />
+        <div
+          className="absolute w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)",
+            right: `${-100 - mousePosition.x * 0.01}px`,
+            top: `${200 + mousePosition.y * 0.01}px`,
+            transform: `translateY(${scrollY * -0.1}px)`,
+          }}
+        />
+        <div
+          className="absolute w-[500px] h-[500px] rounded-full opacity-15 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%)",
+            left: "40%",
+            bottom: "-200px",
+            transform: `translateY(${scrollY * -0.15}px)`,
+          }}
+        />
+
+        {/* Grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: "100px 100px",
+            transform: `translateY(${scrollY * 0.1}px)`,
+          }}
+        />
+      </div>
+
       {/* Navigation */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrollY > 50
-            ? "bg-gray-900/95 backdrop-blur-xl border-b border-white/10 shadow-2xl"
+            ? "bg-gray-950/90 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl"
             : "bg-transparent"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-                <ShieldCheckSolid className="w-6 h-6 text-white" />
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+                <OnyxLogo variant="glow" className="w-10 h-10 relative" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                SecureDevOps AI
-              </span>
-            </div>
+              <div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+                  ONYX
+                </span>
+                <span className="hidden sm:block text-[10px] text-gray-500 uppercase tracking-[0.2em] -mt-1">
+                  Security Intelligence
+                </span>
+              </div>
+            </Link>
 
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center gap-6">
-              <button
-                onClick={() => scrollToSection("features")}
-                className="text-gray-300 hover:text-white transition-colors"
+            {/* Nav Links */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a
+                href="#features"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
               >
                 Features
-              </button>
-              <button
-                onClick={() => scrollToSection("scanners")}
-                className="text-gray-300 hover:text-white transition-colors"
+              </a>
+              <a
+                href="#scanners"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
               >
                 Scanners
-              </button>
-              <button
-                onClick={() => scrollToSection("testimonials")}
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                Testimonials
-              </button>
-              <button
-                onClick={() => scrollToSection("pricing")}
-                className="text-gray-300 hover:text-white transition-colors"
+              </a>
+              <a
+                href="#pricing"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
               >
                 Pricing
-              </button>
+              </a>
+              <a
+                href="#testimonials"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+              >
+                Reviews
+              </a>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate("/login")}
-                className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                className="hidden sm:block text-gray-300 hover:text-white transition-colors text-sm font-medium"
               >
                 Sign In
               </button>
               <button
                 onClick={() => navigate("/register")}
-                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl text-white font-semibold transition-all shadow-lg hover:shadow-2xl"
+                className="relative group px-5 py-2.5 rounded-xl font-semibold text-sm overflow-hidden"
               >
-                Get Started
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600 transition-transform group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative text-white flex items-center gap-2">
+                  Start Free Trial
+                  <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </span>
               </button>
             </div>
-
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-300 hover:text-white transition-colors"
-            >
-              {mobileMenuOpen ? (
-                <XMarkIcon className="w-6 h-6" />
-              ) : (
-                <Bars3Icon className="w-6 h-6" />
-              )}
-            </button>
           </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-white/10 bg-gray-900/95 backdrop-blur-xl">
-              <div className="flex flex-col gap-4">
-                <button
-                  onClick={() => scrollToSection("features")}
-                  className="text-left text-gray-300 hover:text-white transition-colors px-4"
-                >
-                  Features
-                </button>
-                <button
-                  onClick={() => scrollToSection("scanners")}
-                  className="text-left text-gray-300 hover:text-white transition-colors px-4"
-                >
-                  Scanners
-                </button>
-                <button
-                  onClick={() => scrollToSection("testimonials")}
-                  className="text-left text-gray-300 hover:text-white transition-colors px-4"
-                >
-                  Testimonials
-                </button>
-                <button
-                  onClick={() => scrollToSection("pricing")}
-                  className="text-left text-gray-300 hover:text-white transition-colors px-4"
-                >
-                  Pricing
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-left text-gray-300 hover:text-white transition-colors px-4"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => {
-                    navigate("/register");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="mx-4 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white font-semibold"
-                >
-                  Get Started
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-sm font-medium mb-8">
-              <SparklesSolid className="w-4 h-4" />
-              AI-Powered Security Platform
+      <section
+        ref={heroRef}
+        className="relative min-h-screen flex items-center justify-center pt-20"
+      >
+        <div className="max-w-7xl mx-auto px-6 py-20">
+          <div className="text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-8">
+              <SparklesIcon className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm text-gray-300">
+                AI-Powered Security Intelligence Platform
+              </span>
+              <ChevronRightIcon className="w-4 h-4 text-gray-500" />
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-              Secure Your Code with
-              <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                AI Intelligence
+
+            {/* Main Heading */}
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
+              <span className="block text-white">Unbreakable</span>
+              <span className="block bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+                Security Intelligence
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-              Comprehensive security scanning powered by 6 industry-leading
-              tools and GPT-4 AI analysis. Detect vulnerabilities, secrets, and
-              compliance issues in real-time.
+
+            {/* Subheading */}
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+              Enterprise-grade AI security platform that scans, analyzes, and
+              protects your entire codebase.
+              <span className="text-white">
+                {" "}
+                Detect threats before they become breaches.
+              </span>
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <button
                 onClick={() => navigate("/register")}
-                className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl text-white font-semibold text-lg shadow-2xl transition-all flex items-center gap-2"
+                className="group relative px-8 py-4 rounded-2xl font-bold text-lg overflow-hidden w-full sm:w-auto"
               >
-                Start Free Scan
-                <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(255,255,255,0.3),transparent_70%)]" />
+                <span className="relative text-white flex items-center justify-center gap-3">
+                  Start Free Trial
+                  <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
               </button>
               <button
-                onClick={() => scrollToSection("video-demo")}
-                className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-semibold text-lg transition-all flex items-center gap-2"
+                onClick={() => {}}
+                className="group px-8 py-4 rounded-2xl font-bold text-lg border border-gray-700 hover:border-gray-600 bg-gray-900/50 hover:bg-gray-800/50 transition-all w-full sm:w-auto"
               >
-                <PlayCircleIcon className="w-6 h-6" />
-                Watch Demo
+                <span className="flex items-center justify-center gap-3 text-gray-300 group-hover:text-white">
+                  <PlayIcon className="w-5 h-5" />
+                  Watch Demo
+                </span>
               </button>
             </div>
-          </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <stat.icon className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-                <div className="text-3xl font-bold text-white mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Live Demo Stats */}
-          <div className="mt-16 max-w-3xl mx-auto">
-            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-8 backdrop-blur-xl">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full text-green-400 text-sm font-medium mb-4">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  Live Platform Stats
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-8">
-                <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-                    {vulnerabilityCount.toLocaleString()}+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+              {securityMetrics.map((stat, index) => (
+                <div
+                  key={index}
+                  className="relative group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50 transition-all"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <stat.icon className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">
+                    {stat.value}
                   </div>
-                  <div className="text-gray-400">Vulnerabilities Detected</div>
+                  <div className="text-sm text-gray-500">{stat.label}</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-bold text-white mb-2">
-                    {scanCount.toLocaleString()}+
-                  </div>
-                  <div className="text-gray-400">Scans Completed</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Scroll Indicator */}
-          <div className="mt-16 flex flex-col items-center">
-            <p className="text-gray-400 text-sm mb-3">Scroll to explore</p>
-            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex items-start justify-center p-2 animate-bounce">
-              <div className="w-1.5 h-3 bg-white/50 rounded-full" />
-            </div>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+          <span className="text-xs text-gray-500 uppercase tracking-widest">
+            Scroll
+          </span>
+          <div className="w-6 h-10 rounded-full border-2 border-gray-700 flex items-start justify-center p-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          </div>
+        </div>
+      </section>
+
+      {/* Trusted By */}
+      <section className="py-16 border-y border-gray-800/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center text-gray-500 text-sm uppercase tracking-widest mb-8">
+            Trusted by security teams at leading companies
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-12 opacity-40">
+            {["Microsoft", "Google", "Amazon", "Meta", "Netflix", "Stripe"].map(
+              (company, i) => (
+                <div
+                  key={i}
+                  className="text-2xl font-bold text-gray-400 hover:text-gray-300 transition-colors cursor-default"
+                >
+                  {company}
+                </div>
+              )
+            )}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Powerful Features
+      <section id="features" className="py-32 relative">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Section Header */}
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+              <CubeTransparentIcon className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm text-cyan-400">Core Capabilities</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Next-Generation Security
             </h2>
-            <p className="text-xl text-gray-400">
-              Everything you need for comprehensive security scanning
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Powered by cutting-edge AI and battle-tested security
+              methodologies
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className={`group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all cursor-pointer ${
-                  activeFeature === index ? "ring-2 ring-purple-500" : ""
-                }`}
-                onMouseEnter={() => setActiveFeature(index)}
-              >
+          {/* Features Grid */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Feature Cards */}
+            <div className="space-y-4">
+              {features.map((feature, index) => (
                 <div
-                  className={`p-4 bg-gradient-to-r ${feature.gradient} rounded-xl inline-block mb-4`}
+                  key={index}
+                  onClick={() => setActiveFeature(index)}
+                  className={`relative group p-6 rounded-2xl cursor-pointer transition-all duration-300 ${
+                    activeFeature === index
+                      ? "bg-gradient-to-r from-gray-800/80 to-gray-900/80 border border-gray-700/50 shadow-xl"
+                      : "bg-gray-900/30 border border-gray-800/30 hover:bg-gray-900/50"
+                  }`}
                 >
-                  <feature.icon className="w-8 h-8 text-white" />
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={`p-3 rounded-xl bg-gradient-to-br ${feature.gradient} bg-opacity-20`}
+                    >
+                      <feature.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-white">
+                          {feature.title}
+                        </h3>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${feature.gradient} bg-opacity-20 text-white`}
+                        >
+                          {feature.stats}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Active indicator */}
+                  {activeFeature === index && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-gradient-to-b from-cyan-400 to-violet-500 rounded-r-full" />
+                  )}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-400">{feature.description}</p>
+              ))}
+            </div>
+
+            {/* Feature Detail Panel */}
+            <div className="lg:sticky lg:top-32 h-fit">
+              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 overflow-hidden">
+                {/* Background gradient */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${features[activeFeature].gradient} opacity-5`}
+                />
+
+                {/* Content */}
+                <div className="relative">
+                  <div
+                    className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${features[activeFeature].gradient} mb-6`}
+                  >
+                    {React.createElement(features[activeFeature].icon, {
+                      className: "w-8 h-8 text-white",
+                    })}
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    {features[activeFeature].title}
+                  </h3>
+                  <p className="text-gray-400 mb-6 leading-relaxed">
+                    {features[activeFeature].description}
+                  </p>
+
+                  <div className="space-y-3">
+                    {features[activeFeature].details.map((detail, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <CheckCircleIcon className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                        <span className="text-gray-300">{detail}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button className="mt-8 flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+                    Learn more
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Decorative elements */}
+                <div className="absolute top-4 right-4 text-6xl font-black text-white/5">
+                  {String(activeFeature + 1).padStart(2, "0")}
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Scanners Showcase */}
-      <section id="scanners" className="py-20 px-4 sm:px-6 lg:px-8 bg-black/20">
-        <div className="max-w-7xl mx-auto">
+      {/* Scanners Section */}
+      <section
+        id="scanners"
+        className="py-32 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"
+      >
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              6 Security Scanners
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 mb-6">
+              <CommandLineIcon className="w-4 h-4 text-violet-400" />
+              <span className="text-sm text-violet-400">Security Arsenal</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              12+ Enterprise Scanners
             </h2>
-            <p className="text-xl text-gray-400">
-              Industry-leading tools integrated into one platform
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Industry-leading security tools unified in one powerful platform
             </p>
           </div>
 
-          {/* Scanner Demo Tabs */}
-          <div className="mb-8 overflow-x-auto">
-            <div className="flex gap-2 justify-center min-w-max px-4">
-              {scanners.map((scanner, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveScannerDemo(index)}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                    activeScannerDemo === index
-                      ? `bg-gradient-to-r ${scanner.color} text-white shadow-lg`
-                      : "bg-white/5 text-gray-400 hover:bg-white/10"
-                  }`}
-                >
-                  {scanner.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Active Scanner Demo */}
-          <div className="mb-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
-            <div className="flex items-start gap-6">
-              <div
-                className={`p-4 bg-gradient-to-r ${scanners[activeScannerDemo].color} rounded-xl`}
-              >
-                {React.createElement(scanners[activeScannerDemo].icon, {
-                  className: "w-10 h-10 text-white",
-                })}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-3xl font-bold text-white mb-3">
-                  {scanners[activeScannerDemo].name}
-                </h3>
-                <p className="text-xl text-gray-400 mb-4">
-                  {scanners[activeScannerDemo].description}
-                </p>
-                <div className="flex items-center gap-4">
-                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg font-medium">
-                    <CheckCircleIcon className="w-5 h-5" />
-                    {scanners[activeScannerDemo].languages}
-                  </span>
-                  <span className="text-gray-400">Fast & Accurate</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Demo Terminal */}
-            <div className="mt-6 bg-black/40 rounded-xl p-4 font-mono text-sm">
-              <div className="flex items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full" />
-                <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                <div className="w-3 h-3 bg-green-500 rounded-full" />
-                <span className="ml-2 text-gray-400">Terminal</span>
-              </div>
-              <div className="space-y-1 text-green-400">
-                <div>
-                  $ {scanners[activeScannerDemo].name.toLowerCase()} scan
-                  --target ./app
-                </div>
-                <div className="text-gray-500">Initializing scanner...</div>
-                <div className="text-gray-500">Analyzing code...</div>
-                <div className="text-yellow-400">⚠ Found 3 issues</div>
-                <div className="text-green-400">✓ Scan completed in 2.3s</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {scanners.map((scanner, index) => (
               <div
                 key={index}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-2xl transition-all transform hover:scale-105"
+                className="group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-violet-500/30 hover:bg-gray-800/50 transition-all"
               >
-                <div
-                  className={`p-3 bg-gradient-to-r ${scanner.color} rounded-xl inline-block mb-4`}
-                >
-                  <scanner.icon className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
+                    <CodeBracketIcon className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white">{scanner.name}</h4>
+                    <span className="text-xs text-gray-500">
+                      {scanner.category}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {scanner.name}
-                </h3>
-                <p className="text-gray-400 mb-3">{scanner.description}</p>
-                <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm">
-                  {scanner.languages}
+                <p className="text-sm text-gray-400">{scanner.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* More scanners indicator */}
+          <div className="text-center mt-8">
+            <span className="text-gray-500 text-sm">
+              + 4 more specialized scanners
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Compliance Section */}
+      <section className="py-24 border-y border-gray-800/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Automated Compliance
+            </h3>
+            <p className="text-gray-400">
+              Meet regulatory requirements with automated checks and reports
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            {complianceFrameworks.map((framework, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 px-6 py-3 rounded-xl bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50 transition-all"
+              >
+                <span className="text-2xl">{framework.icon}</span>
+                <span className="font-medium text-gray-300">
+                  {framework.name}
                 </span>
               </div>
             ))}
@@ -732,146 +768,54 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      {/* Testimonials */}
+      <section id="testimonials" className="py-32 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Why Choose Us
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
+              <StarIcon className="w-4 h-4 text-amber-400" />
+              <span className="text-sm text-amber-400">Customer Stories</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Trusted by Industry Leaders
             </h2>
-            <p className="text-xl text-gray-400">
-              Built for modern development teams
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {benefits.map((benefit, index) => (
-              <div
-                key={index}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8"
-              >
-                <benefit.icon className="w-12 h-12 text-purple-400 mb-4" />
-                <h3 className="text-xl font-bold text-white mb-3">
-                  {benefit.title}
-                </h3>
-                <p className="text-gray-400">{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Use Cases */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black/20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Built For Every Team
-            </h2>
-            <p className="text-xl text-gray-400">
-              From startups to enterprises
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {useCases.map((useCase, index) => (
-              <div
-                key={index}
-                className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8"
-              >
-                <useCase.icon className="w-12 h-12 text-blue-400 mb-4" />
-                <h3 className="text-2xl font-bold text-white mb-3">
-                  {useCase.title}
-                </h3>
-                <p className="text-gray-400 mb-6">{useCase.description}</p>
-                <ul className="space-y-2">
-                  {useCase.features.map((feature, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center gap-2 text-gray-300"
-                    >
-                      <CheckCircleIcon className="w-5 h-5 text-green-400" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Compliance Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Compliance Ready
-          </h2>
-          <p className="text-xl text-gray-400 mb-12">
-            Support for 9 major compliance frameworks
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {complianceFrameworks.map((framework, index) => (
-              <div
-                key={index}
-                className="px-6 py-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl text-white font-semibold hover:bg-white/10 transition-all"
-              >
-                {framework}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section
-        id="testimonials"
-        className="py-20 px-4 sm:px-6 lg:px-8 bg-black/20"
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Trusted by Security Teams
-            </h2>
-            <p className="text-xl text-gray-400">
-              See what our customers have to say
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Testimonial Cards */}
+          <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-8 hover:shadow-2xl transition-all transform hover:scale-105"
+                className={`relative p-8 rounded-3xl transition-all duration-500 ${
+                  currentTestimonial === index
+                    ? "bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50 scale-105 shadow-2xl shadow-cyan-500/10"
+                    : "bg-gray-900/30 border border-gray-800/30"
+                }`}
               >
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <svg
-                      key={i}
-                      className="w-5 h-5 text-yellow-400 fill-current"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-300 text-lg mb-6 italic">
+                {/* Quote */}
+                <p className="text-gray-300 mb-6 leading-relaxed italic">
                   "{testimonial.quote}"
                 </p>
+
+                {/* Rating */}
+                <div className="flex gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <StarIcon key={i} className="w-4 h-4 text-amber-400" />
+                  ))}
+                </div>
+
+                {/* Author */}
                 <div className="flex items-center gap-4">
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full border-2 border-blue-500"
-                  />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-white font-bold">
+                    {testimonial.image}
+                  </div>
                   <div>
-                    <p className="text-white font-semibold">
+                    <div className="font-semibold text-white">
                       {testimonial.name}
-                    </p>
-                    <p className="text-gray-400 text-sm">{testimonial.role}</p>
-                    <p className="text-gray-500 text-sm">
-                      {testimonial.company}
-                    </p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {testimonial.role}, {testimonial.company}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -881,58 +825,71 @@ const LandingPage = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <section
+        id="pricing"
+        className="py-32 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"
+      >
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+              <SparklesIcon className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm text-emerald-400">Pricing</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-xl text-gray-400">
-              Choose the plan that fits your needs
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Start free, scale as you grow. No hidden fees, no surprises.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <div
                 key={index}
-                className={`bg-white/5 backdrop-blur-xl border rounded-2xl p-8 hover:shadow-2xl transition-all transform hover:scale-105 ${
+                className={`relative p-8 rounded-3xl transition-all ${
                   plan.popular
-                    ? "border-blue-500 ring-2 ring-blue-500/50"
-                    : "border-white/10"
+                    ? "bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-2 border-cyan-500/50 scale-105 shadow-2xl shadow-cyan-500/20"
+                    : "bg-gray-900/30 border border-gray-800/50 hover:border-gray-700/50"
                 }`}
               >
+                {/* Popular badge */}
                 {plan.popular && (
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-bold px-4 py-1 rounded-full inline-block mb-4">
-                    MOST POPULAR
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <div className="px-4 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 text-white text-sm font-semibold">
+                      Most Popular
+                    </div>
                   </div>
                 )}
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {plan.name}
-                </h3>
-                <div className="mb-6">
-                  <span className="text-5xl font-bold text-white">
-                    {plan.price}
-                  </span>
-                  {plan.price !== "Custom" && (
-                    <span className="text-gray-400">/month</span>
-                  )}
+
+                <div className="text-center mb-8">
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {plan.name}
+                  </h3>
+                  <div className="flex items-baseline justify-center gap-2 mb-2">
+                    <span className="text-4xl font-black text-white">
+                      {plan.price}
+                    </span>
+                    <span className="text-gray-500">/{plan.period}</span>
+                  </div>
+                  <p className="text-sm text-gray-400">{plan.description}</p>
                 </div>
-                <p className="text-gray-400 mb-6">{plan.description}</p>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">{feature}</span>
+
+                <ul className="space-y-4 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <CheckCircleIcon className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                      <span className="text-gray-300 text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
+
                 <button
                   onClick={() => navigate("/register")}
-                  className={`block w-full text-center py-3 rounded-xl font-semibold transition-all ${
+                  className={`w-full py-3 rounded-xl font-semibold transition-all ${
                     plan.popular
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/50"
-                      : "bg-white/10 text-white hover:bg-white/20"
+                      ? "bg-gradient-to-r from-cyan-500 to-violet-600 text-white hover:shadow-lg hover:shadow-cyan-500/25"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
                   }`}
                 >
                   {plan.cta}
@@ -943,277 +900,140 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Integrations Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black/20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Seamless Integrations
-            </h2>
-            <p className="text-xl text-gray-400">
-              Connect with your favorite tools
-            </p>
-          </div>
+      {/* CTA Section */}
+      <section className="py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-violet-500/10 to-purple-500/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.1),transparent_70%)]" />
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {integrations.map((integration, index) => (
-              <div
-                key={index}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:shadow-2xl transition-all transform hover:scale-105 flex flex-col items-center justify-center"
-              >
-                <div className="text-4xl mb-3">{integration.logo}</div>
-                <p className="text-white font-semibold text-center">
-                  {integration.name}
-                </p>
-                {integration.connected && (
-                  <span className="text-xs text-green-400 mt-2 flex items-center gap-1">
-                    <CheckCircleIcon className="w-3 h-3" />
-                    Connected
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12 text-center">
-            <p className="text-gray-400 mb-4">
-              Plus many more integrations via webhooks and API
-            </p>
+        <div className="max-w-4xl mx-auto px-6 text-center relative">
+          <OnyxLogo variant="glow" className="w-20 h-20 mx-auto mb-8" />
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Ready to Secure Your Code?
+          </h2>
+          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+            Join thousands of developers who trust ONYX to protect their
+            applications. Start your free trial today.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={() => scrollToSection("features")}
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium"
+              onClick={() => navigate("/register")}
+              className="group relative px-8 py-4 rounded-2xl font-bold text-lg overflow-hidden"
             >
-              View all integrations
-              <ArrowRightIcon className="w-5 h-5" />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600" />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative text-white flex items-center gap-3">
+                Start Free Trial
+                <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+            <button
+              onClick={() => navigate("/login")}
+              className="px-8 py-4 rounded-2xl font-bold text-lg border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition-all"
+            >
+              Sign In
             </button>
           </div>
         </div>
       </section>
 
-      {/* Video Demo Section */}
-      <section id="video-demo" className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              See It In Action
-            </h2>
-            <p className="text-xl text-gray-400">
-              Watch how easy it is to secure your code
-            </p>
-          </div>
-
-          <div className="relative">
-            <div className="relative overflow-hidden bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-xl border border-white/10 rounded-3xl aspect-video">
-              {!isVideoPlaying ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <button
-                    onClick={() => setIsVideoPlaying(true)}
-                    className="group relative"
-                  >
-                    <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-50 group-hover:opacity-70 transition-opacity animate-pulse" />
-                    <div className="relative w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                      <svg
-                        className="w-12 h-12 text-white ml-1"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-                  </button>
-
-                  {/* Placeholder Screenshot */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                    <div className="text-center p-8">
-                      <ShieldCheckIcon className="w-32 h-32 text-blue-400 mx-auto mb-4" />
-                      <p className="text-2xl text-white font-semibold">
-                        Platform Demo
-                      </p>
-                      <p className="text-gray-400">Click play to watch</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="absolute inset-0 p-8">
-                  <div className="w-full h-full bg-black/40 rounded-2xl flex items-center justify-center">
-                    <p className="text-white text-xl">
-                      Video demo would play here
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Features Highlight Below Video */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-6 text-center">
-                <ClockIcon className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-                <h4 className="text-white font-semibold mb-2">Quick Setup</h4>
-                <p className="text-gray-400 text-sm">
-                  Connect your repo in under 2 minutes
-                </p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-6 text-center">
-                <BoltIcon className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-                <h4 className="text-white font-semibold mb-2">
-                  Instant Results
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Get comprehensive scan results instantly
-                </p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-6 text-center">
-                <SparklesIcon className="w-10 h-10 text-pink-400 mx-auto mb-3" />
-                <h4 className="text-white font-semibold mb-2">AI-Powered</h4>
-                <p className="text-gray-400 text-sm">
-                  Smart recommendations with GPT-4
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-12 text-center">
-            <div className="absolute inset-0 bg-black/20" />
-            <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                Ready to Secure Your Code?
-              </h2>
-              <p className="text-xl text-white/90 mb-8">
-                Start scanning your repositories in minutes. No credit card
-                required.
-              </p>
-              <button
-                onClick={() => navigate("/register")}
-                className="px-8 py-4 bg-white hover:bg-gray-100 rounded-xl text-purple-600 font-bold text-lg shadow-2xl transition-all inline-flex items-center gap-2"
-              >
-                Get Started Free
-                <RocketLaunchIcon className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="bg-black/40 backdrop-blur-xl border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <ShieldCheckSolid className="w-6 h-6 text-blue-400" />
-                <span className="font-bold text-white">SecureDevOps AI</span>
+      <footer className="py-16 border-t border-gray-800/50 bg-gray-950">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            {/* Brand */}
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-3 mb-4">
+                <OnyxLogo className="w-8 h-8" />
+                <span className="text-xl font-bold text-white">ONYX</span>
               </div>
-              <p className="text-gray-400 text-sm">
-                AI-powered security scanning platform for modern development
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Enterprise-grade AI security platform for modern development
                 teams.
               </p>
             </div>
+
+            {/* Links */}
             <div>
-              <h4 className="font-semibold text-white mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <a
-                    href="#features"
-                    className="hover:text-white transition-colors"
-                  >
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#scanners"
-                    className="hover:text-white transition-colors"
-                  >
-                    Scanners
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#pricing"
-                    className="hover:text-white transition-colors"
-                  >
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Documentation
-                  </a>
-                </li>
+              <h4 className="text-white font-semibold mb-4">Product</h4>
+              <ul className="space-y-3">
+                {[
+                  "Features",
+                  "Integrations",
+                  "Pricing",
+                  "Changelog",
+                  "Roadmap",
+                ].map((link, i) => (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-white mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Contact
-                  </a>
-                </li>
+              <h4 className="text-white font-semibold mb-4">Resources</h4>
+              <ul className="space-y-3">
+                {[
+                  "Documentation",
+                  "API Reference",
+                  "Blog",
+                  "Community",
+                  "Support",
+                ].map((link, i) => (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-white mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Privacy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Terms
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Security
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Compliance
-                  </a>
-                </li>
+              <h4 className="text-white font-semibold mb-4">Company</h4>
+              <ul className="space-y-3">
+                {["About", "Careers", "Security", "Privacy", "Terms"].map(
+                  (link, i) => (
+                    <li key={i}>
+                      <a
+                        href="#"
+                        className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2025 SecureDevOps AI Platform. All rights reserved.</p>
+
+          {/* Bottom */}
+          <div className="pt-8 border-t border-gray-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-gray-500 text-sm">
+              © {new Date().getFullYear()} ONYX Security Intelligence. All
+              rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              {["Twitter", "GitHub", "LinkedIn", "Discord"].map((social, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                >
+                  {social}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </footer>
-
-      {/* Back to Top Button */}
-      {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all transform hover:scale-110 animate-bounce"
-          aria-label="Back to top"
-        >
-          <ArrowUpIcon className="w-6 h-6" />
-        </button>
-      )}
     </div>
   );
 };

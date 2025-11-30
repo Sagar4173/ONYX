@@ -3,85 +3,19 @@
  * Matches the project's glass morphism and gradient design language
  */
 import React, { useState, useRef, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MagnifyingGlassIcon,
   BellIcon,
   Bars3Icon,
   ChevronDownIcon,
-  ChevronRightIcon,
-  HomeIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   UserIcon,
   XMarkIcon,
   CommandLineIcon,
-  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../components/auth";
-
-/**
- * Breadcrumb Navigation
- */
-const Breadcrumb = () => {
-  const location = useLocation();
-  const segments = location.pathname.split("/").filter(Boolean);
-
-  const labels = {
-    dashboard: "Dashboard",
-    projects: "Projects",
-    project: "Project",
-    reports: "Reports",
-    report: "Report",
-    analytics: "Analytics",
-    settings: "Settings",
-    compliance: "Compliance",
-    users: "Users",
-    "audit-logs": "Audit Logs",
-    "retention-policies": "Data Retention",
-  };
-
-  if (segments.length === 0) {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
-          <HomeIcon className="w-4 h-4 text-white" />
-        </div>
-        <span className="text-white font-medium">Dashboard</span>
-      </div>
-    );
-  }
-
-  return (
-    <nav className="flex items-center gap-2 text-sm">
-      <Link
-        to="/dashboard"
-        className="p-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
-      >
-        <HomeIcon className="w-4 h-4 text-gray-400" />
-      </Link>
-      {segments.map((segment, i) => (
-        <React.Fragment key={segment + i}>
-          <ChevronRightIcon className="w-4 h-4 text-gray-600" />
-          {i === segments.length - 1 ? (
-            <span className="px-3 py-1.5 rounded-lg bg-gray-800/50 text-white font-medium">
-              {labels[segment] ||
-                segment.charAt(0).toUpperCase() + segment.slice(1)}
-            </span>
-          ) : (
-            <Link
-              to={`/${segments.slice(0, i + 1).join("/")}`}
-              className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-            >
-              {labels[segment] ||
-                segment.charAt(0).toUpperCase() + segment.slice(1)}
-            </Link>
-          )}
-        </React.Fragment>
-      ))}
-    </nav>
-  );
-};
 
 /**
  * Search Component - Command Palette Style
@@ -118,8 +52,10 @@ const SearchBar = () => {
                    rounded-xl text-gray-400 hover:text-white hover:border-gray-600/50 hover:bg-gray-800/70
                    transition-all duration-300 group min-w-[240px]"
       >
-        <MagnifyingGlassIcon className="w-4 h-4" />
-        <span className="text-sm flex-1 text-left">Search anything...</span>
+        <MagnifyingGlassIcon className="w-5 h-5" />
+        <span className="text-sm lg:text-base flex-1 text-left">
+          Search anything...
+        </span>
         <kbd className="hidden sm:flex items-center gap-1 text-[10px] px-2 py-1 bg-gray-700/50 rounded-md text-gray-500 group-hover:text-gray-400">
           <CommandLineIcon className="w-3 h-3" />
           <span>K</span>
@@ -251,10 +187,12 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800/50">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
-                  <BellIcon className="w-4 h-4 text-white" />
+                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+                  <BellIcon className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="font-semibold text-white">Notifications</h3>
+                <h3 className="font-semibold text-white text-base lg:text-lg">
+                  Notifications
+                </h3>
               </div>
               {notifications.length > 0 && (
                 <button
@@ -281,8 +219,10 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
                       key={notif.id}
                       className="p-4 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer"
                     >
-                      <p className="text-sm text-white">{notif.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm lg:text-base text-white">
+                        {notif.message}
+                      </p>
+                      <p className="text-xs lg:text-sm text-gray-500 mt-1">
                         {new Date(notif.timestamp).toLocaleTimeString()}
                       </p>
                     </div>
@@ -403,10 +343,10 @@ const UserMenu = ({ onProfileClick }) => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white truncate">
+                  <p className="font-semibold text-white truncate text-base lg:text-lg">
                     {user?.full_name || user?.name}
                   </p>
-                  <p className="text-sm text-gray-400 truncate">
+                  <p className="text-sm lg:text-base text-gray-400 truncate">
                     {user?.email}
                   </p>
                 </div>
@@ -424,11 +364,13 @@ const UserMenu = ({ onProfileClick }) => {
                          hover:text-white hover:bg-gray-800/50 rounded-xl transition-all"
               >
                 <div className="p-2 rounded-lg bg-gray-800/50">
-                  <UserIcon className="w-4 h-4" />
+                  <UserIcon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium">Profile</p>
-                  <p className="text-xs text-gray-500">View and edit profile</p>
+                  <p className="font-medium text-sm lg:text-base">Profile</p>
+                  <p className="text-xs lg:text-sm text-gray-500">
+                    View and edit profile
+                  </p>
                 </div>
               </button>
 
@@ -439,11 +381,11 @@ const UserMenu = ({ onProfileClick }) => {
                          hover:text-white hover:bg-gray-800/50 rounded-xl transition-all"
               >
                 <div className="p-2 rounded-lg bg-gray-800/50">
-                  <Cog6ToothIcon className="w-4 h-4" />
+                  <Cog6ToothIcon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium">Settings</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="font-medium text-sm lg:text-base">Settings</p>
+                  <p className="text-xs lg:text-sm text-gray-500">
                     Preferences & security
                   </p>
                 </div>
@@ -458,9 +400,11 @@ const UserMenu = ({ onProfileClick }) => {
                          hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
               >
                 <div className="p-2 rounded-lg bg-red-500/10">
-                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                  <ArrowRightOnRectangleIcon className="w-5 h-5" />
                 </div>
-                <span className="font-medium">Sign out</span>
+                <span className="font-medium text-sm lg:text-base">
+                  Sign out
+                </span>
               </button>
             </div>
           </div>
@@ -485,16 +429,15 @@ export default function Header({
       <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50" />
 
       <div className="relative h-16 lg:h-18 px-4 lg:px-6 flex items-center justify-between gap-4">
-        {/* Left: Mobile menu + Breadcrumb */}
+        {/* Left: Mobile menu */}
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
             className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50 
                      hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all"
           >
-            <Bars3Icon className="w-5 h-5" />
+            <Bars3Icon className="w-5 h-5 lg:w-6 lg:h-6" />
           </button>
-          <Breadcrumb />
         </div>
 
         {/* Right: Search + Notifications + User */}

@@ -153,20 +153,20 @@ export const AuthModal = ({
         };
       default:
         return {
-          title: "SecureDevOps AI",
-          subtitle: "Next-Gen Security Platform",
+          title: "ONYX",
+          subtitle: "Security Intelligence Platform",
           features: [
             {
-              icon: <BoltIcon className="h-6 w-6 text-blue-400" />,
+              icon: <BoltIcon className="h-6 w-6 text-cyan-400" />,
               title: "Real-time Scanning",
               description: "Instant vulnerability detection",
-              color: "blue",
+              color: "cyan",
             },
             {
-              icon: <SparklesIcon className="h-6 w-6 text-purple-400" />,
+              icon: <SparklesIcon className="h-6 w-6 text-violet-400" />,
               title: "AI-Powered",
               description: "Intelligent threat detection",
-              color: "purple",
+              color: "violet",
             },
             {
               icon: <ShieldCheckIcon className="h-6 w-6 text-pink-400" />,
@@ -386,8 +386,8 @@ export const AuthModal = ({
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-gray-300 italic mb-2">
-                      "SecureDevOps AI caught 47 critical vulnerabilities in our
-                      first scan. Best security investment we've made!"
+                      "ONYX caught 47 critical vulnerabilities in our first
+                      scan. Best security investment we've made!"
                     </p>
                     <div className="text-xs text-gray-400">
                       <span className="font-semibold text-white">
@@ -405,17 +405,17 @@ export const AuthModal = ({
         {/* Right Side - Auth Form */}
         <div className="w-full lg:w-1/2 relative overflow-y-auto">
           {/* Mobile Logo (visible on small screens) */}
-          <div className="lg:hidden p-6 text-center bg-gradient-to-r from-gray-900/50 to-blue-900/50 backdrop-blur-xl border-b border-gray-800/50">
+          <div className="lg:hidden p-6 text-center bg-gradient-to-r from-gray-900/50 to-cyan-900/30 backdrop-blur-xl border-b border-gray-800/50">
             <div className="inline-flex items-center gap-2 mb-2">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg shadow-blue-500/50">
+              <div className="p-2 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-xl shadow-lg shadow-cyan-500/30">
                 <ShieldCheckIcon className="h-6 w-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                SecureDevOps AI
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+                ONYX
               </h1>
             </div>
-            <p className="text-xs text-gray-400">
-              Enterprise Security Platform
+            <p className="text-xs text-gray-400 tracking-widest uppercase">
+              Security Intelligence
             </p>
           </div>
 

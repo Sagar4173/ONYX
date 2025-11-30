@@ -19,6 +19,7 @@ import {
   ClockIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
+import { OnyxLogo } from "../components/common";
 
 // Navigation Configuration
 const navigation = [
@@ -156,20 +157,20 @@ const Logo = ({ collapsed }) => (
   <div className="flex items-center gap-3 px-4">
     <div className="relative">
       {/* Glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur-lg opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-xl blur-lg opacity-40" />
       <div
-        className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 
-                    flex items-center justify-center shadow-lg"
+        className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 
+                    flex items-center justify-center shadow-xl border border-cyan-500/30"
       >
-        <SparklesIcon className="w-6 h-6 text-white" />
+        <OnyxLogo className="w-7 h-7" />
       </div>
     </div>
     {!collapsed && (
       <div>
-        <h1 className="text-white font-bold text-base leading-tight">
-          SecureDevOps
-        </h1>
-        <p className="text-gray-500 text-xs">AI Platform</p>
+        <h1 className="text-white font-bold text-lg tracking-wide">ONYX</h1>
+        <p className="text-cyan-400/70 text-[10px] uppercase tracking-[0.2em]">
+          Security Intelligence
+        </p>
       </div>
     )}
   </div>
@@ -293,15 +294,15 @@ const MobileSidebar = ({ isOpen, onClose }) => {
           {/* Footer */}
           <div className="p-4 border-t border-gray-800/50">
             <div
-              className="px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 
-                          border border-blue-500/20"
+              className="px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500/5 to-violet-500/5 
+                          border border-cyan-500/20"
             >
               <p className="text-xs text-gray-400">
-                <span className="text-blue-400 font-medium">
-                  SecureDevOps AI
+                <span className="text-cyan-400 font-semibold tracking-wide">
+                  ONYX
                 </span>
-                <br />
-                Enterprise Security Platform
+                <span className="text-gray-500"> • </span>
+                <span className="text-gray-500">v1.0</span>
               </p>
             </div>
           </div>

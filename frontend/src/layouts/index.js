@@ -12,7 +12,7 @@ export {
   LoadingState,
   ErrorState,
   pageConfig,
-} from "./DashboardLayout";
+} from "./UIComponents";
 
 // Main Layout Components
 export { MainLayout } from "./MainLayout";

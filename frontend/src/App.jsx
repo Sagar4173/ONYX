@@ -1,5 +1,5 @@
 /**
- * SecureDevOps AI Platform - Main Application Entry
+ * ONYX Security Intelligence Platform - Main Application Entry
  * Clean, modular architecture with separated concerns
  */
 import React, { useEffect, useState } from "react";
