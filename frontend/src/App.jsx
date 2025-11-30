@@ -16,7 +16,6 @@ import {
   QueryClient,
   QueryClientProvider,
   useQuery,
-  useMutation,
 } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import {
@@ -34,13 +33,8 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
   SparklesIcon,
-  CommandLineIcon,
-  GlobeAltIcon,
-  CodeBracketIcon,
   BoltIcon,
-  EyeIcon,
   ArrowPathIcon,
-  PlayIcon,
   UsersIcon,
   ClockIcon,
   ArchiveBoxIcon,
@@ -49,7 +43,6 @@ import {
 import {
   ChartBarIcon,
   ShieldCheckIcon as ShieldCheckSolid,
-  SparklesIcon as SparklesSolid,
 } from "@heroicons/react/24/solid";
 
 // Components - Organized by category
@@ -96,342 +89,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Modern Scan Submission Modal with Glassmorphism
-const ScanModal = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    repository_url: "",
-    branch: "main",
-    scan_types: ["sast", "secrets", "container"],
-    access_token: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const scanTypes = [
-    {
-      id: "sast",
-      label: "Static Analysis",
-      icon: CodeBracketIcon,
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      id: "secrets",
-      label: "Secret Detection",
-      icon: EyeIcon,
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      id: "container",
-      label: "Container Scan",
-      icon: CommandLineIcon,
-      color: "from-green-500 to-emerald-500",
-    },
-    {
-      id: "infrastructure",
-      label: "Infrastructure",
-      icon: GlobeAltIcon,
-      color: "from-orange-500 to-red-500",
-    },
-  ];
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validate repository URL
-    if (!formData.repository_url.trim()) {
-      toast.error("Please enter a repository URL");
-      return;
-    }
-
-    // Basic URL validation
-    const urlPattern = /^https?:\/\/.+/i;
-    if (!urlPattern.test(formData.repository_url.trim())) {
-      toast.error(
-        "Please enter a valid repository URL (must start with http:// or https://)"
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      console.log("🚀 Submitting scan with data:", formData);
-      await onSubmit(formData);
-
-      // Reset form and close modal
-      setFormData({
-        repository_url: "",
-        branch: "main",
-        scan_types: ["sast", "secrets", "container"],
-        access_token: "",
-      });
-      onClose();
-
-      // Success message is handled by the mutation
-    } catch (error) {
-      console.error("❌ Modal handleSubmit error:", error);
-
-      // Extract error message for modal-specific handling
-      let errorMessage = "Failed to start scan";
-      if (error.response?.data?.detail) {
-        errorMessage = error.response.data.detail;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      // Show error in modal context (shorter message)
-      toast.error(`❌ ${errorMessage}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const toggleScanType = (type) => {
-    setFormData((prev) => ({
-      ...prev,
-      scan_types: prev.scan_types.includes(type)
-        ? prev.scan_types.filter((t) => t !== type)
-        : [...prev.scan_types, type],
-    }));
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop with Blur */}
-      <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto transform rounded-2xl lg:rounded-3xl bg-gray-900/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transition-all">
-          {/* Gradient Background */}
-          <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10" />
-
-          {/* Content */}
-          <div className="relative p-4 sm:p-6 lg:p-8">
-            {/* Header */}
-            <div className="flex items-start sm:items-center justify-between mb-6 lg:mb-8 gap-4">
-              <div className="flex items-center space-x-3 min-w-0">
-                <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex-shrink-0">
-                  <SparklesSolid className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
-                    Start Security Scan
-                  </h3>
-                  <p className="text-gray-400 text-sm lg:text-base">
-                    AI-powered vulnerability detection
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all flex-shrink-0"
-              >
-                <XIcon className="h-5 w-5 lg:h-6 lg:w-6" />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
-              {/* Repository URL */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 lg:mb-3">
-                  Repository URL
-                </label>
-                <div className="relative">
-                  <GlobeAltIcon className="absolute left-3 lg:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
-                  <input
-                    type="url"
-                    value={formData.repository_url}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        repository_url: e.target.value,
-                      }))
-                    }
-                    placeholder="https://github.com/username/repository"
-                    className="w-full pl-10 lg:pl-12 pr-3 lg:pr-4 py-3 lg:py-4 bg-gray-800/50 border border-gray-700/50 rounded-xl lg:rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm lg:text-base"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Access Token for Private Repositories */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Access Token (Optional - for private repositories)
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    type="password"
-                    value={formData.access_token || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        access_token: e.target.value,
-                      }))
-                    }
-                    placeholder="ghp_xxxxxxxxxxxx (GitHub) or glpat-xxxxxxxxxxxx (GitLab)"
-                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                  />
-                </div>
-                <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                  <div className="flex items-start space-x-2">
-                    <svg
-                      className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <div className="text-xs text-blue-300">
-                      <p className="font-medium mb-1">
-                        For Private Repositories:
-                      </p>
-                      <p>
-                        • GitHub: Generate token at Settings → Developer
-                        settings → Personal access tokens
-                      </p>
-                      <p>
-                        • GitLab: Generate token at User Settings → Access
-                        Tokens
-                      </p>
-                      <p>
-                        • Required permissions:{" "}
-                        <span className="font-medium">repo</span> (GitHub) or{" "}
-                        <span className="font-medium">read_repository</span>{" "}
-                        (GitLab)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Branch */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Branch
-                </label>
-                <input
-                  type="text"
-                  value={formData.branch}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, branch: e.target.value }))
-                  }
-                  placeholder="main"
-                  className="w-full px-4 py-4 bg-gray-800/50 border border-gray-700/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                />
-              </div>
-
-              {/* Enhanced Scan Types with better visual feedback */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-4">
-                  Scan Types
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {scanTypes.map((type, index) => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => toggleScanType(type.id)}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                      className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 animate-fade-in-up hover:scale-105 ${
-                        formData.scan_types.includes(type.id)
-                          ? "border-blue-500/70 bg-blue-500/20 shadow-lg shadow-blue-500/20"
-                          : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50 hover:bg-gray-700/40"
-                      }`}
-                    >
-                      {formData.scan_types.includes(type.id) && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl animate-glow" />
-                      )}
-                      <div className="relative flex items-center space-x-3">
-                        <div
-                          className={`p-2 rounded-xl bg-gradient-to-r ${type.color} shadow-lg group-hover:shadow-xl transition-all`}
-                        >
-                          <type.icon className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="text-left">
-                          <span className="text-white font-medium block">
-                            {type.label}
-                          </span>
-                          <span className="text-xs text-gray-400">
-                            {type.id === "sast" && "Static analysis"}
-                            {type.id === "secrets" && "Secret detection"}
-                            {type.id === "container" && "Container security"}
-                            {type.id === "infrastructure" && "IaC scanning"}
-                          </span>
-                        </div>
-                      </div>
-                      {formData.scan_types.includes(type.id) && (
-                        <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                          <CheckCircleIcon className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 py-3 lg:py-4 px-4 lg:px-6 rounded-xl lg:rounded-2xl border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all text-sm lg:text-base font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 lg:py-4 px-4 lg:px-6 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all flex items-center justify-center space-x-2 text-sm lg:text-base"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <ArrowPathIcon className="h-4 w-4 lg:h-5 lg:w-5 animate-spin" />
-                      <span>Starting Scan...</span>
-                    </>
-                  ) : (
-                    <>
-                      <PlayIcon className="h-4 w-4 lg:h-5 lg:w-5" />
-                      <span>Start Scan</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+// ScanModal removed - scanning is now handled through Projects page
 
 // Email Verification Page Component
 const EmailVerificationPage = () => {
@@ -618,11 +276,11 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [scanModalOpen, setScanModalOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Check for verification success message and refresh profile
   useEffect(() => {
@@ -659,113 +317,6 @@ function AppContent() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [notificationPanelOpen]);
-
-  // Scan mutation for repository submission - moved to top
-  const scanMutation = useMutation({
-    mutationFn: async (scanData) => {
-      // Use the reportsAPI service for scan calls
-      return await reportsAPI.startScan(scanData);
-    },
-    onSuccess: (data) => {
-      console.log("✅ Scan started successfully:", data);
-
-      // Show detailed success message with scan ID
-      const projectName = data.project_name || "Repository";
-      const scanId = data.scan_id?.slice(-8) || "Unknown";
-
-      toast.success(
-        `🚀 Scan initiated for ${projectName}!\nScan ID: ${scanId}\n⏳ Processing in background...`,
-        { duration: 8000 }
-      );
-
-      // Add notification for successful scan start with more details
-      setNotifications((prev) => [
-        {
-          id: Date.now(),
-          type: "scan_started",
-          message: `Security scan initiated for ${projectName} (ID: ${scanId})`,
-          timestamp: new Date(),
-          data: {
-            ...data,
-            scan_url: `/scans/${data.scan_id}`,
-            status_message:
-              "Scan is processing. Check the Reports section for updates.",
-          },
-        },
-        ...prev.slice(0, 9),
-      ]);
-
-      // Show follow-up instructions
-      setTimeout(() => {
-        toast(
-          `💡 Tip: Check the Reports section to monitor your scan progress`,
-          {
-            icon: "💡",
-            duration: 6000,
-          }
-        );
-      }, 3000);
-
-      queryClient.invalidateQueries(["reports"]);
-
-      // Auto-refresh reports after a short delay to show new scan
-      setTimeout(() => {
-        queryClient.invalidateQueries(["reports"]);
-      }, 2000);
-    },
-    onError: (error) => {
-      console.error("❌ Scan submission failed:", error);
-
-      // Extract meaningful error message
-      let errorMessage = "Failed to start scan";
-      let errorDetails = "";
-      let suggestions = "";
-
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        if (errorData.detail) {
-          errorMessage = errorData.detail;
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-
-        // Add helpful suggestions based on error type
-        if (error.response.status === 400) {
-          suggestions = "\n💡 Check your repository URL format";
-        } else if (error.response.status === 403) {
-          suggestions = "\n💡 Check repository permissions";
-        } else if (error.response.status === 500) {
-          suggestions = "\n💡 Server error - try again in a few minutes";
-        }
-
-        // Add status code context
-        errorDetails = ` (${error.response.status})`;
-      } else if (error.message) {
-        errorMessage = error.message;
-        suggestions = "\n💡 Check your internet connection";
-      }
-
-      // Show detailed error message
-      toast.error(`❌ ${errorMessage}${errorDetails}${suggestions}`, {
-        duration: 10000,
-      });
-
-      // Add error notification
-      setNotifications((prev) => [
-        {
-          id: Date.now(),
-          type: "scan_error",
-          message: `Scan submission failed: ${errorMessage}`,
-          timestamp: new Date(),
-          data: {
-            error: error.response?.data || error.message,
-            suggestions: suggestions.replace("\n💡 ", ""),
-          },
-        },
-        ...prev.slice(0, 9),
-      ]);
-    },
-  });
 
   // Enhanced WebSocket connection with better error handling - moved to top
   useEffect(() => {
@@ -960,10 +511,10 @@ function AppContent() {
           </div>
         </div>
 
-        {/* Enhanced Quick Scan Button */}
+        {/* Quick Action - Navigate to Projects */}
         <div className="px-6 mb-8">
-          <button
-            onClick={() => setScanModalOpen(true)}
+          <Link
+            to="/projects?action=new"
             className="relative w-full p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-2xl flex items-center justify-center space-x-2 group overflow-hidden transform hover:scale-105"
           >
             {/* Animated background */}
@@ -974,10 +525,10 @@ function AppContent() {
 
             <div className="relative flex items-center space-x-2">
               <PlusIcon className="h-5 w-5 group-hover:rotate-90 transition-all duration-300" />
-              <span className="font-semibold">Start New Scan</span>
-              <ArrowPathIcon className="h-4 w-4 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-all" />
+              <span className="font-semibold">New Project</span>
+              <ShieldCheckIcon className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all" />
             </div>
-          </button>
+          </Link>
         </div>
 
         {/* Navigation - Grouped */}
@@ -1499,13 +1050,13 @@ function AppContent() {
           icon={HomeIcon}
           breadcrumb={["Dashboard"]}
           actions={
-            <button
-              onClick={() => setScanModalOpen(true)}
+            <Link
+              to="/projects?action=new"
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-lg"
             >
               <PlusIcon className="h-4 w-4" />
-              <span>New Scan</span>
-            </button>
+              <span>New Project</span>
+            </Link>
           }
         />
 
@@ -1675,18 +1226,16 @@ function AppContent() {
               </button>
             </div>
 
-            {/* Mobile Quick Scan Button */}
+            {/* Mobile Quick Action - Navigate to Projects */}
             <div className="p-4 border-b border-gray-800/50">
-              <button
-                onClick={() => {
-                  setScanModalOpen(true);
-                  setSidebarOpen(false);
-                }}
+              <Link
+                to="/projects?action=new"
+                onClick={() => setSidebarOpen(false)}
                 className="w-full p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center space-x-2"
               >
                 <PlusIcon className="h-4 w-4" />
-                <span className="text-sm">Start New Scan</span>
-              </button>
+                <span className="text-sm">New Project</span>
+              </Link>
             </div>
 
             <nav className="px-4 py-4">
@@ -1856,13 +1405,6 @@ function AppContent() {
           </Routes>
         </main>
       </div>
-
-      {/* Scan Modal */}
-      <ScanModal
-        isOpen={scanModalOpen}
-        onClose={() => setScanModalOpen(false)}
-        onSubmit={scanMutation.mutateAsync}
-      />
 
       {/* Authentication Modal */}
       <AuthModal
