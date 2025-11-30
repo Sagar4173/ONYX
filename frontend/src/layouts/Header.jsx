@@ -1,6 +1,6 @@
 /**
- * Header Component - Clean Production UI
- * Professional header with search, notifications, and user profile
+ * Header Component - Enterprise Glass Design
+ * Matches the project's glass morphism and gradient design language
  */
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -15,6 +15,8 @@ import {
   ArrowRightOnRectangleIcon,
   UserIcon,
   XMarkIcon,
+  CommandLineIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../components/auth";
 
@@ -41,33 +43,35 @@ const Breadcrumb = () => {
 
   if (segments.length === 0) {
     return (
-      <div className="flex items-center text-sm text-white font-medium">
-        <HomeIcon className="w-4 h-4 mr-2 text-blue-400" />
-        Dashboard
+      <div className="flex items-center gap-2">
+        <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+          <HomeIcon className="w-4 h-4 text-white" />
+        </div>
+        <span className="text-white font-medium">Dashboard</span>
       </div>
     );
   }
 
   return (
-    <nav className="flex items-center text-sm">
+    <nav className="flex items-center gap-2 text-sm">
       <Link
         to="/dashboard"
-        className="text-slate-400 hover:text-white transition-colors"
+        className="p-1.5 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
       >
-        <HomeIcon className="w-4 h-4" />
+        <HomeIcon className="w-4 h-4 text-gray-400" />
       </Link>
       {segments.map((segment, i) => (
-        <React.Fragment key={segment}>
-          <ChevronRightIcon className="w-3 h-3 mx-2 text-slate-600" />
+        <React.Fragment key={segment + i}>
+          <ChevronRightIcon className="w-4 h-4 text-gray-600" />
           {i === segments.length - 1 ? (
-            <span className="text-white font-medium">
+            <span className="px-3 py-1.5 rounded-lg bg-gray-800/50 text-white font-medium">
               {labels[segment] ||
                 segment.charAt(0).toUpperCase() + segment.slice(1)}
             </span>
           ) : (
             <Link
               to={`/${segments.slice(0, i + 1).join("/")}`}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
             >
               {labels[segment] ||
                 segment.charAt(0).toUpperCase() + segment.slice(1)}
@@ -80,7 +84,7 @@ const Breadcrumb = () => {
 };
 
 /**
- * Search Component
+ * Search Component - Command Palette Style
  */
 const SearchBar = () => {
   const [query, setQuery] = useState("");
@@ -104,57 +108,97 @@ const SearchBar = () => {
   }, []);
 
   return (
-    <div className="relative">
+    <>
       <button
         onClick={() => {
           setIsOpen(true);
           setTimeout(() => inputRef.current?.focus(), 100);
         }}
-        className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 border border-slate-700/50 
-                   rounded-lg text-slate-400 hover:text-white hover:border-slate-600 
-                   transition-all duration-200 min-w-[200px]"
+        className="flex items-center gap-3 px-4 py-2.5 bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 
+                   rounded-xl text-gray-400 hover:text-white hover:border-gray-600/50 hover:bg-gray-800/70
+                   transition-all duration-300 group min-w-[240px]"
       >
         <MagnifyingGlassIcon className="w-4 h-4" />
-        <span className="text-sm">Search...</span>
-        <kbd className="ml-auto text-[10px] px-1.5 py-0.5 bg-slate-700 rounded text-slate-400">
-          ⌘K
+        <span className="text-sm flex-1 text-left">Search anything...</span>
+        <kbd className="hidden sm:flex items-center gap-1 text-[10px] px-2 py-1 bg-gray-700/50 rounded-md text-gray-500 group-hover:text-gray-400">
+          <CommandLineIcon className="w-3 h-3" />
+          <span>K</span>
         </kbd>
       </button>
 
+      {/* Search Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4">
           <div
-            className="fixed inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
-          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-xl shadow-2xl">
-            <div className="flex items-center px-4 border-b border-slate-700">
-              <MagnifyingGlassIcon className="w-5 h-5 text-slate-400" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search projects, reports, settings..."
-                className="flex-1 px-3 py-4 bg-transparent text-white placeholder-slate-500 
-                         outline-none text-sm"
-              />
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 text-slate-400 hover:text-white"
-              >
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 text-center text-slate-500 text-sm">
-              {query
-                ? `No results for "${query}"`
-                : "Start typing to search..."}
+          <div className="relative w-full max-w-2xl">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl" />
+
+            <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="flex items-center px-5 border-b border-gray-800/50">
+                <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search projects, reports, settings..."
+                  className="flex-1 px-4 py-5 bg-transparent text-white placeholder-gray-500 
+                           outline-none text-base"
+                />
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-2 text-gray-500 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {query ? (
+                  <div className="text-center py-8">
+                    <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
+                      <MagnifyingGlassIcon className="w-8 h-8 text-gray-500" />
+                    </div>
+                    <p className="text-gray-400">No results for "{query}"</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Quick Actions
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { label: "New Project", icon: "📁", path: "/projects" },
+                        { label: "View Reports", icon: "📊", path: "/reports" },
+                        { label: "Analytics", icon: "📈", path: "/analytics" },
+                        { label: "Settings", icon: "⚙️", path: "/settings" },
+                      ].map((item) => (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 
+                                   border border-gray-700/30 hover:border-gray-600/50 transition-all group"
+                        >
+                          <span className="text-xl">{item.icon}</span>
+                          <span className="text-sm text-gray-300 group-hover:text-white">
+                            {item.label}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
@@ -181,14 +225,15 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 
-                   rounded-lg transition-colors"
+        className="relative p-2.5 text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-700/50 
+                   border border-gray-700/50 hover:border-gray-600/50 rounded-xl transition-all duration-300"
       >
         <BellIcon className="w-5 h-5" />
         {unreadCount > 0 && (
           <span
-            className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full 
-                         text-[10px] font-bold text-white flex items-center justify-center"
+            className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 
+                         rounded-full text-[10px] font-bold text-white flex items-center justify-center
+                         shadow-lg shadow-red-500/30"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -196,39 +241,55 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
       </button>
 
       {isOpen && (
-        <div
-          className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700 
-                       rounded-xl shadow-xl z-50 overflow-hidden"
-        >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
-            <h3 className="text-sm font-semibold text-white">Notifications</h3>
-            {notifications.length > 0 && (
-              <button
-                onClick={onClear}
-                className="text-xs text-blue-400 hover:text-blue-300"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-slate-500 text-sm">
-                No notifications
-              </div>
-            ) : (
-              notifications.slice(0, 5).map((notif) => (
-                <div
-                  key={notif.id}
-                  className="px-4 py-3 hover:bg-slate-800/50 border-b border-slate-800 last:border-0"
-                >
-                  <p className="text-sm text-white">{notif.message}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {new Date(notif.timestamp).toLocaleTimeString()}
-                  </p>
+        <div className="absolute right-0 mt-3 w-96">
+          {/* Glow */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl" />
+
+          <div
+            className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 
+                         rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800/50">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+                  <BellIcon className="w-4 h-4 text-white" />
                 </div>
-              ))
-            )}
+                <h3 className="font-semibold text-white">Notifications</h3>
+              </div>
+              {notifications.length > 0 && (
+                <button
+                  onClick={onClear}
+                  className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-80 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="px-5 py-12 text-center">
+                  <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
+                    <BellIcon className="w-8 h-8 text-gray-500" />
+                  </div>
+                  <p className="text-gray-400">No notifications yet</p>
+                </div>
+              ) : (
+                <div className="p-2">
+                  {notifications.slice(0, 5).map((notif) => (
+                    <div
+                      key={notif.id}
+                      className="p-4 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer"
+                    >
+                      <p className="text-sm text-white">{notif.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(notif.timestamp).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -239,7 +300,7 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
 /**
  * User Menu Dropdown
  */
-const UserMenu = () => {
+const UserMenu = ({ onProfileClick }) => {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -274,14 +335,15 @@ const UserMenu = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+        className="flex items-center gap-3 p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 
+                   border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300"
       >
-        {/* Avatar - Show photo if available, otherwise initials */}
+        {/* Avatar */}
         {user?.avatar_url ? (
           <img
             src={user.avatar_url}
-            alt={user?.full_name || user?.name || "User"}
-            className="w-8 h-8 rounded-full object-cover border-2 border-slate-700"
+            alt={user?.full_name || "User"}
+            className="w-8 h-8 rounded-lg object-cover"
             onError={(e) => {
               e.target.style.display = "none";
               e.target.nextSibling.style.display = "flex";
@@ -289,84 +351,118 @@ const UserMenu = () => {
           />
         ) : null}
         <div
-          className={`w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
-                       flex items-center justify-center text-white text-sm font-semibold
-                       ${user?.avatar_url ? "hidden" : ""}`}
+          className={`w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 
+                     flex items-center justify-center text-white text-sm font-semibold
+                     shadow-lg shadow-blue-500/25 ${
+                       user?.avatar_url ? "hidden" : ""
+                     }`}
         >
           {getInitials()}
         </div>
-        <div className="hidden md:block text-left">
+
+        <div className="hidden lg:block text-left">
           <p className="text-sm font-medium text-white leading-tight">
             {user?.full_name || user?.name || "User"}
           </p>
-          <p className="text-xs text-slate-400 leading-tight">
+          <p className="text-xs text-gray-500 leading-tight">
             {user?.role || "Member"}
           </p>
         </div>
+
         <ChevronDownIcon
-          className={`w-4 h-4 text-slate-400 transition-transform ${
+          className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <div
-          className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 
-                       rounded-xl shadow-xl z-50 overflow-hidden"
-        >
-          <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-3">
-            {/* Avatar in dropdown */}
-            {user?.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover border-2 border-slate-700"
-              />
-            ) : (
-              <div
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 
-                            flex items-center justify-center text-white text-sm font-semibold"
-              >
-                {getInitials()}
+        <div className="absolute right-0 mt-3 w-72">
+          {/* Glow */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl" />
+
+          <div
+            className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 
+                         rounded-2xl shadow-2xl overflow-hidden"
+          >
+            {/* User Info Header */}
+            <div className="p-5 border-b border-gray-800/50">
+              <div className="flex items-center gap-4">
+                {user?.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt=""
+                    className="w-12 h-12 rounded-xl object-cover"
+                  />
+                ) : (
+                  <div
+                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 
+                                flex items-center justify-center text-white font-semibold shadow-lg"
+                  >
+                    {getInitials()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white truncate">
+                    {user?.full_name || user?.name}
+                  </p>
+                  <p className="text-sm text-gray-400 truncate">
+                    {user?.email}
+                  </p>
+                </div>
               </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-white">
-                {user?.full_name || user?.name}
-              </p>
-              <p className="text-xs text-slate-400">{user?.email}</p>
             </div>
-          </div>
-          <div className="py-1">
-            <Link
-              to="/settings"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 
-                       hover:bg-slate-800 hover:text-white transition-colors"
-            >
-              <Cog6ToothIcon className="w-4 h-4" />
-              Settings
-            </Link>
-            <Link
-              to="/profile"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 
-                       hover:bg-slate-800 hover:text-white transition-colors"
-            >
-              <UserIcon className="w-4 h-4" />
-              Profile
-            </Link>
-          </div>
-          <div className="border-t border-slate-700 py-1">
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 
-                       hover:bg-red-500/10 transition-colors"
-            >
-              <ArrowRightOnRectangleIcon className="w-4 h-4" />
-              Sign out
-            </button>
+
+            {/* Menu Items */}
+            <div className="p-2">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onProfileClick?.();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 
+                         hover:text-white hover:bg-gray-800/50 rounded-xl transition-all"
+              >
+                <div className="p-2 rounded-lg bg-gray-800/50">
+                  <UserIcon className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Profile</p>
+                  <p className="text-xs text-gray-500">View and edit profile</p>
+                </div>
+              </button>
+
+              <Link
+                to="/settings"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 
+                         hover:text-white hover:bg-gray-800/50 rounded-xl transition-all"
+              >
+                <div className="p-2 rounded-lg bg-gray-800/50">
+                  <Cog6ToothIcon className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Settings</p>
+                  <p className="text-xs text-gray-500">
+                    Preferences & security
+                  </p>
+                </div>
+              </Link>
+            </div>
+
+            {/* Logout */}
+            <div className="p-2 border-t border-gray-800/50">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 
+                         hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+              >
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                </div>
+                <span className="font-medium">Sign out</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -381,29 +477,36 @@ export default function Header({
   onMenuClick,
   notifications = [],
   onClearNotifications,
+  onProfileClick,
 }) {
   return (
-    <header className="sticky top-0 z-30 h-16 bg-slate-900/95 backdrop-blur-sm border-b border-slate-800">
-      <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30">
+      {/* Glass background */}
+      <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50" />
+
+      <div className="relative h-16 lg:h-18 px-4 lg:px-6 flex items-center justify-between gap-4">
+        {/* Left: Mobile menu + Breadcrumb */}
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
-            className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg"
+            className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50 
+                     hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all"
           >
             <Bars3Icon className="w-5 h-5" />
           </button>
           <Breadcrumb />
         </div>
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:block">
+
+        {/* Right: Search + Notifications + User */}
+        <div className="flex items-center gap-3">
+          <div className="hidden md:block">
             <SearchBar />
           </div>
           <NotificationsDropdown
             notifications={notifications}
             onClear={onClearNotifications}
           />
-          <div className="w-px h-6 bg-slate-700 mx-1" />
-          <UserMenu />
+          <UserMenu onProfileClick={onProfileClick} />
         </div>
       </div>
     </header>

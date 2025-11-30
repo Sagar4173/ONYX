@@ -126,7 +126,7 @@ export const MainLayout = () => {
       {/* Main Content - Adjusts for sidebar width */}
       <div
         className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-          sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[280px]"
+          sidebarCollapsed ? "lg:ml-[80px]" : "lg:ml-[280px]"
         }`}
       >
         <Header
