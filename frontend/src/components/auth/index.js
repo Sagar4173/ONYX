@@ -20,3 +20,10 @@ export { EmailVerification } from "./EmailVerification";
 // Composite Components
 export { UserProfile } from "./UserProfile";
 export { AuthModal } from "./AuthModal";
+
+// Auth Pages
+export {
+  EmailVerificationPage,
+  PasswordResetPage,
+  AuthRoutingHandler,
+} from "./AuthPages";

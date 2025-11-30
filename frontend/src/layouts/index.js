@@ -13,3 +13,8 @@ export {
   ErrorState,
   pageConfig,
 } from "./DashboardLayout";
+
+// Main Layout Components
+export { MainLayout } from "./MainLayout";
+export { DesktopSidebar, MobileSidebar } from "./Sidebar";
+export { Header } from "./Header";
