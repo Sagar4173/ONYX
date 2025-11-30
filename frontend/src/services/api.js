@@ -1467,6 +1467,184 @@ export const enterpriseAPI = {
       throw error;
     }
   },
+
+  // ---------- OSV/NVD Integration ----------
+
+  // Query OSV database for package vulnerabilities
+  queryOSV: async ({ ecosystem, packageName, version }) => {
+    try {
+      const response = await api.post("/enterprise/osv/query", {
+        ecosystem,
+        package_name: packageName,
+        version,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("OSV query error:", error);
+      throw error;
+    }
+  },
+
+  // Query NVD for CVE details
+  queryNVD: async (cveId) => {
+    try {
+      const response = await api.get(`/enterprise/nvd/cve/${cveId}`);
+      return response.data;
+    } catch (error) {
+      console.error("NVD query error:", error);
+      throw error;
+    }
+  },
+
+  // Get vulnerability enrichment for findings
+  enrichVulnerabilities: async (findings) => {
+    try {
+      const response = await api.post("/enterprise/vulnerabilities/enrich", {
+        findings,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Vulnerability enrichment error:", error);
+      throw error;
+    }
+  },
+
+  // ---------- SBOM Generation ----------
+
+  // Generate SBOM for repository
+  generateSBOM: async ({ repositoryPath, format = "cyclonedx" }) => {
+    try {
+      const response = await api.post("/enterprise/sbom/generate", {
+        repository_path: repositoryPath,
+        format,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("SBOM generation error:", error);
+      throw error;
+    }
+  },
+
+  // Get SBOM for project
+  getSBOM: async (projectId) => {
+    try {
+      const response = await api.get(`/enterprise/sbom/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get SBOM error:", error);
+      throw error;
+    }
+  },
+
+  // Export SBOM in different format
+  exportSBOM: async ({ sbomId, format }) => {
+    try {
+      const response = await api.get(`/enterprise/sbom/${sbomId}/export`, {
+        params: { format },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Export SBOM error:", error);
+      throw error;
+    }
+  },
+
+  // ---------- Security Trends ----------
+
+  // Get security trends dashboard data
+  getSecurityTrends: async (params = {}) => {
+    try {
+      const cleanedParams = cleanParams(params);
+      const response = await api.get("/enterprise/trends/security", {
+        params: cleanedParams,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get security trends error:", error);
+      throw error;
+    }
+  },
+
+  // Get severity trends over time
+  getSeverityTrends: async ({ projectId, period = "30d" }) => {
+    try {
+      const response = await api.get("/enterprise/trends/severity", {
+        params: { project_id: projectId, period },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get severity trends error:", error);
+      throw error;
+    }
+  },
+
+  // Get fix velocity metrics
+  getFixVelocity: async (projectId) => {
+    try {
+      const response = await api.get("/enterprise/trends/fix-velocity", {
+        params: { project_id: projectId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get fix velocity error:", error);
+      throw error;
+    }
+  },
+
+  // Get security posture score
+  getSecurityPosture: async (projectId) => {
+    try {
+      const response = await api.get("/enterprise/trends/security-posture", {
+        params: { project_id: projectId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get security posture error:", error);
+      throw error;
+    }
+  },
+
+  // ---------- Scan Comparison ----------
+
+  // Compare two scans
+  compareScans: async ({ baseScanId, targetScanId }) => {
+    try {
+      const response = await api.post("/enterprise/scans/compare", {
+        base_scan_id: baseScanId,
+        target_scan_id: targetScanId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Scan comparison error:", error);
+      throw error;
+    }
+  },
+
+  // Get available scans for comparison
+  getAvailableScans: async (projectId) => {
+    try {
+      const response = await api.get("/enterprise/scans/list", {
+        params: { project_id: projectId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Get available scans error:", error);
+      throw error;
+    }
+  },
+
+  // Get scan delta summary
+  getScanDelta: async (comparisonId) => {
+    try {
+      const response = await api.get(
+        `/enterprise/scans/comparison/${comparisonId}/delta`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Get scan delta error:", error);
+      throw error;
+    }
+  },
 };
 
 // Default export

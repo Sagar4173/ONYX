@@ -33,7 +33,7 @@ router = APIRouter(prefix="/api/security", tags=["security"])
 
 class RuleCreateRequest(BaseModel):
     rule_data: Dict[str, Any]
-    validate: bool = True
+    validate_rule: bool = True  # Renamed from 'validate' to avoid shadowing BaseModel.validate
     test_repo_path: Optional[str] = None
 
 
@@ -75,7 +75,7 @@ async def create_rule(request: RuleCreateRequest):
         rule = CustomRule(**request.rule_data)
         
         # Validate if requested
-        if request.validate:
+        if request.validate_rule:
             validation_result = await rule_engine.validate_rule(rule, request.test_repo_path)
             if not validation_result.is_valid:
                 return {

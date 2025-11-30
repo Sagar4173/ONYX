@@ -101,13 +101,6 @@ async def health_check():
         "service": "enhanced_security_api"
     }
 
-# TODO: Convert Flask routes to FastAPI
-# The original file had ~1600 lines of Flask routes that need conversion:
-# - Threat Intelligence endpoints (/threat-intel/*)
-# - Vulnerability Management endpoints (/vuln-mgmt/*)
-# - Security Metrics endpoints (/metrics/*)
-# - Compliance Assessment endpoints (/compliance/*)
-
 # FastAPI route implementations for enhanced security features
 @router.get("/threat-intel/feeds")
 async def get_threat_intelligence_feeds():

@@ -11,17 +11,18 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
+from dataclasses import asdict
 import logging
 import json
 
 # Import services
 from services.osv_nvd_integration import (
-    get_vulnerability_database,
-    VulnerabilityDatabaseIntegration
+    get_osv_nvd_service,
+    OSVNVDIntegrationService
 )
 from services.sbom_generator import (
-    get_sbom_generator,
-    SBOMGenerator,
+    get_sbom_service,
+    SBOMGeneratorService,
     SBOMFormat
 )
 from services.security_trends import (
@@ -90,15 +91,38 @@ async def get_cve_details(cve_id: str):
     Includes CVSS scores, EPSS data, affected products, and references.
     """
     try:
-        vuln_db = get_vulnerability_database()
-        cve_data = await vuln_db.get_cve_details(cve_id)
+        vuln_db = await get_osv_nvd_service()
+        cve_data = await vuln_db.query_by_cve(cve_id)
         
         if not cve_data:
             raise HTTPException(status_code=404, detail=f"CVE {cve_id} not found")
         
+        # Convert VulnerabilityMatch to dict
+        result = {
+            "id": cve_data.id,
+            "source": cve_data.source.value,
+            "aliases": cve_data.aliases,
+            "summary": cve_data.summary,
+            "details": cve_data.details,
+            "severity": cve_data.severity,
+            "cvss_score": cve_data.cvss_score,
+            "cvss_vector": cve_data.cvss_vector,
+            "cwe_ids": cve_data.cwe_ids,
+            "published": cve_data.published.isoformat() if cve_data.published else None,
+            "modified": cve_data.modified.isoformat() if cve_data.modified else None,
+            "affected_packages": cve_data.affected_packages,
+            "references": cve_data.references,
+            "epss_score": cve_data.epss_score,
+            "epss_percentile": cve_data.epss_percentile,
+            "exploit_available": cve_data.exploit_available,
+            "kev_listed": cve_data.kev_listed,
+            "fix_available": cve_data.fix_available,
+            "fixed_versions": cve_data.fixed_versions
+        }
+        
         return {
             "success": True,
-            "data": cve_data
+            "data": result
         }
     except Exception as e:
         logger.error(f"Error fetching CVE details: {e}")
@@ -111,21 +135,53 @@ async def check_package_vulnerabilities(request: PackageVulnerabilityRequest):
     Check multiple packages for known vulnerabilities using Google OSV.
     Returns vulnerability data for each affected package.
     """
+    from services.osv_nvd_integration import PackageQuery, Ecosystem
+    
     try:
-        vuln_db = get_vulnerability_database()
+        vuln_db = await get_osv_nvd_service()
         results = []
         
+        # Map ecosystem string to Ecosystem enum
+        ecosystem_map = {
+            "pypi": Ecosystem.PYPI,
+            "npm": Ecosystem.NPM,
+            "maven": Ecosystem.MAVEN,
+            "go": Ecosystem.GO,
+            "nuget": Ecosystem.NUGET,
+            "rubygems": Ecosystem.RUBYGEMS,
+            "cargo": Ecosystem.CARGO,
+        }
+        
         for pkg in request.packages:
-            vulns = await vuln_db.get_package_vulnerabilities(
-                package_name=pkg["name"],
-                ecosystem=pkg.get("ecosystem", "pypi"),
-                version=pkg.get("version")
+            eco_str = pkg.get("ecosystem", "pypi").lower()
+            ecosystem = ecosystem_map.get(eco_str, Ecosystem.PYPI)
+            
+            pkg_query = PackageQuery(
+                name=pkg["name"],
+                version=pkg.get("version", ""),
+                ecosystem=ecosystem
             )
+            
+            vulns = await vuln_db.query_osv(pkg_query)
+            
+            # Convert VulnerabilityMatch objects to dicts
+            vuln_list = [
+                {
+                    "id": v.id,
+                    "severity": v.severity,
+                    "cvss_score": v.cvss_score,
+                    "summary": v.summary,
+                    "fix_available": v.fix_available,
+                    "fixed_versions": v.fixed_versions
+                }
+                for v in vulns
+            ]
+            
             results.append({
                 "package": pkg["name"],
                 "version": pkg.get("version"),
                 "ecosystem": pkg.get("ecosystem", "pypi"),
-                "vulnerabilities": vulns,
+                "vulnerabilities": vuln_list,
                 "vulnerable": len(vulns) > 0
             })
         
@@ -146,23 +202,61 @@ async def enrich_vulnerability(request: VulnerabilityEnrichRequest):
     Enrich vulnerability data with additional context from OSV and NVD.
     Provides CVSS scores, EPSS probability, affected versions, and remediation info.
     """
+    from services.osv_nvd_integration import PackageQuery, Ecosystem
+    
     try:
-        vuln_db = get_vulnerability_database()
+        vuln_db = await get_osv_nvd_service()
         
         enriched_data = {}
         
         if request.cve_id:
-            cve_data = await vuln_db.get_cve_details(request.cve_id)
+            cve_data = await vuln_db.query_by_cve(request.cve_id)
             if cve_data:
-                enriched_data["cve_details"] = cve_data
+                enriched_data["cve_details"] = {
+                    "id": cve_data.id,
+                    "source": cve_data.source.value,
+                    "aliases": cve_data.aliases,
+                    "summary": cve_data.summary,
+                    "details": cve_data.details,
+                    "severity": cve_data.severity,
+                    "cvss_score": cve_data.cvss_score,
+                    "cvss_vector": cve_data.cvss_vector,
+                    "cwe_ids": cve_data.cwe_ids,
+                    "epss_score": cve_data.epss_score,
+                    "epss_percentile": cve_data.epss_percentile,
+                    "exploit_available": cve_data.exploit_available,
+                    "kev_listed": cve_data.kev_listed,
+                    "fix_available": cve_data.fix_available,
+                    "fixed_versions": cve_data.fixed_versions
+                }
         
         if request.package_name:
-            vulns = await vuln_db.get_package_vulnerabilities(
-                package_name=request.package_name,
-                ecosystem=request.ecosystem,
-                version=request.package_version
+            ecosystem_map = {
+                "pypi": Ecosystem.PYPI,
+                "npm": Ecosystem.NPM,
+                "maven": Ecosystem.MAVEN,
+                "go": Ecosystem.GO,
+            }
+            ecosystem = ecosystem_map.get(request.ecosystem.lower(), Ecosystem.PYPI)
+            
+            pkg_query = PackageQuery(
+                name=request.package_name,
+                version=request.package_version or "",
+                ecosystem=ecosystem
             )
-            enriched_data["package_vulnerabilities"] = vulns
+            
+            vulns = await vuln_db.query_osv(pkg_query)
+            enriched_data["package_vulnerabilities"] = [
+                {
+                    "id": v.id,
+                    "severity": v.severity,
+                    "cvss_score": v.cvss_score,
+                    "summary": v.summary,
+                    "fix_available": v.fix_available,
+                    "fixed_versions": v.fixed_versions
+                }
+                for v in vulns
+            ]
         
         return {
             "success": True,
@@ -182,7 +276,7 @@ async def generate_sbom(request: SBOMGenerateRequest, background_tasks: Backgrou
     Supports SPDX 2.3 and CycloneDX 1.5 formats.
     """
     try:
-        sbom_gen = get_sbom_generator()
+        sbom_gen = get_sbom_service()
         
         sbom_format = SBOMFormat.SPDX if request.format.lower() == "spdx" else SBOMFormat.CYCLONEDX
         
@@ -193,10 +287,13 @@ async def generate_sbom(request: SBOMGenerateRequest, background_tasks: Backgrou
             enrich_with_vulnerabilities=request.enrich_vulnerabilities
         )
         
+        # Convert SBOM dataclass to dict
+        sbom_dict = _sbom_to_dict(sbom)
+        
         return {
             "success": True,
             "format": request.format,
-            "sbom": sbom.to_dict() if hasattr(sbom, 'to_dict') else sbom
+            "sbom": sbom_dict
         }
     except Exception as e:
         logger.error(f"Error generating SBOM: {e}")
@@ -214,7 +311,7 @@ async def generate_sbom_download(
     Supports JSON and XML output types.
     """
     try:
-        sbom_gen = get_sbom_generator()
+        sbom_gen = get_sbom_service()
         
         sbom_format = SBOMFormat.SPDX if format.lower() == "spdx" else SBOMFormat.CYCLONEDX
         
@@ -223,7 +320,7 @@ async def generate_sbom_download(
             output_format=sbom_format
         )
         
-        sbom_dict = sbom.to_dict() if hasattr(sbom, 'to_dict') else sbom
+        sbom_dict = _sbom_to_dict(sbom)
         
         if output_type.lower() == "json":
             content = json.dumps(sbom_dict, indent=2)
@@ -543,6 +640,28 @@ async def get_fix_velocity(
 
 
 # ============ Utility Functions ============
+
+def _sbom_to_dict(sbom) -> dict:
+    """Convert SBOM dataclass to dictionary, handling nested dataclasses and enums"""
+    try:
+        result = asdict(sbom)
+        # Handle any enum values
+        def convert_enums(obj):
+            if isinstance(obj, dict):
+                return {k: convert_enums(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_enums(item) for item in obj]
+            elif isinstance(obj, Enum):
+                return obj.value
+            elif hasattr(obj, 'isoformat'):  # datetime
+                return obj.isoformat()
+            return obj
+        return convert_enums(result)
+    except Exception as e:
+        logger.warning(f"Failed to convert SBOM to dict via asdict: {e}")
+        # Fallback to manual conversion
+        return vars(sbom) if hasattr(sbom, '__dict__') else str(sbom)
+
 
 def dict_to_xml(data: dict, root_name: str = "root") -> str:
     """Simple dict to XML converter"""

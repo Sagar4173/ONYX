@@ -230,9 +230,6 @@ async def handle_god_level_error(error: Exception):
         "god_level_note": "Enterprise-grade error handling active"
     }
 
-# TODO: Convert remaining Flask routes to FastAPI
-# The original file had additional Flask routes that need conversion
-
 # Additional God-Level Security FastAPI endpoints
 @router.post("/rule-engine/parse")
 async def parse_security_rules(request: Dict[str, Any]):
