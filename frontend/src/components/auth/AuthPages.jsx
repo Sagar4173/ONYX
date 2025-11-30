@@ -77,7 +77,7 @@ export const PasswordResetPage = () => {
   if (!token) {
     return (
       <div className="max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl mb-4">
           <ExclamationTriangleIcon className="h-8 w-8 text-white" />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">
@@ -88,7 +88,7 @@ export const PasswordResetPage = () => {
         </p>
         <button
           onClick={handleSwitchToLogin}
-          className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all"
+          className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-medium rounded-xl hover:from-cyan-600 hover:to-violet-700 transition-all"
         >
           Back to Login
         </button>
@@ -134,11 +134,11 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
 
   if (isPublicRoute) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
         <React.Suspense
           fallback={
             <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
             </div>
           }
         >
@@ -176,7 +176,7 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
 
   // For non-public routes when not authenticated
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       <AuthModal isOpen={true} onClose={() => setAuthModalOpen(false)} />
     </div>
   );

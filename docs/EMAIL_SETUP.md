@@ -1,6 +1,6 @@
 # Email Configuration Guide
 
-The SecureDevOps Platform now supports real email sending for user verification and password resets. This guide explains how to configure different email providers.
+The ONYX Platform now supports real email sending for user verification and password resets. This guide explains how to configure different email providers.
 
 ## Quick Setup
 
@@ -24,7 +24,7 @@ EMAIL_PROVIDER=gmail
 SMTP_USERNAME=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
 EMAIL_FROM=your-email@gmail.com
-EMAIL_FROM_NAME="SecureDevOps Platform"
+EMAIL_FROM_NAME="ONYX Platform"
 ```
 
 **Setup Steps:**

@@ -73,21 +73,21 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
   return (
     <div className="max-w-md mx-auto bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-2xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl relative overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
       <div
-        className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"
+        className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: "1s" }}
       />
 
       <div className="relative z-10">
         <div className="text-center mb-8">
           <div
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 rounded-3xl mb-4 shadow-lg animate-bounce"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 rounded-3xl mb-4 shadow-lg animate-bounce"
             style={{ animationDuration: "3s" }}
           >
             <ShieldCheckSolid className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent mb-2">
             Create New Password
           </h2>
           <p className="text-gray-400">
@@ -98,7 +98,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="group">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-              <LockClosedIcon className="w-4 h-4 text-teal-400" />
+              <LockClosedIcon className="w-4 h-4 text-cyan-400" />
               New Password
             </label>
             <div className="relative">
@@ -108,7 +108,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, password: e.target.value }))
                 }
-                className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all group-hover:border-gray-500"
+                className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all group-hover:border-gray-500"
                 placeholder="Enter new password"
                 required
               />
@@ -156,7 +156,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
 
           <div className="group">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-              <LockClosedIcon className="w-4 h-4 text-cyan-400" />
+              <LockClosedIcon className="w-4 h-4 text-violet-400" />
               Confirm New Password
             </label>
             <div className="relative">
@@ -169,7 +169,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                     confirm_password: e.target.value,
                   }))
                 }
-                className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all group-hover:border-gray-500"
+                className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all group-hover:border-gray-500"
                 placeholder="Confirm new password"
                 required
               />
@@ -196,7 +196,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-3.5 bg-gradient-to-r from-teal-500 via-cyan-500 to-blue-500 text-white font-semibold rounded-xl hover:from-teal-600 hover:via-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            className="w-full px-4 py-3.5 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -215,7 +215,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
         <div className="mt-6 text-center">
           <button
             onClick={onSwitchToLogin}
-            className="text-transparent bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text font-semibold hover:from-teal-300 hover:to-cyan-300 transition-all"
+            className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
           >
             ← Back to sign in
           </button>

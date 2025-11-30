@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the role-based implementation plan for SecureDevOps AI Platform, detailing specific responsibilities and future development tasks for each team member based on their expertise.
+This document outlines the role-based implementation plan for ONYX Security Intelligence Platform, detailing specific responsibilities and future development tasks for each team member based on their expertise.
 
 ---
 

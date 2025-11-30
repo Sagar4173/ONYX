@@ -1,14 +1,14 @@
-# 🆚 Competitive Analysis: SecureDevOps AI vs GHAS vs Snyk
+# 🆚 Competitive Analysis: ONYX vs GHAS vs Snyk
 
 ## Executive Summary
 
-SecureDevOps AI Platform positions itself as the **open-source enterprise alternative** to GitHub Advanced Security (GHAS) and Snyk, offering comprehensive security scanning with AI-powered analysis at a fraction of the cost while maintaining complete data control and customization freedom.
+ONYX - Security Intelligence Platform positions itself as the **open-source enterprise alternative** to GitHub Advanced Security (GHAS) and Snyk, offering comprehensive security scanning with AI-powered analysis at a fraction of the cost while maintaining complete data control and customization freedom.
 
 ---
 
 ## 📊 **Feature Comparison Matrix**
 
-| Feature Category           | SecureDevOps AI               | GitHub Advanced Security | Snyk                 |
+| Feature Category           | ONYX Platform                 | GitHub Advanced Security | Snyk                 |
 | -------------------------- | ----------------------------- | ------------------------ | -------------------- |
 | **💰 Pricing**             | ✅ **Open Source/Free**       | ❌ $49/user/month        | ❌ $25-99/user/month |
 | **🏠 Deployment**          | ✅ **Self-hosted**            | ⚠️ GitHub.com only       | ⚠️ Cloud + on-prem   |
@@ -27,7 +27,7 @@ SecureDevOps AI Platform positions itself as the **open-source enterprise altern
 
 ## 🆚 **vs GitHub Advanced Security (GHAS)**
 
-### **✅ Advantages of SecureDevOps AI**
+### **✅ Advantages of ONYX Platform**
 
 #### **💰 Cost Effectiveness**
 

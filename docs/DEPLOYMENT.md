@@ -2,7 +2,7 @@
 
 ## Current Live Deployments
 
-**SecureDevOps AI Platform is currently live and running:**
+**ONYX Platform is currently live and running:**
 
 - 🌐 **Frontend (Vercel)**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
 - 🔌 **Backend (Railway)**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
@@ -11,7 +11,7 @@
 
 ## Overview
 
-SecureDevOps AI Platform supports multiple deployment options to fit different infrastructure requirements. This guide covers deployment strategies from local development to enterprise production environments.
+ONYX - Security Intelligence Platform supports multiple deployment options to fit different infrastructure requirements. This guide covers deployment strategies from local development to enterprise production environments.
 
 ---
 

@@ -95,7 +95,7 @@ export const RegisterForm = ({
       {/* Compact Header */}
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-white mb-1">Create Account</h2>
-        <p className="text-sm text-gray-400">Join SecureDevOps Platform</p>
+        <p className="text-sm text-gray-400">Join ONYX Security Platform</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,7 +111,7 @@ export const RegisterForm = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, username: e.target.value }))
               }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
               placeholder="username"
               required
             />
@@ -130,7 +130,7 @@ export const RegisterForm = ({
                   full_name: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
               placeholder="John Doe"
               required
             />
@@ -149,7 +149,7 @@ export const RegisterForm = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, email: e.target.value }))
               }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition-all"
+              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
               placeholder="your@email.com"
               required
             />
@@ -168,7 +168,7 @@ export const RegisterForm = ({
                   organization: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
               placeholder="Company"
             />
           </div>
@@ -186,7 +186,7 @@ export const RegisterForm = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, password: e.target.value }))
               }
-              className="w-full px-3 py-2.5 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all"
+              className="w-full px-3 py-2.5 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
               placeholder="Strong password"
               required
             />
@@ -245,7 +245,7 @@ export const RegisterForm = ({
                   confirm_password: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
+              className="w-full px-3 py-2.5 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
               placeholder="Confirm password"
               required
             />
@@ -272,7 +272,7 @@ export const RegisterForm = ({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-3 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:from-green-600 hover:via-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
@@ -292,7 +292,7 @@ export const RegisterForm = ({
         <span className="text-gray-400">Already have an account? </span>
         <button
           onClick={onSwitchToLogin}
-          className="text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text font-semibold hover:from-blue-300 hover:to-purple-300 transition-all"
+          className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
         >
           Sign in
         </button>
@@ -302,15 +302,15 @@ export const RegisterForm = ({
       <div className="mt-8 pt-6 border-t border-gray-700/50">
         <div className="flex items-center justify-center gap-6 text-gray-500 text-xs">
           <div className="flex items-center gap-1">
-            <CheckCircleIcon className="w-4 h-4 text-green-400" />
+            <CheckCircleIcon className="w-4 h-4 text-cyan-400" />
             <span>Free Forever</span>
           </div>
           <div className="flex items-center gap-1">
-            <LockClosedIcon className="w-4 h-4 text-blue-400" />
+            <LockClosedIcon className="w-4 h-4 text-violet-400" />
             <span>Secure</span>
           </div>
           <div className="flex items-center gap-1">
-            <SparklesIcon className="w-4 h-4 text-purple-400" />
+            <SparklesIcon className="w-4 h-4 text-cyan-300" />
             <span>No Credit Card</span>
           </div>
         </div>

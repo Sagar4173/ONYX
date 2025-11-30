@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import {
-  ShieldCheckIcon,
   BoltIcon,
   CodeBracketIcon,
   ServerIcon,
@@ -9,8 +8,10 @@ import {
   LockClosedIcon,
   SparklesIcon,
   CheckCircleIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthContext";
+import { OnyxLogo } from "../common";
 import { LoginForm } from "./LoginForm";
 import { RegisterForm } from "./RegisterForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
@@ -81,22 +82,22 @@ export const AuthModal = ({
           subtitle: "Continue Your Security Journey",
           features: [
             {
-              icon: <BoltIcon className="h-6 w-6 text-blue-400" />,
+              icon: <BoltIcon className="h-6 w-6 text-cyan-400" />,
               title: "Instant Access",
               description: "Resume scanning and monitoring your projects",
-              color: "blue",
+              color: "cyan",
             },
             {
-              icon: <ChartBarIcon className="h-6 w-6 text-purple-400" />,
+              icon: <ChartBarIcon className="h-6 w-6 text-violet-400" />,
               title: "Real-time Analytics",
               description: "View latest security insights and reports",
-              color: "purple",
+              color: "violet",
             },
             {
-              icon: <ShieldCheckIcon className="h-6 w-6 text-pink-400" />,
+              icon: <ShieldCheckIcon className="h-6 w-6 text-cyan-300" />,
               title: "Active Protection",
               description: "Your projects are continuously monitored",
-              color: "pink",
+              color: "cyan",
             },
           ],
         };
@@ -106,22 +107,22 @@ export const AuthModal = ({
           subtitle: "Join 500+ Organizations",
           features: [
             {
-              icon: <SparklesIcon className="h-6 w-6 text-green-400" />,
+              icon: <SparklesIcon className="h-6 w-6 text-cyan-400" />,
               title: "Free Forever Plan",
               description: "Get started with unlimited scans and AI analysis",
-              color: "green",
+              color: "cyan",
             },
             {
-              icon: <CodeBracketIcon className="h-6 w-6 text-blue-400" />,
+              icon: <CodeBracketIcon className="h-6 w-6 text-violet-400" />,
               title: "Multi-Language Support",
               description: "Python, JavaScript, Java, C++, and 15+ more",
-              color: "blue",
+              color: "violet",
             },
             {
-              icon: <LockClosedIcon className="h-6 w-6 text-purple-400" />,
+              icon: <LockClosedIcon className="h-6 w-6 text-cyan-300" />,
               title: "Enterprise Security",
               description: "SOC 2, GDPR, and HIPAA compliant platform",
-              color: "purple",
+              color: "cyan",
             },
           ],
         };
@@ -138,16 +139,16 @@ export const AuthModal = ({
               color: "cyan",
             },
             {
-              icon: <ServerIcon className="h-6 w-6 text-indigo-400" />,
+              icon: <ServerIcon className="h-6 w-6 text-violet-400" />,
               title: "Zero Knowledge",
               description: "We never see or store your password",
-              color: "indigo",
+              color: "violet",
             },
             {
-              icon: <BoltIcon className="h-6 w-6 text-pink-400" />,
+              icon: <BoltIcon className="h-6 w-6 text-cyan-300" />,
               title: "Instant Reset",
               description: "Regain access in under 2 minutes",
-              color: "pink",
+              color: "cyan",
             },
           ],
         };
@@ -169,10 +170,10 @@ export const AuthModal = ({
               color: "violet",
             },
             {
-              icon: <ShieldCheckIcon className="h-6 w-6 text-pink-400" />,
+              icon: <ShieldCheckIcon className="h-6 w-6 text-cyan-300" />,
               title: "Compliance Ready",
               description: "OWASP, PCI-DSS, HIPAA support",
-              color: "pink",
+              color: "cyan",
             },
           ],
         };
@@ -247,23 +248,23 @@ export const AuthModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       {/* Animated Particles Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
-          className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-ping"
+          className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-ping"
           style={{ animationDuration: "3s" }}
         />
         <div
-          className="absolute top-1/3 right-1/4 w-2 h-2 bg-purple-400 rounded-full animate-ping"
+          className="absolute top-1/3 right-1/4 w-2 h-2 bg-violet-400 rounded-full animate-ping"
           style={{ animationDuration: "4s", animationDelay: "1s" }}
         />
         <div
-          className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-pink-400 rounded-full animate-ping"
+          className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-cyan-300 rounded-full animate-ping"
           style={{ animationDuration: "5s", animationDelay: "2s" }}
         />
         <div
-          className="absolute top-1/2 right-1/3 w-2 h-2 bg-cyan-400 rounded-full animate-ping"
+          className="absolute top-1/2 right-1/3 w-2 h-2 bg-violet-300 rounded-full animate-ping"
           style={{ animationDuration: "4s", animationDelay: "0.5s" }}
         />
       </div>
@@ -274,23 +275,23 @@ export const AuthModal = ({
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
           {/* Animated Background */}
           <div className="absolute inset-0">
-            <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-pink-500/30 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/20 via-violet-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" />
             <div
-              className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-cyan-500/30 via-blue-500/30 to-indigo-500/30 rounded-full blur-3xl animate-pulse"
+              className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-violet-500/20 via-cyan-500/20 to-violet-500/20 rounded-full blur-3xl animate-pulse"
               style={{ animationDelay: "2s" }}
             />
 
             {/* Floating geometric shapes */}
             <div
-              className="absolute top-1/4 left-1/4 w-20 h-20 border-2 border-blue-400/30 rounded-lg rotate-45 animate-spin"
+              className="absolute top-1/4 left-1/4 w-20 h-20 border-2 border-cyan-400/30 rounded-lg rotate-45 animate-spin"
               style={{ animationDuration: "10s" }}
             />
             <div
-              className="absolute bottom-1/3 right-1/4 w-16 h-16 border-2 border-purple-400/30 rounded-full animate-bounce"
+              className="absolute bottom-1/3 right-1/4 w-16 h-16 border-2 border-violet-400/30 rounded-full animate-bounce"
               style={{ animationDuration: "3s" }}
             />
             <div
-              className="absolute top-1/2 right-1/3 w-12 h-12 bg-pink-400/10 backdrop-blur-xl rounded-lg animate-pulse"
+              className="absolute top-1/2 right-1/3 w-12 h-12 bg-cyan-400/10 backdrop-blur-xl rounded-lg animate-pulse"
               style={{ animationDuration: "4s" }}
             />
           </div>
@@ -299,18 +300,13 @@ export const AuthModal = ({
           <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16 text-white">
             {/* Logo & Title */}
             <div className="mb-12">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/50 transform hover:scale-110 transition-transform duration-300">
-                  <ShieldCheckIcon
-                    className="h-8 w-8 text-white animate-pulse"
-                    style={{ animationDuration: "2s" }}
-                  />
-                </div>
+              <div className="flex items-center gap-4 mb-4">
+                <OnyxLogo variant="default" className="w-16 h-16" />
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent animate-gradient">
                     {branding.title}
                   </h1>
-                  <p className="text-blue-200 text-sm">{branding.subtitle}</p>
+                  <p className="text-cyan-200 text-sm">{branding.subtitle}</p>
                 </div>
               </div>
               <p className="text-xl text-gray-300 leading-relaxed">
@@ -350,7 +346,7 @@ export const AuthModal = ({
             {/* Stats */}
             <div className="mt-12 grid grid-cols-3 gap-6">
               <div className="text-center group hover:scale-105 transition-transform">
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent group-hover:from-cyan-400 group-hover:to-blue-400 transition-all">
+                <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-cyan-400 transition-all">
                   99.9%
                 </div>
                 <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300">
@@ -358,7 +354,7 @@ export const AuthModal = ({
                 </div>
               </div>
               <div className="text-center group hover:scale-105 transition-transform">
-                <div className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:from-pink-400 group-hover:to-purple-400 transition-all">
+                <div className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent group-hover:from-violet-300 group-hover:to-violet-400 transition-all">
                   10K+
                 </div>
                 <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300">
@@ -366,7 +362,7 @@ export const AuthModal = ({
                 </div>
               </div>
               <div className="text-center group hover:scale-105 transition-transform">
-                <div className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent group-hover:from-orange-400 group-hover:to-pink-400 transition-all">
+                <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent group-hover:from-violet-400 group-hover:to-cyan-400 transition-all">
                   500+
                 </div>
                 <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300">
@@ -377,10 +373,10 @@ export const AuthModal = ({
 
             {/* Quick Testimonial */}
             {currentView === "register" && (
-              <div className="mt-8 p-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10">
+              <div className="mt-8 p-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-cyan-500/20">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 flex items-center justify-center text-white font-bold">
                       J
                     </div>
                   </div>
@@ -405,11 +401,9 @@ export const AuthModal = ({
         {/* Right Side - Auth Form */}
         <div className="w-full lg:w-1/2 relative overflow-y-auto">
           {/* Mobile Logo (visible on small screens) */}
-          <div className="lg:hidden p-6 text-center bg-gradient-to-r from-gray-900/50 to-cyan-900/30 backdrop-blur-xl border-b border-gray-800/50">
-            <div className="inline-flex items-center gap-2 mb-2">
-              <div className="p-2 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-xl shadow-lg shadow-cyan-500/30">
-                <ShieldCheckIcon className="h-6 w-6 text-white" />
-              </div>
+          <div className="lg:hidden p-6 text-center bg-gradient-to-r from-gray-950/50 to-gray-900/50 backdrop-blur-xl border-b border-gray-800/50">
+            <div className="inline-flex items-center gap-3 mb-2">
+              <OnyxLogo variant="mini" className="w-10 h-10" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
                 ONYX
               </h1>
@@ -422,9 +416,9 @@ export const AuthModal = ({
           {/* Form Container */}
           <div className="flex items-center justify-center min-h-full p-6 lg:p-12">
             <div className="w-full max-w-md">
-              <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 hover:shadow-blue-500/10">
+              <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 hover:shadow-cyan-500/10">
                 {/* Gradient Background Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-violet-500/5 to-cyan-500/5" />
 
                 {/* Content */}
                 <div className="relative">{renderCurrentView()}</div>
@@ -433,15 +427,15 @@ export const AuthModal = ({
               {/* Trust Indicators */}
               <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
-                  <CheckCircleIcon className="w-4 h-4 text-green-400" />
+                  <CheckCircleIcon className="w-4 h-4 text-cyan-400" />
                   <span>256-bit SSL</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <ShieldCheckIcon className="w-4 h-4 text-blue-400" />
+                  <ShieldCheckIcon className="w-4 h-4 text-violet-400" />
                   <span>SOC 2 Certified</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <LockClosedIcon className="w-4 h-4 text-purple-400" />
+                  <LockClosedIcon className="w-4 h-4 text-cyan-300" />
                   <span>GDPR Compliant</span>
                 </div>
               </div>
@@ -454,7 +448,7 @@ export const AuthModal = ({
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 bg-gray-800/50 hover:bg-gray-800 rounded-full transition-colors z-50"
+          className="absolute top-6 right-6 p-2 bg-gray-800/50 hover:bg-violet-500/20 rounded-full transition-colors z-50"
           aria-label="Close"
         >
           <svg

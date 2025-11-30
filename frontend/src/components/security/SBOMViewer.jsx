@@ -582,7 +582,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                 <span className="ml-2">
                   {currentSBOM.creationInfo?.creators?.[0] ||
                     currentSBOM.metadata?.tools?.[0]?.name ||
-                    "SecureDevOps"}
+                    "ONYX"}
                 </span>
               </div>
               <div>

@@ -1,5 +1,5 @@
 /**
- * Project Details Component for SecureDevOps Platform
+ * Project Details Component for ONYX Platform
  * Comprehensive project overview with security metrics and scan history
  */
 import React, { useState, useEffect, useCallback, useRef } from "react";

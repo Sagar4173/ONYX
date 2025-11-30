@@ -2,13 +2,13 @@
 
 ## Overview
 
-SecureDevOps AI Platform is designed as a modern, scalable, and enterprise-ready security scanning platform that rivals GitHub Advanced Security (GHAS) and Snyk. The architecture follows microservices principles with clear separation of concerns.
+ONYX - Security Intelligence Platform is designed as a modern, scalable, and enterprise-ready security scanning platform that rivals GitHub Advanced Security (GHAS) and Snyk. The architecture follows microservices principles with clear separation of concerns.
 
 ## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     SecureDevOps AI Platform                   │
+│                     ONYX - Security Intelligence               │
 ├─────────────────────────────────────────────────────────────────┤
 │  🌐 Frontend Layer (React 18 + Vite)                          │
 │  ├── Modern Dark UI with Glassmorphism                         │

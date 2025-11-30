@@ -1,6 +1,6 @@
-# 🤝 Contributing to SecureDevOps AI Platform
+# 🤝 Contributing to ONYX Platform
 
-We're excited that you're interested in contributing to SecureDevOps AI Platform! This guide will help you get started with contributing to our open-source security scanning platform.
+We're excited that you're interested in contributing to ONYX - Security Intelligence Platform! This guide will help you get started with contributing to our open-source security scanning platform.
 
 ---
 

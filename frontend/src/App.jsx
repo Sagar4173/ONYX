@@ -36,12 +36,12 @@ const queryClient = new QueryClient({
  * Loading Screen Component
  */
 const LoadingScreen = () => (
-  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
     <div className="text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-4 animate-pulse">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-2xl mb-4 animate-pulse">
         <ShieldCheckIcon className="h-8 w-8 text-white" />
       </div>
-      <p className="text-white text-lg">Loading SecureDevOps Platform...</p>
+      <p className="text-white text-lg">Loading ONYX Platform...</p>
     </div>
   </div>
 );

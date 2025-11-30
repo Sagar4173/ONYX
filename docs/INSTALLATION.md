@@ -2,7 +2,7 @@
 
 ## 🌐 Live Demo
 
-**Try SecureDevOps AI Platform without installation:**
+**Try ONYX Platform without installation:**
 
 - 🌐 **Frontend Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
 - 🔌 **Backend API**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
@@ -13,7 +13,7 @@
 
 ## Overview
 
-SecureDevOps AI Platform can be deployed in multiple configurations to meet different organizational needs, from development environments to enterprise-scale production deployments.
+ONYX - Security Intelligence Platform can be deployed in multiple configurations to meet different organizational needs, from development environments to enterprise-scale production deployments.
 
 ---
 

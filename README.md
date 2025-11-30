@@ -1,4 +1,4 @@
-# 🛡️ SecureDevOps AI Platform
+# 🔮 ONYX - Security Intelligence Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
@@ -18,7 +18,7 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 
 ## 🚀 **Live Demo**
 
-**Experience SecureDevOps AI Platform:**
+**Experience ONYX Security Intelligence Platform:**
 
 - 🌐 **Frontend Demo**: [https://secure-dev-ops-ai-platform.vercel.app](https://secure-dev-ops-ai-platform.vercel.app)
 - 🔌 **Backend API**: [https://securedevopsai-platform-production.up.railway.app](https://securedevopsai-platform-production.up.railway.app)
@@ -29,7 +29,7 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 
 ## 👥 **Meet the Team**
 
-**SecureDevOps AI Platform** is proudly developed by a dedicated team of three specialists:
+**ONYX Security Intelligence Platform** is proudly developed by a dedicated team of three specialists:
 
 ### **🧑‍💻 Core Team**
 
@@ -43,9 +43,9 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 
 We combine our diverse expertise to create a comprehensive, AI-powered security platform that makes enterprise-grade security scanning accessible to organizations of all sizes.
 
-![SecureDevOps Platform Dashboard](docs/images/dashboard.png)
+![ONYX Platform Dashboard](docs/images/dashboard.png)
 
-## 🌟 Why Choose SecureDevOps AI Platform?
+## 🌟 Why Choose ONYX?
 
 ### 🆚 **vs GitHub Advanced Security (GHAS)**
 

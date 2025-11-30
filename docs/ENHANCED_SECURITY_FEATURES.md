@@ -1,27 +1,31 @@
 # Enhanced Security Features Documentation
 
-This document describes the three major enhanced security features implemented in the SecureDevOps AI Platform:
+This document describes the three major enhanced security features implemented in the ONYX Platform:
 
 ## 1. Custom Rule Engine
 
 ### Overview
+
 The Custom Rule Engine allows users to create, manage, and deploy custom security rules that can be executed by various scanners (Semgrep, regex-based, etc.).
 
 ### Features
 
 #### User-Defined Security Policies
+
 - **YAML/JSON Rule Format**: Rules can be defined in both YAML and JSON formats
 - **Multiple Rule Types**: Support for Semgrep rules, regex patterns, and custom logic
 - **CWE Mapping**: Rules can be mapped to Common Weakness Enumeration (CWE) identifiers
 - **Language Support**: Rules can target specific programming languages and file patterns
 
 #### Rule Template Library
+
 - **Pre-built Templates**: Ready-to-use rule templates for common vulnerabilities
 - **CWE Coverage**: Templates mapped to specific CWE categories
 - **Customizable Parameters**: Templates can be customized with user-specific parameters
 - **Version Control**: Templates are version-controlled and maintained centrally
 
 #### Rule Management
+
 - **Validation Framework**: Rules are validated before deployment
 - **Testing Support**: Built-in test case execution for rule validation
 - **Version Control**: All rules are stored in Git for change tracking
@@ -30,6 +34,7 @@ The Custom Rule Engine allows users to create, manage, and deploy custom securit
 ### API Endpoints
 
 #### Rule Management
+
 ```
 POST   /api/security/rules                     # Create new rule
 GET    /api/security/rules                     # List all rules
@@ -41,6 +46,7 @@ POST   /api/security/rules/{rule_id}/test     # Test rule
 ```
 
 #### Template Management
+
 ```
 GET    /api/security/templates                      # List templates
 GET    /api/security/templates/{template_id}        # Get template
@@ -77,23 +83,27 @@ test_cases:
 ## 2. Baseline Scanning
 
 ### Overview
+
 Baseline Scanning provides historical comparison capabilities, allowing teams to track security improvements and identify regressions over time.
 
 ### Features
 
 #### Historical Comparison
+
 - **Scan Fingerprints**: Create unique fingerprints for each security finding
 - **Baseline Creation**: Establish baselines from previous scans
 - **Drift Detection**: Compare current scans against established baselines
 - **Change Tracking**: Track which findings are new, fixed, or persisting
 
 #### Security Drift Detection
+
 - **Automated Comparison**: Automatic comparison with previous baselines
 - **Regression Identification**: Identify when previously fixed issues reappear
 - **Trend Analysis**: Analyze security trends over time
 - **Scoring System**: Quantify security improvements or degradations
 
 #### Baseline Management
+
 - **Multiple Baselines**: Support for multiple baselines per repository/branch
 - **Tagging System**: Tag baselines for easy organization and retrieval
 - **Retention Policies**: Configurable retention for baseline data
@@ -102,6 +112,7 @@ Baseline Scanning provides historical comparison capabilities, allowing teams to
 ### API Endpoints
 
 #### Baseline Operations
+
 ```
 POST   /api/security/baselines                    # Create baseline
 GET    /api/security/baselines                    # List baselines
@@ -111,6 +122,7 @@ POST   /api/security/baselines/{baseline_id}/compare # Compare with baseline
 ```
 
 #### Drift Analysis
+
 ```
 POST   /api/security/drift/analyze               # Analyze drift
 GET    /api/security/drift/trends                # Get trend analysis
@@ -138,23 +150,27 @@ class ScanBaseline:
 ## 3. Policy as Code
 
 ### Overview
+
 Policy as Code enables version-controlled security policies that are automatically enforced during scans, providing consistent security governance across projects.
 
 ### Features
 
 #### Version-Controlled Security Configs
+
 - **Git Integration**: Policies stored in Git repositories
 - **Change Tracking**: Full audit trail of policy changes
 - **Branch Support**: Different policies for different environments/branches
 - **Merge Workflows**: Standard Git workflows for policy updates
 
 #### Automated Policy Enforcement
+
 - **Scan-time Evaluation**: Policies evaluated automatically during scans
 - **Threshold Enforcement**: Configurable severity and count thresholds
 - **Rule-based Policies**: Complex rule-based policy conditions
 - **Environment-specific**: Different policies for different environments
 
 #### Policy Compliance Reporting
+
 - **Compliance Scoring**: Quantitative compliance assessment
 - **Violation Tracking**: Detailed tracking of policy violations
 - **Recommendations**: Automated recommendations for policy compliance
@@ -163,6 +179,7 @@ Policy as Code enables version-controlled security policies that are automatical
 ### API Endpoints
 
 #### Policy Management
+
 ```
 GET    /api/security/policies                     # List policies
 GET    /api/security/policies/{policy_id}         # Get policy
@@ -171,6 +188,7 @@ POST   /api/security/policies/evaluate            # Evaluate policies
 ```
 
 #### Compliance Operations
+
 ```
 GET    /api/security/compliance/status            # Get compliance status
 GET    /api/security/compliance/violations        # Get violations
@@ -208,7 +226,7 @@ rules:
         value: ["CWE-798", "CWE-259"]
     action: "fail"
     message: "Hardcoded secrets must be removed"
-    
+
   - rule_id: "sql-injection-check"
     name: "SQL Injection Prevention"
     description: "Block SQL injection vulnerabilities"
@@ -354,18 +372,21 @@ The enhanced features use the following MongoDB collections:
 ## Best Practices
 
 1. **Rule Development**:
+
    - Always include test cases with custom rules
    - Map rules to relevant CWE identifiers
    - Use descriptive names and documentation
    - Version control all rule changes
 
 2. **Baseline Management**:
+
    - Create baselines after major releases
    - Tag baselines with meaningful descriptions
    - Regular cleanup of old baselines
    - Monitor drift trends regularly
 
 3. **Policy Management**:
+
    - Use environment-specific policies
    - Regular policy reviews and updates
    - Test policies in development first

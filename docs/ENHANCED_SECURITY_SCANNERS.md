@@ -2,13 +2,14 @@
 
 ## Overview
 
-This document describes the implementation of enhanced security scanning features in the SecureDevOps AI Platform, including the integration of six security scanners with advanced customization and performance optimizations.
+This document describes the implementation of enhanced security scanning features in the ONYX Platform, including the integration of six security scanners with advanced customization and performance optimizations.
 
 ## Implemented Features
 
 ### ✅ Security Scanner Integration
 
 #### 1. Semgrep (SAST) - Enhanced Implementation
+
 - **Configuration**: Custom rule sets with organization-specific patterns
 - **Features**:
   - Multi-language static analysis (Python, JavaScript, Java, Go, etc.)
@@ -19,6 +20,7 @@ This document describes the implementation of enhanced security scanning feature
 - **Usage**: `--config=p/security-audit --config=p/owasp-top-ten`
 
 #### 2. Trivy (Container/Filesystem Scanning) - Enhanced Implementation
+
 - **Configuration**: Database caching with automatic updates
 - **Features**:
   - Vulnerability scanning for containers and filesystems
@@ -29,6 +31,7 @@ This document describes the implementation of enhanced security scanning feature
 - **Usage**: `trivy fs --security-checks vuln,secret,config`
 
 #### 3. GitLeaks (Secret Detection) - Enhanced Implementation
+
 - **Configuration**: Custom regex patterns for org-specific secrets
 - **Features**:
   - Git repository secret scanning
@@ -39,6 +42,7 @@ This document describes the implementation of enhanced security scanning feature
 - **Security**: Automatically redacts detected secrets in logs
 
 #### 4. Lynis (Infrastructure Scanning) - Enhanced Implementation
+
 - **Configuration**: Baseline security assessment
 - **Features**:
   - System hardening recommendations
@@ -49,6 +53,7 @@ This document describes the implementation of enhanced security scanning feature
 - **Usage**: `lynis audit system --quick`
 
 #### 5. Bandit (Python SAST) - New Implementation
+
 - **Configuration**: Python-specific security anti-patterns
 - **Features**:
   - Python code security analysis
@@ -58,13 +63,14 @@ This document describes the implementation of enhanced security scanning feature
 - **Usage**: `bandit -r . -f json --confidence-level=low`
 
 #### 6. Safety (Python Dependencies) - New Implementation
+
 - **Configuration**: Python dependency vulnerability scanning
 - **Features**:
   - CVE database integration
   - Multiple dependency file support (requirements.txt, pyproject.toml, etc.)
   - Transitive dependency scanning
   - Custom ignore patterns
-- **Supported Files**: requirements*.txt, pyproject.toml, poetry.lock, Pipfile.lock
+- **Supported Files**: requirements\*.txt, pyproject.toml, poetry.lock, Pipfile.lock
 
 ## Technical Implementation
 
@@ -73,7 +79,7 @@ This document describes the implementation of enhanced security scanning feature
 ```python
 class SecurityScanner:
     """Enhanced security scanner orchestrator with advanced features"""
-    
+
     def __init__(self):
         self.scanners = {
             ScannerType.SEMGREP: EnhancedSemgrepScanner(),
@@ -88,21 +94,25 @@ class SecurityScanner:
 ### Key Enhancements
 
 #### 1. Concurrency Control
+
 - **Semaphore-based limiting**: `max_concurrent_scans` setting
 - **Resource management**: Memory and timeout controls
 - **Graceful error handling**: Failed scans don't block others
 
 #### 2. Caching and Performance
+
 - **Trivy database caching**: Daily updates with local storage
 - **Custom cache directories**: `/opt/securedevops/cache/trivy`
 - **Scanner output caching**: Reduces redundant scans
 
 #### 3. Custom Configuration Support
+
 - **Organization-specific rules**: Custom Semgrep rules
 - **Secret pattern customization**: GitLeaks custom patterns
 - **Configurable exclusions**: Skip files and patterns
 
 #### 4. Security Features
+
 - **Secret redaction**: Prevents secret leakage in logs
 - **Secure temporary files**: Automatic cleanup
 - **Environment isolation**: Separate process execution
@@ -110,6 +120,7 @@ class SecurityScanner:
 ### Configuration Files
 
 #### Custom Semgrep Rules (`custom-semgrep-rules.yaml`)
+
 ```yaml
 rules:
   - id: hardcoded-secrets-custom
@@ -121,6 +132,7 @@ rules:
 ```
 
 #### Custom GitLeaks Config (`gitleaks-custom.toml`)
+
 ```toml
 [[rules]]
 id = "org-api-key"
@@ -133,6 +145,7 @@ regex = '''(?i)(org|company)[-_]?(api[-_]?key|token)[-_]?[:=]\s*['"]?[a-zA-Z0-9]
 ### Automated Installation
 
 #### Linux/macOS
+
 ```bash
 # Make script executable
 chmod +x scripts/install_security_tools.sh
@@ -142,6 +155,7 @@ chmod +x scripts/install_security_tools.sh
 ```
 
 #### Windows (PowerShell as Administrator)
+
 ```powershell
 # Set execution policy
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -153,11 +167,13 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Manual Installation
 
 #### Python Tools
+
 ```bash
 pip install bandit==1.7.5 safety==2.3.5 semgrep==1.45.0
 ```
 
 #### System Tools
+
 ```bash
 # Trivy
 curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
@@ -173,6 +189,7 @@ yum install lynis      # RHEL/CentOS
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 # Scanner paths
 export SEMGREP_PATH="semgrep"
@@ -192,6 +209,7 @@ export TRIVY_DB_UPDATE_INTERVAL="24"  # hours
 ```
 
 ### Scanner Settings
+
 ```python
 # In config.py
 enable_semgrep: bool = True
@@ -208,6 +226,7 @@ max_concurrent_scans: int = 3
 ## Usage Examples
 
 ### Running All Scanners
+
 ```python
 from services.scanner import security_scanner
 
@@ -220,6 +239,7 @@ results = await security_scanner.run_all_scans("/path/to/repo", selected)
 ```
 
 ### Custom Configuration
+
 ```python
 custom_config = {
     "semgrep": {
@@ -252,6 +272,7 @@ results = await security_scanner.run_all_scans(
 ```
 
 ### Health Check
+
 ```python
 # Check scanner availability
 health = await security_scanner.health_check()
@@ -265,11 +286,12 @@ update_status = await security_scanner.update_scanner_databases()
 ## API Integration
 
 ### Scan Endpoint Enhancement
+
 ```python
 @app.post("/api/v1/scan")
 async def enhanced_scan_repository(request: ScanRequest):
     """Enhanced repository scanning with custom configuration"""
-    
+
     # Custom scanner configuration
     custom_config = {
         "semgrep": {"additional_rules": request.semgrep_rules},
@@ -277,30 +299,33 @@ async def enhanced_scan_repository(request: ScanRequest):
         "bandit": {"exclude_paths": request.exclude_paths},
         "safety": {"ignore_ids": request.ignore_vulnerabilities}
     }
-    
+
     # Run enhanced scan
     results = await security_scanner.run_all_scans(
         repo_path=request.repo_path,
         selected_scanners=request.scanners,
         custom_config=custom_config
     )
-    
+
     return {"scan_results": results}
 ```
 
 ## Performance Optimization
 
 ### Caching Strategy
+
 1. **Trivy Database**: Daily updates with local caching
 2. **Scanner Results**: Cache results for identical repository states
 3. **Custom Rules**: Cache compiled rule sets
 
 ### Resource Management
+
 1. **Memory Limits**: 2GB per scanner process
 2. **Timeout Controls**: 10-minute default timeout
 3. **Concurrency**: Maximum 3 concurrent scanners
 
 ### Optimization Tips
+
 1. **Exclude Large Files**: Use `.gitignore` patterns
 2. **Skip Binary Files**: Automatic binary file detection
 3. **Incremental Scanning**: Compare with previous scan results
@@ -308,6 +333,7 @@ async def enhanced_scan_repository(request: ScanRequest):
 ## Monitoring and Logging
 
 ### Health Monitoring
+
 ```bash
 # Run health check
 /opt/securedevops/health_check.sh
@@ -317,11 +343,12 @@ PowerShell -File "C:\ProgramData\SecureDevOps\health_check.ps1"
 ```
 
 ### Logging Configuration
+
 ```python
 # Structured logging for scanner operations
 logger = structlog.get_logger("scanner")
 
-logger.info("scan_started", 
+logger.info("scan_started",
     scanner=scanner_type.value,
     repo_path=repo_path,
     duration=scan_duration)
@@ -330,11 +357,13 @@ logger.info("scan_started",
 ## Security Considerations
 
 ### Secret Redaction
+
 - **Automatic redaction**: GitLeaks output automatically redacted
 - **Log sanitization**: No secrets in application logs
 - **Secure cleanup**: Temporary files securely deleted
 
 ### Access Control
+
 - **Process isolation**: Each scanner runs in isolated process
 - **File permissions**: Restricted access to cache directories
 - **Network security**: Outbound connections for database updates only
@@ -344,6 +373,7 @@ logger.info("scan_started",
 ### Common Issues
 
 #### Scanner Not Found
+
 ```bash
 # Check PATH
 echo $PATH
@@ -356,6 +386,7 @@ which semgrep trivy gitleaks bandit safety
 ```
 
 #### Permission Errors
+
 ```bash
 # Fix cache directory permissions
 sudo chown -R $(whoami):$(whoami) /opt/securedevops
@@ -363,12 +394,14 @@ chmod -R 755 /opt/securedevops
 ```
 
 #### Database Update Failures
+
 ```bash
 # Manual Trivy database update
 trivy image --download-db-only --cache-dir /opt/securedevops/cache/trivy
 ```
 
 ### Log Analysis
+
 ```bash
 # Scanner logs location
 tail -f /opt/securedevops/logs/scanner.log
@@ -380,12 +413,14 @@ grep "ERROR" /opt/securedevops/logs/scanner.log
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Machine Learning Integration**: AI-powered false positive reduction
 2. **Custom Rule Engine**: Web-based rule management interface
 3. **Baseline Scanning**: Historical comparison and drift detection
 4. **Integration APIs**: Plugin system for additional scanners
 
 ### Performance Improvements
+
 1. **Parallel Processing**: Multi-core scanner execution
 2. **Smart Caching**: Content-based cache invalidation
 3. **Incremental Scanning**: Delta-based vulnerability detection
@@ -393,6 +428,7 @@ grep "ERROR" /opt/securedevops/logs/scanner.log
 ## Compliance Mapping
 
 ### Security Frameworks
+
 - **OWASP Top 10**: Covered by Semgrep and custom rules
 - **CWE Top 25**: Mapped vulnerability categories
 - **NIST Cybersecurity Framework**: Control mapping
@@ -400,6 +436,7 @@ grep "ERROR" /opt/securedevops/logs/scanner.log
 - **PCI DSS**: Code security requirements
 
 ### Audit Support
+
 - **Scan Reports**: Detailed vulnerability reports
 - **Compliance Evidence**: Automated compliance reporting
 - **Audit Trails**: Complete scan history and results

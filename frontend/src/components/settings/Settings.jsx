@@ -1,5 +1,5 @@
 /**
- * Settings Component for SecureDevOps Platform
+ * Settings Component for ONYX Platform
  * Platform configuration and user preferences management
  */
 import React, { useState } from "react";

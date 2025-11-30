@@ -1,8 +1,8 @@
 # 🎓 User Guide
 
-## Welcome to SecureDevOps AI Platform
+## Welcome to ONYX Security Intelligence Platform
 
-SecureDevOps AI Platform is an enterprise-grade security analysis tool that combines multiple security scanners with artificial intelligence to provide comprehensive vulnerability assessments, intelligent risk prioritization, and actionable remediation guidance.
+ONYX is an enterprise-grade security analysis tool that combines multiple security scanners with artificial intelligence to provide comprehensive vulnerability assessments, intelligent risk prioritization, and actionable remediation guidance.
 
 This guide will help you get started with the platform, understand its features, and make the most of its capabilities.
 
@@ -14,7 +14,7 @@ This guide will help you get started with the platform, understand its features,
 
 1. **Access the Platform**
 
-   - Open your web browser and navigate to your SecureDevOps AI Platform URL
+   - Open your web browser and navigate to your ONYX Platform URL
    - Default development URL: `http://localhost:3000`
 
 2. **Initial Setup**
@@ -615,8 +615,8 @@ _Solutions:_
 **Community Support:**
 
 - [GitHub Discussions](https://github.com/Sagar4173/SecureDevOpsAI-Platform/discussions)
-- [User Forum](https://forum.securedevops.ai)
-- [Community Slack](https://slack.securedevops.ai)
+- [User Forum](https://forum.onyx-security.ai)
+- [Community Slack](https://slack.onyx-security.ai)
 
 **Enterprise Support:**
 
@@ -643,6 +643,6 @@ We welcome feedback and feature requests! Please use our GitHub repository to:
 
 ---
 
-**Thank you for using SecureDevOps AI Platform!**
+**Thank you for using ONYX Security Intelligence Platform!**
 
 We're committed to helping you build more secure software through intelligent automation and comprehensive security analysis.

@@ -1,6 +1,6 @@
 # Environment Configuration Guide
 
-This guide explains how to configure environment variables for the SecureDevOps AI Platform.
+This guide explains how to configure environment variables for the ONYX - Security Intelligence Platform.
 
 ## 📁 Environment Files Overview
 

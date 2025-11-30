@@ -1,6 +1,6 @@
 # Backend Environment Configuration
 
-This directory contains the backend environment configuration files for the SecureDevOps AI Platform.
+This directory contains the backend environment configuration files for the ONYX Platform.
 
 ## 🚀 Quick Setup
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The SecureDevOps AI Platform now includes comprehensive enterprise-grade features for audit logging, data retention, advanced compliance reporting, and enhanced notifications.
+The ONYX Platform now includes comprehensive enterprise-grade features for audit logging, data retention, advanced compliance reporting, and enhanced notifications.
 
 ## 🎯 Features Implemented
 

@@ -51,13 +51,13 @@ export const LoginForm = ({
       {/* Minimalist Header */}
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Sign In</h2>
-        <p className="text-gray-400">Access your SecureDevOps dashboard</p>
+        <p className="text-gray-400">Access your ONYX security dashboard</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="group">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-            <EnvelopeIcon className="w-4 h-4 text-blue-400" />
+            <EnvelopeIcon className="w-4 h-4 text-cyan-400" />
             Email or Username
           </label>
           <div className="relative">
@@ -70,17 +70,17 @@ export const LoginForm = ({
                   username_or_email: e.target.value,
                 }))
               }
-              className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all group-hover:border-gray-500"
+              className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all group-hover:border-gray-500"
               placeholder="Enter your email or username"
               required
             />
-            <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-400 transition-colors" />
+            <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-cyan-400 transition-colors" />
           </div>
         </div>
 
         <div className="group">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-            <LockClosedIcon className="w-4 h-4 text-purple-400" />
+            <LockClosedIcon className="w-4 h-4 text-violet-400" />
             Password
           </label>
           <div className="relative">
@@ -90,11 +90,11 @@ export const LoginForm = ({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, password: e.target.value }))
               }
-              className="w-full px-4 py-3 pl-11 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all group-hover:border-gray-500"
+              className="w-full px-4 py-3 pl-11 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all group-hover:border-gray-500"
               placeholder="Enter your password"
               required
             />
-            <KeyIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+            <KeyIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-400 transition-colors" />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -120,7 +120,7 @@ export const LoginForm = ({
                   remember_me: e.target.checked,
                 }))
               }
-              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500/50 focus:ring-offset-0 transition-all cursor-pointer"
+              className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500/50 focus:ring-offset-0 transition-all cursor-pointer"
             />
             <span className="ml-2 text-sm text-gray-300 group-hover:text-white transition-colors">
               Remember me
@@ -130,7 +130,7 @@ export const LoginForm = ({
           <button
             type="button"
             onClick={onSwitchToForgotPassword}
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors font-medium hover:underline"
+            className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium hover:underline"
           >
             Forgot password?
           </button>
@@ -139,7 +139,7 @@ export const LoginForm = ({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-3.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          className="w-full px-4 py-3.5 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
@@ -159,7 +159,7 @@ export const LoginForm = ({
         <span className="text-gray-400">Don't have an account? </span>
         <button
           onClick={onSwitchToRegister}
-          className="text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text font-semibold hover:from-blue-300 hover:to-purple-300 transition-all"
+          className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
         >
           Create account
         </button>
@@ -169,15 +169,15 @@ export const LoginForm = ({
       <div className="mt-8 pt-6 border-t border-gray-700/50">
         <div className="flex items-center justify-center gap-6 text-gray-500 text-xs">
           <div className="flex items-center gap-1">
-            <ShieldCheckIcon className="w-4 h-4 text-green-400" />
+            <ShieldCheckIcon className="w-4 h-4 text-cyan-400" />
             <span>Secure</span>
           </div>
           <div className="flex items-center gap-1">
-            <LockClosedIcon className="w-4 h-4 text-blue-400" />
+            <LockClosedIcon className="w-4 h-4 text-violet-400" />
             <span>Encrypted</span>
           </div>
           <div className="flex items-center gap-1">
-            <CheckCircleIcon className="w-4 h-4 text-purple-400" />
+            <CheckCircleIcon className="w-4 h-4 text-cyan-300" />
             <span>Verified</span>
           </div>
         </div>

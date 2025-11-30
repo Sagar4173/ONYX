@@ -4,7 +4,7 @@
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-If you discover a security vulnerability within SecureDevOps AI Platform, please report it to us privately. We take all security vulnerabilities seriously and will work to resolve them quickly.
+If you discover a security vulnerability within ONYX Security Intelligence Platform, please report it to us privately. We take all security vulnerabilities seriously and will work to resolve them quickly.
 
 ### 📧 Contact Information
 

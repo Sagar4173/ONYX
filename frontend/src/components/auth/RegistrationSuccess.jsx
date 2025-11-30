@@ -75,9 +75,9 @@ export const RegistrationSuccess = ({
     <div className="relative min-h-[500px] p-8">
       {/* Animated Background Blobs */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-green-500/20 via-emerald-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/20 via-violet-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" />
         <div
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-blue-500/20 via-cyan-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse"
+          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-violet-500/20 via-cyan-500/20 to-violet-500/20 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         />
       </div>
@@ -85,12 +85,12 @@ export const RegistrationSuccess = ({
       {/* Content */}
       <div className="relative text-center">
         {/* Success Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-6 animate-bounce">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-full mb-6 animate-bounce">
           <CheckCircleIcon className="h-10 w-10 text-white" />
         </div>
 
         {/* Title */}
-        <h2 className="text-3xl font-bold text-white mb-3 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+        <h2 className="text-3xl font-bold text-white mb-3 bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
           Registration Successful!
         </h2>
 
@@ -104,7 +104,7 @@ export const RegistrationSuccess = ({
 
         {/* Email Display */}
         <div className="flex items-center justify-center gap-2 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 mb-6">
-          <EnvelopeIcon className="h-5 w-5 text-green-400" />
+          <EnvelopeIcon className="h-5 w-5 text-cyan-400" />
           <span className="text-white font-medium">{email}</span>
         </div>
 
@@ -112,15 +112,15 @@ export const RegistrationSuccess = ({
         <div
           className={`${
             resendSuccess
-              ? "bg-green-500/10 border-green-500/30"
-              : "bg-blue-500/10 border-blue-500/30"
+              ? "bg-cyan-500/10 border-cyan-500/30"
+              : "bg-violet-500/10 border-violet-500/30"
           } border rounded-xl p-4 mb-6 transition-colors duration-300`}
         >
           {resendSuccess ? (
             <>
               <div className="flex items-center justify-center gap-2 mb-2">
-                <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                <span className="font-semibold text-green-400">
+                <CheckCircleIcon className="h-5 w-5 text-cyan-400" />
+                <span className="font-semibold text-cyan-400">
                   Email Resent Successfully!
                 </span>
               </div>
@@ -134,7 +134,9 @@ export const RegistrationSuccess = ({
           ) : (
             <>
               <p className="text-sm text-gray-300">
-                <span className="font-semibold text-blue-400">Important:</span>{" "}
+                <span className="font-semibold text-violet-400">
+                  Important:
+                </span>{" "}
                 Please check your email and click the verification link to
                 activate your account.
               </p>
@@ -155,8 +157,8 @@ export const RegistrationSuccess = ({
               isResending || cooldownSeconds > 0
                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                 : resendSuccess
-                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 hover:shadow-blue-500/25"
-                : "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 hover:shadow-green-500/25"
+                ? "bg-gradient-to-r from-violet-500 to-violet-600 text-white hover:from-violet-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-violet-500/25"
+                : "bg-gradient-to-r from-cyan-500 to-violet-600 text-white hover:from-cyan-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-cyan-500/25"
             }`}
         >
           {getButtonContent()}

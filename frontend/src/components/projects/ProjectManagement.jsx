@@ -1,5 +1,5 @@
 /**
- * Project Management Components for SecureDevOps Platform
+ * Project Management Components for ONYX Platform
  * Handles project creation, editing, and management
  */
 import React, { useState, useEffect } from "react";

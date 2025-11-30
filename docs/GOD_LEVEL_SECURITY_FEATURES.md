@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the comprehensive "god-level" security enhancements implemented in the SecureDevOps AI Platform. These enterprise-grade features transform the platform into a production-ready security powerhouse with advanced rule management, testing, baseline tracking, and policy enforcement capabilities.
+This document describes the comprehensive "god-level" security enhancements implemented in the ONYX Platform. These enterprise-grade features transform the platform into a production-ready security powerhouse with advanced rule management, testing, baseline tracking, and policy enforcement capabilities.
 
 ## 🚀 God-Level Features
 
@@ -11,6 +11,7 @@ This document describes the comprehensive "god-level" security enhancements impl
 **Location**: `backend/services/rule_parsing_engine.py`
 
 **Capabilities**:
+
 - **JSON Schema Validation**: Strict schema enforcement for all custom rule uploads
 - **Regex Safety Analysis**: Detects catastrophic backtracking patterns and dangerous regex constructs
 - **Performance Thresholds**: Enforces execution time limits and complexity bounds
@@ -18,6 +19,7 @@ This document describes the comprehensive "god-level" security enhancements impl
 - **Safety Scoring**: Automated risk assessment for custom rules
 
 **Key Features**:
+
 ```python
 # Example validation result
 {
@@ -34,10 +36,11 @@ This document describes the comprehensive "god-level" security enhancements impl
 ```
 
 **Usage**:
+
 ```bash
 POST /api/v1/god-level/rule/upload
 {
-    "rule_content": "...", 
+    "rule_content": "...",
     "rule_type": "semgrep",
     "metadata": {
         "author": "security-team",
@@ -51,6 +54,7 @@ POST /api/v1/god-level/rule/upload
 **Location**: `backend/services/rule_testing_framework.py`
 
 **Capabilities**:
+
 - **Mandatory Dry-Run Testing**: Every rule must pass tests against known vulnerable repositories
 - **Vulnerable Repository Corpus**: Includes OWASP WebGoat, DVWA, TruffleHog test keys
 - **Precision/Recall Requirements**: 95% precision and 90% recall thresholds
@@ -58,12 +62,14 @@ POST /api/v1/god-level/rule/upload
 - **Performance Benchmarking**: Execution time and resource usage tracking
 
 **Test Repositories**:
+
 - OWASP WebGoat (Java vulnerabilities)
-- Damn Vulnerable Web Application (PHP/Web vulnerabilities)  
+- Damn Vulnerable Web Application (PHP/Web vulnerabilities)
 - TruffleHog Test Keys (Secret detection)
 - Custom vulnerable code samples
 
 **Certification Process**:
+
 1. Rule validation via parsing engine
 2. Execution against vulnerable corpus
 3. Precision/recall calculation
@@ -75,6 +81,7 @@ POST /api/v1/god-level/rule/upload
 **Location**: `backend/services/baseline_manager.py`
 
 **Capabilities**:
+
 - **Fingerprint-Based Tracking**: Unique fingerprints for each security finding
 - **Drift Detection Algorithms**: Sophisticated change detection and categorization
 - **Automatic Actions**: Auto-close resolved issues, flag regressions
@@ -82,12 +89,14 @@ POST /api/v1/god-level/rule/upload
 - **Baseline Storage**: SQLite database with complete finding history
 
 **Drift Categories**:
+
 - **New Vulnerabilities**: Previously unseen security issues
 - **Resolved Issues**: Fixed vulnerabilities from baseline
 - **Modified Findings**: Changed severity or location
 - **Persistent Issues**: Ongoing unresolved vulnerabilities
 
 **Example Drift Analysis**:
+
 ```python
 {
     "drift_detected": true,
@@ -110,6 +119,7 @@ POST /api/v1/god-level/rule/upload
 **Location**: `backend/services/policy_as_code_engine.py`
 
 **Capabilities**:
+
 - **Git-Based Policy Storage**: Policies stored as code in Git repositories
 - **Policy Change Requests**: PR-style workflow for policy modifications
 - **Enforcement Modes**: enforce/warn/canary/disabled modes
@@ -117,12 +127,14 @@ POST /api/v1/god-level/rule/upload
 - **Automatic Actions**: Block merges, require approvals, send notifications
 
 **Enforcement Modes**:
+
 - `enforce`: Block merges on violation
 - `warn`: Allow merge with warnings
 - `canary`: Test mode, collect data only
 - `disabled`: Policy disabled
 
 **Policy Types**:
+
 - Vulnerability thresholds
 - Compliance requirements
 - Code quality gates
@@ -135,6 +147,7 @@ POST /api/v1/god-level/rule/upload
 **Location**: `backend/routes/god_level_security.py`
 
 **Endpoints**:
+
 - `POST /api/v1/god-level/rule/upload` - Advanced rule upload with validation
 - `POST /api/v1/god-level/scan/advanced` - Comprehensive security scanning
 - `GET /api/v1/god-level/baseline/status` - Baseline drift analysis
@@ -146,6 +159,7 @@ POST /api/v1/god-level/rule/upload
 ### Database Schema
 
 **Rules Storage**:
+
 ```sql
 CREATE TABLE custom_rules (
     rule_id TEXT PRIMARY KEY,
@@ -161,6 +175,7 @@ CREATE TABLE custom_rules (
 ```
 
 **Baseline Storage**:
+
 ```sql
 CREATE TABLE security_baselines (
     baseline_id TEXT PRIMARY KEY,
@@ -173,6 +188,7 @@ CREATE TABLE security_baselines (
 ```
 
 **Policy Storage**:
+
 ```sql
 CREATE TABLE security_policies (
     policy_id TEXT PRIMARY KEY,
@@ -193,7 +209,7 @@ graph TD
     C --> D[Vulnerable Corpus Testing]
     D --> E[Certification Check]
     E --> F[Production Deployment]
-    
+
     G[Security Scan] --> H[Multi-Scanner Execution]
     H --> I[Baseline Drift Analysis]
     I --> J[Policy Evaluation]
@@ -208,6 +224,7 @@ graph TD
 **Location**: `scripts/test_god_level_security.py`
 
 **Test Categories**:
+
 1. Rule Parsing Engine validation
 2. Rule Testing Framework certification
 3. Baseline Manager drift detection
@@ -215,6 +232,7 @@ graph TD
 5. End-to-end integration workflow
 
 **Running Tests**:
+
 ```bash
 cd scripts
 python test_god_level_security.py
@@ -223,6 +241,7 @@ python test_god_level_security.py
 ### Expected Outputs
 
 The test suite validates:
+
 - ✅ Strict schema validation working
 - ✅ Regex safety analysis functional
 - ✅ Vulnerable corpus testing operational
@@ -234,24 +253,28 @@ The test suite validates:
 ## 🔐 Security Features Summary
 
 ### Enterprise-Grade Validation
+
 - JSON Schema enforcement
 - Regex catastrophic backtracking detection
 - Performance impact analysis
 - Rule provenance tracking
 
 ### Production-Ready Testing
+
 - Mandatory vulnerable corpus validation
 - Automated precision/recall calculation
 - Performance benchmarking
 - Certification pipeline
 
 ### Intelligent Baseline Management
+
 - Fingerprint-based change tracking
 - Sophisticated drift detection
 - Automatic remediation actions
 - Security trend analysis
 
 ### Policy-Driven Enforcement
+
 - Git-based policy storage
 - PR-style policy changes
 - Multiple enforcement modes
@@ -262,11 +285,13 @@ The test suite validates:
 ### Quick Start
 
 1. **Install Dependencies**:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. **Initialize God-Level Components**:
+
 ```python
 from services.rule_parsing_engine import RuleParsingEngine
 from services.rule_testing_framework import RuleTestingFramework
@@ -281,6 +306,7 @@ policy_engine = PolicyAsCodeEngine()
 ```
 
 3. **Upload and Test Custom Rule**:
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/god-level/rule/upload \
   -H "Content-Type: application/json" \
@@ -294,6 +320,7 @@ curl -X POST http://localhost:8000/api/v1/god-level/rule/upload \
 ```
 
 4. **Run Advanced Security Scan**:
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/god-level/scan/advanced \
   -H "Content-Type: application/json" \
@@ -307,6 +334,7 @@ curl -X POST http://localhost:8000/api/v1/god-level/scan/advanced \
 ### Configuration
 
 **Environment Variables**:
+
 ```bash
 # God-level features configuration
 GOD_LEVEL_ENABLED=true
@@ -328,11 +356,13 @@ BASELINE_STORAGE_PATH=/path/to/baselines
 ### Analytics Dashboard
 
 Access comprehensive analytics at:
+
 ```
 GET /api/v1/god-level/analytics/dashboard
 ```
 
 Returns:
+
 - Rule validation statistics
 - Testing framework metrics
 - Baseline drift analytics
@@ -341,24 +371,28 @@ Returns:
 ## 🎯 Production Considerations
 
 ### Performance
+
 - Asynchronous processing for all operations
 - Database indexing for fast lookups
 - Caching for frequently accessed data
 - Resource limits for rule execution
 
 ### Scalability
+
 - Horizontal scaling support
 - Queue-based processing
 - Database partitioning by repository
 - API rate limiting
 
 ### Security
+
 - Input validation and sanitization
 - Secure rule execution sandboxing
 - Audit logging for all operations
 - Role-based access control
 
 ### Monitoring
+
 - Health check endpoints
 - Performance metrics collection
 - Error tracking and alerting
@@ -367,6 +401,7 @@ Returns:
 ## 🔮 Future Enhancements
 
 ### Planned Features
+
 - Machine learning for rule optimization
 - Advanced threat intelligence integration
 - Real-time vulnerability feeds
@@ -374,6 +409,7 @@ Returns:
 - Custom dashboard builders
 
 ### Roadmap
+
 - Q1: ML-powered rule suggestions
 - Q2: Advanced threat correlation
 - Q3: Enhanced compliance reporting

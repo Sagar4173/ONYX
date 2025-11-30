@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides comprehensive information about SecureDevOps AI Platform performance characteristics, optimization strategies, and best practices for achieving optimal performance in various deployment scenarios.
+This guide provides comprehensive information about ONYX Platform performance characteristics, optimization strategies, and best practices for achieving optimal performance in various deployment scenarios.
 
 ---
 
@@ -1132,4 +1132,4 @@ _Solutions:_
 
 ---
 
-This performance guide provides a comprehensive foundation for optimizing SecureDevOps AI Platform. Regular monitoring and optimization based on actual usage patterns will ensure continued high performance as your deployment scales.
+This performance guide provides a comprehensive foundation for optimizing ONYX Platform. Regular monitoring and optimization based on actual usage patterns will ensure continued high performance as your deployment scales.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-SecureDevOps AI Platform provides a comprehensive REST API for managing security scans, accessing reports, and integrating with external systems. The API is built with FastAPI and provides automatic OpenAPI documentation.
+ONYX - Security Intelligence Platform provides a comprehensive REST API for managing security scans, accessing reports, and integrating with external systems. The API is built with FastAPI and provides automatic OpenAPI documentation.
 
 **Base URLs**:
 

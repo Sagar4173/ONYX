@@ -2,10 +2,10 @@
 
 ## 🎯 Overview
 
-The Advanced Scanning module extends SecureDevOpsAI Platform beyond basic Semgrep/Trivy scanning by integrating enterprise-grade security tools:
+The Advanced Scanning module extends ONYX Platform beyond basic Semgrep/Trivy scanning by integrating enterprise-grade security tools:
 
 - **🕷️ OWASP ZAP** - Dynamic Application Security Testing (DAST)
-- **💥 Nuclei** - Vulnerability scanning with pentest templates  
+- **💥 Nuclei** - Vulnerability scanning with pentest templates
 - **🔍 GitHub CodeQL** - Deep static code analysis (SAST)
 - **☁️ Checkov** - Infrastructure as Code security scanning
 
@@ -77,9 +77,10 @@ The Advanced Scanning module extends SecureDevOpsAI Platform beyond basic Semgre
 ### 1. Scanner Integration
 
 #### OWASP ZAP (DAST)
+
 - **Purpose**: Dynamic security testing of running applications
 - **Target**: Live web applications and APIs
-- **Features**: 
+- **Features**:
   - Automated spider crawling
   - Active vulnerability scanning
   - Configurable attack intensity
@@ -96,6 +97,7 @@ zap_config = {
 ```
 
 #### Nuclei (Pentest Templates)
+
 - **Purpose**: Fast vulnerability scanner with community templates
 - **Target**: Web applications, APIs, network services
 - **Features**:
@@ -115,6 +117,7 @@ nuclei_config = {
 ```
 
 #### GitHub CodeQL (SAST)
+
 - **Purpose**: Deep semantic code analysis
 - **Target**: Source code repositories
 - **Features**:
@@ -124,16 +127,17 @@ nuclei_config = {
   - Security-focused query suites
 
 ```python
-# CodeQL Scanner Configuration  
+# CodeQL Scanner Configuration
 codeql_config = {
     "languages": ["python", "javascript", "java"],
-    "query_suite": "security-extended", 
+    "query_suite": "security-extended",
     "sarif_output": True,
     "database_cleanup": True
 }
 ```
 
 #### Checkov (IaC Security)
+
 - **Purpose**: Infrastructure as Code security scanning
 - **Target**: Terraform, CloudFormation, Kubernetes, Docker
 - **Features**:
@@ -160,7 +164,7 @@ All scanners normalize their output to a consistent schema:
 {
   "id": "zap-scan-001-finding-042",
   "source": "zap",
-  "rule_id": "40012", 
+  "rule_id": "40012",
   "title": "Cross Site Scripting (Reflected)",
   "description": "User input is reflected in the response without proper encoding",
   "severity": "high",
@@ -174,7 +178,9 @@ All scanners normalize their output to a consistent schema:
   "cve": null,
   "recommendation": "Encode all user input before reflecting in response",
   "scan_type": "dast",
-  "raw_output": { /* Original scanner output */ },
+  "raw_output": {
+    /* Original scanner output */
+  },
   "timestamp": "2025-08-14T12:34:56Z",
   "suppressed": false,
   "suppression_reason": null
@@ -202,7 +208,7 @@ rules:
     scanners:
       - "codeql"
       - "checkov"
-    
+
   legacy-code:
     description: "Known issues in legacy code pending refactor"
     file_patterns:
@@ -212,7 +218,7 @@ rules:
       - "CWE-89"
     severities:
       - "medium"
-    
+
   third-party:
     description: "Third-party dependencies"
     file_patterns:
@@ -232,7 +238,7 @@ Supported comment patterns:
 password = "dummy123"  # nosec B105
 api_key = "test-key"   # nosec CWE-798
 
-# JavaScript  
+# JavaScript
 const token = "test-token";  // nosec
 var secret = "placeholder";  /* nosec CWE-798 */
 
@@ -252,7 +258,7 @@ Prevents scanning unauthorized targets:
 ```python
 dast_target_allowlist = [
     "localhost",
-    "127.0.0.1", 
+    "127.0.0.1",
     "staging.example.com",
     "test.example.com"
 ]
@@ -260,7 +266,7 @@ dast_target_allowlist = [
 def is_target_allowed(target_url: str) -> bool:
     parsed_url = urlparse(target_url)
     target_host = parsed_url.netloc.lower()
-    
+
     for allowed in dast_target_allowlist:
         if target_host == allowed.lower() or target_host.endswith(f".{allowed.lower()}"):
             return True
@@ -281,6 +287,7 @@ rate_limits = {
 ## 🚀 API Endpoints
 
 ### Comprehensive Scan
+
 Start complete security scan with all scanners:
 
 ```bash
@@ -297,6 +304,7 @@ POST /api/advanced-scanning/scan/comprehensive
 ```
 
 ### SAST-Only Scan
+
 Static analysis with CodeQL:
 
 ```bash
@@ -307,7 +315,8 @@ POST /api/advanced-scanning/scan/sast
 }
 ```
 
-### DAST-Only Scan  
+### DAST-Only Scan
+
 Dynamic testing with ZAP + Nuclei:
 
 ```bash
@@ -318,17 +327,19 @@ POST /api/advanced-scanning/scan/dast
 ```
 
 ### IaC-Only Scan
+
 Infrastructure scanning with Checkov:
 
 ```bash
 POST /api/advanced-scanning/scan/iac
 {
-  "repository_url": "https://github.com/user/repo.git", 
+  "repository_url": "https://github.com/user/repo.git",
   "frameworks": ["terraform", "kubernetes", "docker"]
 }
 ```
 
 ### Get Scan Results
+
 Retrieve findings with filtering:
 
 ```bash
@@ -336,6 +347,7 @@ GET /api/advanced-scanning/scan/{scan_id}/findings?severity=high&scanner=zap&sup
 ```
 
 ### Suppression Management
+
 Create suppression rules:
 
 ```bash
@@ -402,7 +414,7 @@ POST /api/advanced-scanning/suppressions
     "checkov": {
       "findings_count": 7,
       "duration": 34.1,
-      "status": "completed"  
+      "status": "completed"
     }
   },
   "duration": 567.3
@@ -436,6 +448,7 @@ CHECKOV_PATH=/usr/local/bin/checkov
 ### Scanner Tool Installation
 
 #### ZAP Installation
+
 ```bash
 # Docker (recommended)
 docker pull owasp/zap2docker-stable
@@ -447,6 +460,7 @@ chmod +x ZAP_2_14_0_unix.sh
 ```
 
 #### Nuclei Installation
+
 ```bash
 # Go installation
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
@@ -456,6 +470,7 @@ curl -sSL https://github.com/projectdiscovery/nuclei/releases/latest/download/nu
 ```
 
 #### CodeQL Installation
+
 ```bash
 # GitHub CLI
 gh extension install github/gh-codeql
@@ -466,6 +481,7 @@ unzip codeql-linux64.zip
 ```
 
 #### Checkov Installation
+
 ```bash
 # Python pip
 pip install checkov
@@ -477,17 +493,20 @@ docker pull bridgecrew/checkov
 ## 🛡️ Security Considerations
 
 ### 1. DAST Target Validation
+
 - **Allowlist enforcement**: Only scan pre-approved targets
-- **Network segmentation**: Isolate scanning infrastructure  
+- **Network segmentation**: Isolate scanning infrastructure
 - **Rate limiting**: Prevent service disruption
 - **Authentication**: Secure access to target applications
 
 ### 2. Code Repository Access
+
 - **Git credentials**: Secure storage of repository access tokens
 - **Temporary storage**: Automatic cleanup of cloned repositories
 - **Access logging**: Audit trail of repository access
 
 ### 3. Scanner Tool Security
+
 - **Container isolation**: Run scanners in secure containers
 - **Resource limits**: Prevent resource exhaustion
 - **Tool updates**: Regular security updates for scanner tools
@@ -496,6 +515,7 @@ docker pull bridgecrew/checkov
 ## 📈 Performance Optimization
 
 ### 1. Concurrent Scanning
+
 ```python
 # Parallel scanner execution
 sast_tasks = [
@@ -514,11 +534,13 @@ async with semaphore:
 ```
 
 ### 2. Incremental Scanning
+
 - **Baseline comparison**: Only report new findings
 - **File change detection**: Focus scans on modified files
 - **Caching**: Reuse results for unchanged components
 
 ### 3. Resource Management
+
 - **Memory limits**: Container-based resource constraints
 - **Timeout handling**: Graceful timeout and cleanup
 - **Cleanup automation**: Automatic temporary file removal
@@ -528,6 +550,7 @@ async with semaphore:
 ### Common Issues
 
 #### 1. Scanner Tool Not Found
+
 ```bash
 # Verify tool installation
 which zap.sh nuclei codeql checkov
@@ -541,6 +564,7 @@ export NUCLEI_PATH=/usr/local/bin/nuclei
 ```
 
 #### 2. DAST Target Access Issues
+
 ```bash
 # Verify target accessibility
 curl -I https://staging.example.com
@@ -553,6 +577,7 @@ telnet staging.example.com 443
 ```
 
 #### 3. Repository Access Issues
+
 ```bash
 # Test git clone
 git clone https://github.com/user/repo.git /tmp/test-clone
@@ -565,6 +590,7 @@ curl -I https://api.github.com
 ```
 
 #### 4. Database Connection Issues
+
 ```bash
 # Test MongoDB connection
 mongosh "mongodb+srv://user:password@cluster.mongodb.net/securedevops"
@@ -597,8 +623,9 @@ curl -X GET http://localhost:8000/api/advanced-scanning/config
 ### 1. Production Deployment
 
 #### Docker Compose
+
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   app:
     build: .
@@ -609,7 +636,7 @@ services:
       - ./security-tools:/opt/security-tools
     ports:
       - "8000:8000"
-  
+
   zap:
     image: owasp/zap2docker-stable
     command: zap.sh -daemon -host 0.0.0.0 -port 8080
@@ -618,6 +645,7 @@ services:
 ```
 
 #### Kubernetes Deployment
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -634,26 +662,27 @@ spec:
         app: advanced-scanning
     spec:
       containers:
-      - name: app
-        image: securedevops/advanced-scanning:latest
-        env:
-        - name: MONGODB_URI
-          valueFrom:
-            secretKeyRef:
-              name: mongodb-secret
-              key: uri
-        resources:
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
-          requests:
-            memory: "1Gi" 
-            cpu: "500m"
+        - name: app
+          image: securedevops/advanced-scanning:latest
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: uri
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
 ```
 
 ### 2. Monitoring & Alerting
 
 #### Metrics Collection
+
 ```python
 # Prometheus metrics
 from prometheus_client import Counter, Histogram, Gauge
@@ -664,6 +693,7 @@ active_scans = Gauge('active_scans', 'Currently running scans')
 ```
 
 #### Health Checks
+
 ```python
 @app.get("/health/advanced-scanning")
 async def health_check():
@@ -674,23 +704,23 @@ async def health_check():
         "database": "connected",
         "timestamp": datetime.now().isoformat()
     }
-    
+
     # Check scanner tool availability
     for scanner in ["zap", "nuclei", "codeql", "checkov"]:
         try:
-            result = subprocess.run([scanner, "--version"], 
+            result = subprocess.run([scanner, "--version"],
                                   capture_output=True, timeout=5)
             health_status["scanners"][scanner] = "available" if result.returncode == 0 else "unavailable"
         except:
             health_status["scanners"][scanner] = "unavailable"
-    
+
     return health_status
 ```
 
 ## 🏆 Success Metrics
 
 - **✅ Unified Pipeline**: All 4 scanner types integrated with consistent output
-- **✅ False Positive Suppression**: Policy-as-code + inline annotations  
+- **✅ False Positive Suppression**: Policy-as-code + inline annotations
 - **✅ Rate Limiting**: DAST target allowlist and request throttling
 - **✅ Scalable Architecture**: Async processing with resource management
 - **✅ Production Ready**: Docker deployment with monitoring and health checks
