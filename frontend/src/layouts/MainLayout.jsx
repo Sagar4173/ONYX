@@ -1,12 +1,13 @@
 /**
  * Main Layout Component
- * Wraps authenticated pages with sidebar, header, and main content area
+ * Wraps authenticated pages with sidebar, header, footer and main content area
  */
 import React, { useState, useEffect } from "react";
 import { Outlet, Routes, Route, Navigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { DesktopSidebar, MobileSidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { CompactFooter } from "./Footer";
 import { useAuth } from "../components/auth";
 import { UserProfile } from "../components/auth/UserProfile";
 import { websocketService } from "../services/api";
@@ -29,6 +30,7 @@ import { Settings } from "../components/settings";
 export const MainLayout = () => {
   const { user, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -112,21 +114,27 @@ export const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 flex">
       {/* Mobile Sidebar */}
       <MobileSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        isConnected={isConnected}
+        user={user}
       />
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
-        <DesktopSidebar isConnected={isConnected} />
-      </div>
+      <DesktopSidebar
+        user={user}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
 
       {/* Main Content */}
-      <div className="lg:pl-72">
+      <div
+        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
+          sidebarCollapsed ? "lg:pl-0" : "lg:pl-0"
+        }`}
+      >
         <Header
           onMenuClick={() => setSidebarOpen(true)}
           notifications={notifications}
@@ -135,7 +143,7 @@ export const MainLayout = () => {
           onProfileClick={() => setProfileModalOpen(true)}
         />
 
-        <main className="relative min-h-screen">
+        <main className="flex-1 relative">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route
@@ -165,6 +173,9 @@ export const MainLayout = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
+
+        {/* Footer */}
+        <CompactFooter />
       </div>
 
       {/* User Profile Modal */}
