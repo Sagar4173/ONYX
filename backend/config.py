@@ -73,7 +73,12 @@ class Settings(BaseSettings):
     email_from_name: str = Field(default="ONYX Platform", env="EMAIL_FROM_NAME")
     
     # Email Provider Presets (for easy configuration)
-    email_provider: Optional[str] = Field(default=None, env="EMAIL_PROVIDER")  # gmail, sendgrid, outlook, etc.
+    # Options: gmail, outlook, sendgrid, resend (for Render/cloud platforms)
+    email_provider: Optional[str] = Field(default=None, env="EMAIL_PROVIDER")
+    
+    # Resend API Key (for HTTP-based email on cloud platforms like Render)
+    resend_api_key: Optional[str] = Field(default=None, env="RESEND_API_KEY")
+    
     slack_channel: str = Field(default="#dev-alerts", env="SLACK_CHANNEL")
     
     # Rate Limiting

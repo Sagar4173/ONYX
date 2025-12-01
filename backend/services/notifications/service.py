@@ -1,6 +1,8 @@
 """
 Email Service for ONYX Security Intelligence Platform
-Handles SMTP email sending with support for multiple providers
+Handles email sending with support for multiple providers:
+- SMTP (Gmail, Outlook, Yahoo, SendGrid)
+- Resend API (HTTP-based, works on Render/cloud platforms)
 Refactored for modularity and maintainability
 """
 import asyncio
@@ -13,6 +15,7 @@ from email import encoders
 from typing import List, Optional, Dict, Any
 import ssl
 import aiosmtplib
+import httpx
 from datetime import datetime
 
 from config import settings
@@ -23,20 +26,31 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """Production-ready email service with SMTP support"""
+    """Production-ready email service with SMTP and Resend API support"""
     
     def __init__(self):
         """Initialize email service with configured templates"""
         self.jinja_env = get_jinja_environment()
+        self.use_resend = False
+        self.resend_api_key = None
         self._configure_provider()
     
     def _configure_provider(self):
-        """Configure SMTP settings based on provider or custom settings"""
+        """Configure email settings based on provider or custom settings"""
         if not settings.email_enabled:
             logger.info("Email service disabled")
             return
+        
+        # Check if Resend is configured (preferred for cloud platforms like Render)
+        if settings.resend_api_key or (settings.email_provider and settings.email_provider.lower() == 'resend'):
+            self.use_resend = True
+            self.resend_api_key = settings.resend_api_key
+            self.email_from = settings.email_from or "onboarding@resend.dev"
+            self.email_from_name = settings.email_from_name
+            logger.info("✅ Configured email with Resend API (HTTP-based)")
+            return
             
-        # Provider-specific configurations
+        # Provider-specific SMTP configurations
         if settings.email_provider:
             provider_configs = {
                 'gmail': {
@@ -104,7 +118,7 @@ class EmailService:
         attachments: Optional[List[Dict[str, Any]]] = None
     ) -> bool:
         """
-        Send email using SMTP
+        Send email using Resend API or SMTP
         
         Args:
             to_email: Recipient email address
@@ -122,6 +136,11 @@ class EmailService:
             return True
         
         try:
+            # Use Resend API if configured (works on Render/cloud platforms)
+            if self.use_resend:
+                return await self._send_resend_email(to_email, subject, html_body, text_body)
+            
+            # Otherwise use SMTP
             # Create message
             message = MIMEMultipart('alternative')
             message['Subject'] = subject
@@ -141,7 +160,7 @@ class EmailService:
                 for attachment in attachments:
                     self._add_attachment(message, attachment)
             
-            # Send email
+            # Send email via SMTP
             await self._send_smtp_email(message, to_email)
             
             logger.info(f"✅ Email sent successfully to: {to_email}")
@@ -149,6 +168,43 @@ class EmailService:
             
         except Exception as e:
             logger.error(f"❌ Failed to send email to {to_email}: {str(e)}")
+            return False
+    
+    async def _send_resend_email(
+        self,
+        to_email: str,
+        subject: str,
+        html_body: str,
+        text_body: Optional[str] = None
+    ) -> bool:
+        """Send email via Resend API (HTTP-based, works on cloud platforms)"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.resend.com/emails",
+                    headers={
+                        "Authorization": f"Bearer {self.resend_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "from": f"{self.email_from_name} <{self.email_from}>",
+                        "to": [to_email],
+                        "subject": subject,
+                        "html": html_body,
+                        "text": text_body or ""
+                    },
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    logger.info(f"✅ Email sent via Resend to: {to_email}")
+                    return True
+                else:
+                    logger.error(f"❌ Resend API error: {response.status_code} - {response.text}")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"❌ Resend email error: {str(e)}")
             return False
     
     async def _send_smtp_email(self, message: MIMEMultipart, to_email: str):
