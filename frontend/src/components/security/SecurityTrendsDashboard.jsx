@@ -23,12 +23,15 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+// Import centralized styles
+import { Card, Badge, Spinner, statusStyles } from "@styles";
+
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
   ? "http://127.0.0.1:8000"
   : import.meta.env.VITE_API_URL || "/api";
 
-// Trend direction indicator
+// Trend direction indicator - using centralized status styles
 const TrendIndicator = ({ direction, value }) => {
   const icons = {
     improving: <TrendingUp className="w-4 h-4 text-green-500" />,
@@ -37,9 +40,9 @@ const TrendIndicator = ({ direction, value }) => {
   };
 
   const colors = {
-    improving: "text-green-600 bg-green-50",
-    stable: "text-yellow-600 bg-yellow-50",
-    degrading: "text-red-600 bg-red-50",
+    improving: statusStyles.indicator.success,
+    stable: statusStyles.indicator.warning,
+    degrading: statusStyles.indicator.danger,
   };
 
   return (
