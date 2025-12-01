@@ -5,9 +5,9 @@
 **ONYX Platform is currently live and running:**
 
 - 🌐 **Frontend (Vercel)**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
-- 🔌 **Backend (Render)**: [https://onyx-backend.onrender.com](https://onyx-backend.onrender.com)
-- 📚 **API Docs**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
-- 🏥 **Health Check**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
+- 🔌 **Backend (Render)**: [https://onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)
+- 📚 **API Docs**: [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs)
+- 🏥 **Health Check**: [https://onyx-backend-dt4o.onrender.com/health](https://onyx-backend-dt4o.onrender.com/health)
 
 ## Overview
 

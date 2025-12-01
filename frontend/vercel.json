@@ -7,15 +7,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://onyx-backend.onrender.com/api/$1"
+      "destination": "https://onyx-backend-dt4o.onrender.com/api/$1"
     },
     {
       "source": "/webhook/(.*)",
-      "destination": "https://onyx-backend.onrender.com/webhook/$1"
+      "destination": "https://onyx-backend-dt4o.onrender.com/webhook/$1"
     },
     {
       "source": "/health",
-      "destination": "https://onyx-backend.onrender.com/health"
+      "destination": "https://onyx-backend-dt4o.onrender.com/health"
     },
     {
       "source": "/((?!api/|webhook/|health).*)",

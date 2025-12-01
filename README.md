@@ -8,8 +8,8 @@
 [![AI Powered](https://img.shields.io/badge/AI-GPT--4%20%7C%20Gemini-orange.svg)](https://openai.com/)
 
 [![Frontend Status](https://img.shields.io/badge/Frontend-Live-brightgreen.svg)](https://onyx-platform.vercel.app)
-[![Backend Status](https://img.shields.io/badge/Backend-Live-brightgreen.svg)](https://onyx-backend.onrender.com)
-[![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://onyx-backend.onrender.com/docs)
+[![Backend Status](https://img.shields.io/badge/Backend-Live-brightgreen.svg)](https://onyx-backend-dt4o.onrender.com)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Available-blue.svg)](https://onyx-backend-dt4o.onrender.com/docs)
 
 > **The Next-Generation Open Source Alternative to GitHub Advanced Security & Snyk**  
 > _Comprehensive Security Scanning • Dual AI Analysis (GPT-4 + Gemini) • Enterprise-Ready_
@@ -21,9 +21,9 @@ An intelligent, comprehensive security scanning and DevOps automation platform t
 **Experience ONYX Security Intelligence Platform:**
 
 - 🌐 **Frontend Demo**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
-- 🔌 **Backend API**: [https://onyx-backend.onrender.com](https://onyx-backend.onrender.com)
-- 📚 **API Documentation**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
-- 🏥 **System Health**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
+- 🔌 **Backend API**: [https://onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)
+- 📚 **API Documentation**: [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs)
+- 🏥 **System Health**: [https://onyx-backend-dt4o.onrender.com/health](https://onyx-backend-dt4o.onrender.com/health)
 
 > **Test Credentials**: Contact us for demo access or deploy your own instance using the guides below.
 
@@ -289,8 +289,8 @@ npm run preview
 **Live Demo (Production):**
 
 - **Web Interface**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
-- **API Documentation**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
-- **Health Check**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
+- **API Documentation**: [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs)
+- **Health Check**: [https://onyx-backend-dt4o.onrender.com/health](https://onyx-backend-dt4o.onrender.com/health)
 
 ## 📖 Installation Guide
 

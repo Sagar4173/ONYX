@@ -5,9 +5,9 @@
 **Try ONYX Platform without installation:**
 
 - 🌐 **Frontend Demo**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
-- 🔌 **Backend API**: [https://onyx-backend.onrender.com](https://onyx-backend.onrender.com)
-- 📚 **API Documentation**: [https://onyx-backend.onrender.com/docs](https://onyx-backend.onrender.com/docs)
-- 🏥 **System Health**: [https://onyx-backend.onrender.com/health](https://onyx-backend.onrender.com/health)
+- 🔌 **Backend API**: [https://onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)
+- 📚 **API Documentation**: [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs)
+- 🏥 **System Health**: [https://onyx-backend-dt4o.onrender.com/health](https://onyx-backend-dt4o.onrender.com/health)
 
 > **Note**: Demo environment has limited resources. For full functionality, deploy your own instance using the guides below.
 

@@ -41,16 +41,16 @@ Set these in Render Dashboard → Your Service → **Environment**:
 
 ## 📋 After Deployment
 
-1. **Get your Render URL**: It will be like `https://onyx-backend.onrender.com`
+1. **Get your Render URL**: It will be like `https://onyx-backend-dt4o.onrender.com`
 
 2. **Update Frontend**:
 
    - Go to Vercel Dashboard → ONYX Frontend → Settings → Environment Variables
-   - Update `VITE_API_URL` to `https://onyx-backend.onrender.com/api`
-   - Update `VITE_WS_URL` to `wss://onyx-backend.onrender.com`
+   - Update `VITE_API_URL` to `https://onyx-backend-dt4o.onrender.com/api`
+   - Update `VITE_WS_URL` to `wss://onyx-backend-dt4o.onrender.com`
    - Redeploy frontend
 
-3. **Test Health Endpoint**: Visit `https://onyx-backend.onrender.com/health`
+3. **Test Health Endpoint**: Visit `https://onyx-backend-dt4o.onrender.com/health`
 
 ---
 
@@ -85,4 +85,4 @@ Set these in Render Dashboard → Your Service → **Environment**:
 
 - **Logs**: Render Dashboard → Your Service → Logs
 - **Metrics**: Render Dashboard → Your Service → Metrics
-- **Health**: `https://onyx-backend.onrender.com/health`
+- **Health**: `https://onyx-backend-dt4o.onrender.com/health`
