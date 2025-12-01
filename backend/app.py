@@ -11,7 +11,7 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -29,6 +29,9 @@ else:
 
 # Import database manager
 from database import db_manager, init_database, close_database
+
+# Import WebSocket manager for real-time notifications
+from services.websocket_manager import ws_manager
 
 # Import route modules
 from routes.reports import router as reports_router
@@ -341,45 +344,72 @@ async def get_scanners_health():
     }
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint for real-time updates"""
+async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=None)):
+    """
+    WebSocket endpoint for real-time updates.
+    Supports optional authentication via token query parameter.
+    """
     client_host = websocket.client.host if websocket.client else "unknown"
     logger.info(f"WebSocket connection attempt from {client_host}")
     
+    # Extract user_id from token if provided
+    user_id = None
+    if token:
+        try:
+            from services.auth_service import auth_service
+            payload = auth_service.verify_token(token, "access")
+            if payload:
+                user_id = payload.get("sub")
+                logger.info(f"WebSocket authenticated for user: {user_id}")
+        except Exception as auth_error:
+            logger.warning(f"WebSocket token verification failed: {auth_error}")
+    
     try:
-        await websocket.accept()
-        logger.info(f"WebSocket connection accepted from {client_host}")
+        # Connect using the WebSocket manager
+        await ws_manager.connect(websocket, user_id)
         
-        # Send initial connection message
-        await websocket.send_json({
-            "type": "connection",
-            "data": {
-                "message": "Connected to ONYX Platform",
-                "timestamp": datetime.now().isoformat()
-            }
-        })
-        
-        # Send periodic heartbeat with better error handling
+        # Send periodic heartbeat and listen for messages
         heartbeat_count = 0
         while True:
             try:
-                heartbeat_count += 1
-                await websocket.send_json({
-                    "type": "heartbeat",
-                    "data": {
-                        "count": heartbeat_count,
-                        "timestamp": datetime.now().isoformat(),
-                        "status": "active"
-                    }
-                })
-                
-                await asyncio.sleep(30)  # Send heartbeat every 30 seconds
+                # Wait for messages with timeout for heartbeat
+                try:
+                    # Try to receive message with 30 second timeout
+                    data = await asyncio.wait_for(
+                        websocket.receive_text(),
+                        timeout=30.0
+                    )
+                    # Handle incoming messages (e.g., ping/pong, subscription requests)
+                    try:
+                        message = json.loads(data)
+                        if message.get("type") == "ping":
+                            await websocket.send_json({
+                                "type": "pong",
+                                "timestamp": datetime.now().isoformat()
+                            })
+                        elif message.get("type") == "subscribe":
+                            # Handle subscription requests (future feature)
+                            pass
+                    except json.JSONDecodeError:
+                        pass
+                except asyncio.TimeoutError:
+                    # No message received, send heartbeat
+                    heartbeat_count += 1
+                    await websocket.send_json({
+                        "type": "heartbeat",
+                        "data": {
+                            "count": heartbeat_count,
+                            "timestamp": datetime.now().isoformat(),
+                            "status": "active",
+                            "connections": ws_manager.get_connection_count()
+                        }
+                    })
                 
             except ConnectionResetError:
                 logger.info(f"WebSocket connection reset by client {client_host}")
                 break
             except Exception as send_error:
-                logger.warning(f"Error sending WebSocket message to {client_host}: {send_error}")
+                logger.warning(f"Error in WebSocket loop for {client_host}: {send_error}")
                 break
                 
     except WebSocketDisconnect:
@@ -389,11 +419,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error with client {client_host}: {e}")
     finally:
-        try:
-            if not websocket.client_state.name == "DISCONNECTED":
-                await websocket.close()
-        except Exception as close_error:
-            logger.debug(f"Error closing WebSocket for {client_host}: {close_error}")
+        await ws_manager.disconnect(websocket)
         logger.info(f"WebSocket connection with {client_host} closed")
 
 if __name__ == "__main__":

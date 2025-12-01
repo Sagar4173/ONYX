@@ -66,12 +66,22 @@ export const MainLayout = () => {
 
       // Build notification message
       let notificationMessage;
-      if (projectName && scanStatus) {
-        notificationMessage = `${scanType.toUpperCase()} scan ${scanStatus} for ${projectName}`;
-      } else if (customMessage) {
+      if (customMessage) {
         notificationMessage = customMessage;
-        if (progress !== undefined) {
-          notificationMessage += ` (${progress}%)`;
+      } else if (projectName && scanStatus) {
+        if (scanStatus === "started") {
+          notificationMessage = `🔍 Scan started for ${projectName}`;
+        } else if (scanStatus === "running") {
+          notificationMessage = `⏳ Scanning ${projectName}... ${
+            progress || 0
+          }%`;
+        } else if (scanStatus === "completed") {
+          const findings = scanData.total_findings || 0;
+          notificationMessage = `✅ Scan completed for ${projectName} - ${findings} findings`;
+        } else if (scanStatus === "failed") {
+          notificationMessage = `❌ Scan failed for ${projectName}`;
+        } else {
+          notificationMessage = `${scanType.toUpperCase()} scan ${scanStatus} for ${projectName}`;
         }
       } else if (progress !== undefined) {
         notificationMessage = `Scan in progress: ${progress}%`;
@@ -92,9 +102,56 @@ export const MainLayout = () => {
 
       // Toast for important updates
       if (scanStatus === "completed" && projectName) {
-        toast.success(`✅ Scan completed for ${projectName}`);
+        const critical = scanData.findings_by_severity?.critical || 0;
+        const high = scanData.findings_by_severity?.high || 0;
+        if (critical > 0) {
+          toast.error(
+            `🚨 ${critical} CRITICAL issues found in ${projectName}!`,
+            { duration: 6000 }
+          );
+        } else if (high > 0) {
+          toast.warning(`⚠️ ${high} high severity issues in ${projectName}`, {
+            duration: 5000,
+          });
+        } else {
+          toast.success(`✅ Scan completed for ${projectName}`);
+        }
       } else if (scanStatus === "failed" && projectName) {
         toast.error(`❌ Scan failed for ${projectName}`);
+      } else if (scanStatus === "started" && projectName) {
+        toast.info(`🔍 Security scan started for ${projectName}`);
+      }
+    });
+
+    // Handle security alerts (critical vulnerabilities, new logins, etc.)
+    websocketService.on("security_alert", (data) => {
+      const alertData = data.data || data;
+      const alertType = alertData.alert_type;
+      const severity = alertData.severity;
+      const message = alertData.message;
+
+      setNotifications((prev) => [
+        {
+          id: Date.now(),
+          type: "security_alert",
+          message: message,
+          timestamp: new Date(),
+          data: alertData,
+          severity: severity,
+        },
+        ...prev.slice(0, 9),
+      ]);
+
+      // Show toast based on alert type
+      if (
+        alertType === "vulnerability" &&
+        (severity === "critical" || severity === "high")
+      ) {
+        toast.error(`🚨 ${message}`, { duration: 8000 });
+      } else if (alertType === "new_login") {
+        toast.info(`🔐 ${message}`, { duration: 5000 });
+      } else {
+        toast(message, { icon: "⚠️" });
       }
     });
 

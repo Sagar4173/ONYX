@@ -255,6 +255,11 @@ async def process_real_scan(
         scan_request: Original scan request
         git_metadata: Git repository metadata
     """
+    # Import WebSocket manager for real-time notifications
+    from services.websocket_manager import ws_manager
+    
+    project_name = str(scan_request.repository_url).split('/')[-1].replace('.git', '')
+    
     try:
         # Mark scan as active
         active_scans[scan_id] = True
@@ -269,6 +274,9 @@ async def process_real_scan(
             }}
         )
         
+        # Broadcast scan started notification
+        await ws_manager.notify_scan_started(scan_id, project_name)
+        
         logger.info(f"🔍 Starting real security scan for {scan_id}")
         
         # Check if cancelled
@@ -280,6 +288,7 @@ async def process_real_scan(
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
             {"$set": {"progress": 10, "current_scanner": "📥 Cloning repository and preparing codebase..."}}
         )
+        await ws_manager.notify_scan_progress(scan_id, project_name, 10, "Cloning repository")
         
         # Initialize real scanner
         scanner = RealSecurityScanner()
@@ -293,6 +302,7 @@ async def process_real_scan(
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
             {"$set": {"progress": 20, "current_scanner": "🔍 Running SAST (Static Application Security Testing)..."}}
         )
+        await ws_manager.notify_scan_progress(scan_id, project_name, 20, "SAST Analysis")
         
         # Small delay for UI update
         await asyncio.sleep(0.5)
@@ -301,6 +311,7 @@ async def process_real_scan(
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
             {"$set": {"progress": 35, "current_scanner": "🔑 Scanning for exposed secrets and credentials..."}}
         )
+        await ws_manager.notify_scan_progress(scan_id, project_name, 35, "Secrets Detection")
         
         await asyncio.sleep(0.5)
         
@@ -308,6 +319,7 @@ async def process_real_scan(
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
             {"$set": {"progress": 50, "current_scanner": "📦 Analyzing dependencies for known vulnerabilities..."}}
         )
+        await ws_manager.notify_scan_progress(scan_id, project_name, 50, "Dependency Analysis")
         
         # Perform real security scan
         scan_results = await scanner.scan_repository(
@@ -324,6 +336,7 @@ async def process_real_scan(
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
             {"$set": {"progress": 70, "current_scanner": "📊 Processing and categorizing findings..."}}
         )
+        await ws_manager.notify_scan_progress(scan_id, project_name, 70, "Processing Results")
         
         # Extract results
         total_findings = scan_results['total_findings']
@@ -541,6 +554,20 @@ async def process_real_scan(
         if scan_id in active_scans:
             del active_scans[scan_id]
         
+        # Broadcast scan completed notification via WebSocket
+        await ws_manager.notify_scan_completed(
+            scan_id, project_name, total_findings, findings_by_severity
+        )
+        
+        # Notify about critical vulnerabilities if any
+        if findings_by_severity.get('critical', 0) > 0:
+            for finding in detailed_findings[:5]:  # Notify first 5 critical issues
+                if finding.get('severity', '').lower() == 'critical':
+                    await ws_manager.notify_critical_vulnerability(
+                        project_name, finding.get('title', 'Critical vulnerability'),
+                        'critical'
+                    )
+        
         logger.info(f"✅ Real scan {scan_id} completed successfully with {total_findings} findings")
         logger.info(f"   - Critical: {findings_by_severity.get('critical', 0)}")
         logger.info(f"   - High: {findings_by_severity.get('high', 0)}")
@@ -583,6 +610,9 @@ async def process_real_scan(
                 }
             }
         )
+        
+        # Broadcast scan failed notification via WebSocket
+        await ws_manager.notify_scan_failed(scan_id, project_name, user_error)
 
 
 class WebhookProcessor:

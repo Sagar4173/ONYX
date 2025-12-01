@@ -23,7 +23,8 @@ const WS_BASE_URL = import.meta.env.DEV
       window.location.host;
 
 // Debug: Log the configuration values (only in development)
-if (import.meta.env.DEV) {}
+if (import.meta.env.DEV) {
+}
 
 // Utility function to clean parameters by removing empty values
 const cleanParams = (params = {}) => {
@@ -80,7 +81,8 @@ api.interceptors.request.use(
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }    return config;
+    }
+    return config;
   },
   (error) => {
     console.error("❌ API Request Error:", error);
@@ -439,7 +441,8 @@ export const reportsAPI = {
       return response.data;
     } catch (error) {
       // Don't throw error if AI analysis is not available - just return null
-      if (error.response?.status === 404) {        return null;
+      if (error.response?.status === 404) {
+        return null;
       }
       console.error("Error fetching AI analysis:", error);
       throw error;
@@ -478,7 +481,9 @@ export const reportsAPI = {
 
   // Start a new scan
   startScan: async (scanData) => {
-    try {      const response = await api.post("/webhook/scan", scanData);      return response.data;
+    try {
+      const response = await api.post("/webhook/scan", scanData);
+      return response.data;
     } catch (error) {
       console.error("❌ Error starting scan:", error);
 
@@ -534,7 +539,9 @@ export const reportsAPI = {
 
   // Stop a running scan
   stopScan: async (scanId) => {
-    try {      const response = await api.post(`/webhook/scan/${scanId}/stop`);      return response.data;
+    try {
+      const response = await api.post(`/webhook/scan/${scanId}/stop`);
+      return response.data;
     } catch (error) {
       console.error("❌ Error stopping scan:", error);
       throw error;
@@ -855,6 +862,7 @@ export const systemAPI = {
 
 /**
  * WebSocket Service for Real-time Updates
+ * Supports authenticated connections for user-specific notifications
  */
 class WebSocketService {
   constructor() {
@@ -879,11 +887,23 @@ class WebSocketService {
       // Close existing connection if it's in a bad state
       if (this.ws && this.ws.readyState === WebSocket.CLOSING) {
         this.ws = null;
-      }      this.ws = new WebSocket(
-        WS_BASE_URL.endsWith("/ws") ? WS_BASE_URL : `${WS_BASE_URL}/ws`
-      );
+      }
 
-      this.ws.onopen = () => {        this.reconnectAttempts = 0;
+      // Build WebSocket URL with optional auth token
+      let wsUrl = WS_BASE_URL.endsWith("/ws")
+        ? WS_BASE_URL
+        : `${WS_BASE_URL}/ws`;
+
+      // Append auth token if available for authenticated notifications
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        wsUrl += `?token=${encodeURIComponent(token)}`;
+      }
+
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.onopen = () => {
+        this.reconnectAttempts = 0;
 
         // Emit connected event
         this.listeners.forEach((callback, type) => {

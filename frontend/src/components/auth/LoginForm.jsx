@@ -1,6 +1,7 @@
 /**
  * Enhanced Login Form Component
  * Modern UI with animations and glassmorphism
+ * Supports Two-Factor Authentication flow
  */
 import React, { useState } from "react";
 import {
@@ -14,9 +15,11 @@ import {
   ArrowPathIcon,
   ArrowRightIcon,
   CheckCircleIcon,
+  DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
 import { useAuth } from "./AuthContext";
+import toast from "react-hot-toast";
 
 export const LoginForm = ({
   onSuccess,
@@ -27,9 +30,12 @@ export const LoginForm = ({
     username_or_email: "",
     password: "",
     remember_me: false,
+    two_factor_code: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [twoFAEmail, setTwoFAEmail] = useState("");
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -37,7 +43,18 @@ export const LoginForm = ({
     setIsLoading(true);
 
     try {
-      await login(formData);
+      const result = await login(formData);
+
+      // Check if 2FA is required
+      if (result?.requires_2fa) {
+        setRequires2FA(true);
+        setTwoFAEmail(result.user_email || "your email");
+        toast.info("Please enter your 2FA code from your authenticator app");
+        setIsLoading(false);
+        return;
+      }
+
+      // Login successful
       onSuccess && onSuccess();
     } catch (error) {
       // Error is handled in the login function
@@ -46,6 +63,107 @@ export const LoginForm = ({
     }
   };
 
+  const handleBack = () => {
+    setRequires2FA(false);
+    setFormData((prev) => ({ ...prev, two_factor_code: "" }));
+  };
+
+  // 2FA Code Entry Form
+  if (requires2FA) {
+    return (
+      <div className="p-8 md:p-10">
+        {/* 2FA Header */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-violet-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-4">
+            <DevicePhoneMobileIcon className="w-8 h-8 text-violet-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Two-Factor Authentication
+          </h2>
+          <p className="text-gray-400 text-sm">
+            Enter the 6-digit code from your authenticator app for{" "}
+            <span className="text-cyan-400">{twoFAEmail}</span>
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="group">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+              <ShieldCheckIcon className="w-4 h-4 text-violet-400" />
+              Authentication Code
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={formData.two_factor_code}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setFormData((prev) => ({
+                    ...prev,
+                    two_factor_code: value,
+                  }));
+                }}
+                className="w-full px-4 py-4 text-center text-2xl tracking-[0.5em] font-mono bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
+                placeholder="000000"
+                autoFocus
+                required
+              />
+            </div>
+            <p className="mt-2 text-xs text-gray-500 text-center">
+              Or enter a backup code if you've lost access to your authenticator
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading || formData.two_factor_code.length < 6}
+            className="w-full px-4 py-3.5 bg-gradient-to-r from-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              <>
+                <ShieldCheckIcon className="w-5 h-5" />
+                Verify & Sign In
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleBack}
+            className="w-full px-4 py-3 text-gray-400 hover:text-white font-medium rounded-xl hover:bg-gray-700/30 transition-all"
+          >
+            ← Back to login
+          </button>
+        </form>
+
+        {/* Security Note */}
+        <div className="mt-6 p-4 bg-violet-500/10 border border-violet-500/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <ShieldCheckSolid className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-300">
+              <p className="font-medium text-violet-300 mb-1">
+                Your account is protected
+              </p>
+              <p className="text-gray-400 text-xs">
+                Two-factor authentication adds an extra layer of security to
+                your account by requiring a code from your authenticator app.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standard Login Form
   return (
     <div className="p-8 md:p-10">
       {/* Minimalist Header */}

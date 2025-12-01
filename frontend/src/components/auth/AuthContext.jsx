@@ -63,7 +63,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const data = await authAPI.login(credentials);
 
-      // Store tokens and user data
+      // Check if 2FA is required
+      if (data.requires_2fa) {
+        // Return special response indicating 2FA is needed
+        return {
+          requires_2fa: true,
+          temp_token: data.temp_token,
+          user_email: data.user_email,
+          message: data.message,
+        };
+      }
+
+      // Normal login flow - store tokens and user data
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
       localStorage.setItem("user_data", JSON.stringify(data.user));

@@ -103,15 +103,24 @@ async def register_user(
         )
 
 
-@router.post("/login", response_model=LoginResponse)
+@router.post("/login")
 async def login(login_data: LoginRequest, request: Request):
     """
     Login user and create session
     
-    Returns access token and refresh token for authentication
+    Returns:
+        - LoginResponse with tokens if login successful (2FA verified or not required)
+        - 2FA required response if user has 2FA enabled but no code provided
     """
     try:
         response = await auth_service.login(login_data, request)
+        
+        # Check if 2FA is required (response will be a dict with requires_2fa flag)
+        if isinstance(response, dict) and response.get("requires_2fa"):
+            # Return 2FA required response (not a LoginResponse)
+            return response
+        
+        # Normal login response
         return response
     except HTTPException:
         raise

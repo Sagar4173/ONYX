@@ -132,12 +132,14 @@ class AuthService:
         if not user:
             return None
         
-        # Check if account is locked (TEMPORARILY DISABLED)
-        # if user.is_account_locked():
-        #     raise HTTPException(
-        #         status_code=status.HTTP_423_LOCKED,
-        #         detail=f"Account is locked until {user.locked_until}. Please try again later."
-        #     )
+        # Check if account is locked - BRUTE FORCE PROTECTION
+        if user.is_account_locked():
+            remaining_time = user.locked_until - utc_now()
+            minutes_remaining = max(1, int(remaining_time.total_seconds() / 60))
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"Account is locked due to too many failed attempts. Try again in {minutes_remaining} minutes."
+            )
 
         # Check if account is active
         if user.status not in [UserStatus.ACTIVE, UserStatus.PENDING_VERIFICATION]:
@@ -148,14 +150,15 @@ class AuthService:
 
         # Verify password
         if not self.verify_password(password, user.hashed_password):
-            # Increment failed attempts (TEMPORARILY DISABLED)
-            # user.failed_login_attempts += 1
+            # Increment failed attempts - BRUTE FORCE PROTECTION
+            user.failed_login_attempts += 1
             
-            # Lock account if too many failed attempts (TEMPORARILY DISABLED)
-            # if user.failed_login_attempts >= self.max_failed_attempts:
-            #     user.locked_until = utc_now() + timedelta(minutes=self.lockout_duration)
+            # Lock account if too many failed attempts
+            if user.failed_login_attempts >= self.max_failed_attempts:
+                user.locked_until = utc_now() + timedelta(minutes=self.lockout_duration)
+                logger.warning(f"Account {user.email} locked due to {user.failed_login_attempts} failed attempts")
             
-            # await user.save()
+            await user.save()
             return None
 
         # Reset failed attempts on successful login
@@ -166,8 +169,8 @@ class AuthService:
         
         return user
     
-    async def login(self, login_data: LoginRequest, request: Request) -> LoginResponse:
-        """Login user and create session"""
+    async def login(self, login_data: LoginRequest, request: Request):
+        """Login user and create session - supports 2FA flow"""
         user = await self.authenticate_user(
             login_data.username_or_email, 
             login_data.password
@@ -178,6 +181,37 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
+        
+        # Check if 2FA is enabled for this user
+        if user.two_factor_enabled:
+            if not login_data.two_factor_code:
+                # Return 2FA required response - user needs to provide code
+                # Generate a temporary token for 2FA verification
+                temp_token = self._generate_2fa_temp_token(user.id)
+                return {
+                    "requires_2fa": True,
+                    "message": "Two-factor authentication required",
+                    "temp_token": temp_token,
+                    "user_email": self._mask_email(user.email)
+                }
+            
+            # Verify 2FA code
+            import pyotp
+            totp = pyotp.TOTP(user.two_factor_secret)
+            is_valid = totp.verify(login_data.two_factor_code, valid_window=1)
+            
+            # Also check backup codes if TOTP fails
+            if not is_valid and login_data.two_factor_code.upper() in user.two_factor_backup_codes:
+                is_valid = True
+                # Remove used backup code
+                user.two_factor_backup_codes.remove(login_data.two_factor_code.upper())
+                logger.info(f"Backup code used for user {user.email}")
+            
+            if not is_valid:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid two-factor authentication code"
+                )
         
         # Update last_login time
         user.last_login = utc_now()
@@ -584,6 +618,47 @@ class AuthService:
         return permission_checker
     
     # Utility Methods
+    
+    def _generate_2fa_temp_token(self, user_id: str) -> str:
+        """Generate a temporary token for 2FA verification step"""
+        # This token is short-lived (5 minutes) and only for 2FA verification
+        now = datetime.now(timezone.utc)
+        payload = {
+            "sub": user_id,
+            "iat": now,
+            "exp": now + timedelta(minutes=5),
+            "type": "2fa_temp",
+            "jti": str(uuid.uuid4())
+        }
+        return jwt.encode(payload, settings.secret_key, algorithm=self.algorithm)
+    
+    def _verify_2fa_temp_token(self, token: str) -> Optional[str]:
+        """Verify 2FA temporary token and return user_id"""
+        try:
+            payload = jwt.decode(
+                token,
+                settings.secret_key,
+                algorithms=[self.algorithm],
+                options={"verify_exp": True}
+            )
+            if payload.get("type") != "2fa_temp":
+                return None
+            return payload.get("sub")
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.InvalidTokenError:
+            return None
+    
+    def _mask_email(self, email: str) -> str:
+        """Mask email for privacy (e.g., t***@example.com)"""
+        if not email or '@' not in email:
+            return "***@***.***"
+        local, domain = email.split('@', 1)
+        if len(local) <= 2:
+            masked_local = local[0] + "***"
+        else:
+            masked_local = local[0] + "***" + local[-1]
+        return f"{masked_local}@{domain}"
     
     def _extract_platform(self, user_agent: str) -> str:
         """Extract platform from user agent"""

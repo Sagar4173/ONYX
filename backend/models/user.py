@@ -352,6 +352,7 @@ class LoginRequest(BaseModel):
     username_or_email: str
     password: str
     remember_me: bool = False
+    two_factor_code: Optional[str] = None  # Required if user has 2FA enabled
 
 
 class LoginResponse(BaseModel):
@@ -361,6 +362,14 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     user: UserResponse
+    requires_2fa: bool = False  # Indicates if 2FA was required and verified
+
+
+class TwoFactorRequiredResponse(BaseModel):
+    """Response when 2FA is required but code not provided"""
+    requires_2fa: bool = True
+    message: str = "Two-factor authentication required"
+    user_id: str  # Temporary token for 2FA verification
 
 
 class PasswordResetRequest(BaseModel):
