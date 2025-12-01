@@ -2,23 +2,37 @@
  * ONYX Platform - Reusable UI Components
  * Styled components that use the centralized theme system
  */
-import React from 'react';
-import { getButtonClasses, getBadgeClasses, getCardClasses, getInputClasses, getAlertClasses, loadingStyles, statusStyles, modalStyles } from './classNames';
+import React from "react";
+import {
+  getButtonClasses,
+  getBadgeClasses,
+  getCardClasses,
+  getInputClasses,
+  getAlertClasses,
+  getProgressClasses,
+  loadingStyles,
+  statusStyles,
+  modalStyles,
+  codeStyles,
+  navStyles,
+  formStyles,
+} from "./classNames";
+import { animations, dynamicStyles, severityColors } from "./theme";
 
 // =============================================================================
 // BUTTON COMPONENT
 // =============================================================================
 
-export const Button = ({ 
-  children, 
-  variant = 'primary', 
-  size = 'md', 
+export const Button = ({
+  children,
+  variant = "primary",
+  size = "md",
   isLoading = false,
   disabled = false,
   leftIcon,
   rightIcon,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
   return (
     <button
@@ -43,23 +57,25 @@ export const Button = ({
 // ICON BUTTON COMPONENT
 // =============================================================================
 
-export const IconButton = ({ 
-  icon, 
-  variant = 'ghost', 
-  size = 'md',
+export const IconButton = ({
+  icon,
+  variant = "ghost",
+  size = "md",
   label,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
   const sizeClasses = {
-    sm: 'p-1.5',
-    md: 'p-2',
-    lg: 'p-2.5',
+    sm: "p-1.5",
+    md: "p-2",
+    lg: "p-2.5",
   };
-  
+
   return (
     <button
-      className={`${getButtonClasses(variant, size, true)} ${sizeClasses[size]} ${className}`}
+      className={`${getButtonClasses(variant, size, true)} ${
+        sizeClasses[size]
+      } ${className}`}
       aria-label={label}
       title={label}
       {...props}
@@ -73,16 +89,16 @@ export const IconButton = ({
 // CARD COMPONENT
 // =============================================================================
 
-export const Card = ({ 
-  children, 
-  variant = 'default', 
-  padding = 'md',
+export const Card = ({
+  children,
+  variant = "default",
+  padding = "md",
   hoverable = false,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
   return (
-    <div 
+    <div
       className={`${getCardClasses(variant, padding, hoverable)} ${className}`}
       {...props}
     >
@@ -91,29 +107,27 @@ export const Card = ({
   );
 };
 
-export const CardHeader = ({ children, className = '' }) => (
+export const CardHeader = ({ children, className = "" }) => (
   <div className={`pb-4 border-b border-gray-700/50 mb-4 ${className}`}>
     {children}
   </div>
 );
 
-export const CardTitle = ({ children, className = '' }) => (
+export const CardTitle = ({ children, className = "" }) => (
   <h3 className={`text-lg font-semibold text-white ${className}`}>
     {children}
   </h3>
 );
 
-export const CardDescription = ({ children, className = '' }) => (
-  <p className={`text-sm text-gray-400 mt-1 ${className}`}>
-    {children}
-  </p>
+export const CardDescription = ({ children, className = "" }) => (
+  <p className={`text-sm text-gray-400 mt-1 ${className}`}>{children}</p>
 );
 
-export const CardContent = ({ children, className = '' }) => (
+export const CardContent = ({ children, className = "" }) => (
   <div className={className}>{children}</div>
 );
 
-export const CardFooter = ({ children, className = '' }) => (
+export const CardFooter = ({ children, className = "" }) => (
   <div className={`pt-4 border-t border-gray-700/50 mt-4 ${className}`}>
     {children}
   </div>
@@ -123,15 +137,15 @@ export const CardFooter = ({ children, className = '' }) => (
 // BADGE COMPONENT
 // =============================================================================
 
-export const Badge = ({ 
-  children, 
-  variant = 'default', 
-  size = 'sm',
-  className = '',
-  ...props 
+export const Badge = ({
+  children,
+  variant = "default",
+  size = "sm",
+  className = "",
+  ...props
 }) => {
   return (
-    <span 
+    <span
       className={`${getBadgeClasses(variant, size)} ${className}`}
       {...props}
     >
@@ -141,17 +155,20 @@ export const Badge = ({
 };
 
 // Severity-specific badge
-export const SeverityBadge = ({ severity, className = '' }) => {
+export const SeverityBadge = ({ severity, className = "" }) => {
   const severityMap = {
-    critical: 'critical',
-    high: 'high',
-    medium: 'medium',
-    low: 'low',
-    info: 'default',
+    critical: "critical",
+    high: "high",
+    medium: "medium",
+    low: "low",
+    info: "default",
   };
-  
+
   return (
-    <Badge variant={severityMap[severity?.toLowerCase()] || 'default'} className={className}>
+    <Badge
+      variant={severityMap[severity?.toLowerCase()] || "default"}
+      className={className}
+    >
       {severity?.toUpperCase()}
     </Badge>
   );
@@ -161,24 +178,22 @@ export const SeverityBadge = ({ severity, className = '' }) => {
 // INPUT COMPONENT
 // =============================================================================
 
-export const Input = ({ 
-  variant = 'default', 
-  size = 'md',
+export const Input = ({
+  variant = "default",
+  size = "md",
   error,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
-  const inputVariant = error ? 'error' : variant;
-  
+  const inputVariant = error ? "error" : variant;
+
   return (
     <div className="w-full">
-      <input 
+      <input
         className={`${getInputClasses(inputVariant, size)} ${className}`}
         {...props}
       />
-      {error && (
-        <p className="mt-1 text-xs text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 };
@@ -187,28 +202,27 @@ export const Input = ({
 // TEXTAREA COMPONENT
 // =============================================================================
 
-export const Textarea = ({ 
-  variant = 'default', 
+export const Textarea = ({
+  variant = "default",
   error,
   rows = 3,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
-  const baseClasses = 'w-full rounded-lg border bg-gray-800 text-gray-100 placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 px-4 py-2 text-sm resize-none';
-  const variantClasses = error 
-    ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-    : 'border-gray-600 focus:border-blue-500 focus:ring-blue-500/20';
-  
+  const baseClasses =
+    "w-full rounded-lg border bg-gray-800 text-gray-100 placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 px-4 py-2 text-sm resize-none";
+  const variantClasses = error
+    ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+    : "border-gray-600 focus:border-blue-500 focus:ring-blue-500/20";
+
   return (
     <div className="w-full">
-      <textarea 
+      <textarea
         className={`${baseClasses} ${variantClasses} ${className}`}
         rows={rows}
         {...props}
       />
-      {error && (
-        <p className="mt-1 text-xs text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 };
@@ -217,19 +231,22 @@ export const Textarea = ({
 // SELECT COMPONENT
 // =============================================================================
 
-export const Select = ({ 
-  options = [], 
-  placeholder = 'Select...',
-  variant = 'default',
-  size = 'md',
+export const Select = ({
+  options = [],
+  placeholder = "Select...",
+  variant = "default",
+  size = "md",
   error,
-  className = '',
-  ...props 
+  className = "",
+  ...props
 }) => {
   return (
     <div className="w-full">
-      <select 
-        className={`${getInputClasses(error ? 'error' : variant, size)} cursor-pointer ${className}`}
+      <select
+        className={`${getInputClasses(
+          error ? "error" : variant,
+          size
+        )} cursor-pointer ${className}`}
         {...props}
       >
         {placeholder && (
@@ -243,9 +260,7 @@ export const Select = ({
           </option>
         ))}
       </select>
-      {error && (
-        <p className="mt-1 text-xs text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );
 };
@@ -254,13 +269,13 @@ export const Select = ({
 // ALERT COMPONENT
 // =============================================================================
 
-export const Alert = ({ 
-  variant = 'info', 
+export const Alert = ({
+  variant = "info",
   title,
   children,
   icon,
   onClose,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className={`${getAlertClasses(variant)} ${className}`}>
@@ -270,7 +285,10 @@ export const Alert = ({
         {children && <p className="text-sm opacity-90 mt-1">{children}</p>}
       </div>
       {onClose && (
-        <button onClick={onClose} className="flex-shrink-0 opacity-70 hover:opacity-100">
+        <button
+          onClick={onClose}
+          className="flex-shrink-0 opacity-70 hover:opacity-100"
+        >
           ×
         </button>
       )}
@@ -282,15 +300,15 @@ export const Alert = ({
 // SPINNER/LOADING COMPONENT
 // =============================================================================
 
-export const Spinner = ({ size = 'md', className = '' }) => {
+export const Spinner = ({ size = "md", className = "" }) => {
   return (
-    <div 
+    <div
       className={`${loadingStyles.spinner} ${loadingStyles.sizes[size]} ${className}`}
     />
   );
 };
 
-export const LoadingOverlay = ({ message = 'Loading...' }) => (
+export const LoadingOverlay = ({ message = "Loading..." }) => (
   <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
     <div className="flex flex-col items-center gap-3">
       <Spinner size="lg" />
@@ -303,17 +321,17 @@ export const LoadingOverlay = ({ message = 'Loading...' }) => (
 // SKELETON LOADING
 // =============================================================================
 
-export const Skeleton = ({ className = '', variant = 'text' }) => {
+export const Skeleton = ({ className = "", variant = "text" }) => {
   const variants = {
-    text: 'h-4 w-full',
-    title: 'h-6 w-3/4',
-    avatar: 'h-10 w-10 rounded-full',
-    button: 'h-9 w-24',
-    card: 'h-32 w-full',
+    text: "h-4 w-full",
+    title: "h-6 w-3/4",
+    avatar: "h-10 w-10 rounded-full",
+    button: "h-9 w-24",
+    card: "h-32 w-full",
   };
-  
+
   return (
-    <div 
+    <div
       className={`${loadingStyles.skeleton} ${variants[variant]} ${className}`}
     />
   );
@@ -323,7 +341,7 @@ export const Skeleton = ({ className = '', variant = 'text' }) => {
 // STATUS INDICATOR
 // =============================================================================
 
-export const StatusDot = ({ status = 'neutral', className = '' }) => {
+export const StatusDot = ({ status = "neutral", className = "" }) => {
   const statusMap = {
     success: statusStyles.dot.success,
     active: statusStyles.dot.success,
@@ -337,15 +355,21 @@ export const StatusDot = ({ status = 'neutral', className = '' }) => {
     neutral: statusStyles.dot.neutral,
     inactive: statusStyles.dot.neutral,
   };
-  
+
   return (
-    <span 
-      className={`${statusStyles.dot.base} ${statusMap[status] || statusMap.neutral} ${className}`}
+    <span
+      className={`${statusStyles.dot.base} ${
+        statusMap[status] || statusMap.neutral
+      } ${className}`}
     />
   );
 };
 
-export const StatusIndicator = ({ status = 'neutral', label, className = '' }) => {
+export const StatusIndicator = ({
+  status = "neutral",
+  label,
+  className = "",
+}) => {
   const statusMap = {
     success: statusStyles.indicator.success,
     active: statusStyles.indicator.success,
@@ -356,9 +380,13 @@ export const StatusIndicator = ({ status = 'neutral', label, className = '' }) =
     info: statusStyles.indicator.info,
     neutral: statusStyles.indicator.neutral,
   };
-  
+
   return (
-    <span className={`${statusStyles.indicator.base} ${statusMap[status] || statusMap.neutral} ${className}`}>
+    <span
+      className={`${statusStyles.indicator.base} ${
+        statusMap[status] || statusMap.neutral
+      } ${className}`}
+    >
       <StatusDot status={status} />
       {label}
     </span>
@@ -369,34 +397,34 @@ export const StatusIndicator = ({ status = 'neutral', label, className = '' }) =
 // MODAL COMPONENT
 // =============================================================================
 
-export const Modal = ({ 
-  isOpen, 
-  onClose, 
+export const Modal = ({
+  isOpen,
+  onClose,
   title,
   children,
   footer,
-  size = 'md',
+  size = "md",
 }) => {
   if (!isOpen) return null;
-  
+
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-full mx-4',
+    sm: "max-w-sm",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-full mx-4",
   };
-  
+
   return (
     <div className={modalStyles.overlay} onClick={onClose}>
-      <div 
+      <div
         className={`${modalStyles.container} ${sizeClasses[size]}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className={modalStyles.header}>
             <h2 className={modalStyles.title}>{title}</h2>
-            <button 
+            <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors"
             >
@@ -404,14 +432,8 @@ export const Modal = ({
             </button>
           </div>
         )}
-        <div className={modalStyles.body}>
-          {children}
-        </div>
-        {footer && (
-          <div className={modalStyles.footer}>
-            {footer}
-          </div>
-        )}
+        <div className={modalStyles.body}>{children}</div>
+        {footer && <div className={modalStyles.footer}>{footer}</div>}
       </div>
     </div>
   );
@@ -421,7 +443,7 @@ export const Modal = ({
 // DIVIDER COMPONENT
 // =============================================================================
 
-export const Divider = ({ className = '' }) => (
+export const Divider = ({ className = "" }) => (
   <hr className={`border-gray-700/50 my-4 ${className}`} />
 );
 
@@ -429,17 +451,23 @@ export const Divider = ({ className = '' }) => (
 // EMPTY STATE COMPONENT
 // =============================================================================
 
-export const EmptyState = ({ 
+export const EmptyState = ({
   icon,
   title,
   description,
   action,
-  className = '',
+  className = "",
 }) => (
-  <div className={`flex flex-col items-center justify-center py-12 text-center ${className}`}>
+  <div
+    className={`flex flex-col items-center justify-center py-12 text-center ${className}`}
+  >
     {icon && <div className="text-gray-500 mb-4">{icon}</div>}
-    {title && <h3 className="text-lg font-medium text-gray-300 mb-2">{title}</h3>}
-    {description && <p className="text-gray-500 max-w-sm mb-4">{description}</p>}
+    {title && (
+      <h3 className="text-lg font-medium text-gray-300 mb-2">{title}</h3>
+    )}
+    {description && (
+      <p className="text-gray-500 max-w-sm mb-4">{description}</p>
+    )}
     {action}
   </div>
 );
@@ -448,20 +476,20 @@ export const EmptyState = ({
 // STAT CARD COMPONENT
 // =============================================================================
 
-export const StatCard = ({ 
-  title, 
-  value, 
+export const StatCard = ({
+  title,
+  value,
   change,
-  changeType = 'neutral', // 'increase', 'decrease', 'neutral'
+  changeType = "neutral", // 'increase', 'decrease', 'neutral'
   icon,
-  className = '',
+  className = "",
 }) => {
   const changeColors = {
-    increase: 'text-green-400',
-    decrease: 'text-red-400',
-    neutral: 'text-gray-400',
+    increase: "text-green-400",
+    decrease: "text-red-400",
+    neutral: "text-gray-400",
   };
-  
+
   return (
     <Card className={className}>
       <div className="flex items-center justify-between">
@@ -470,8 +498,8 @@ export const StatCard = ({
           <p className="text-2xl font-bold text-white mt-1">{value}</p>
           {change !== undefined && (
             <p className={`text-sm mt-1 ${changeColors[changeType]}`}>
-              {changeType === 'increase' && '↑'}
-              {changeType === 'decrease' && '↓'}
+              {changeType === "increase" && "↑"}
+              {changeType === "decrease" && "↓"}
               {change}
             </p>
           )}
@@ -483,6 +511,338 @@ export const StatCard = ({
         )}
       </div>
     </Card>
+  );
+};
+
+// =============================================================================
+// PROGRESS BAR COMPONENT
+// =============================================================================
+
+export const ProgressBar = ({
+  value = 0,
+  max = 100,
+  color = "primary",
+  size = "md",
+  showLabel = false,
+  animated = false,
+  className = "",
+}) => {
+  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+  const { container, bar } = getProgressClasses(color, size);
+
+  return (
+    <div className={`${className}`}>
+      <div className={container}>
+        <div
+          className={`${bar} ${animated ? "animate-pulse" : ""}`}
+          style={dynamicStyles.progressWidth(percentage)}
+        />
+      </div>
+      {showLabel && (
+        <span className="text-xs text-gray-400 mt-1">
+          {Math.round(percentage)}%
+        </span>
+      )}
+    </div>
+  );
+};
+
+// =============================================================================
+// SEVERITY PROGRESS BAR (for vulnerability counts)
+// =============================================================================
+
+export const SeverityProgressBar = ({
+  critical = 0,
+  high = 0,
+  medium = 0,
+  low = 0,
+  size = "md",
+  className = "",
+}) => {
+  const total = critical + high + medium + low || 1;
+
+  const getWidth = (value) => `${(value / total) * 100}%`;
+
+  const heights = {
+    xs: "h-1",
+    sm: "h-1.5",
+    md: "h-2",
+    lg: "h-3",
+    xl: "h-4",
+  };
+
+  return (
+    <div
+      className={`w-full ${heights[size]} bg-gray-700 rounded-full overflow-hidden flex ${className}`}
+    >
+      <div
+        className="bg-red-500 transition-all duration-500"
+        style={{ width: getWidth(critical) }}
+      />
+      <div
+        className="bg-orange-500 transition-all duration-500"
+        style={{ width: getWidth(high) }}
+      />
+      <div
+        className="bg-yellow-500 transition-all duration-500"
+        style={{ width: getWidth(medium) }}
+      />
+      <div
+        className="bg-blue-500 transition-all duration-500"
+        style={{ width: getWidth(low) }}
+      />
+    </div>
+  );
+};
+
+// =============================================================================
+// ANIMATED LIST ITEM (handles stagger animation)
+// =============================================================================
+
+export const AnimatedListItem = ({
+  children,
+  index,
+  delay = 0.1,
+  className = "",
+  ...props
+}) => {
+  return (
+    <div
+      className={`animate-fade-in-up ${className}`}
+      style={animations.staggerDelay(index, delay)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+// =============================================================================
+// DONUT/RING CHART COMPONENT
+// =============================================================================
+
+export const DonutChart = ({
+  value = 0,
+  max = 100,
+  size = 120,
+  strokeWidth = 8,
+  color = "#3b82f6",
+  bgColor = "#374151",
+  children,
+  className = "",
+}) => {
+  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div
+      className={`relative ${className}`}
+      style={{ width: size, height: size }}
+    >
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={bgColor}
+          strokeWidth={strokeWidth}
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+      {/* Center content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {children || (
+          <span className="text-xl font-bold text-white">
+            {Math.round(percentage)}%
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// =============================================================================
+// CODE DISPLAY COMPONENT
+// =============================================================================
+
+export const Code = ({ children, inline = false, className = "" }) => {
+  if (inline) {
+    return (
+      <code className={`${codeStyles.inline} ${className}`}>{children}</code>
+    );
+  }
+
+  return (
+    <pre className={`${codeStyles.block} ${className}`}>
+      <code>{children}</code>
+    </pre>
+  );
+};
+
+// =============================================================================
+// TABS COMPONENT
+// =============================================================================
+
+export const Tabs = ({ tabs, activeTab, onChange, className = "" }) => {
+  return (
+    <div className={`border-b border-gray-700 ${className}`}>
+      <nav className="flex gap-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className={
+              activeTab === tab.id ? navStyles.tabActive : navStyles.tab
+            }
+          >
+            {tab.icon && <span className="mr-2">{tab.icon}</span>}
+            {tab.label}
+            {tab.count !== undefined && (
+              <Badge size="xs" variant="default" className="ml-2">
+                {tab.count}
+              </Badge>
+            )}
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+};
+
+// =============================================================================
+// FORM COMPONENTS
+// =============================================================================
+
+export const FormGroup = ({ children, className = "" }) => (
+  <div className={`${formStyles.group} ${className}`}>{children}</div>
+);
+
+export const FormLabel = ({ children, required = false, className = "" }) => (
+  <label className={`${formStyles.label} ${className}`}>
+    {children}
+    {required && <span className={formStyles.required}>*</span>}
+  </label>
+);
+
+export const FormHint = ({ children, className = "" }) => (
+  <p className={`${formStyles.hint} ${className}`}>{children}</p>
+);
+
+export const FormError = ({ children, className = "" }) => (
+  <p className={`${formStyles.error} ${className}`}>{children}</p>
+);
+
+// =============================================================================
+// TOOLTIP COMPONENT (simple)
+// =============================================================================
+
+export const Tooltip = ({ content, children, position = "top" }) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  const positions = {
+    top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
+    bottom: "top-full left-1/2 -translate-x-1/2 mt-2",
+    left: "right-full top-1/2 -translate-y-1/2 mr-2",
+    right: "left-full top-1/2 -translate-y-1/2 ml-2",
+  };
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {children}
+      {isVisible && (
+        <div
+          className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow-lg border border-gray-700 whitespace-nowrap ${positions[position]}`}
+        >
+          {content}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// =============================================================================
+// AVATAR COMPONENT
+// =============================================================================
+
+export const Avatar = ({ src, alt, name, size = "md", className = "" }) => {
+  const sizes = {
+    xs: "w-6 h-6 text-xs",
+    sm: "w-8 h-8 text-sm",
+    md: "w-10 h-10 text-base",
+    lg: "w-12 h-12 text-lg",
+    xl: "w-16 h-16 text-xl",
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={alt || name}
+        className={`${sizes[size]} rounded-full object-cover ${className}`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${sizes[size]} rounded-full bg-gray-700 flex items-center justify-center font-medium text-gray-300 ${className}`}
+    >
+      {getInitials(name)}
+    </div>
+  );
+};
+
+// =============================================================================
+// TRUNCATE TEXT COMPONENT
+// =============================================================================
+
+export const Truncate = ({ text, maxLength = 100, className = "" }) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  if (!text || text.length <= maxLength) {
+    return <span className={className}>{text}</span>;
+  }
+
+  return (
+    <span className={className}>
+      {isExpanded ? text : `${text.slice(0, maxLength)}...`}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="ml-1 text-blue-400 hover:text-blue-300 text-sm"
+      >
+        {isExpanded ? "Show less" : "Show more"}
+      </button>
+    </span>
   );
 };
 
@@ -510,4 +870,17 @@ export default {
   Divider,
   EmptyState,
   StatCard,
+  ProgressBar,
+  SeverityProgressBar,
+  AnimatedListItem,
+  DonutChart,
+  Code,
+  Tabs,
+  FormGroup,
+  FormLabel,
+  FormHint,
+  FormError,
+  Tooltip,
+  Avatar,
+  Truncate,
 };
