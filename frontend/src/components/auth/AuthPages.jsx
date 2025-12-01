@@ -3,7 +3,7 @@
  * Authentication-related page components
  */
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { useAuth, AuthModal, EmailVerification } from "./index";
@@ -174,12 +174,8 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
     );
   }
 
-  // For non-public routes when not authenticated
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      <AuthModal isOpen={true} onClose={() => setAuthModalOpen(false)} />
-    </div>
-  );
+  // For non-public routes when not authenticated, redirect to landing page
+  return <Navigate to="/" replace />;
 };
 
 export default {
