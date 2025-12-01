@@ -18,7 +18,7 @@ from datetime import datetime
 import asyncio
 
 # Import our orchestration engine
-from services.security_orchestration_engine import SecurityOrchestrationEngine
+from services.security.security_orchestration_engine import SecurityOrchestrationEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -152,7 +152,7 @@ async def register_asset(
 ) -> Dict[str, Any]:
     """Register asset for vulnerability management"""
     try:
-        from services.vulnerability_management_engine import Asset
+        from services.scanning.vulnerability_management import Asset
         
         # Create asset object
         asset_obj = Asset(

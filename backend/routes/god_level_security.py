@@ -21,12 +21,12 @@ import traceback
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 
-from services.rule_parsing_engine import RuleParsingEngine
-from services.rule_testing_framework import RuleTestingFramework
-from services.baseline_manager import BaselineManager
-from services.policy_as_code_engine import PolicyAsCodeEngine
-from services.ai_processor import get_ai_processor
-from services.advanced_scanners import AdvancedSecurityScanner
+from services.rules.rule_parsing_engine import RuleParsingEngine
+from services.rules.rule_testing_framework import RuleTestingFramework
+from services.scanning.baseline_manager import BaselineManager
+from services.rules.policy_as_code_engine import PolicyAsCodeEngine
+from services.ai.ai_processor import get_ai_processor
+from services.scanning.advanced_scanners import AdvancedSecurityScanner
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

@@ -59,6 +59,13 @@ function AppContent() {
     return <LoadingScreen />;
   }
 
+  // Auth routes - redirect to dashboard if already logged in
+  const authRoutes = ["/login", "/register"];
+  const isAuthRoute = authRoutes.some(
+    (route) =>
+      location.pathname === route || location.pathname.startsWith(route)
+  );
+
   // Public routes that don't require authentication
   const publicRoutes = [
     "/",
@@ -72,6 +79,11 @@ function AppContent() {
     (route) =>
       location.pathname === route || location.pathname.startsWith(route)
   );
+
+  // If authenticated and on auth route (login/register), redirect to dashboard
+  if (isAuthenticated && isAuthRoute) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   // If authenticated, show main layout with all routes
   if (isAuthenticated) {

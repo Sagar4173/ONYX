@@ -22,7 +22,7 @@ def safe_error_detail(error: Exception, operation: str) -> str:
     return f"{operation} failed: {str(error)}"
 
 from models.report import ScanReport, VulnerabilityFinding, ComplianceFramework
-from services.compliance_analyzer import ComplianceAnalysisService
+from services.compliance.compliance_analyzer import ComplianceAnalysisService
 from database import scan_reports_collection
 
 logger = logging.getLogger(__name__)

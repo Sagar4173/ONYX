@@ -6,19 +6,7 @@
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://onyx-backend-dt4o.onrender.com/api/$1"
-    },
-    {
-      "source": "/webhook/(.*)",
-      "destination": "https://onyx-backend-dt4o.onrender.com/webhook/$1"
-    },
-    {
-      "source": "/health",
-      "destination": "https://onyx-backend-dt4o.onrender.com/health"
-    },
-    {
-      "source": "/((?!api/|webhook/|health).*)",
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ],

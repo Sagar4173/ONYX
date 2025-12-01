@@ -16,8 +16,8 @@ from models.user import (
     UserUpdate, UserPasswordChange, UserResponse,
     APITokenCreate, APITokenResponse
 )
-from services.auth_service import auth_service
-from services.user_service import user_service
+from services.auth.auth_service import auth_service
+from services.auth.user_service import user_service
 
 
 router = APIRouter(prefix="/users", tags=["User Management"])

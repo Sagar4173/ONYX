@@ -18,8 +18,8 @@ from models.user import (
     TwoFactorSetupResponse, TwoFactorVerifyRequest, SessionResponse,
     APITokenCreate, APITokenResponse, TokenResponse
 )
-from services.auth_service import auth_service
-from services.email_service import email_service
+from services.auth.auth_service import auth_service
+from services.notifications.service import email_service
 from config import settings
 
 
@@ -726,7 +726,7 @@ async def test_email_configuration(
         )
     
     try:
-        from services.email_service import email_service
+        from services.notifications.service import email_service
         
         # Test SMTP connection first
         connection_ok = await email_service.test_connection()

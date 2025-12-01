@@ -31,7 +31,7 @@ else:
 from database import db_manager, init_database, close_database
 
 # Import WebSocket manager for real-time notifications
-from services.websocket_manager import ws_manager
+from services.notifications.websocket_manager import ws_manager
 
 # Import route modules
 from routes.reports import router as reports_router

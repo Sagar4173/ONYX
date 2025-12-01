@@ -12,8 +12,8 @@ from models.project import (
     ProjectCategory, ProjectPriority
 )
 from models.user import User
-from services.project_service import ProjectService
-from services.auth_service import AuthService
+from services.infrastructure.project_service import ProjectService
+from services.auth.auth_service import AuthService
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 security = HTTPBearer()

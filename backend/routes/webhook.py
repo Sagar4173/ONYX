@@ -17,11 +17,12 @@ from models.report import (
     ScanReport, WebhookEvent, GitMetadata, ScanStatus, ScannerType,
     ScanResult, VulnerabilityFinding, SeverityLevel
 )
-from services.enhanced_scanning_workflow import enhanced_workflow
-from services.ai_processor import get_ai_processor
-from services.notifier import notification_service
-from services.real_scanner import RealSecurityScanner
-from services.project_service import ProjectService
+from services.scanning.enhanced_scanning_workflow import enhanced_workflow
+from services.ai.ai_processor import get_ai_processor
+from services.notifications.notifier import notification_service
+from services.notifications.websocket_manager import ws_manager
+from services.scanning.real_scanner import RealSecurityScanner
+from services.infrastructure.project_service import ProjectService
 from utils.repo_clone import repo_cloner
 from config import settings
 
@@ -255,8 +256,6 @@ async def process_real_scan(
         scan_request: Original scan request
         git_metadata: Git repository metadata
     """
-    # Import WebSocket manager for real-time notifications
-    from services.websocket_manager import ws_manager
     
     project_name = str(scan_request.repository_url).split('/')[-1].replace('.git', '')
     
@@ -472,7 +471,7 @@ async def process_real_scan(
             )
             
             # Get the AI processor
-            from services.ai_processor import get_ai_processor, AIProcessorError
+            from services.ai.ai_processor import get_ai_processor, AIProcessorError
             try:
                 ai_processor = get_ai_processor()
             except AIProcessorError as e:

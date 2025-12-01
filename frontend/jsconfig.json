@@ -7,7 +7,6 @@
       "@styles/*": ["src/styles/*"],
       "@components/*": ["src/components/*"],
       "@services/*": ["src/services/*"],
-      "@hooks/*": ["src/hooks/*"],
       "@utils/*": ["src/utils/*"],
       "@config/*": ["src/config/*"],
       "@pages/*": ["src/pages/*"],

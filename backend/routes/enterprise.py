@@ -11,17 +11,17 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 from pydantic import BaseModel, Field
 
-from services.audit_logging_service import (
+from services.analytics.audit_logging_service import (
     get_audit_service,
     AuditEventType,
     AuditSeverity,
 )
-from services.data_retention_service import (
+from services.analytics.data_retention_service import (
     get_retention_service,
     RetentionPolicyType,
     RetentionAction,
 )
-from services.advanced_compliance_service import (
+from services.compliance.advanced_compliance_service import (
     get_compliance_service,
     ComplianceFramework,
     ComplianceStatus,

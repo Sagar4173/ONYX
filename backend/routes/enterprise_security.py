@@ -26,21 +26,21 @@ def safe_error_detail(error: Exception, operation: str) -> str:
 import json
 
 # Import services
-from services.osv_nvd_integration import (
+from services.infrastructure.osv_nvd_integration import (
     get_osv_nvd_service,
     OSVNVDIntegrationService
 )
-from services.sbom_generator import (
+from services.scanning.sbom_generator import (
     get_sbom_service,
     SBOMGeneratorService,
     SBOMFormat
 )
-from services.security_trends import (
+from services.security.security_trends import (
     get_security_trends_service,
     SecurityTrendsService,
     TrendPeriod
 )
-from services.scan_comparison import (
+from services.scanning.scan_comparison import (
     get_scan_comparison_service,
     ScanComparisonService
 )
@@ -145,7 +145,7 @@ async def check_package_vulnerabilities(request: PackageVulnerabilityRequest):
     Check multiple packages for known vulnerabilities using Google OSV.
     Returns vulnerability data for each affected package.
     """
-    from services.osv_nvd_integration import PackageQuery, Ecosystem
+    from services.infrastructure.osv_nvd_integration import PackageQuery, Ecosystem
     
     try:
         vuln_db = await get_osv_nvd_service()
@@ -212,7 +212,7 @@ async def enrich_vulnerability(request: VulnerabilityEnrichRequest):
     Enrich vulnerability data with additional context from OSV and NVD.
     Provides CVSS scores, EPSS probability, affected versions, and remediation info.
     """
-    from services.osv_nvd_integration import PackageQuery, Ecosystem
+    from services.infrastructure.osv_nvd_integration import PackageQuery, Ecosystem
     
     try:
         vuln_db = await get_osv_nvd_service()

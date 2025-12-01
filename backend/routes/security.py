@@ -22,15 +22,15 @@ def safe_error_detail(error: Exception, operation: str) -> str:
         return f"{operation} failed. Please try again later."
     return f"{operation} failed: {str(error)}"
 
-from services.rule_engine import (
+from services.rules.rule_engine import (
     rule_engine, CustomRule, RuleTemplate, RuleValidationResult, 
     AllowedRuleType, SeverityLevel, RuleStatus
 )
-from services.baseline_scanner import (
+from services.scanning.baseline_scanner import (
     baseline_service, ScanBaseline, SecurityDrift, RegressionAlert,
     DriftSeverity
 )
-from services.policy_engine import (
+from services.rules.policy_engine import (
     policy_service, SecurityPolicy, PolicyViolation, PolicyEvaluationResult,
     PolicyScope, PolicyAction
 )

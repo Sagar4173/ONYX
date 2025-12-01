@@ -1,3 +1,35 @@
 """
-Services package for ONYX Platform
+Services package for ONYX Security Intelligence Platform
+
+Organized Structure:
+├── auth/              # Authentication & User Management
+├── scanning/          # Security Scanning Services
+├── compliance/        # Compliance & Governance
+├── security/          # Security Services (Threat Intel, SOAR, ML)
+├── ai/                # AI & Machine Learning
+├── notifications/     # Email, WebSocket, Push Notifications
+├── analytics/         # Metrics, Audit Logging, Data Retention
+├── rules/             # Rules & Policy Engine
+└── infrastructure/    # External Integrations, Project Management
+
+Import from subpackages:
+    from services.auth.auth_service import auth_service
+    from services.scanning.real_scanner import RealSecurityScanner
 """
+
+# Re-exports for convenience (optional - allows `from services import auth_service`)
+from services.auth.auth_service import AuthService, auth_service
+from services.auth.user_service import UserService, user_service
+from services.scanning.real_scanner import RealSecurityScanner
+from services.ai.ai_processor import get_ai_processor, AIProcessorError
+from services.notifications.websocket_manager import ConnectionManager, ws_manager
+from services.notifications.service import EmailService, email_service
+
+__all__ = [
+    "AuthService", "auth_service",
+    "UserService", "user_service", 
+    "RealSecurityScanner",
+    "get_ai_processor", "AIProcessorError",
+    "ConnectionManager", "ws_manager",
+    "EmailService", "email_service",
+]

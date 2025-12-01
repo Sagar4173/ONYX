@@ -17,7 +17,7 @@ import shutil
 import git
 from urllib.parse import urlparse
 
-from services.advanced_scanner_engine import (
+from services.scanning.advanced_scanner_engine import (
     AdvancedScannerEngine, 
     ScanConfig, 
     Finding,

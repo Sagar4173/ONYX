@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => {
         "@styles": path.resolve(__dirname, "./src/styles"),
         "@components": path.resolve(__dirname, "./src/components"),
         "@services": path.resolve(__dirname, "./src/services"),
-        "@hooks": path.resolve(__dirname, "./src/hooks"),
         "@utils": path.resolve(__dirname, "./src/utils"),
         "@config": path.resolve(__dirname, "./src/config"),
         "@pages": path.resolve(__dirname, "./src/pages"),

@@ -1,17 +1,17 @@
 # 🔧 Deployment Guide
 
-## Current Live Deployments
-
-**ONYX Platform is currently live and running:**
-
-- 🌐 **Frontend (Vercel)**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
-- 🔌 **Backend (Render)**: [https://onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)
-- 📚 **API Docs**: [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs)
-- 🏥 **Health Check**: [https://onyx-backend-dt4o.onrender.com/health](https://onyx-backend-dt4o.onrender.com/health)
-
 ## Overview
 
 ONYX - Security Intelligence Platform supports multiple deployment options to fit different infrastructure requirements. This guide covers deployment strategies from local development to enterprise production environments.
+
+## Quick Links
+
+After deployment, your services will be available at:
+
+- **Frontend**: Your Vercel URL (e.g., `https://your-app.vercel.app`)
+- **Backend**: Your Render URL (e.g., `https://your-backend.onrender.com`)
+- **API Docs**: `https://your-backend.onrender.com/docs`
+- **Health Check**: `https://your-backend.onrender.com/health`
 
 ---
 

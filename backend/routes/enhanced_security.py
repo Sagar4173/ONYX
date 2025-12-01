@@ -11,19 +11,19 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Body
 from pydantic import BaseModel
 
-from services.threat_intelligence import (
+from services.security.threat_intelligence import (
     ThreatIntelligenceEngine, ThreatFeed, ThreatSeverity, 
     ThreatAlert, CVEData, ZeroDayIndicator
 )
-from services.vulnerability_management import (
+from services.scanning.vulnerability_management import (
     VulnerabilityManager, VulnerabilityStatus, VulnerabilityPriority,
     Asset, Vulnerability, RiskMetrics
 )
-from services.security_metrics import (
+from services.security.security_metrics import (
     SecurityMetricsEngine, ComplianceFramework, SecurityScore,
     ComplianceResult, SecurityKPI, RiskTrend
 )
-from services.penetration_testing import (
+from services.scanning.penetration_testing import (
     PenetrationTestingEngine, PentestType, AttackPath
 )
 
