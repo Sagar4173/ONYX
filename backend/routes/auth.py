@@ -608,11 +608,17 @@ async def verify_email(request: EmailVerificationRequest):
     
     if user:
         # Check if token has expired (if expiration is set)
-        if user.email_verification_expires and utc_now() > user.email_verification_expires:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Verification link has expired. Please request a new verification email."
-            )
+        if user.email_verification_expires:
+            # Make comparison timezone-aware
+            expires = user.email_verification_expires
+            if expires.tzinfo is None:
+                # If stored datetime is naive, assume it's UTC
+                expires = expires.replace(tzinfo=timezone.utc)
+            if utc_now() > expires:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Verification link has expired. Please request a new verification email."
+                )
         
         # Token found and user is pending verification
         if user.status == UserStatus.PENDING_VERIFICATION and not user.is_email_verified:
