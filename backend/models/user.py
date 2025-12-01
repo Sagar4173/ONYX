@@ -2,7 +2,7 @@
 User Models for ONYX Security Intelligence Platform
 Handles user authentication, roles, and profile management
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from enum import Enum
 import uuid
@@ -136,7 +136,7 @@ class User(Document):
     
     def is_account_locked(self) -> bool:
         """Check if account is locked due to failed attempts"""
-        if self.locked_until and self.locked_until > datetime.utcnow():
+        if self.locked_until and self.locked_until > datetime.now(timezone.utc):
             return True
         return False
     

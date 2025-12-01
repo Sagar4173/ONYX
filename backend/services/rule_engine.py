@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enhanced Custom Rule Engine with Security Boundaries
 This module provides secure rule management with comprehensive validation
 """
@@ -10,6 +10,10 @@ import hashlib
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
 from datetime import datetime
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 import logging
 from enum import Enum
 
@@ -290,9 +294,9 @@ class CustomRuleEngine:
             # Step 3: Update rule with validation and test results
             rule.security_validated = True
             rule.validation_errors = []
-            rule.tested_at = datetime.utcnow()
+            rule.tested_at = utc_now()
             rule.test_results = test_results
-            rule.updated_at = datetime.utcnow()
+            rule.updated_at = utc_now()
             
             # Step 4: Save to disk
             rule_file = self.rules_directory / f"{rule.id}.yaml"
@@ -387,7 +391,7 @@ class CustomRuleEngine:
             'warnings': []
         }
         
-        start_time = datetime.utcnow()
+        start_time = utc_now()
         
         try:
             # Use testing framework for safe execution
@@ -416,7 +420,7 @@ class CustomRuleEngine:
             })
         
         finally:
-            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            execution_time = (utc_now() - start_time).total_seconds()
             test_results['total_execution_time'] = execution_time
         
         return test_results
@@ -677,3 +681,4 @@ class CustomRuleEngine:
 
 # Global rule engine instance
 rule_engine = CustomRuleEngine()
+

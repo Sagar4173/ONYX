@@ -1,4 +1,4 @@
-"""
+﻿"""
 God-Level Security API Routes
 Advanced Security Integration: rule parsing, testing, baselines, and policy enforcement
 FastAPI Implementation
@@ -6,6 +6,16 @@ FastAPI Implementation
 from fastapi import APIRouter, HTTPException, File, UploadFile, Body, Query
 import asyncio
 import logging
+import os
+
+# Environment check for safe error messages
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+def safe_error_detail(error: Exception, operation: str) -> str:
+    """Return safe error message - hide details in production"""
+    if IS_PRODUCTION:
+        return f"{operation} failed. Please try again later."
+    return f"{operation} failed: {str(error)}"
 from datetime import datetime, timezone
 import traceback
 from typing import Dict, Any, List, Optional
@@ -60,11 +70,11 @@ def init_god_level_services():
         policy_engine = PolicyAsCodeEngine()
         advanced_scanner = AdvancedSecurityScanner()
         
-        logger.info("🚀 All God-Level Security services initialized successfully")
+        logger.info("ðŸš€ All God-Level Security services initialized successfully")
         return True
         
     except Exception as e:
-        logger.error(f"❌ Failed to initialize God-Level Security services: {e}")
+        logger.error(f"âŒ Failed to initialize God-Level Security services: {e}")
         return False
 
 # FastAPI Routes
@@ -330,3 +340,4 @@ init_god_level_services()
 
 # Export router
 __all__ = ['router']
+

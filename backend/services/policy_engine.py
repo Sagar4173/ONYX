@@ -1,4 +1,4 @@
-"""
+﻿"""
 Policy as Code implementation for version-controlled security configurations
 """
 import os
@@ -8,6 +8,10 @@ import asyncio
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
 from datetime import datetime
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 import logging
 from enum import Enum
 
@@ -516,7 +520,7 @@ class PolicyAsCodeService:
                 'branch': branch,
                 'commit_hash': commit_hash,
                 'scan_id': scan_report.report_id,
-                'evaluated_at': datetime.utcnow()
+                'evaluated_at': utc_now()
             })
         
         # Save violations
@@ -706,7 +710,7 @@ class PolicyAsCodeService:
             return {'error': 'Database not available'}
         
         # Get recent evaluations
-        since_date = datetime.utcnow() - timedelta(days=days)
+        since_date = utc_now() - timedelta(days=days)
         cursor = self.evaluations_collection.find({
             'repository_url': repository_url,
             'branch': branch,
@@ -755,3 +759,4 @@ class PolicyAsCodeService:
 
 # Global policy service instance
 policy_service = PolicyAsCodeService()
+

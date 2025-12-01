@@ -1,10 +1,14 @@
-"""
+﻿"""
 Baseline Scanning System for tracking security drift and regression detection
 """
 import hashlib
 import json
 from typing import Dict, List, Any, Optional, Set, Tuple
 from datetime import datetime, timedelta
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from pathlib import Path
 import logging
 from enum import Enum
@@ -162,7 +166,7 @@ class BaselineScanningService:
         """Create a new baseline from a scan report"""
         
         # Generate baseline ID
-        baseline_id = f"{repository_url.split('/')[-1]}_{branch}_{commit_hash[:8]}_{int(datetime.utcnow().timestamp())}"
+        baseline_id = f"{repository_url.split('/')[-1]}_{branch}_{commit_hash[:8]}_{int(utc_now().timestamp())}"
         
         # Create fingerprints for all findings
         fingerprints = []
@@ -187,7 +191,7 @@ class BaselineScanningService:
             repository_url=repository_url,
             branch=branch,
             commit_hash=commit_hash,
-            scan_timestamp=scan_report.created_at or datetime.utcnow(),
+            scan_timestamp=scan_report.created_at or utc_now(),
             fingerprints=fingerprints,
             total_findings=len(scan_report.findings),
             severity_counts=severity_counts,
@@ -377,7 +381,7 @@ class BaselineScanningService:
         
         if critical_new or len(high_new) > 2:
             alert = RegressionAlert(
-                alert_id=f"regression_{current_scan.report_id}_{int(datetime.utcnow().timestamp())}",
+                alert_id=f"regression_{current_scan.report_id}_{int(utc_now().timestamp())}",
                 repository_url=baseline.repository_url,
                 branch=baseline.branch,
                 regression_type="critical_vulnerabilities" if critical_new else "high_vulnerability_increase",
@@ -458,7 +462,7 @@ class BaselineScanningService:
         baseline_ids = [b.baseline_id for b in baselines]
         
         # Get drift analyses
-        since_date = datetime.utcnow() - timedelta(days=days)
+        since_date = utc_now() - timedelta(days=days)
         cursor = self.drift_collection.find({
             'baseline_id': {'$in': baseline_ids},
             'comparison_timestamp': {'$gte': since_date}
@@ -484,7 +488,7 @@ class BaselineScanningService:
         if branch:
             query['branch'] = branch
         
-        since_date = datetime.utcnow() - timedelta(days=days)
+        since_date = utc_now() - timedelta(days=days)
         query['detected_at'] = {'$gte': since_date}
         
         cursor = self.alerts_collection.find(query).sort('detected_at', -1)
@@ -507,7 +511,7 @@ class BaselineScanningService:
         baselines = await self.get_baselines_for_repository(repository_url, branch, limit=100)
         
         # Filter by date range
-        since_date = datetime.utcnow() - timedelta(days=days)
+        since_date = utc_now() - timedelta(days=days)
         recent_baselines = [b for b in baselines if b.scan_timestamp >= since_date]
         
         if len(recent_baselines) < 2:
@@ -560,3 +564,4 @@ class BaselineScanningService:
 
 # Global baseline scanning service instance
 baseline_service = BaselineScanningService()
+

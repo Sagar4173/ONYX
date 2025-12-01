@@ -1,4 +1,4 @@
-"""
+﻿"""
 Advanced Security Scanners Integration
 Supports OWASP ZAP, Nuclei, CodeQL, and Checkov for comprehensive security testing
 """
@@ -11,6 +11,10 @@ import shutil
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 import logging
 from enum import Enum
 import yaml
@@ -106,8 +110,8 @@ class OWASPZAPScanner:
     
     async def scan_url(self, target_url: str, config: AdvancedScannerConfig) -> ScanResult:
         """Run OWASP ZAP scan against target URL"""
-        scan_id = f"zap_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        start_time = datetime.utcnow()
+        scan_id = f"zap_{utc_now().strftime('%Y%m%d_%H%M%S')}"
+        start_time = utc_now()
         
         try:
             # Create temporary directory for ZAP output
@@ -155,7 +159,7 @@ class OWASPZAPScanner:
             # Parse ZAP output
             findings = await self._parse_zap_output(output_file, target_url)
             
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (utc_now() - start_time).total_seconds()
             
             return ScanResult(
                 scanner=ScannerType.OWASP_ZAP,
@@ -178,7 +182,7 @@ class OWASPZAPScanner:
                 target=target_url,
                 scan_id=scan_id,
                 timestamp=start_time,
-                duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+                duration_seconds=(utc_now() - start_time).total_seconds(),
                 status="failed",
                 error_message=str(e)
             )
@@ -300,8 +304,8 @@ class NucleiScanner:
     
     async def scan_urls(self, targets: List[str], config: AdvancedScannerConfig) -> ScanResult:
         """Run Nuclei scan against target URLs"""
-        scan_id = f"nuclei_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        start_time = datetime.utcnow()
+        scan_id = f"nuclei_{utc_now().strftime('%Y%m%d_%H%M%S')}"
+        start_time = utc_now()
         target_str = ", ".join(targets[:3]) + ("..." if len(targets) > 3 else "")
         
         try:
@@ -366,7 +370,7 @@ class NucleiScanner:
             # Parse Nuclei output
             findings = await self._parse_nuclei_output(output_file_path)
             
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (utc_now() - start_time).total_seconds()
             
             return ScanResult(
                 scanner=ScannerType.NUCLEI,
@@ -389,7 +393,7 @@ class NucleiScanner:
                 target=target_str,
                 scan_id=scan_id,
                 timestamp=start_time,
-                duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+                duration_seconds=(utc_now() - start_time).total_seconds(),
                 status="failed",
                 error_message=str(e)
             )
@@ -514,3 +518,4 @@ __all__ = [
     'AdvancedScannerConfig', 'OWASPZAPScanner', 'NucleiScanner',
     'AdvancedSecurityScanner'
 ]
+

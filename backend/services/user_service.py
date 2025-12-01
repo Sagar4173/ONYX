@@ -1,10 +1,14 @@
-"""
+﻿"""
 User Management Service for ONYX Security Intelligence Platform
 Comprehensive user administration and profile management
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import HTTPException, status
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from pymongo import DESCENDING
 import hashlib
 import secrets
@@ -103,7 +107,7 @@ class UserService:
         for field, value in update_dict.items():
             setattr(user, field, value)
         
-        user.updated_at = datetime.utcnow()
+        user.updated_at = utc_now()
         user.last_updated_by = updated_by
         
         await user.save()
@@ -131,8 +135,8 @@ class UserService:
         
         # Update password
         user.hashed_password = auth_service.hash_password(password_data.new_password)
-        user.last_password_change = datetime.utcnow()
-        user.updated_at = datetime.utcnow()
+        user.last_password_change = utc_now()
+        user.updated_at = utc_now()
         
         await user.save()
         
@@ -156,7 +160,7 @@ class UserService:
             )
         
         user.role = new_role
-        user.updated_at = datetime.utcnow()
+        user.updated_at = utc_now()
         user.last_updated_by = updated_by
         
         await user.save()
@@ -177,7 +181,7 @@ class UserService:
             )
         
         user.status = new_status
-        user.updated_at = datetime.utcnow()
+        user.updated_at = utc_now()
         user.last_updated_by = updated_by
         
         await user.save()
@@ -229,7 +233,7 @@ class UserService:
             )
         
         session.is_active = False
-        session.logged_out_at = datetime.utcnow()
+        session.logged_out_at = utc_now()
         await session.save()
         
         return True
@@ -271,7 +275,7 @@ class UserService:
         # Set expiration
         expires_at = None
         if token_data.expires_in_days:
-            expires_at = datetime.utcnow() + timedelta(days=token_data.expires_in_days)
+            expires_at = utc_now() + timedelta(days=token_data.expires_in_days)
         
         # Create token document
         api_token = APIToken(
@@ -323,7 +327,7 @@ class UserService:
             )
         
         token.is_active = False
-        token.revoked_at = datetime.utcnow()
+        token.revoked_at = utc_now()
         token.revoked_by = revoked_by
         await token.save()
         
@@ -343,7 +347,7 @@ class UserService:
             role_stats[role.value] = count
         
         # Recent registrations (last 30 days)
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = utc_now() - timedelta(days=30)
         recent_registrations = await User.find(
             User.created_at >= thirty_days_ago
         ).count()
@@ -351,7 +355,7 @@ class UserService:
         # Active sessions
         active_sessions = await UserSession.find(
             UserSession.is_active == True,
-            UserSession.expires_at > datetime.utcnow()
+            UserSession.expires_at > utc_now()
         ).count()
         
         return {
@@ -406,7 +410,7 @@ class UserService:
                         if hasattr(user, field):
                             setattr(user, field, value)
                     
-                    user.updated_at = datetime.utcnow()
+                    user.updated_at = utc_now()
                     user.last_updated_by = updated_by
                     await user.save()
                     updated_count += 1
@@ -471,3 +475,4 @@ class UserService:
 
 # Global service instance
 user_service = UserService()
+

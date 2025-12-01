@@ -140,7 +140,12 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         """Convert CORS_ORIGINS string to list"""
         if not self.cors_origins:
-            return ["*"]  # Default to allow all origins
+            # In development, allow localhost origins. In production, this should be explicitly set.
+            import os
+            if os.getenv("ENVIRONMENT", "development").lower() == "production":
+                # Production: Only allow specific origins (should be configured via CORS_ORIGINS env var)
+                return ["https://onyx-platform.vercel.app"]
+            return ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
         # Split by comma and clean up whitespace
         origins = [origin.strip() for origin in self.cors_origins.split(",")]
         return [origin for origin in origins if origin]  # Remove empty strings

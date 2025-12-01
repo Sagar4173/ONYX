@@ -59,8 +59,8 @@ semgrep>=1.45.0         # Multi-language SAST scanner
 
 # Advanced Scanning Dependencies
 requests>=2.31.0        # HTTP client for API calls
-pyyaml>=6.0             # YAML parsing for configurations
-gitpython>=3.1.0        # Git repository operations
+# Note: PyYAML already included above as PyYAML>=6.0.1
+# Note: GitPython already included above as GitPython>=3.1.40
 
 # DAST Tools Integration (commented out packages that may not be available)
 # python-owasp-zap-v2.4>=0.0.21  # ZAP API client

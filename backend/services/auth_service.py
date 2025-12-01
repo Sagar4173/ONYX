@@ -1,4 +1,4 @@
-"""
+﻿"""
 Authentication Service for ONYX Security Intelligence Platform
 Handles JWT token generation, validation, password management, and user sessions
 """
@@ -11,6 +11,10 @@ import uuid
 import jwt
 import bcrypt
 from fastapi import HTTPException, status
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Request, Depends
 
@@ -149,7 +153,7 @@ class AuthService:
             
             # Lock account if too many failed attempts (TEMPORARILY DISABLED)
             # if user.failed_login_attempts >= self.max_failed_attempts:
-            #     user.locked_until = datetime.utcnow() + timedelta(minutes=self.lockout_duration)
+            #     user.locked_until = utc_now() + timedelta(minutes=self.lockout_duration)
             
             # await user.save()
             return None
@@ -157,7 +161,7 @@ class AuthService:
         # Reset failed attempts on successful login
         user.failed_login_attempts = 0
         user.locked_until = None
-        user.last_login = datetime.utcnow()
+        user.last_login = utc_now()
         await user.save()
         
         return user
@@ -176,7 +180,7 @@ class AuthService:
             )
         
         # Update last_login time
-        user.last_login = datetime.utcnow()
+        user.last_login = utc_now()
         await user.save()
         
         # Create tokens
@@ -184,8 +188,8 @@ class AuthService:
         refresh_token = self.create_refresh_token(user.id)
         
         # Create session
-        expires_at = datetime.utcnow() + timedelta(minutes=self.access_token_expire)
-        refresh_expires_at = datetime.utcnow() + timedelta(days=self.refresh_token_expire)
+        expires_at = utc_now() + timedelta(minutes=self.access_token_expire)
+        refresh_expires_at = utc_now() + timedelta(days=self.refresh_token_expire)
         
         session = UserSession(
             user_id=user.id,
@@ -211,7 +215,7 @@ class AuthService:
             parsed_ua = self._parse_user_agent(user_agent)
             await notification_service.send_login_alert(
                 user_id=str(user.id),
-                login_time=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC"),
+                login_time=utc_now().strftime("%B %d, %Y at %I:%M %p UTC"),
                 location="Unknown",  # Would need IP geolocation service
                 device=parsed_ua.get("device", "Unknown"),
                 browser=parsed_ua.get("browser", "Unknown"),
@@ -245,7 +249,7 @@ class AuthService:
             "is_active": True
         })
         
-        if not session or session.refresh_expires_at < datetime.utcnow():
+        if not session or session.refresh_expires_at < utc_now():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired refresh token"
@@ -264,8 +268,8 @@ class AuthService:
         
         # Update session
         session.access_token = new_access_token
-        session.expires_at = datetime.utcnow() + timedelta(minutes=self.access_token_expire)
-        session.last_activity = datetime.utcnow()
+        session.expires_at = utc_now() + timedelta(minutes=self.access_token_expire)
+        session.last_activity = utc_now()
         await session.save()
         
         return {
@@ -283,7 +287,7 @@ class AuthService:
         
         if session:
             session.is_active = False
-            session.logged_out_at = datetime.utcnow()
+            session.logged_out_at = utc_now()
             await session.save()
             return True
         
@@ -299,7 +303,7 @@ class AuthService:
         count = 0
         for session in sessions:
             session.is_active = False
-            session.logged_out_at = datetime.utcnow()
+            session.logged_out_at = utc_now()
             await session.save()
             count += 1
         
@@ -339,7 +343,7 @@ class AuthService:
             department=user_data.department,
             status=UserStatus.PENDING_VERIFICATION,
             email_verification_token=secrets.token_urlsafe(32),
-            email_verification_expires=datetime.utcnow() + timedelta(hours=2),
+            email_verification_expires=utc_now() + timedelta(hours=2),
             created_by=created_by,
             last_updated_by=created_by
         )
@@ -365,8 +369,8 @@ class AuthService:
         
         # Hash new password
         user.hashed_password = self.hash_password(password_data.new_password)
-        user.last_password_change = datetime.utcnow()
-        user.updated_at = datetime.utcnow()
+        user.last_password_change = utc_now()
+        user.updated_at = utc_now()
         
         await user.save()
         
@@ -385,7 +389,7 @@ class AuthService:
         # Generate reset token
         reset_token = secrets.token_urlsafe(32)
         user.password_reset_token = reset_token
-        user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+        user.password_reset_expires = utc_now() + timedelta(hours=1)
         
         await user.save()
         
@@ -399,7 +403,7 @@ class AuthService:
         """Reset password using token"""
         user = await User.find_one({
             "password_reset_token": reset_data.token,
-            "password_reset_expires": {"$gt": datetime.utcnow()}
+            "password_reset_expires": {"$gt": utc_now()}
         })
         
         if not user:
@@ -412,8 +416,8 @@ class AuthService:
         user.hashed_password = self.hash_password(reset_data.new_password)
         user.password_reset_token = None
         user.password_reset_expires = None
-        user.last_password_change = datetime.utcnow()
-        user.updated_at = datetime.utcnow()
+        user.last_password_change = utc_now()
+        user.updated_at = utc_now()
         
         await user.save()
         
@@ -464,7 +468,7 @@ class AuthService:
             )
         
         # Update last activity
-        session.last_activity = datetime.utcnow()
+        session.last_activity = utc_now()
         await session.save()
         
         return user
@@ -503,7 +507,7 @@ class AuthService:
                 return None
             
             # Update last activity
-            session.last_activity = datetime.utcnow()
+            session.last_activity = utc_now()
             await session.save()
             
             return user
@@ -552,7 +556,7 @@ class AuthService:
             )
         
         # Update last activity
-        session.last_activity = datetime.utcnow()
+        session.last_activity = utc_now()
         await session.save()
         
         return user
@@ -646,7 +650,7 @@ class AuthService:
         
         expires_at = None
         if expires_in_days:
-            expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
+            expires_at = utc_now() + timedelta(days=expires_in_days)
         
         api_token = APIToken(
             user_id=user_id,
@@ -674,11 +678,11 @@ class AuthService:
             return None
         
         # Check expiration
-        if api_token.expires_at and api_token.expires_at < datetime.utcnow():
+        if api_token.expires_at and api_token.expires_at < utc_now():
             return None
         
         # Update usage stats
-        api_token.last_used = datetime.utcnow()
+        api_token.last_used = utc_now()
         api_token.usage_count += 1
         await api_token.save()
         
@@ -736,3 +740,4 @@ class AuthService:
 
 # Global instance
 auth_service = AuthService()
+

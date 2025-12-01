@@ -1,11 +1,15 @@
-"""
+﻿"""
 Notification Service for Security Scanning Platform
 Handles sending notifications for scan events and security alerts
 """
 import logging
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 logger = logging.getLogger(__name__)
 
@@ -77,18 +81,18 @@ class NotificationService:
                 "scan_id": scan_id,
                 "user_id": user_id,
                 "repository_url": repository_url,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "message": f"Security scan started for project '{project_name}'"
             }
             
-            logger.info(f"📬 Scan started notification: {notification_data}")
+            logger.info(f"ðŸ“¬ Scan started notification: {notification_data}")
             
             # For now, just log the notification
             # In production, you would integrate with actual notification services
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send scan started notification: {e}")
+            logger.error(f"âŒ Failed to send scan started notification: {e}")
             return False
     
     async def send_scan_completed(
@@ -115,11 +119,11 @@ class NotificationService:
                 "findings_count": findings_count,
                 "critical_count": critical_count,
                 "high_count": high_count,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "message": f"Security scan completed for project '{project_name}' - {findings_count} findings ({critical_count} critical, {high_count} high)"
             }
             
-            logger.info(f"✅ Scan completed notification: {notification_data}")
+            logger.info(f"âœ… Scan completed notification: {notification_data}")
             
             # Send email notification if enabled
             if NotificationChannel.EMAIL in self.enabled_channels:
@@ -141,7 +145,7 @@ class NotificationService:
                                 files_scanned=files_scanned,
                                 report_id=scan_id
                             )
-                            logger.info(f"📧 Scan completion email sent to {email}")
+                            logger.info(f"ðŸ“§ Scan completion email sent to {email}")
                         except Exception as email_error:
                             logger.warning(f"Failed to send scan email: {email_error}")
             
@@ -154,7 +158,7 @@ class NotificationService:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send scan completed notification: {e}")
+            logger.error(f"âŒ Failed to send scan completed notification: {e}")
             return False
     
     async def send_scan_failed(
@@ -172,15 +176,15 @@ class NotificationService:
                 "scan_id": scan_id,
                 "user_id": user_id,
                 "error_message": error_message,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "message": f"Security scan failed for project '{project_name}'"
             }
             
-            logger.error(f"💥 Scan failed notification: {notification_data}")
+            logger.error(f"ðŸ’¥ Scan failed notification: {notification_data}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send scan failed notification: {e}")
+            logger.error(f"âŒ Failed to send scan failed notification: {e}")
             return False
     
     async def send_critical_vulnerability_alert(
@@ -199,11 +203,11 @@ class NotificationService:
                 "scan_id": scan_id,
                 "user_id": user_id,
                 "critical_count": critical_count,
-                "timestamp": datetime.utcnow().isoformat(),
-                "message": f"🚨 CRITICAL ALERT: {critical_count} critical vulnerabilities found in '{project_name}'"
+                "timestamp": utc_now().isoformat(),
+                "message": f"ðŸš¨ CRITICAL ALERT: {critical_count} critical vulnerabilities found in '{project_name}'"
             }
             
-            logger.warning(f"🚨 Critical vulnerability alert: {notification_data}")
+            logger.warning(f"ðŸš¨ Critical vulnerability alert: {notification_data}")
             
             # Send email alert for critical vulnerabilities
             if NotificationChannel.EMAIL in self.enabled_channels:
@@ -227,14 +231,14 @@ class NotificationService:
                                 recommendation="Review the full scan report and prioritize fixing critical vulnerabilities immediately.",
                                 alert_id=scan_id
                             )
-                            logger.info(f"📧 Critical alert email sent to {email}")
+                            logger.info(f"ðŸ“§ Critical alert email sent to {email}")
                         except Exception as email_error:
                             logger.warning(f"Failed to send critical alert email: {email_error}")
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send critical vulnerability alert: {e}")
+            logger.error(f"âŒ Failed to send critical vulnerability alert: {e}")
             return False
     
     async def send_ai_analysis_ready(
@@ -252,15 +256,15 @@ class NotificationService:
                 "scan_id": scan_id,
                 "user_id": user_id,
                 "analysis_summary": analysis_summary,
-                "timestamp": datetime.utcnow().isoformat(),
-                "message": f"🤖 AI analysis completed for project '{project_name}'"
+                "timestamp": utc_now().isoformat(),
+                "message": f"ðŸ¤– AI analysis completed for project '{project_name}'"
             }
             
-            logger.info(f"🤖 AI analysis ready notification: {notification_data}")
+            logger.info(f"ðŸ¤– AI analysis ready notification: {notification_data}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send AI analysis ready notification: {e}")
+            logger.error(f"âŒ Failed to send AI analysis ready notification: {e}")
             return False
     
     async def send_compliance_violation(
@@ -281,15 +285,15 @@ class NotificationService:
                 "framework": framework,
                 "violations_count": len(violations),
                 "violations": violations,
-                "timestamp": datetime.utcnow().isoformat(),
-                "message": f"⚖️ Compliance violations detected in '{project_name}' for {framework}"
+                "timestamp": utc_now().isoformat(),
+                "message": f"âš–ï¸ Compliance violations detected in '{project_name}' for {framework}"
             }
             
-            logger.warning(f"⚖️ Compliance violation notification: {notification_data}")
+            logger.warning(f"âš–ï¸ Compliance violation notification: {notification_data}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send compliance violation notification: {e}")
+            logger.error(f"âŒ Failed to send compliance violation notification: {e}")
             return False
     
     async def send_custom_notification(
@@ -306,14 +310,14 @@ class NotificationService:
                 "user_id": user_id,
                 "message": message,
                 "data": data or {},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": utc_now().isoformat()
             }
             
-            logger.info(f"📬 Custom notification: {notification_data}")
+            logger.info(f"ðŸ“¬ Custom notification: {notification_data}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send custom notification: {e}")
+            logger.error(f"âŒ Failed to send custom notification: {e}")
             return False
     
     async def send_login_alert(
@@ -335,11 +339,11 @@ class NotificationService:
                 "device": device,
                 "browser": browser,
                 "ip_address": ip_address,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "message": f"New login detected from {device} in {location}"
             }
             
-            logger.info(f"🔐 Login alert notification: {notification_data}")
+            logger.info(f"ðŸ” Login alert notification: {notification_data}")
             
             # Send email alert for new login
             if NotificationChannel.EMAIL in self.enabled_channels:
@@ -357,14 +361,14 @@ class NotificationService:
                                 browser=browser,
                                 ip_address=ip_address
                             )
-                            logger.info(f"📧 Login alert email sent to {email}")
+                            logger.info(f"ðŸ“§ Login alert email sent to {email}")
                         except Exception as email_error:
                             logger.warning(f"Failed to send login alert email: {email_error}")
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send login alert: {e}")
+            logger.error(f"âŒ Failed to send login alert: {e}")
             return False
     
     async def send_new_vulnerability_notification(
@@ -388,11 +392,11 @@ class NotificationService:
                 "severity": severity,
                 "project_name": project_name,
                 "file_path": file_path,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "message": f"New {severity} vulnerability: {vulnerability_title} in {project_name}"
             }
             
-            logger.info(f"🔓 New vulnerability notification: {notification_data}")
+            logger.info(f"ðŸ”“ New vulnerability notification: {notification_data}")
             
             # Only send email for high/critical vulnerabilities
             if severity.lower() in ["critical", "high"]:
@@ -414,20 +418,20 @@ class NotificationService:
                                     fix_suggestion=fix_suggestion,
                                     vulnerability_id=vulnerability_id
                                 )
-                                logger.info(f"📧 Vulnerability alert email sent to {email}")
+                                logger.info(f"ðŸ“§ Vulnerability alert email sent to {email}")
                             except Exception as email_error:
                                 logger.warning(f"Failed to send vulnerability email: {email_error}")
             
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send vulnerability notification: {e}")
+            logger.error(f"âŒ Failed to send vulnerability notification: {e}")
             return False
     
     def configure_channels(self, channels: List[NotificationChannel]):
         """Configure enabled notification channels"""
         self.enabled_channels = channels
-        logger.info(f"📬 Notification channels configured: {channels}")
+        logger.info(f"ðŸ“¬ Notification channels configured: {channels}")
     
     def is_channel_enabled(self, channel: NotificationChannel) -> bool:
         """Check if a notification channel is enabled"""

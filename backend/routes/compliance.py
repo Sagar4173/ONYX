@@ -1,11 +1,25 @@
-"""
+﻿"""
 Compliance reporting endpoints for security scan results
 """
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 import logging
+import os
+
+# Environment check for safe error messages
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+def safe_error_detail(error: Exception, operation: str) -> str:
+    """Return safe error message - hide details in production"""
+    if IS_PRODUCTION:
+        return f"{operation} failed. Please try again later."
+    return f"{operation} failed: {str(error)}"
 
 from models.report import ScanReport, VulnerabilityFinding, ComplianceFramework
 from services.compliance_analyzer import ComplianceAnalysisService
@@ -61,7 +75,7 @@ async def generate_compliance_report(request: ComplianceReportRequest):
             scan_reports = await _get_scan_reports_by_ids(request.scan_report_ids)
         else:
             # Get recent scan reports
-            cutoff_date = datetime.utcnow() - timedelta(days=request.date_range_days or 30)
+            cutoff_date = utc_now() - timedelta(days=request.date_range_days or 30)
             scan_reports = await _get_recent_scan_reports(cutoff_date)
         
         if not scan_reports:
@@ -87,7 +101,7 @@ async def generate_compliance_report(request: ComplianceReportRequest):
             control_coverage=report['control_coverage'],
             risk_summary=report['risk_summary'],
             recommendations=report['recommendations'],
-            generated_at=datetime.utcnow()
+            generated_at=utc_now()
         )
         
     except Exception as e:
@@ -114,7 +128,7 @@ async def get_framework_control_status(
         if report_ids:
             scan_reports = await _get_scan_reports_by_ids(report_ids)
         else:
-            cutoff_date = datetime.utcnow() - timedelta(days=date_range_days)
+            cutoff_date = utc_now() - timedelta(days=date_range_days)
             scan_reports = await _get_recent_scan_reports(cutoff_date)
         
         # Collect findings
@@ -167,7 +181,7 @@ async def get_risk_summary(
         if report_ids:
             scan_reports = await _get_scan_reports_by_ids(report_ids)
         else:
-            cutoff_date = datetime.utcnow() - timedelta(days=date_range_days)
+            cutoff_date = utc_now() - timedelta(days=date_range_days)
             scan_reports = await _get_recent_scan_reports(cutoff_date)
         
         # Collect findings
@@ -195,7 +209,7 @@ async def get_compliance_trends(
     Get compliance trends over time
     """
     try:
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = utc_now() - timedelta(days=days)
         
         # Get historical scan reports
         scan_reports = await _get_scan_reports_since(cutoff_date)
@@ -261,3 +275,5 @@ async def _get_scan_reports_since(cutoff_date: datetime) -> List[ScanReport]:
     except Exception as e:
         logger.error(f"Error fetching scan reports for trends: {e}")
         return []
+
+

@@ -1,8 +1,12 @@
-"""
+﻿"""
 User Management Routes for ONYX Security Intelligence Platform
 Comprehensive user administration and profile management
 """
 from datetime import datetime
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import JSONResponse
@@ -351,7 +355,7 @@ async def export_users(
         return JSONResponse(
             content=data,
             headers={
-                "Content-Disposition": f"attachment; filename=users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+                "Content-Disposition": f"attachment; filename=users_export_{utc_now().strftime('%Y%m%d_%H%M%S')}.json"
             }
         )
     else:
@@ -399,7 +403,7 @@ async def get_security_overview(
     stats = await user_service.get_user_statistics()
     
     # Add security-specific metrics
-    now = datetime.utcnow()
+    now = utc_now()
     
     # Users with failed login attempts
     users_with_failed_logins = await User.find(
@@ -450,3 +454,4 @@ async def get_suspicious_activity(
         })
     
     return {"suspicious_activities": activities}
+

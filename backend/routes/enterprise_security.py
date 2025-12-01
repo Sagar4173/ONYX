@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enterprise Security Routes
 API endpoints for enterprise security features:
 - OSV/NVD Vulnerability Database Integration
@@ -13,6 +13,16 @@ from datetime import datetime
 from enum import Enum
 from dataclasses import asdict
 import logging
+import os
+
+# Environment check for safe error messages
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+def safe_error_detail(error: Exception, operation: str) -> str:
+    """Return safe error message - hide details in production"""
+    if IS_PRODUCTION:
+        return f"{operation} failed. Please try again later."
+    return f"{operation} failed: {str(error)}"
 import json
 
 # Import services
@@ -678,3 +688,4 @@ def dict_to_xml(data: dict, root_name: str = "root") -> str:
         return xml
     
     return f'<?xml version="1.0" encoding="UTF-8"?><{root_name}>{_to_xml(data, root_name)}</{root_name}>'
+

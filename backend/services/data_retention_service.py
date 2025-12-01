@@ -1,9 +1,13 @@
-"""
+﻿"""
 Data Retention Policy Service
 Automated data cleanup, configurable retention periods, and compliance-driven archiving
 """
 import structlog
 from datetime import datetime, timedelta
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from typing import Dict, Any, List, Optional
 from enum import Enum
 from pymongo import ASCENDING, DESCENDING
@@ -59,7 +63,7 @@ class DataRetentionService:
     ) -> Dict[str, Any]:
         """Create a new data retention policy"""
         try:
-            policy_id = f"retention_{policy_type.value}_{datetime.utcnow().timestamp()}"
+            policy_id = f"retention_{policy_type.value}_{utc_now().timestamp()}"
 
             policy_data = {
                 "policy_id": policy_id,
@@ -68,7 +72,7 @@ class DataRetentionService:
                 "action": action.value,
                 "enabled": enabled,
                 "metadata": metadata or {},
-                "created_at": datetime.utcnow(),
+                "created_at": utc_now(),
                 "last_executed": None,
                 "execution_count": 0,
                 "items_processed": 0,
@@ -106,7 +110,7 @@ class DataRetentionService:
             retention_days = policy["retention_days"]
             action = RetentionAction(policy["action"])
 
-            cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+            cutoff_date = utc_now() - timedelta(days=retention_days)
 
             # Execute based on policy type
             if policy_type == RetentionPolicyType.SCAN_RESULTS:
@@ -130,7 +134,7 @@ class DataRetentionService:
             await self.db.retention_policies.update_one(
                 {"policy_id": policy_id},
                 {
-                    "$set": {"last_executed": datetime.utcnow()},
+                    "$set": {"last_executed": utc_now()},
                     "$inc": {
                         "execution_count": 1,
                         "items_processed": result.get("processed_count", 0),
@@ -207,7 +211,7 @@ class DataRetentionService:
                 scans = await self.db.scan_reports.find(query).to_list(length=None)
                 if scans:
                     for scan in scans:
-                        scan["archived_at"] = datetime.utcnow()
+                        scan["archived_at"] = utc_now()
                     await self.db.archived_scan_reports.insert_many(scans)
                     result = await self.db.scan_reports.delete_many(query)
                     processed_count = result.deleted_count
@@ -256,12 +260,12 @@ class DataRetentionService:
                     # Compress and archive
                     compressed_logs = self._compress_data(logs)
                     archive_entry = {
-                        "archive_id": f"audit_archive_{datetime.utcnow().timestamp()}",
+                        "archive_id": f"audit_archive_{utc_now().timestamp()}",
                         "period_start": min(log["timestamp"] for log in logs),
                         "period_end": max(log["timestamp"] for log in logs),
                         "log_count": len(logs),
                         "compressed_data": compressed_logs,
-                        "archived_at": datetime.utcnow(),
+                        "archived_at": utc_now(),
                     }
                     await self.db.archived_audit_logs.insert_one(archive_entry)
                     result = await self.db.audit_logs.delete_many(query)
@@ -278,7 +282,7 @@ class DataRetentionService:
                             "user_id": "ANONYMIZED",
                             "ip_address": "ANONYMIZED",
                             "user_agent": "ANONYMIZED",
-                            "anonymized_at": datetime.utcnow(),
+                            "anonymized_at": utc_now(),
                         }
                     },
                 )
@@ -392,10 +396,10 @@ class DataRetentionService:
                 if reports:
                     compressed_reports = self._compress_data(reports)
                     archive_entry = {
-                        "archive_id": f"compliance_archive_{datetime.utcnow().timestamp()}",
+                        "archive_id": f"compliance_archive_{utc_now().timestamp()}",
                         "report_count": len(reports),
                         "compressed_data": compressed_reports,
-                        "archived_at": datetime.utcnow(),
+                        "archived_at": utc_now(),
                     }
                     await self.db.archived_compliance_reports.insert_one(archive_entry)
                     result = await self.db.compliance_reports.delete_many(query)
@@ -436,7 +440,7 @@ class DataRetentionService:
         """Get statistics about data retention and storage usage"""
         try:
             stats = {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "collections": {},
                 "total_documents": 0,
                 "policies": {
@@ -535,3 +539,4 @@ def get_retention_service(db) -> DataRetentionService:
     if _retention_service_instance is None:
         _retention_service_instance = DataRetentionService(db)
     return _retention_service_instance
+

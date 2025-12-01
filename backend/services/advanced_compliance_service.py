@@ -1,9 +1,13 @@
-"""
+﻿"""
 Advanced Compliance Reporting Service
 SOX, HIPAA, ISO 27001, and custom compliance framework support
 """
 import structlog
 from datetime import datetime, timedelta
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from typing import Dict, Any, List, Optional
 from enum import Enum
 from pymongo import ASCENDING, DESCENDING
@@ -234,7 +238,7 @@ class AdvancedComplianceService:
     ) -> Dict[str, Any]:
         """Assess compliance against a specific framework"""
         try:
-            assessment_id = f"compliance_{framework.value}_{datetime.utcnow().timestamp()}"
+            assessment_id = f"compliance_{framework.value}_{utc_now().timestamp()}"
 
             framework_req = self.framework_requirements.get(framework, {})
             if not framework_req:
@@ -245,7 +249,7 @@ class AdvancedComplianceService:
                 "project_id": project_id,
                 "framework": framework.value,
                 "framework_name": framework_req["name"],
-                "assessed_at": datetime.utcnow(),
+                "assessed_at": utc_now(),
                 "overall_status": ComplianceStatus.UNDER_REVIEW.value,
                 "compliance_score": 0.0,
                 "controls_assessed": 0,
@@ -457,11 +461,11 @@ class AdvancedComplianceService:
         """Generate comprehensive compliance report"""
         try:
             if not end_date:
-                end_date = datetime.utcnow()
+                end_date = utc_now()
             if not start_date:
                 start_date = end_date - timedelta(days=90)
 
-            report_id = f"compliance_report_{datetime.utcnow().timestamp()}"
+            report_id = f"compliance_report_{utc_now().timestamp()}"
 
             # Get latest scan results for project
             latest_scan = await self.db.scan_reports.find_one(
@@ -474,7 +478,7 @@ class AdvancedComplianceService:
             report = {
                 "report_id": report_id,
                 "project_id": project_id,
-                "generated_at": datetime.utcnow(),
+                "generated_at": utc_now(),
                 "period": {
                     "start": start_date.isoformat(),
                     "end": end_date.isoformat(),
@@ -593,7 +597,7 @@ class AdvancedComplianceService:
     ) -> Dict[str, Any]:
         """Get compliance trend over time"""
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = utc_now() - timedelta(days=days)
 
             assessments = await self.db.compliance_assessments.find(
                 {
@@ -652,3 +656,4 @@ def get_compliance_service(db) -> AdvancedComplianceService:
     if _compliance_service_instance is None:
         _compliance_service_instance = AdvancedComplianceService(db)
     return _compliance_service_instance
+

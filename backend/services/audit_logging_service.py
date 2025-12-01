@@ -1,14 +1,18 @@
-"""
+﻿"""
 Audit Logging Service
 Comprehensive audit trail for user actions, system events, and compliance reporting
 """
 import structlog
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 from enum import Enum
 from pymongo import ASCENDING, DESCENDING
 import hashlib
 import json
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 logger = structlog.get_logger()
 
@@ -108,7 +112,7 @@ class AuditLoggingService:
     ) -> Dict[str, Any]:
         """Log an audit event"""
         try:
-            timestamp = datetime.utcnow()
+            timestamp = utc_now()
             event_id = f"audit_{timestamp.timestamp()}_{hashlib.md5(str(timestamp).encode()).hexdigest()[:8]}"
 
             audit_entry = {
@@ -234,7 +238,7 @@ class AuditLoggingService:
     ) -> Dict[str, Any]:
         """Get user activity history"""
         try:
-            start_date = datetime.utcnow() - timedelta(days=days)
+            start_date = utc_now() - timedelta(days=days)
 
             logs = await self.db.audit_logs.find(
                 {"user_id": user_id, "timestamp": {"$gte": start_date}}
@@ -305,7 +309,7 @@ class AuditLoggingService:
                     "start": start_date.isoformat(),
                     "end": end_date.isoformat(),
                 },
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": utc_now().isoformat(),
                 "summary": {
                     "total_events": len(logs),
                     "unique_users": len(set(log["user_id"] for log in logs if log["user_id"])),
@@ -373,7 +377,7 @@ class AuditLoggingService:
                     {
                         "user_id": user_id,
                         "event_type": AuditEventType.USER_LOGIN_FAILED.value,
-                        "timestamp": {"$gte": datetime.utcnow() - timedelta(minutes=15)},
+                        "timestamp": {"$gte": utc_now() - timedelta(minutes=15)},
                     }
                 )
 
@@ -394,7 +398,7 @@ class AuditLoggingService:
                     {
                         "user_id": user_id,
                         "event_type": AuditEventType.UNAUTHORIZED_ACCESS_ATTEMPT.value,
-                        "timestamp": {"$gte": datetime.utcnow() - timedelta(hours=1)},
+                        "timestamp": {"$gte": utc_now() - timedelta(hours=1)},
                     }
                 )
 
@@ -425,7 +429,7 @@ class AuditLoggingService:
             ).sort("timestamp", ASCENDING).to_list(length=None)
 
             export_data = {
-                "export_timestamp": datetime.utcnow().isoformat(),
+                "export_timestamp": utc_now().isoformat(),
                 "period": {
                     "start": start_date.isoformat(),
                     "end": end_date.isoformat(),
@@ -493,3 +497,4 @@ def get_audit_service(db) -> AuditLoggingService:
     if _audit_service_instance is None:
         _audit_service_instance = AuditLoggingService(db)
     return _audit_service_instance
+

@@ -1,10 +1,14 @@
-"""
+﻿"""
 Enterprise Features API Routes
 Notification, Audit Logging, Data Retention, and Advanced Compliance endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from pydantic import BaseModel, Field
 
 from services.audit_logging_service import (
@@ -755,10 +759,12 @@ async def enterprise_features_health():
     """Health check for enterprise features"""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": utc_now().isoformat(),
         "features": {
             "audit_logging": "enabled",
             "data_retention": "enabled",
             "advanced_compliance": "enabled",
         },
     }
+
+

@@ -1,13 +1,26 @@
-"""
+﻿"""
 API routes for Custom Rule Engine, Baseline Scanning, and Policy as Code
 """
 from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query, BackgroundTasks
 from pydantic import BaseModel
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import tempfile
 import os
+
+# Helper function to get timezone-aware UTC datetime
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+# Environment check for safe error messages
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+def safe_error_detail(error: Exception, operation: str) -> str:
+    """Return safe error message - hide details in production"""
+    if IS_PRODUCTION:
+        return f"{operation} failed. Please try again later."
+    return f"{operation} failed: {str(error)}"
 
 from services.rule_engine import (
     rule_engine, CustomRule, RuleTemplate, RuleValidationResult, 
@@ -51,7 +64,7 @@ async def get_rules(status: Optional[RuleStatus] = None):
         return [rule.dict() for rule in rules]
     except Exception as e:
         logger.error(f"Error getting rules: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=safe_error_detail(e, "Rule retrieval"))
 
 
 @router.get("/rules/{rule_id}")
@@ -62,9 +75,11 @@ async def get_rule(rule_id: str):
         if not rule:
             raise HTTPException(status_code=404, detail="Rule not found")
         return rule.dict()
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting rule {rule_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=safe_error_detail(e, "Rule retrieval"))
 
 
 @router.post("/rules")
@@ -422,7 +437,7 @@ async def get_policy_violations(
             query["status"] = status
         
         # Date filter
-        since_date = datetime.utcnow() - timedelta(days=days)
+        since_date = utc_now() - timedelta(days=days)
         query["detected_at"] = {"$gte": since_date}
         
         # Get violations
@@ -494,7 +509,7 @@ async def full_security_analysis(
             "repository_url": repository_url,
             "branch": branch,
             "commit_hash": commit_hash,
-            "analysis_timestamp": datetime.utcnow().isoformat()
+            "analysis_timestamp": utc_now().isoformat()
         }
         
         # 1. Drift Analysis
@@ -563,3 +578,5 @@ async def full_security_analysis(
     except Exception as e:
         logger.error(f"Error in full security analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+

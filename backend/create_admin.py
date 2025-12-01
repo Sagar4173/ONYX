@@ -11,7 +11,7 @@ from pathlib import Path
 backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
 
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from database import init_database, close_database
 from models.user import User, UserRole, UserStatus
@@ -100,8 +100,8 @@ async def create_admin_user():
             status=UserStatus.ACTIVE,  # Activate immediately
             organization=organization,
             is_email_verified=True,  # Skip email verification for admin
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
         )
         
         await admin_user.insert()
@@ -199,8 +199,8 @@ async def reset_user_password():
     # Update password
     try:
         user.hashed_password = auth_service.hash_password(new_password)
-        user.last_password_change = datetime.utcnow()
-        user.updated_at = datetime.utcnow()
+        user.last_password_change = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
         
         # Reset failed attempts and unlock account
         user.failed_login_attempts = 0

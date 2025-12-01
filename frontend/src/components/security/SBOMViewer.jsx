@@ -24,7 +24,10 @@ import {
   Lock,
 } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// API Configuration - Production ready with environment variable support
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://127.0.0.1:8000"
+  : import.meta.env.VITE_API_URL || "/api";
 
 // License badge
 const LicenseBadge = ({ license }) => {

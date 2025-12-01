@@ -1,4 +1,4 @@
-"""
+﻿"""
 CodeQL and Checkov Advanced Security Scanners
 Part 2 of Advanced Security Scanning implementation
 """
@@ -9,6 +9,10 @@ import shutil
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 import logging
 
 from .advanced_scanners import (
@@ -28,8 +32,8 @@ class CodeQLScanner:
     
     async def scan_repository(self, repo_path: str, language: str, config: AdvancedScannerConfig) -> ScanResult:
         """Run CodeQL analysis on repository"""
-        scan_id = f"codeql_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        start_time = datetime.utcnow()
+        scan_id = f"codeql_{utc_now().strftime('%Y%m%d_%H%M%S')}"
+        start_time = utc_now()
         
         try:
             # Create temporary database directory
@@ -45,7 +49,7 @@ class CodeQLScanner:
             # Parse SARIF output
             findings = await self._parse_sarif_output(results_file, repo_path)
             
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (utc_now() - start_time).total_seconds()
             
             return ScanResult(
                 scanner=ScannerType.CODEQL,
@@ -68,7 +72,7 @@ class CodeQLScanner:
                 target=repo_path,
                 scan_id=scan_id,
                 timestamp=start_time,
-                duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+                duration_seconds=(utc_now() - start_time).total_seconds(),
                 status="failed",
                 error_message=str(e)
             )
@@ -258,8 +262,8 @@ class CheckovScanner:
     
     async def scan_iac(self, target_path: str, config: AdvancedScannerConfig) -> ScanResult:
         """Run Checkov scan on Infrastructure as Code files"""
-        scan_id = f"checkov_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        start_time = datetime.utcnow()
+        scan_id = f"checkov_{utc_now().strftime('%Y%m%d_%H%M%S')}"
+        start_time = utc_now()
         
         try:
             # Create temporary output file
@@ -326,7 +330,7 @@ class CheckovScanner:
                 if critical_findings:
                     logger.warning(f"Found {len(critical_findings)} critical IaC misconfigurations")
             
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (utc_now() - start_time).total_seconds()
             
             return ScanResult(
                 scanner=ScannerType.CHECKOV,
@@ -349,7 +353,7 @@ class CheckovScanner:
                 target=target_path,
                 scan_id=scan_id,
                 timestamp=start_time,
-                duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+                duration_seconds=(utc_now() - start_time).total_seconds(),
                 status="failed",
                 error_message=str(e)
             )
@@ -430,3 +434,4 @@ class CheckovScanner:
 
 # Export classes
 __all__ = ['CodeQLScanner', 'CheckovScanner']
+

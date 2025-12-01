@@ -1,9 +1,13 @@
-"""
+﻿"""
 Authentication Routes for ONYX Security Intelligence Platform
 Handles user registration, login, logout, password management
 """
 import asyncio
 from datetime import datetime
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials
@@ -182,7 +186,7 @@ async def update_current_user(
     for field, value in update_data.items():
         setattr(current_user, field, value)
     
-    current_user.updated_at = datetime.utcnow()
+    current_user.updated_at = utc_now()
     current_user.last_updated_by = current_user.id
     
     await current_user.save()
@@ -216,7 +220,7 @@ async def update_notification_preferences(
     for key, value in update_data.items():
         current_user.notification_preferences[key] = value
     
-    current_user.updated_at = datetime.utcnow()
+    current_user.updated_at = utc_now()
     await current_user.save()
     
     return {
@@ -288,14 +292,14 @@ async def enable_two_factor(
     
     # Enable 2FA
     current_user.two_factor_enabled = True
-    current_user.updated_at = datetime.utcnow()
+    current_user.updated_at = utc_now()
     await current_user.save()
     
     # Send email notification
     asyncio.create_task(email_service.send_2fa_enabled_email(
         email=current_user.email,
         user_name=current_user.full_name or current_user.username,
-        enabled_at=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+        enabled_at=utc_now().strftime("%B %d, %Y at %I:%M %p UTC")
     ))
     
     return {"message": "Two-factor authentication enabled successfully"}
@@ -337,14 +341,14 @@ async def disable_two_factor(
     current_user.two_factor_enabled = False
     current_user.two_factor_secret = None
     current_user.two_factor_backup_codes = []
-    current_user.updated_at = datetime.utcnow()
+    current_user.updated_at = utc_now()
     await current_user.save()
     
     # Send email notification
     asyncio.create_task(email_service.send_2fa_disabled_email(
         email=current_user.email,
         user_name=current_user.full_name or current_user.username,
-        disabled_at=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+        disabled_at=utc_now().strftime("%B %d, %Y at %I:%M %p UTC")
     ))
     
     return {"message": "Two-factor authentication disabled successfully"}
@@ -449,7 +453,7 @@ async def revoke_session(
         )
     
     session.is_active = False
-    session.logged_out_at = datetime.utcnow()
+    session.logged_out_at = utc_now()
     await session.save()
     
     return {"message": "Session revoked successfully"}
@@ -475,7 +479,7 @@ async def revoke_all_other_sessions(
     }).update_many({
         "$set": {
             "is_active": False,
-            "logged_out_at": datetime.utcnow()
+            "logged_out_at": utc_now()
         }
     })
     
@@ -500,7 +504,7 @@ async def upload_avatar(
     # Allow empty string to remove avatar
     if not avatar_url:
         current_user.avatar_url = None
-        current_user.updated_at = datetime.utcnow()
+        current_user.updated_at = utc_now()
         await current_user.save()
         return {
             "message": "Avatar removed successfully",
@@ -522,7 +526,7 @@ async def upload_avatar(
         )
     
     current_user.avatar_url = avatar_url
-    current_user.updated_at = datetime.utcnow()
+    current_user.updated_at = utc_now()
     await current_user.save()
     
     return {
@@ -545,7 +549,7 @@ async def change_password(
         asyncio.create_task(email_service.send_password_changed_email(
             email=current_user.email,
             user_name=current_user.full_name or current_user.username,
-            changed_at=datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+            changed_at=utc_now().strftime("%B %d, %Y at %I:%M %p UTC")
         ))
         return {"message": "Password changed successfully. Please log in again."}
     else:
@@ -593,7 +597,7 @@ async def verify_email(request: EmailVerificationRequest):
     
     if user:
         # Check if token has expired (if expiration is set)
-        if user.email_verification_expires and datetime.utcnow() > user.email_verification_expires:
+        if user.email_verification_expires and utc_now() > user.email_verification_expires:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Verification link has expired. Please request a new verification email."
@@ -605,7 +609,7 @@ async def verify_email(request: EmailVerificationRequest):
             user.email_verification_token = None
             user.email_verification_expires = None
             user.status = UserStatus.ACTIVE
-            user.updated_at = datetime.utcnow()
+            user.updated_at = utc_now()
             await user.save()
             return {"message": "Email verified successfully. Your account is now active."}
         
@@ -652,6 +656,10 @@ async def resend_verification_email(
     """
     import secrets
     from datetime import timedelta
+
+# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
     
     user = None
     
@@ -684,7 +692,7 @@ async def resend_verification_email(
     
     # Generate new verification token (this invalidates the old token)
     user.email_verification_token = secrets.token_urlsafe(32)
-    user.email_verification_expires = datetime.utcnow() + timedelta(hours=2)
+    user.email_verification_expires = utc_now() + timedelta(hours=2)
     await user.save()
     
     # Send verification email
@@ -725,16 +733,16 @@ async def test_email_configuration(
         # Send test email
         success = await email_service.send_email(
             to_email=current_user.email,
-            subject="🧪 Test Email - ONYX Platform",
+            subject="ðŸ§ª Test Email - ONYX Platform",
             html_body="""
             <html>
             <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2 style="color: #4F46E5;">✅ Email Configuration Test</h2>
+                <h2 style="color: #4F46E5;">âœ… Email Configuration Test</h2>
                 <p>Congratulations! Your email configuration is working correctly.</p>
                 <p>This test email was sent from the ONYX Platform.</p>
                 <hr style="margin: 20px 0;">
                 <p style="color: #666; font-size: 12px;">
-                    Test performed at: {datetime.utcnow().isoformat()}
+                    Test performed at: {utc_now().isoformat()}
                 </p>
             </body>
             </html>
@@ -855,7 +863,7 @@ async def revoke_api_token(
         )
     
     token.is_active = False
-    token.revoked_at = datetime.utcnow()
+    token.revoked_at = utc_now()
     token.revoked_by = current_user.id
     await token.save()
     
@@ -926,7 +934,7 @@ async def update_user(
     for field, value in update_data.items():
         setattr(user, field, value)
     
-    user.updated_at = datetime.utcnow()
+    user.updated_at = utc_now()
     user.last_updated_by = current_user.id
     
     await user.save()
@@ -958,7 +966,7 @@ async def update_user_role(
         )
     
     user.role = new_role
-    user.updated_at = datetime.utcnow()
+    user.updated_at = utc_now()
     user.last_updated_by = current_user.id
     
     await user.save()
@@ -990,7 +998,7 @@ async def update_user_status(
         )
     
     user.status = new_status
-    user.updated_at = datetime.utcnow()
+    user.updated_at = utc_now()
     user.last_updated_by = current_user.id
     
     await user.save()
@@ -1031,3 +1039,4 @@ async def delete_user(
     await user.delete()
     
     return {"message": "User account deleted successfully"}
+
