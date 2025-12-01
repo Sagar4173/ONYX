@@ -46,7 +46,9 @@ Click **Deploy** - Vercel will automatically build and deploy.
 
 ## ⚙️ Configuration
 
-The `vercel.json` file configures:
+The configuration file is located at `frontend/vercel.json` (required location for Vercel).
+
+### Key Settings:
 
 ### API Rewrites
 

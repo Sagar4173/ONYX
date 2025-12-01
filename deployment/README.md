@@ -2,28 +2,34 @@
 
 ## Deployment Structure
 
-This folder contains all deployment configurations for the ONYX Security Intelligence Platform.
+This folder contains deployment documentation and additional configs for the ONYX Security Intelligence Platform.
 
 ```
 deployment/
-├── README.md              # This file - deployment overview
-├── vercel/               # Frontend deployment (Vercel)
-│   ├── vercel.json       # Vercel configuration
-│   └── README.md         # Frontend deployment guide
-├── render/               # Backend deployment (Render)
-│   ├── render.yaml       # Render Blueprint
-│   └── README.md         # Backend deployment guide
-├── docker/               # Docker deployment
+├── README.md                  # This file - deployment overview
+├── vercel/
+│   └── README.md              # Frontend deployment guide
+├── render/
+│   └── README.md              # Backend deployment guide
+├── docker/                    # Docker deployment (self-hosted)
 │   ├── docker-compose.yml
 │   ├── docker-compose.prod.yml
 │   ├── Dockerfile.frontend
 │   ├── Dockerfile.backend
-│   └── README.md         # Docker deployment guide
-└── env/                  # Environment templates
+│   ├── nginx.conf
+│   └── README.md
+└── env/                       # Environment templates
     ├── .env.example
     ├── .env.frontend.example
     └── .env.backend.example
 ```
+
+### Config File Locations (Required for auto-deployment)
+
+| Platform | Config File   | Location (DO NOT MOVE) |
+| -------- | ------------- | ---------------------- |
+| Vercel   | `vercel.json` | `frontend/vercel.json` |
+| Render   | `render.yaml` | `backend/render.yaml`  |
 
 ---
 

@@ -39,7 +39,9 @@ The ONYX backend (FastAPI) is deployed on Render.
 1. Go to [dashboard.render.com](https://dashboard.render.com/)
 2. Click **New** → **Blueprint**
 3. Connect your GitHub repo
-4. Render auto-detects `render.yaml` and configures everything
+4. Render auto-detects `backend/render.yaml` and configures everything
+
+> **Note:** The `render.yaml` file is located at `backend/render.yaml` (required location for Render auto-detection).
 
 ---
 
