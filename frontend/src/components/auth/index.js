@@ -27,3 +27,6 @@ export {
   PasswordResetPage,
   AuthRoutingHandler,
 } from "./AuthPages";
+
+// Verification Banner
+export { VerificationBanner } from "./VerificationBanner";

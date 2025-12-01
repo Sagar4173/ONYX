@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import Sidebar, { MobileMenuButton } from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
-import { useAuth } from "../components/auth";
+import { useAuth, VerificationBanner } from "../components/auth";
 import { UserProfile } from "../components/auth/UserProfile";
 import { websocketService } from "../services/api";
 
@@ -193,6 +193,9 @@ export const MainLayout = () => {
           onDismissNotification={handleDismissNotification}
           onProfileClick={() => setProfileModalOpen(true)}
         />
+
+        {/* Email Verification Banner for unverified users */}
+        <VerificationBanner />
 
         <main className="flex-1 relative overflow-auto">
           <Routes>
