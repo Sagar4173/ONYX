@@ -372,6 +372,13 @@ npm run preview
 
 ### Production Setup
 
+> 📁 **For detailed deployment guides, see the [`deployment/`](./deployment/) folder:**
+>
+> - **Vercel (Frontend)**: [`deployment/vercel/`](./deployment/vercel/README.md)
+> - **Render (Backend)**: [`deployment/render/`](./deployment/render/README.md)
+> - **Docker (Self-hosted)**: [`deployment/docker/`](./deployment/docker/README.md)
+> - **Environment Templates**: [`deployment/env/`](./deployment/env/)
+
 1. **Prepare Production Environment**
 
    ```bash
