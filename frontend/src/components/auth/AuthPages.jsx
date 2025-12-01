@@ -115,7 +115,6 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
   const navigate = useNavigate();
 
   const publicRoutes = [
-    "/",
     "/landing",
     "/login",
     "/register",
@@ -123,8 +122,8 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
     "/verify-email",
   ];
 
-  const isPublicRoute = publicRoutes.some(
-    (route) => location.pathname.startsWith(route) || location.pathname === "/"
+  const isPublicRoute = location.pathname === "/" || publicRoutes.some(
+    (route) => location.pathname === route || location.pathname.startsWith(route + "/")
   );
 
   // Import LandingPage dynamically to avoid circular deps
