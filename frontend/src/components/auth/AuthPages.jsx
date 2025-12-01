@@ -122,9 +122,12 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
     "/verify-email",
   ];
 
-  const isPublicRoute = location.pathname === "/" || publicRoutes.some(
-    (route) => location.pathname === route || location.pathname.startsWith(route + "/")
-  );
+  const isPublicRoute =
+    location.pathname === "/" ||
+    publicRoutes.some(
+      (route) =>
+        location.pathname === route || location.pathname.startsWith(route + "/")
+    );
 
   // Import LandingPage dynamically to avoid circular deps
   const LandingPage = React.lazy(() =>

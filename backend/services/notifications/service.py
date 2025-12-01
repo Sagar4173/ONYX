@@ -183,6 +183,16 @@ class EmailService:
     ) -> bool:
         """Send email via Brevo API (HTTP-based, works on cloud platforms, no domain verification)"""
         try:
+            # Brevo requires textContent to not be empty - generate from HTML if not provided
+            if not text_body:
+                # Simple HTML to text conversion - strip tags
+                import re
+                text_body = re.sub(r'<[^>]+>', '', html_body)
+                text_body = re.sub(r'\s+', ' ', text_body).strip()
+                # Ensure it's not empty
+                if not text_body:
+                    text_body = subject
+            
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     "https://api.brevo.com/v3/smtp/email",
@@ -199,7 +209,7 @@ class EmailService:
                         "to": [{"email": to_email}],
                         "subject": subject,
                         "htmlContent": html_body,
-                        "textContent": text_body or ""
+                        "textContent": text_body
                     },
                     timeout=30.0
                 )
