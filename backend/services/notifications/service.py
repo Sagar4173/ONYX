@@ -2,7 +2,7 @@
 Email Service for ONYX Security Intelligence Platform
 Handles email sending with support for multiple providers:
 - SMTP (Gmail, Outlook, Yahoo, SendGrid)
-- Resend API (HTTP-based, works on Render/cloud platforms)
+- Brevo API (HTTP-based, works on Render/cloud platforms, no domain verification needed)
 Refactored for modularity and maintainability
 """
 import asyncio
@@ -26,13 +26,13 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """Production-ready email service with SMTP and Resend API support"""
+    """Production-ready email service with SMTP and Brevo API support"""
     
     def __init__(self):
         """Initialize email service with configured templates"""
         self.jinja_env = get_jinja_environment()
-        self.use_resend = False
-        self.resend_api_key = None
+        self.use_brevo = False
+        self.brevo_api_key = None
         self._configure_provider()
     
     def _configure_provider(self):
@@ -41,13 +41,17 @@ class EmailService:
             logger.info("Email service disabled")
             return
         
-        # Check if Resend is configured (preferred for cloud platforms like Render)
-        if settings.resend_api_key or (settings.email_provider and settings.email_provider.lower() == 'resend'):
-            self.use_resend = True
-            self.resend_api_key = settings.resend_api_key
-            self.email_from = settings.email_from or "onboarding@resend.dev"
+        # Check if Brevo is configured (preferred for cloud platforms like Render)
+        # Brevo: 300 emails/day free, no domain verification required
+        if settings.brevo_api_key or (settings.email_provider and settings.email_provider.lower() == 'brevo'):
+            self.use_brevo = True
+            self.brevo_api_key = settings.brevo_api_key
+            self.email_from = settings.email_from
             self.email_from_name = settings.email_from_name
-            logger.info("✅ Configured email with Resend API (HTTP-based)")
+            if not self.email_from:
+                logger.error("EMAIL_FROM is required for Brevo")
+            else:
+                logger.info("✅ Configured email with Brevo API (HTTP-based, no domain verification)")
             return
             
         # Provider-specific SMTP configurations
@@ -136,9 +140,9 @@ class EmailService:
             return True
         
         try:
-            # Use Resend API if configured (works on Render/cloud platforms)
-            if self.use_resend:
-                return await self._send_resend_email(to_email, subject, html_body, text_body)
+            # Use Brevo API if configured (works on Render/cloud platforms)
+            if self.use_brevo:
+                return await self._send_brevo_email(to_email, subject, html_body, text_body)
             
             # Otherwise use SMTP
             # Create message
@@ -170,41 +174,45 @@ class EmailService:
             logger.error(f"❌ Failed to send email to {to_email}: {str(e)}")
             return False
     
-    async def _send_resend_email(
+    async def _send_brevo_email(
         self,
         to_email: str,
         subject: str,
         html_body: str,
         text_body: Optional[str] = None
     ) -> bool:
-        """Send email via Resend API (HTTP-based, works on cloud platforms)"""
+        """Send email via Brevo API (HTTP-based, works on cloud platforms, no domain verification)"""
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "https://api.resend.com/emails",
+                    "https://api.brevo.com/v3/smtp/email",
                     headers={
-                        "Authorization": f"Bearer {self.resend_api_key}",
-                        "Content-Type": "application/json"
+                        "api-key": self.brevo_api_key,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
                     },
                     json={
-                        "from": f"{self.email_from_name} <{self.email_from}>",
-                        "to": [to_email],
+                        "sender": {
+                            "name": self.email_from_name,
+                            "email": self.email_from
+                        },
+                        "to": [{"email": to_email}],
                         "subject": subject,
-                        "html": html_body,
-                        "text": text_body or ""
+                        "htmlContent": html_body,
+                        "textContent": text_body or ""
                     },
                     timeout=30.0
                 )
                 
-                if response.status_code == 200:
-                    logger.info(f"✅ Email sent via Resend to: {to_email}")
+                if response.status_code in [200, 201]:
+                    logger.info(f"✅ Email sent via Brevo to: {to_email}")
                     return True
                 else:
-                    logger.error(f"❌ Resend API error: {response.status_code} - {response.text}")
+                    logger.error(f"❌ Brevo API error: {response.status_code} - {response.text}")
                     return False
                     
         except Exception as e:
-            logger.error(f"❌ Resend email error: {str(e)}")
+            logger.error(f"❌ Brevo email error: {str(e)}")
             return False
     
     async def _send_smtp_email(self, message: MIMEMultipart, to_email: str):
