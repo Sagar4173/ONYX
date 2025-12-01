@@ -3,11 +3,7 @@ Authentication Routes for ONYX Security Intelligence Platform
 Handles user registration, login, logout, password management
 """
 import asyncio
-from datetime import datetime
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import HTTPAuthorizationCredentials
@@ -25,6 +21,12 @@ from models.user import (
 from services.auth_service import auth_service
 from services.email_service import email_service
 from config import settings
+
+
+# Helper function to get timezone-aware UTC datetime
+def utc_now() -> datetime:
+    """Returns current UTC time with timezone info (replaces deprecated datetime.utcnow())"""
+    return datetime.now(timezone.utc)
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -657,10 +659,6 @@ async def resend_verification_email(
     import secrets
     from datetime import timedelta
 
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-    
     user = None
     
     # Try authenticated mode first
