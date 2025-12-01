@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from database import init_database, close_database
 from models.user import User, UserRole, UserStatus
-from services.auth_service import auth_service
+from services.auth.auth_service import auth_service
 
 
 async def create_admin_user():

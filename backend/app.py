@@ -356,7 +356,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=No
     user_id = None
     if token:
         try:
-            from services.auth_service import auth_service
+            from services.auth.auth_service import auth_service
             payload = auth_service.verify_token(token, "access")
             if payload:
                 user_id = payload.get("sub")
