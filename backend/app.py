@@ -48,6 +48,7 @@ from routes.god_level_security import router as god_level_security_router  # Re-
 from routes.advanced_scanning_fastapi import router as advanced_scanning_router
 from routes.enterprise import router as enterprise_router  # Enterprise features
 from routes.enterprise_security import router as enterprise_security_router  # OSV/NVD, SBOM, Trends, Comparison
+from routes.admin import router as admin_router  # Admin dashboard and system management
 
 # Import configuration
 from config import settings
@@ -119,6 +120,7 @@ app.include_router(god_level_security_router)  # Re-enabled with clean FastAPI i
 app.include_router(advanced_scanning_router)
 app.include_router(enterprise_router)  # Enterprise features
 app.include_router(enterprise_security_router)  # OSV/NVD, SBOM, Trends, Comparison
+app.include_router(admin_router, prefix="/api")  # Admin dashboard and management
 
 # Add trailing slash redirect middleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware

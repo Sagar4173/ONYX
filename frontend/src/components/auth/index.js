@@ -30,3 +30,6 @@ export {
 
 // Verification Banner
 export { VerificationBanner } from "./VerificationBanner";
+
+// Route Guards
+export { AdminRoute } from "./AdminRoute";

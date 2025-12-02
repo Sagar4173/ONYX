@@ -61,10 +61,13 @@
 
 ### 🏢 Enterprise Features
 
-- Role-based access control
-- Audit logging
+- Role-based access control (RBAC)
+- **Admin Dashboard** - Comprehensive system management for administrators
+- User management with role/status controls
+- Audit logging & activity monitoring
 - Webhook integrations
 - Real-time notifications
+- Data isolation per user/project
 
 ---
 

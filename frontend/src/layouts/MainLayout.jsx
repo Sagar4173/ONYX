@@ -8,13 +8,13 @@ import toast from "react-hot-toast";
 import Sidebar, { MobileMenuButton } from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
-import { useAuth, VerificationBanner } from "../components/auth";
+import { useAuth, VerificationBanner, AdminRoute } from "../components/auth";
 import { UserProfile } from "../components/auth/UserProfile";
 import { websocketService } from "../services/api";
 
 // Import Pages
 import Dashboard from "../pages/Dashboard";
-import { Analytics, Reports, NotFound } from "../pages";
+import { Analytics, Reports, NotFound, AdminDashboard } from "../pages";
 import { ProjectManagement, ProjectDetails } from "../components/projects";
 import { EnhancedReportDetails, ComplianceReport } from "../components/reports";
 import {
@@ -206,11 +206,29 @@ export const MainLayout = () => {
             />
             <Route path="/projects" element={<ProjectManagement />} />
             <Route path="/project/:projectId" element={<ProjectDetails />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/audit-logs" element={<AuditLogs />} />
+            <Route
+              path="/users"
+              element={
+                <AdminRoute>
+                  <UserManagement />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/audit-logs"
+              element={
+                <AdminRoute>
+                  <AuditLogs />
+                </AdminRoute>
+              }
+            />
             <Route
               path="/retention-policies"
-              element={<DataRetentionPolicies />}
+              element={
+                <AdminRoute>
+                  <DataRetentionPolicies />
+                </AdminRoute>
+              }
             />
             <Route path="/compliance" element={<AdvancedCompliance />} />
             <Route path="/reports" element={<Reports />} />
@@ -223,6 +241,14 @@ export const MainLayout = () => {
               element={<ComplianceReport />}
             />
             <Route path="/analytics" element={<Analytics />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

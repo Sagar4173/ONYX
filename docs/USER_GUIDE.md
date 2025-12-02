@@ -439,6 +439,89 @@ Confidence: High
 
 ---
 
+## 🛡️ Admin Dashboard (Administrators Only)
+
+The Admin Dashboard provides comprehensive system oversight and management capabilities exclusively for administrators.
+
+### Accessing Admin Dashboard
+
+1. Log in with an Admin account
+2. Click "Admin Panel" in the sidebar navigation (visible only to admins)
+3. Or navigate directly to `/admin`
+
+### Dashboard Overview
+
+The Admin Dashboard provides real-time system statistics:
+
+**User Statistics:**
+
+- Total users across all roles
+- Users by role breakdown (Admin, Security Manager, Developer, Viewer)
+- Users by status (Active, Pending, Suspended)
+- Recent registrations
+
+**Project Statistics:**
+
+- Total projects across all users
+- Projects by status
+- Most active projects
+
+**Scan Statistics:**
+
+- Total scans performed
+- Scans by status (Completed, Running, Failed)
+- Total findings discovered
+- Critical vulnerabilities count
+
+### User Management (Admin)
+
+Administrators can manage all users from the Admin Dashboard:
+
+**View All Users:**
+
+- See all registered users with their details
+- Filter by role, status, or search by name/email
+- View each user's project count and scan history
+
+**User Actions:**
+
+- **Change Role**: Promote/demote users between roles
+- **Change Status**: Activate, suspend, or set users to pending
+- **View Activity**: See detailed activity history for any user
+- **Delete User**: Remove users (with safeguards for last admin)
+
+### Project Oversight
+
+View and manage all projects across the platform:
+
+- See all projects with their owners
+- View scan history and findings per project
+- Delete projects if necessary
+- Monitor project health and activity
+
+### Activity Monitoring
+
+Real-time activity feed showing:
+
+- User registrations
+- User logins
+- Project creations
+- Scan completions and failures
+- System events
+
+### Admin-Protected Routes
+
+The following routes are protected for admin-only access:
+
+- `/admin` - Admin Dashboard
+- `/users` - User Management
+- `/audit-logs` - Audit Logs
+- `/retention-policies` - Data Retention Policies
+
+Non-admin users attempting to access these routes will see an "Access Denied" message.
+
+---
+
 ## 🛠️ Troubleshooting
 
 ### Common Issues

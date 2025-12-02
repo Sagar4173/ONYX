@@ -790,6 +790,155 @@ export const usersAPI = {
 };
 
 /**
+ * Admin API - Admin-only endpoints for system management
+ */
+export const adminAPI = {
+  // Get system-wide statistics / dashboard stats
+  getSystemStats: async () => {
+    try {
+      const response = await api.get("/admin/dashboard/stats");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching system stats:", error);
+      throw error;
+    }
+  },
+
+  // Alias for getSystemStats
+  getDashboardStats: async () => {
+    try {
+      const response = await api.get("/admin/dashboard/stats");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      throw error;
+    }
+  },
+
+  // Get all users with filtering and pagination (admin view)
+  getAllUsers: async (params = {}) => {
+    try {
+      const response = await api.get("/admin/users/all", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      throw error;
+    }
+  },
+
+  // Get all projects across all users
+  getAllProjects: async (params = {}) => {
+    try {
+      const response = await api.get("/admin/projects/all", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all projects:", error);
+      throw error;
+    }
+  },
+
+  // Get all reports across all users
+  getAllReports: async (params = {}) => {
+    try {
+      const response = await api.get("/admin/reports/all", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all reports:", error);
+      throw error;
+    }
+  },
+
+  // Get recent activity
+  getRecentActivity: async (limit = 50) => {
+    try {
+      const response = await api.get("/admin/activity/recent", {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching recent activity:", error);
+      throw error;
+    }
+  },
+
+  // Get user activity logs
+  getUserActivity: async (userId) => {
+    try {
+      const response = await api.get(`/admin/users/${userId}/activity`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user activity:", error);
+      throw error;
+    }
+  },
+
+  // Update user role (admin only)
+  updateUserRole: async (userId, role) => {
+    try {
+      const response = await api.put(`/admin/users/${userId}/role`, { role });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      throw error;
+    }
+  },
+
+  // Update user status (admin only)
+  updateUserStatus: async (userId, status) => {
+    try {
+      const response = await api.put(`/admin/users/${userId}/status`, {
+        status,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw error;
+    }
+  },
+
+  // Delete user (admin only)
+  deleteUser: async (userId) => {
+    try {
+      const response = await api.delete(`/admin/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
+  },
+
+  // Delete project (admin only)
+  deleteProject: async (projectId) => {
+    try {
+      const response = await api.delete(`/admin/projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      throw error;
+    }
+  },
+
+  // Get system audit summary
+  getAuditSummary: async (params = {}) => {
+    try {
+      const response = await api.get("/admin/audit-summary", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching audit summary:", error);
+      throw error;
+    }
+  },
+};
+
+/**
  * Webhook API
  */
 export const webhookAPI = {

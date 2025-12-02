@@ -18,66 +18,94 @@ import {
   ClipboardDocumentListIcon,
   ClockIcon,
   SparklesIcon,
+  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import { OnyxLogo } from "../components/common";
+import { useAuth } from "../components/auth";
 
-// Navigation Configuration
-const navigation = [
-  {
-    name: "Dashboard",
-    path: "/dashboard",
-    icon: HomeIcon,
-    gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    name: "Projects",
-    path: "/projects",
-    icon: FolderIcon,
-    gradient: "from-violet-500 to-purple-500",
-  },
-  {
-    name: "Reports",
-    path: "/reports",
-    icon: DocumentChartBarIcon,
-    gradient: "from-emerald-500 to-green-500",
-  },
-  {
-    name: "Analytics",
-    path: "/analytics",
-    icon: ChartBarIcon,
-    gradient: "from-orange-500 to-amber-500",
-  },
-  {
-    name: "Compliance",
-    path: "/compliance",
-    icon: ShieldCheckIcon,
-    gradient: "from-pink-500 to-rose-500",
-  },
-  {
-    name: "Users",
-    path: "/users",
-    icon: UsersIcon,
-    gradient: "from-indigo-500 to-blue-500",
-  },
-  {
-    name: "Audit Logs",
-    path: "/audit-logs",
-    icon: ClipboardDocumentListIcon,
-    gradient: "from-teal-500 to-cyan-500",
-  },
-  {
-    name: "Data Retention",
-    path: "/retention-policies",
-    icon: ClockIcon,
-    gradient: "from-slate-500 to-gray-500",
-  },
-  {
-    name: "Settings",
-    path: "/settings",
-    icon: Cog6ToothIcon,
-    gradient: "from-gray-500 to-slate-500",
-  },
-];
+// Navigation Configuration - Function to get navigation items based on user role
+const getNavigation = (user) => {
+  const baseNavigation = [
+    {
+      name: "Dashboard",
+      path: "/dashboard",
+      icon: HomeIcon,
+      gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      name: "Projects",
+      path: "/projects",
+      icon: FolderIcon,
+      gradient: "from-violet-500 to-purple-500",
+    },
+    {
+      name: "Reports",
+      path: "/reports",
+      icon: DocumentChartBarIcon,
+      gradient: "from-emerald-500 to-green-500",
+    },
+    {
+      name: "Analytics",
+      path: "/analytics",
+      icon: ChartBarIcon,
+      gradient: "from-orange-500 to-amber-500",
+    },
+    {
+      name: "Compliance",
+      path: "/compliance",
+      icon: ShieldCheckIcon,
+      gradient: "from-pink-500 to-rose-500",
+    },
+  ];
+
+  // Admin-only navigation items
+  const adminNavigation = [
+    {
+      name: "Admin Panel",
+      path: "/admin",
+      icon: CpuChipIcon,
+      gradient: "from-red-500 to-orange-500",
+      separator: true, // Add separator before this item
+    },
+    {
+      name: "Users",
+      path: "/users",
+      icon: UsersIcon,
+      gradient: "from-indigo-500 to-blue-500",
+    },
+    {
+      name: "Audit Logs",
+      path: "/audit-logs",
+      icon: ClipboardDocumentListIcon,
+      gradient: "from-teal-500 to-cyan-500",
+    },
+    {
+      name: "Data Retention",
+      path: "/retention-policies",
+      icon: ClockIcon,
+      gradient: "from-slate-500 to-gray-500",
+    },
+  ];
+
+  const settingsNavigation = [
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: Cog6ToothIcon,
+      gradient: "from-gray-500 to-slate-500",
+    },
+  ];
+
+  // Check if user is admin
+  const isAdmin = user?.role === "admin" || user?.role === "ADMIN";
+
+  if (isAdmin) {
+    return [...baseNavigation, ...adminNavigation, ...settingsNavigation];
+  }
+
+  // For non-admin users, show limited navigation
+  return [...baseNavigation, ...settingsNavigation];
+};
 
 /**
  * Navigation Item Component
@@ -180,6 +208,9 @@ const Logo = ({ collapsed }) => (
  * Desktop Sidebar
  */
 const DesktopSidebar = ({ collapsed, onToggle }) => {
+  const { user } = useAuth();
+  const navigation = getNavigation(user);
+
   return (
     <aside
       className={`
@@ -200,8 +231,23 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 space-y-1">
-          {navigation.map((item) => (
-            <NavItem key={item.path} item={item} collapsed={collapsed} />
+          {navigation.map((item, index) => (
+            <div key={item.path}>
+              {item.separator && !collapsed && (
+                <div className="px-4 py-2 mt-4 mb-2">
+                  <div className="border-t border-gray-700/50" />
+                  <span className="text-xs text-gray-500 uppercase tracking-wider mt-2 block">
+                    Administration
+                  </span>
+                </div>
+              )}
+              {item.separator && collapsed && (
+                <div className="px-2 py-2 mt-4 mb-2">
+                  <div className="border-t border-gray-700/50" />
+                </div>
+              )}
+              <NavItem item={item} collapsed={collapsed} />
+            </div>
           ))}
         </nav>
 
@@ -250,6 +296,9 @@ const MobileSidebar = ({ isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
+  const { user } = useAuth();
+  const navigation = getNavigation(user);
+
   if (!isOpen) return null;
 
   return (
@@ -282,12 +331,17 @@ const MobileSidebar = ({ isOpen, onClose }) => {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-6 space-y-1">
             {navigation.map((item) => (
-              <NavItem
-                key={item.path}
-                item={item}
-                collapsed={false}
-                onClick={onClose}
-              />
+              <div key={item.path}>
+                {item.separator && (
+                  <div className="px-4 py-2 mt-4 mb-2">
+                    <div className="border-t border-gray-700/50" />
+                    <span className="text-xs text-gray-500 uppercase tracking-wider mt-2 block">
+                      Administration
+                    </span>
+                  </div>
+                )}
+                <NavItem item={item} collapsed={false} onClick={onClose} />
+              </div>
             ))}
           </nav>
 

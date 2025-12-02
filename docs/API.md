@@ -376,6 +376,221 @@ Authorization: Bearer <admin_token>
 
 ---
 
+## 🛡️ Admin Dashboard API
+
+Admin-only endpoints for comprehensive system management and oversight.
+
+### Get System Statistics
+
+Get comprehensive system-wide statistics for the admin dashboard.
+
+```http
+GET /api/admin/dashboard/stats
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "users": {
+    "total": 150,
+    "by_role": {
+      "admin": 2,
+      "security_manager": 8,
+      "developer": 95,
+      "viewer": 45
+    },
+    "by_status": {
+      "active": 142,
+      "pending": 5,
+      "suspended": 3
+    },
+    "recent_registrations": 12
+  },
+  "projects": {
+    "total": 85,
+    "by_status": {
+      "active": 70,
+      "archived": 10,
+      "pending": 5
+    }
+  },
+  "scans": {
+    "total": 1250,
+    "by_status": {
+      "completed": 1180,
+      "running": 15,
+      "failed": 55
+    },
+    "total_findings": 8450,
+    "critical_findings": 125
+  }
+}
+```
+
+### Get All Users (Admin View)
+
+Retrieve all users with advanced filtering for admin management.
+
+```http
+GET /api/admin/users/all?search=john&role=developer&status=active&skip=0&limit=50
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "users": [
+    {
+      "id": "user_123",
+      "username": "john_doe",
+      "email": "john@example.com",
+      "role": "developer",
+      "status": "active",
+      "organization": "Acme Corp",
+      "created_at": "2025-01-01T00:00:00Z",
+      "last_login": "2025-01-15T10:00:00Z",
+      "project_count": 5,
+      "scan_count": 45
+    }
+  ],
+  "pagination": {
+    "total": 150,
+    "skip": 0,
+    "limit": 50,
+    "has_more": true
+  }
+}
+```
+
+### Get All Projects (Admin View)
+
+Retrieve all projects across all users for admin oversight.
+
+```http
+GET /api/admin/projects/all?search=webapp&skip=0&limit=50
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "projects": [
+    {
+      "id": "project_123",
+      "name": "Web Application",
+      "description": "Main web app",
+      "status": "active",
+      "repository_url": "https://github.com/user/repo",
+      "owner": {
+        "id": "user_123",
+        "username": "john_doe",
+        "email": "john@example.com"
+      },
+      "total_scans": 25,
+      "total_findings": 150,
+      "critical_findings": 5,
+      "created_at": "2025-01-01T00:00:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 85,
+    "skip": 0,
+    "limit": 50,
+    "has_more": true
+  }
+}
+```
+
+### Get Recent Activity
+
+Get recent system-wide activity for monitoring.
+
+```http
+GET /api/admin/activity/recent?limit=50
+Authorization: Bearer <admin_token>
+```
+
+**Response:**
+
+```json
+{
+  "activities": [
+    {
+      "type": "user_registration",
+      "icon": "user",
+      "title": "New user registered: jane_doe",
+      "description": "jane@example.com (developer)",
+      "timestamp": "2025-01-15T10:30:00Z",
+      "entity_id": "user_456",
+      "entity_type": "user"
+    },
+    {
+      "type": "scan_completed",
+      "icon": "check",
+      "title": "Scan completed: My Project",
+      "description": "45 findings",
+      "timestamp": "2025-01-15T10:00:00Z",
+      "entity_id": "scan_789",
+      "entity_type": "scan"
+    }
+  ],
+  "total": 150
+}
+```
+
+### Get User Activity
+
+Get activity history for a specific user.
+
+```http
+GET /api/admin/users/{user_id}/activity?limit=50
+Authorization: Bearer <admin_token>
+```
+
+### Update User Role (Admin)
+
+```http
+PUT /api/admin/users/{user_id}/role
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "role": "security_manager"
+}
+```
+
+### Update User Status (Admin)
+
+```http
+PUT /api/admin/users/{user_id}/status
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "status": "suspended"
+}
+```
+
+### Delete User (Admin)
+
+```http
+DELETE /api/admin/users/{user_id}
+Authorization: Bearer <admin_token>
+```
+
+### Delete Project (Admin)
+
+```http
+DELETE /api/admin/projects/{project_id}
+Authorization: Bearer <admin_token>
+```
+
+---
+
 ## 📊 Projects API
 
 ### Get All Projects
