@@ -22,10 +22,6 @@ const WS_BASE_URL = import.meta.env.DEV
       "//" +
       window.location.host;
 
-// Debug: Log the configuration values (only in development)
-if (import.meta.env.DEV) {
-}
-
 // Utility function to clean parameters by removing empty values
 const cleanParams = (params = {}) => {
   return Object.entries(params).reduce((acc, [key, value]) => {

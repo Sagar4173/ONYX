@@ -5,6 +5,7 @@ Production-ready application with MongoDB Atlas integration and realistic securi
 import asyncio
 import os
 import sys
+import traceback
 from pathlib import Path
 from typing import List, Dict, Any
 import logging
@@ -247,6 +248,7 @@ async def get_analytics_overview(days_back: int = 30):
         
     except Exception as e:
         logger.error(f"Error getting analytics: {e}")
+        logger.error(f"Analytics error traceback: {traceback.format_exc()}")
         # Return empty analytics on error
         return {
             "period": {"days_back": days_back},
@@ -315,7 +317,7 @@ async def health_check():
             "api": "running",
             "scanners": "available"
         },
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     
     # Try database connection but don't fail health check if it's slow
@@ -385,7 +387,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=No
                         if message.get("type") == "ping":
                             await websocket.send_json({
                                 "type": "pong",
-                                "timestamp": datetime.now().isoformat()
+                                "timestamp": datetime.now(timezone.utc).isoformat()
                             })
                         elif message.get("type") == "subscribe":
                             # Handle subscription requests (future feature)
@@ -399,7 +401,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=No
                         "type": "heartbeat",
                         "data": {
                             "count": heartbeat_count,
-                            "timestamp": datetime.now().isoformat(),
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
                             "status": "active",
                             "connections": ws_manager.get_connection_count()
                         }

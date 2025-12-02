@@ -9,9 +9,8 @@ import logging
 import tempfile
 import os
 
-# Helper function to get timezone-aware UTC datetime
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+# Import timezone-aware UTC datetime helper
+from utils.datetime_utils import utc_now
 
 # Environment check for safe error messages
 IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"

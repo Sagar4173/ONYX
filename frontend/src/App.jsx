@@ -18,6 +18,7 @@ import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { AuthProvider, useAuth, AuthRoutingHandler } from "./components/auth";
 import { MainLayout } from "./layouts";
 import { LandingPage } from "./components/marketing";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 // Create QueryClient with enhanced settings
 const queryClient = new QueryClient({
@@ -105,46 +106,48 @@ function AppContent() {
  */
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </AuthProvider>
 
-      {/* Global Toast Notifications */}
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-        gutter={8}
-        containerStyle={{ zIndex: 9999 }}
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background:
-              "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
-            color: "#fff",
-            border: "1px solid rgba(75, 85, 99, 0.3)",
-            borderRadius: "1rem",
-            backdropFilter: "blur(16px)",
-            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-            maxWidth: "500px",
-          },
-          success: {
-            duration: 3000,
-            iconTheme: { primary: "#10b981", secondary: "#fff" },
-          },
-          error: {
-            duration: 5000,
-            iconTheme: { primary: "#ef4444", secondary: "#fff" },
-          },
-          loading: {
-            duration: Infinity,
-            iconTheme: { primary: "#3b82f6", secondary: "#fff" },
-          },
-        }}
-      />
-    </QueryClientProvider>
+        {/* Global Toast Notifications */}
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={8}
+          containerStyle={{ zIndex: 9999 }}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background:
+                "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
+              color: "#fff",
+              border: "1px solid rgba(75, 85, 99, 0.3)",
+              borderRadius: "1rem",
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              maxWidth: "500px",
+            },
+            success: {
+              duration: 3000,
+              iconTheme: { primary: "#10b981", secondary: "#fff" },
+            },
+            error: {
+              duration: 5000,
+              iconTheme: { primary: "#ef4444", secondary: "#fff" },
+            },
+            loading: {
+              duration: Infinity,
+              iconTheme: { primary: "#3b82f6", secondary: "#fff" },
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

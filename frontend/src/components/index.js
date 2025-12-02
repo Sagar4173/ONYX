@@ -3,6 +3,9 @@
  * Organized by category for enterprise-level structure
  */
 
+// Common components
+export * from "./common";
+
 // Auth components
 export * from "./auth";
 

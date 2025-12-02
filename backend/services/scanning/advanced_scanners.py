@@ -10,14 +10,14 @@ import tempfile
 import shutil
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
-from datetime import datetime
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timezone
 import logging
 from enum import Enum
 import yaml
+
+# Helper function for timezone-aware UTC datetime
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 from pydantic import BaseModel, Field
 
@@ -56,7 +56,7 @@ class ScanFinding(BaseModel):
     evidence: Dict[str, Any] = Field(default_factory=dict)
     remediation: Optional[str] = None
     references: List[str] = Field(default_factory=list)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=_utc_now)
 
 
 class ScanResult(BaseModel):
@@ -64,7 +64,7 @@ class ScanResult(BaseModel):
     scanner: ScannerType
     target: str  # URL or repository path
     scan_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=_utc_now)
     duration_seconds: float
     findings: List[ScanFinding] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)

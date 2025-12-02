@@ -7,13 +7,13 @@ import json
 import asyncio
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
-from datetime import datetime
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timezone
 import logging
 from enum import Enum
+
+# Helper function for timezone-aware UTC datetime
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 from pydantic import BaseModel, Field, validator
 from git import Repo, InvalidGitRepositoryError
@@ -103,8 +103,8 @@ class SecurityPolicy(BaseModel):
     
     # Metadata
     owner: str = Field(..., description="Policy owner")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
-    updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
+    created_at: datetime = Field(default_factory=_utc_now, description="Creation timestamp")
+    updated_at: datetime = Field(default_factory=_utc_now, description="Last update timestamp")
     tags: List[str] = Field(default_factory=list, description="Policy tags")
     
     # Compliance
@@ -134,7 +134,7 @@ class PolicyViolation(BaseModel):
     threshold_exceeded: Optional[Dict[str, Any]] = Field(None, description="Threshold information if applicable")
     
     # Metadata
-    detected_at: datetime = Field(default_factory=datetime.utcnow, description="Detection timestamp")
+    detected_at: datetime = Field(default_factory=_utc_now, description="Detection timestamp")
     resolved_at: Optional[datetime] = Field(None, description="Resolution timestamp")
     status: str = Field(default="open", description="Violation status")
 

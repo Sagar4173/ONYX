@@ -21,12 +21,7 @@ from models.user import (
 from services.auth.auth_service import auth_service
 from services.notifications.service import email_service
 from config import settings
-
-
-# Helper function to get timezone-aware UTC datetime
-def utc_now() -> datetime:
-    """Returns current UTC time with timezone info (replaces deprecated datetime.utcnow())"""
-    return datetime.now(timezone.utc)
+from utils.datetime_utils import utc_now
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])

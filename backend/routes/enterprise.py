@@ -4,12 +4,11 @@ Notification, Audit Logging, Data Retention, and Advanced Compliance endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel, Field
+
+# Import timezone-aware UTC datetime helper
+from utils.datetime_utils import utc_now
 
 from services.analytics.audit_logging_service import (
     get_audit_service,

@@ -9,13 +9,13 @@ import re
 import hashlib
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
-from datetime import datetime
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timezone
 import logging
 from enum import Enum
+
+# Helper function for timezone-aware UTC datetime
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 from pydantic import BaseModel, Field, validator
 from git import Repo
@@ -67,8 +67,8 @@ class CustomRule(BaseModel):
     # Rule management
     version: str = Field(default="1.0.0", description="Rule version")
     author: str = Field(..., description="Rule author")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
-    updated_at: datetime = Field(default_factory=datetime.utcnow, description="Last update timestamp")
+    created_at: datetime = Field(default_factory=_utc_now, description="Creation timestamp")
+    updated_at: datetime = Field(default_factory=_utc_now, description="Last update timestamp")
     tags: List[str] = Field(default_factory=list, description="Rule tags")
     
     # Testing and validation (required)

@@ -10,12 +10,12 @@ from typing import Optional, Dict, Any, Tuple
 import uuid
 import jwt
 import bcrypt
+import pyotp
 from fastapi import HTTPException, status
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+# Import timezone-aware UTC datetime helper
+from utils.datetime_utils import utc_now
 from fastapi import Request, Depends
 
 from config import settings
@@ -196,7 +196,6 @@ class AuthService:
                 }
             
             # Verify 2FA code
-            import pyotp
             totp = pyotp.TOTP(user.two_factor_secret)
             is_valid = totp.verify(login_data.two_factor_code, valid_window=1)
             

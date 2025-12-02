@@ -5,13 +5,13 @@ import hashlib
 import json
 from typing import Dict, List, Any, Optional, Set, Tuple
 from datetime import datetime, timedelta, timezone
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
 from pathlib import Path
 import logging
 from enum import Enum
+
+# Helper function for timezone-aware UTC datetime
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 from pydantic import BaseModel, Field
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -101,7 +101,7 @@ class SecurityDrift(BaseModel):
     """Security drift analysis result"""
     baseline_id: str = Field(..., description="Reference baseline ID")
     current_scan_id: str = Field(..., description="Current scan ID")
-    comparison_timestamp: datetime = Field(default_factory=datetime.utcnow, description="Comparison timestamp")
+    comparison_timestamp: datetime = Field(default_factory=_utc_now, description="Comparison timestamp")
     
     # Change summary
     new_findings: List[Dict[str, Any]] = Field(default_factory=list, description="New findings")
@@ -124,7 +124,7 @@ class RegressionAlert(BaseModel):
     alert_id: str = Field(..., description="Alert identifier")
     repository_url: str = Field(..., description="Repository URL")
     branch: str = Field(..., description="Git branch")
-    detected_at: datetime = Field(default_factory=datetime.utcnow, description="Detection timestamp")
+    detected_at: datetime = Field(default_factory=_utc_now, description="Detection timestamp")
     
     # Regression details
     regression_type: str = Field(..., description="Type of regression")

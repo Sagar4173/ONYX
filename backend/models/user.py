@@ -11,6 +11,10 @@ from beanie import Document, Indexed
 from pydantic import BaseModel, EmailStr, Field, validator
 from pymongo import IndexModel
 
+# Helper function for timezone-aware UTC datetime (avoids circular imports)
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
 
 class UserRole(str, Enum):
     """User roles with hierarchical permissions"""
@@ -79,8 +83,8 @@ class User(Document):
     api_tokens: List[str] = Field(default_factory=list)  # API token IDs
     
     # Audit Trail
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    updated_at: datetime = Field(default_factory=_utc_now)
     created_by: Optional[str] = None  # User ID who created this user
     last_updated_by: Optional[str] = None
     
@@ -172,8 +176,8 @@ class UserSession(Document):
     logged_out_at: Optional[datetime] = None
     
     # Audit
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_activity: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    last_activity: datetime = Field(default_factory=_utc_now)
     
     class Settings:
         name = "user_sessions"

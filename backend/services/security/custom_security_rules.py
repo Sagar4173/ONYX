@@ -6,11 +6,15 @@ import json
 import yaml
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 import logging
 
 from pydantic import BaseModel, Field
+
+# Helper function for timezone-aware UTC datetime
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 from services.rules.rule_engine import CustomRule, AllowedRuleType, SeverityLevel, AllowedLanguage
 from services.rules.rule_security import SecureRuleValidator
@@ -74,8 +78,8 @@ class ComplianceRule(BaseModel):
     remediation_guidance: str = ""
     references: List[str] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    updated_at: datetime = Field(default_factory=_utc_now)
 
 
 class OrganizationalRule(BaseModel):
@@ -96,8 +100,8 @@ class OrganizationalRule(BaseModel):
     enforcement_level: str = "warning"  # "error", "warning", "info"
     remediation_guidance: str = ""
     owner_team: str = ""
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
+    updated_at: datetime = Field(default_factory=_utc_now)
 
 
 class CustomSecurityRulesEngine:
