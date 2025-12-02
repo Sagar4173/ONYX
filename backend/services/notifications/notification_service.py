@@ -44,8 +44,8 @@ class NotificationService:
         """Get user's email from database"""
         try:
             from models.user import User
-            from bson import ObjectId
-            user = await User.get(ObjectId(user_id))
+            # User.id is a UUID string, not ObjectId
+            user = await User.find_one({"_id": user_id})
             if user and user.email:
                 return user.email
             return None
@@ -57,8 +57,8 @@ class NotificationService:
         """Get user's notification preferences"""
         try:
             from models.user import User
-            from bson import ObjectId
-            user = await User.get(ObjectId(user_id))
+            # User.id is a UUID string, not ObjectId
+            user = await User.find_one({"_id": user_id})
             if user and hasattr(user, 'notification_preferences'):
                 return user.notification_preferences or {}
             return {"email_scan_results": True, "email_security_alerts": True}
