@@ -22,6 +22,15 @@ security = HTTPBearer()
 auth_service = AuthService()
 
 
+def ensure_tz_aware(dt: Optional[datetime]) -> Optional[datetime]:
+    """Ensure a datetime is timezone-aware (UTC). Returns None if input is None."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 async def require_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
     """Require admin role for access"""
     user = await auth_service.get_current_user(credentials)
@@ -74,16 +83,18 @@ async def get_admin_dashboard_stats(
             users_by_status[user_status] = users_by_status.get(user_status, 0) + 1
             
             # New registrations
-            if u.created_at:
-                if u.created_at >= last_24h:
+            created_at = ensure_tz_aware(u.created_at)
+            if created_at:
+                if created_at >= last_24h:
                     new_users_24h += 1
-                if u.created_at >= last_7d:
+                if created_at >= last_7d:
                     new_users_7d += 1
-                if u.created_at >= last_30d:
+                if created_at >= last_30d:
                     new_users_30d += 1
             
             # Active users (logged in recently)
-            if u.last_login and u.last_login >= last_24h:
+            last_login = ensure_tz_aware(u.last_login)
+            if last_login and last_login >= last_24h:
                 active_users_24h += 1
         
         # Project Statistics
@@ -123,10 +134,11 @@ async def get_admin_dashboard_stats(
             scans_by_status[scan_status] = scans_by_status.get(scan_status, 0) + 1
             
             # Recent scans
-            if scan.created_at:
-                if scan.created_at >= last_24h:
+            scan_created_at = ensure_tz_aware(scan.created_at)
+            if scan_created_at:
+                if scan_created_at >= last_24h:
                     scans_24h += 1
-                if scan.created_at >= last_7d:
+                if scan_created_at >= last_7d:
                     scans_7d += 1
             
             # Findings
@@ -510,30 +522,34 @@ async def get_recent_activity(
     """
     try:
         activities = []
+        now = datetime.now(timezone.utc)
+        seven_days_ago = now - timedelta(days=7)
         
         # Recent user registrations
         recent_users = await User.find_all().sort([("created_at", -1)]).limit(20).to_list()
         for u in recent_users:
-            if u.created_at:
+            created_at = ensure_tz_aware(u.created_at)
+            if created_at:
                 activities.append({
                     "type": "user_registration",
                     "icon": "user",
                     "title": f"New user registered: {u.username}",
                     "description": f"{u.email} ({u.role.value if hasattr(u.role, 'value') else u.role})",
-                    "timestamp": u.created_at.isoformat(),
+                    "timestamp": created_at.isoformat(),
                     "entity_id": str(u.id),
                     "entity_type": "user"
                 })
         
         # Recent logins
         for u in recent_users:
-            if u.last_login and u.last_login > (datetime.now(timezone.utc) - timedelta(days=7)):
+            last_login = ensure_tz_aware(u.last_login)
+            if last_login and last_login > seven_days_ago:
                 activities.append({
                     "type": "user_login",
                     "icon": "login",
                     "title": f"User login: {u.username}",
                     "description": f"Last login from {u.organization or 'Unknown organization'}",
-                    "timestamp": u.last_login.isoformat(),
+                    "timestamp": last_login.isoformat(),
                     "entity_id": str(u.id),
                     "entity_type": "user"
                 })
@@ -541,14 +557,15 @@ async def get_recent_activity(
         # Recent projects
         recent_projects = await Project.find_all().sort([("created_at", -1)]).limit(20).to_list()
         for p in recent_projects:
-            if p.created_at:
+            created_at = ensure_tz_aware(p.created_at)
+            if created_at:
                 owner = await User.find_one(User.id == p.owner_id) if p.owner_id else None
                 activities.append({
                     "type": "project_created",
                     "icon": "folder",
                     "title": f"Project created: {p.name}",
                     "description": f"By {owner.username if owner else 'Unknown'}",
-                    "timestamp": p.created_at.isoformat(),
+                    "timestamp": created_at.isoformat(),
                     "entity_id": str(p.id),
                     "entity_type": "project"
                 })
@@ -556,7 +573,8 @@ async def get_recent_activity(
         # Recent scans
         recent_scans = await ScanReport.find_all().sort([("created_at", -1)]).limit(30).to_list()
         for s in recent_scans:
-            if s.created_at:
+            scan_created_at = ensure_tz_aware(s.created_at)
+            if scan_created_at:
                 scan_status = s.status.value if hasattr(s.status, 'value') else str(s.status)
                 icon = "check" if scan_status == "completed" else "x" if scan_status == "failed" else "clock"
                 
@@ -565,7 +583,7 @@ async def get_recent_activity(
                     "icon": icon,
                     "title": f"Scan {scan_status}: {s.project_name}",
                     "description": f"{s.total_findings or 0} findings" if scan_status == "completed" else "",
-                    "timestamp": s.created_at.isoformat(),
+                    "timestamp": scan_created_at.isoformat(),
                     "entity_id": str(s.id),
                     "entity_type": "scan"
                 })
