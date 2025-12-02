@@ -81,16 +81,22 @@ const ProjectList = () => {
     try {
       toast.loading("Preparing download...", { id: "download" });
 
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL ||
-        import.meta.env.VITE_API_BASE_URL ||
-        "/api";
+      // Get auth token
+      const token = localStorage.getItem("access_token");
+
+      // Use correct API base URL for dev/prod
+      const API_BASE_URL = import.meta.env.DEV
+        ? "http://127.0.0.1:8000/api"
+        : import.meta.env.VITE_API_URL ||
+          import.meta.env.VITE_API_BASE_URL ||
+          "/api";
 
       const response = await fetch(
         `${API_BASE_URL}/reports/${reportId}/download?format=${format}`,
         {
           method: "GET",
           headers: {
+            Authorization: token ? `Bearer ${token}` : "",
             Accept:
               format === "pdf"
                 ? "application/pdf"
@@ -102,6 +108,11 @@ const ProjectList = () => {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication required. Please log in again.");
+        } else if (response.status === 403) {
+          throw new Error("Access denied to this report.");
+        }
         const errorText = await response.text();
         throw new Error(`Download failed: ${errorText}`);
       }

@@ -6,7 +6,8 @@ API endpoints for enterprise security features:
 - Security Trends Dashboard
 - Scan Comparison & Delta Analysis
 """
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Response
+from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Response, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional, List
 from pydantic import BaseModel, Field
 from datetime import datetime
@@ -44,9 +45,18 @@ from services.scanning.scan_comparison import (
     get_scan_comparison_service,
     ScanComparisonService
 )
+from models.user import User
+from services.auth.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/enterprise", tags=["Enterprise Security"])
+security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
 
 
 # ============ Request/Response Models ============

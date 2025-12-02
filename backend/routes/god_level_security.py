@@ -3,7 +3,8 @@ God-Level Security API Routes
 Advanced Security Integration: rule parsing, testing, baselines, and policy enforcement
 FastAPI Implementation
 """
-from fastapi import APIRouter, HTTPException, File, UploadFile, Body, Query
+from fastapi import APIRouter, HTTPException, File, UploadFile, Body, Query, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import asyncio
 import logging
 import os
@@ -27,6 +28,8 @@ from services.scanning.baseline_manager import BaselineManager
 from services.rules.policy_as_code_engine import PolicyAsCodeEngine
 from services.ai.ai_processor import get_ai_processor
 from services.scanning.advanced_scanners import AdvancedSecurityScanner
+from models.user import User
+from services.auth.auth_service import AuthService
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +37,13 @@ logger = logging.getLogger(__name__)
 
 # Create router
 router = APIRouter(prefix="/api/v1/god-level", tags=["god-level"])
+security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
 
 # Request/Response models
 class RuleUploadRequest(BaseModel):

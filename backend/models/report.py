@@ -261,6 +261,8 @@ class ScanReport(Document):
     
     # Identifiers
     project_name: str = Field(..., description="Project/repository name")
+    project_id: Optional[str] = Field(None, description="Project ID for data isolation")
+    user_id: Optional[str] = Field(None, description="Owner user ID for data isolation")
     scan_id: str = Field(..., description="Unique scan identifier")
     
     # Git information
@@ -307,13 +309,17 @@ class ScanReport(Document):
         name = "scan_reports"
         indexes = [
             "project_name",
+            "project_id",
+            "user_id",
             "git_metadata.repository_url",
             "git_metadata.branch",
             "git_metadata.commit_hash",
             "status",
             "created_at",
             [("project_name", 1), ("created_at", -1)],
-            [("status", 1), ("created_at", -1)]
+            [("status", 1), ("created_at", -1)],
+            [("user_id", 1), ("created_at", -1)],
+            [("project_id", 1), ("created_at", -1)]
         ]
 
     def update_summary(self):

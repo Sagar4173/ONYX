@@ -4,7 +4,7 @@ Advanced Scanning FastAPI Routes
 Unified pipeline for ZAP, Nuclei, CodeQL, and Checkov integration
 """
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List, Dict, Any
 import asyncio
@@ -24,6 +24,8 @@ from services.scanning.advanced_scanner_engine import (
     ScanType,
     Severity
 )
+from models.user import User
+from services.auth.auth_service import AuthService
 from database import db_manager
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,7 @@ router = APIRouter(prefix="/api/advanced-scanning", tags=["Advanced Scanning"])
 
 # Security
 security = HTTPBearer()
+auth_service = AuthService()
 
 # Request/Response models
 class ComprehensiveScanRequest(BaseModel):
@@ -97,17 +100,15 @@ def get_allowed_targets():
         "test.example.com"
     ]
 
-async def get_current_user(token: str = Depends(security)):
-    """Get current user from JWT token"""
-    # This would typically validate JWT and return user info
-    # For now, return a mock user
-    return {"user_id": "user123", "username": "testuser"}
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current user from JWT token using real auth service"""
+    return await auth_service.get_current_user(credentials)
 
 @router.post("/scan/comprehensive", response_model=ScanResponse)
 async def comprehensive_scan(
     request: ComprehensiveScanRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Start comprehensive security scan with all available scanners
@@ -195,13 +196,13 @@ async def start_comprehensive_scan_task(
 async def sast_scan(
     request: SASTScanRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Start SAST scan using CodeQL
     """
     try:
-        user_id = current_user["user_id"]
+        user_id = str(current_user.id)
         repository_url = str(request.repository_url)
         
         # Start scan in background
@@ -277,13 +278,13 @@ async def start_sast_scan_task(
 async def dast_scan(
     request: DASTScanRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Start DAST scan using ZAP and Nuclei
     """
     try:
-        user_id = current_user["user_id"]
+        user_id = str(current_user.id)
         target_url = str(request.target_url)
         
         # Validate target
@@ -371,13 +372,13 @@ async def start_dast_scan_task(target_url: str, user_id: str):
 async def iac_scan(
     request: IaCScanRequest,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Start Infrastructure as Code scan using Checkov
     """
     try:
-        user_id = current_user["user_id"]
+        user_id = str(current_user.id)
         repository_url = str(request.repository_url)
         
         # Start scan in background
@@ -473,13 +474,13 @@ async def get_suppressions(
 @router.post("/suppressions")
 async def create_suppression(
     request: SuppressionRuleRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Create new suppression rule
     """
     try:
-        user_id = current_user["user_id"]
+        user_id = str(current_user.id)
         
         suppression_rule = {
             'id': str(datetime.now().timestamp()),

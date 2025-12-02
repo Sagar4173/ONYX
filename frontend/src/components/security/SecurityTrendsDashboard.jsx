@@ -272,8 +272,14 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
       const params = new URLSearchParams();
       if (projectId) params.append("project_id", projectId);
 
+      const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `${API_BASE_URL}/api/enterprise/trends/dashboard?${params}`
+        `${API_BASE_URL}/api/enterprise/trends/dashboard?${params}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
       );
       if (!response.ok) throw new Error("Failed to fetch trends data");
       return response.json();

@@ -3,6 +3,7 @@ Enterprise Features API Routes
 Notification, Audit Logging, Data Retention, and Advanced Compliance endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel, Field
@@ -25,9 +26,18 @@ from services.compliance.advanced_compliance_service import (
     ComplianceFramework,
     ComplianceStatus,
 )
+from models.user import User
+from services.auth.auth_service import AuthService
 from database import db_manager
 
 router = APIRouter(prefix="/api/enterprise", tags=["Enterprise Features"])
+security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
 
 
 # Dependency to get database

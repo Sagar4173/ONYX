@@ -2,7 +2,8 @@
 API routes for Custom Rule Engine, Baseline Scanning, and Policy as Code
 """
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query, BackgroundTasks, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
 import logging
@@ -34,11 +35,20 @@ from services.rules.policy_engine import (
     PolicyScope, PolicyAction
 )
 from models.report import ScanReport
+from models.user import User
+from services.auth.auth_service import AuthService
 from database import scan_reports_collection
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/security", tags=["security"])
+security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
 
 
 # ========== Custom Rule Engine Endpoints ==========
@@ -47,7 +57,6 @@ class RuleCreateRequest(BaseModel):
     rule_data: Dict[str, Any]
     validate_rule: bool = True  # Renamed from 'validate' to avoid shadowing BaseModel.validate
     test_repo_path: Optional[str] = None
-
 
 class RuleFromTemplateRequest(BaseModel):
     template_id: str

@@ -257,11 +257,31 @@ const EnhancedReportDetails = () => {
     try {
       toast.loading("Preparing download...", { id: "download" });
 
+      // Get the auth token for authenticated download
+      const token = localStorage.getItem("access_token");
+
+      // Use the proper API base URL (same as axios config)
+      const API_BASE_URL = import.meta.env.DEV
+        ? "http://127.0.0.1:8000/api"
+        : import.meta.env.VITE_API_URL ||
+          import.meta.env.VITE_API_BASE_URL ||
+          "/api";
+
       const response = await fetch(
-        `/api/reports/${reportId}/download?format=${format}`
+        `${API_BASE_URL}/reports/${reportId}/download?format=${format}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication required. Please log in again.");
+        } else if (response.status === 403) {
+          throw new Error("Access denied to this report.");
+        }
         throw new Error("Download failed");
       }
 
@@ -281,9 +301,12 @@ const EnhancedReportDetails = () => {
 
       toast.success("Download completed!", { id: "download" });
     } catch (error) {
-      toast.error("Failed to download report. Please try again.", {
-        id: "download",
-      });
+      toast.error(
+        error.message || "Failed to download report. Please try again.",
+        {
+          id: "download",
+        }
+      );
       console.error("Download error:", error);
     }
   };

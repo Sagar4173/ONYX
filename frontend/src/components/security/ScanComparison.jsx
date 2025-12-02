@@ -199,11 +199,15 @@ const ScanComparison = ({
     queryFn: async () => {
       if (!selectedBaseScan || !selectedCompareScan) return null;
 
+      const token = localStorage.getItem("access_token");
       const response = await fetch(
         `${API_BASE_URL}/api/enterprise/scans/compare`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
           body: JSON.stringify({
             base_scan_id: selectedBaseScan,
             compare_scan_id: selectedCompareScan,

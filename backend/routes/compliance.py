@@ -2,15 +2,16 @@
 Compliance reporting endpoints for security scan results
 """
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from datetime import datetime, timedelta
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timedelta, timezone
 import logging
 import os
+
+# Helper function to get timezone-aware UTC datetime
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 # Environment check for safe error messages
 IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
@@ -22,13 +23,22 @@ def safe_error_detail(error: Exception, operation: str) -> str:
     return f"{operation} failed: {str(error)}"
 
 from models.report import ScanReport, VulnerabilityFinding, ComplianceFramework
+from models.user import User
 from services.compliance.compliance_analyzer import ComplianceAnalysisService
+from services.auth.auth_service import AuthService
 from database import scan_reports_collection
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/compliance", tags=["compliance"])
+security = HTTPBearer()
+auth_service = AuthService()
 compliance_service = ComplianceAnalysisService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
 
 
 class ComplianceReportRequest(BaseModel):

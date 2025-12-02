@@ -641,6 +641,17 @@ export const projectsAPI = {
     }
   },
 
+  // Get project analytics/stats for a specific project
+  getProjectAnalytics: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching project analytics:", error);
+      throw error;
+    }
+  },
+
   // Add member to project
   addMember: async (projectId, memberData) => {
     try {

@@ -10,6 +10,7 @@ import io
 
 from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from bson import ObjectId
 
 # PDF generation imports
@@ -21,11 +22,33 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 from models.report import ScanReport, ScanStatus, SeverityLevel, ScannerType
+from models.user import User
+from models.project import Project
+from services.auth.auth_service import AuthService
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["reports"])
+security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
+
+
+async def get_user_project_ids(user_id: str) -> List[str]:
+    """Get list of project IDs accessible to the user"""
+    from beanie.operators import Or
+    projects = await Project.find(
+        Or(
+            Project.owner_id == user_id,
+            Project.team_members.user_id == user_id
+        )
+    ).to_list()
+    return [str(p.id) for p in projects]
 
 
 @router.get("/")
@@ -38,7 +61,8 @@ async def list_reports(
     status: Optional[ScanStatus] = Query(None, description="Filter by scan status"),
     branch: Optional[str] = Query(None, description="Filter by branch"),
     severity_filter: Optional[SeverityLevel] = Query(None, description="Filter by minimum severity"),
-    days_back: Optional[int] = Query(None, ge=1, le=365, description="Filter by days back from now")
+    days_back: Optional[int] = Query(None, ge=1, le=365, description="Filter by days back from now"),
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     List scan reports with filtering and pagination
@@ -50,16 +74,41 @@ async def list_reports(
     - Branch
     - Minimum severity level
     - Time range (days back from current time)
+    
+    Only returns reports for projects the user has access to.
     """
     try:
-        logger.info(f"📊 Fetching reports - limit: {limit}, skip: {skip}, project_id: {project_id}")
+        user_id = str(current_user.id)
+        logger.info(f"📊 Fetching reports for user {current_user.username} - limit: {limit}, skip: {skip}, project_id: {project_id}")
+        
+        # Get list of project IDs the user has access to
+        accessible_project_ids = await get_user_project_ids(user_id)
+        logger.info(f"👤 User has access to {len(accessible_project_ids)} projects")
         
         # Build query filters for database
         filters = {}
         
-        # Apply project_id filter if provided
+        # CRITICAL: Filter by user's accessible projects OR by user_id directly
+        # This ensures data isolation between users
+        if accessible_project_ids:
+            filters["$or"] = [
+                {"project_id": {"$in": accessible_project_ids}},
+                {"user_id": user_id}
+            ]
+        else:
+            # User has no projects, only show reports they created directly
+            filters["user_id"] = user_id
+        
+        # Apply project_id filter if provided (must still be accessible)
         if project_id:
+            if project_id not in accessible_project_ids:
+                raise HTTPException(
+                    status_code=403,
+                    detail="You don't have access to this project"
+                )
             filters["project_id"] = project_id
+            # Remove the $or filter since we're filtering by specific project
+            filters.pop("$or", None)
         
         # Apply filters if provided
         if project_name:
@@ -159,9 +208,14 @@ async def list_reports(
 
 
 @router.get("/{report_id}")
-async def get_report(report_id: str) -> Dict[str, Any]:
+async def get_report(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
     """
     Get detailed scan report by ID
+    
+    Requires authentication. User can only access reports for their own projects.
     
     Returns complete scan report including:
     - Basic report information
@@ -174,6 +228,7 @@ async def get_report(report_id: str) -> Dict[str, Any]:
     try:
         # Try to find in database first
         report = None
+        user_id = str(current_user.id)
         
         # Check if it's a valid ObjectId (for real database documents)
         if ObjectId.is_valid(report_id):
@@ -195,6 +250,19 @@ async def get_report(report_id: str) -> Dict[str, Any]:
         if not report:
             logger.info(f"Report {report_id} not found in database (tried ObjectId and scan_id)")
             raise HTTPException(status_code=404, detail=f"Report {report_id} not found")
+        
+        # Verify user has access to this report
+        accessible_project_ids = await get_user_project_ids(user_id)
+        report_user_id = getattr(report, 'user_id', None)
+        report_project_id = getattr(report, 'project_id', None)
+        
+        has_access = (
+            report_user_id == user_id or  # User owns the report
+            (report_project_id and report_project_id in accessible_project_ids)  # User has access to the project
+        )
+        
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Access denied to this report")
         
         # If we have a real database report, format it properly
         if report:
@@ -288,9 +356,15 @@ async def get_report(report_id: str) -> Dict[str, Any]:
 
 
 @router.get("/{report_id}/download")
-async def download_report(report_id: str, format: str = Query("json", regex="^(json|pdf|csv)$")):
+async def download_report(
+    report_id: str, 
+    format: str = Query("json", regex="^(json|pdf|csv)$"),
+    current_user: User = Depends(get_current_user)
+):
     """
     Download report in specified format
+    
+    Requires authentication. User can only download reports for their own projects.
     
     Supports:
     - json: Complete report data as JSON
@@ -305,12 +379,26 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
     try:
         # Get the report data (reuse the logic from get_report)
         report_data = None
+        user_id = str(current_user.id)
         
         # Check if it's a valid ObjectId (for real database documents)
         if ObjectId.is_valid(report_id):
             try:
                 report = await ScanReport.get(ObjectId(report_id))
                 if report:
+                    # Verify user has access to this report
+                    accessible_project_ids = await get_user_project_ids(user_id)
+                    report_user_id = getattr(report, 'user_id', None)
+                    report_project_id = getattr(report, 'project_id', None)
+                    
+                    has_access = (
+                        report_user_id == user_id or  # User owns the report
+                        (report_project_id and report_project_id in accessible_project_ids)  # User has access to the project
+                    )
+                    
+                    if not has_access:
+                        raise HTTPException(status_code=403, detail="Access denied to this report")
+                    
                     # Convert to the same format as get_report endpoint with full data
                     report_data = {
                         "id": str(report.id),
@@ -981,9 +1069,14 @@ async def download_report(report_id: str, format: str = Query("json", regex="^(j
 
 
 @router.get("/{report_id}/summary")
-async def get_report_summary(report_id: str) -> Dict[str, Any]:
+async def get_report_summary(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
     """
     Get summary information for a specific report
+    
+    Requires authentication. User can only access reports for their own projects.
     
     Returns condensed report information without detailed findings
     """
@@ -995,6 +1088,20 @@ async def get_report_summary(report_id: str) -> Dict[str, Any]:
         
         if not report:
             raise HTTPException(status_code=404, detail="Report not found")
+        
+        # Verify user has access to this report
+        user_id = str(current_user.id)
+        accessible_project_ids = await get_user_project_ids(user_id)
+        report_user_id = getattr(report, 'user_id', None)
+        report_project_id = getattr(report, 'project_id', None)
+        
+        has_access = (
+            report_user_id == user_id or
+            (report_project_id and report_project_id in accessible_project_ids)
+        )
+        
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Access denied to this report")
         
         return {
             "id": str(report.id),
@@ -1030,9 +1137,14 @@ async def get_report_summary(report_id: str) -> Dict[str, Any]:
 
 
 @router.get("/{report_id}/ai-analysis")
-async def get_ai_analysis(report_id: str) -> Dict[str, Any]:
+async def get_ai_analysis(
+    report_id: str,
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
     """
     Get AI analysis for a specific report
+    
+    Requires authentication. User can only access reports for their own projects.
     
     Returns AI-generated analysis including:
     - Executive summary
@@ -1045,6 +1157,7 @@ async def get_ai_analysis(report_id: str) -> Dict[str, Any]:
     try:
         # Try to find by ObjectId first
         report = None
+        user_id = str(current_user.id)
         
         if ObjectId.is_valid(report_id):
             try:
@@ -1061,6 +1174,19 @@ async def get_ai_analysis(report_id: str) -> Dict[str, Any]:
         
         if not report:
             raise HTTPException(status_code=404, detail="Report not found")
+        
+        # Verify user has access to this report
+        accessible_project_ids = await get_user_project_ids(user_id)
+        report_user_id = getattr(report, 'user_id', None)
+        report_project_id = getattr(report, 'project_id', None)
+        
+        has_access = (
+            report_user_id == user_id or
+            (report_project_id and report_project_id in accessible_project_ids)
+        )
+        
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Access denied to this report")
         
         if not report.ai_analysis:
             return {
@@ -1117,10 +1243,13 @@ async def get_ai_analysis(report_id: str) -> Dict[str, Any]:
 @router.get("/analytics/overview")
 async def get_analytics_overview(
     days_back: int = Query(30, ge=1, le=365, description="Number of days to analyze"),
-    project_name: Optional[str] = Query(None, description="Filter by project name")
+    project_name: Optional[str] = Query(None, description="Filter by project name"),
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Get analytics overview for the specified time period
+    
+    Requires authentication. Only shows analytics for user's accessible projects.
     
     Returns aggregated statistics including:
     - Total scans performed
@@ -1130,9 +1259,26 @@ async def get_analytics_overview(
     """
     try:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
+        user_id = str(current_user.id)
         
-        # Build base query
-        query = ScanReport.find(ScanReport.created_at >= cutoff_date)
+        # Get accessible project IDs
+        accessible_project_ids = await get_user_project_ids(user_id)
+        
+        # Build base query with user access filter
+        from beanie.operators import Or, In
+        
+        # Build query conditions
+        query_conditions = [ScanReport.created_at >= cutoff_date]
+        
+        # Add user access filter
+        user_access_conditions = [ScanReport.user_id == user_id]
+        if accessible_project_ids:
+            user_access_conditions.append(In(ScanReport.project_id, accessible_project_ids))
+        
+        query = ScanReport.find(
+            *query_conditions,
+            Or(*user_access_conditions)
+        )
         
         if project_name:
             query = query.find(ScanReport.project_name == project_name)
@@ -1240,11 +1386,32 @@ async def get_analytics_overview(
 async def get_project_reports(
     project_name: str,
     limit: int = Query(20, ge=1, le=100),
-    skip: int = Query(0, ge=0)
+    skip: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """Get all reports for a specific project"""
+    """
+    Get all reports for a specific project
+    
+    Requires authentication. User must have access to the project.
+    """
     try:
-        query = ScanReport.find(ScanReport.project_name == project_name)
+        user_id = str(current_user.id)
+        
+        # Verify user has access to this project
+        accessible_project_ids = await get_user_project_ids(user_id)
+        
+        # Also check if user owns any reports for this project name
+        from beanie.operators import Or, In
+        
+        # Build user access conditions
+        user_access_conditions = [ScanReport.user_id == user_id]
+        if accessible_project_ids:
+            user_access_conditions.append(In(ScanReport.project_id, accessible_project_ids))
+        
+        query = ScanReport.find(
+            ScanReport.project_name == project_name,
+            Or(*user_access_conditions)
+        )
         
         total = await query.count()
         reports = await query.sort(-ScanReport.created_at).skip(skip).limit(limit).to_list()

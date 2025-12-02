@@ -11,18 +11,21 @@ from typing import Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException, Request, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, HttpUrl
 
 from models.report import (
     ScanReport, WebhookEvent, GitMetadata, ScanStatus, ScannerType,
     ScanResult, VulnerabilityFinding, SeverityLevel
 )
+from models.user import User
 from services.scanning.enhanced_scanning_workflow import enhanced_workflow
 from services.ai.ai_processor import get_ai_processor
 from services.notifications.notifier import notification_service
 from services.notifications.websocket_manager import ws_manager
 from services.scanning.real_scanner import RealSecurityScanner
 from services.infrastructure.project_service import ProjectService
+from services.auth.auth_service import AuthService
 from utils.repo_clone import repo_cloner
 from config import settings
 
@@ -30,8 +33,15 @@ logger = logging.getLogger(__name__)
 
 # Initialize services
 project_service = ProjectService()
+auth_service = AuthService()
+security = HTTPBearer()
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
 
 
 class ScanRequest(BaseModel):
@@ -48,9 +58,14 @@ active_scans: Dict[str, bool] = {}
 
 
 @router.get("/scan/{scan_id}/status")
-async def get_scan_status(scan_id: str) -> JSONResponse:
+async def get_scan_status(
+    scan_id: str,
+    current_user: User = Depends(get_current_user)
+) -> JSONResponse:
     """
     Get the current status of a scan
+    
+    Requires authentication. User can only access their own scans.
     
     Args:
         scan_id: The scan ID to check
@@ -63,6 +78,13 @@ async def get_scan_status(scan_id: str) -> JSONResponse:
         
         if not scan_report:
             raise HTTPException(status_code=404, detail="Scan not found")
+        
+        # Verify user has access to this scan
+        user_id = str(current_user.id)
+        report_user_id = getattr(scan_report, 'user_id', None)
+        
+        if report_user_id and report_user_id != user_id:
+            raise HTTPException(status_code=403, detail="Access denied to this scan")
         
         return JSONResponse(
             status_code=200,
@@ -90,9 +112,14 @@ async def get_scan_status(scan_id: str) -> JSONResponse:
 
 
 @router.post("/scan/{scan_id}/stop")
-async def stop_scan(scan_id: str) -> JSONResponse:
+async def stop_scan(
+    scan_id: str,
+    current_user: User = Depends(get_current_user)
+) -> JSONResponse:
     """
     Stop/cancel a running scan
+    
+    Requires authentication. User can only stop their own scans.
     
     Args:
         scan_id: The scan ID to stop
@@ -105,6 +132,13 @@ async def stop_scan(scan_id: str) -> JSONResponse:
         
         if not scan_report:
             raise HTTPException(status_code=404, detail="Scan not found")
+        
+        # Verify user has access to this scan
+        user_id = str(current_user.id)
+        report_user_id = getattr(scan_report, 'user_id', None)
+        
+        if report_user_id and report_user_id != user_id:
+            raise HTTPException(status_code=403, detail="Access denied to this scan")
         
         # Check if scan is still running
         if scan_report.status not in [ScanStatus.PENDING, ScanStatus.RUNNING]:
@@ -147,7 +181,10 @@ async def stop_scan(scan_id: str) -> JSONResponse:
 
 
 @router.post("/scan")
-async def submit_scan(scan_request: ScanRequest) -> JSONResponse:
+async def submit_scan(
+    scan_request: ScanRequest,
+    current_user: User = Depends(get_current_user)
+) -> JSONResponse:
     """
     Submit a manual security scan for a repository
     
@@ -156,17 +193,20 @@ async def submit_scan(scan_request: ScanRequest) -> JSONResponse:
         
     Returns:
         Scan submission response with scan ID
+    
+    Requires authentication. The scan will be associated with the current user.
     """
     try:
         # Generate unique scan ID
         scan_id = str(uuid.uuid4())
+        user_id = str(current_user.id)
         
         # Extract project name from URL
         project_name = str(scan_request.repository_url).split('/')[-1].replace('.git', '')
         if not project_name:
             project_name = "Unknown Project"
         
-        logger.info(f"📝 Manual scan submitted for {project_name} (ID: {scan_id})")
+        logger.info(f"📝 Manual scan submitted by user {current_user.username} for {project_name} (ID: {scan_id})")
         
         # Create simple git metadata for now
         try:
@@ -182,10 +222,12 @@ async def submit_scan(scan_request: ScanRequest) -> JSONResponse:
             )
             logger.info(f"✅ Created git metadata for {project_name}")
             
-            # Create initial scan report in database
+            # Create initial scan report in database with user_id for data isolation
             scan_report = ScanReport(
                 scan_id=scan_id,
                 project_name=project_name,
+                project_id=scan_request.project_id,  # Link to project if provided
+                user_id=user_id,  # CRITICAL: Associate with user for data isolation
                 status=ScanStatus.PENDING,
                 created_at=datetime.now(timezone.utc),
                 git_metadata=git_metadata,
@@ -201,7 +243,8 @@ async def submit_scan(scan_request: ScanRequest) -> JSONResponse:
                 tags=[project_name.lower().replace('-', '_'), scan_request.branch.replace('/', '_')],
                 metadata={
                     "scan_types": scan_request.scan_types,
-                    "initiated_by": "manual_scan",
+                    "initiated_by": current_user.username,
+                    "initiated_by_user_id": user_id,
                     "source": "webhook_api"
                 }
             )
@@ -871,9 +914,19 @@ class WebhookProcessor:
             
             logger.info(f"Starting scan workflow for {git_metadata.repository_url}")
             
-            # Create scan report
+            # Try to find the project associated with this repository for data isolation
+            from models.project import Project
+            project = await Project.find_one(
+                Project.repository.url == git_metadata.repository_url
+            )
+            project_id = str(project.id) if project else None
+            user_id = project.owner_id if project else None
+            
+            # Create scan report with proper data isolation
             scan_report = ScanReport(
                 project_name=self._extract_project_name(git_metadata.repository_url),
+                project_id=project_id,  # Link to project for data isolation
+                user_id=user_id,  # Link to owner for data isolation
                 scan_id=str(uuid.uuid4()),
                 git_metadata=git_metadata,
                 status=ScanStatus.PENDING

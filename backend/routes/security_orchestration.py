@@ -10,7 +10,7 @@ Date: August 2025
 """
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
 import logging
@@ -19,6 +19,8 @@ import asyncio
 
 # Import our orchestration engine
 from services.security.security_orchestration_engine import SecurityOrchestrationEngine
+from models.user import User
+from services.auth.auth_service import AuthService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +28,13 @@ logger = logging.getLogger(__name__)
 
 # Security
 security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
+
 
 # Initialize orchestration engine
 orchestration_engine = SecurityOrchestrationEngine()

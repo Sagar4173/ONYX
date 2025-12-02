@@ -8,7 +8,8 @@ import logging
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Body
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Body, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
 from services.security.threat_intelligence import (
@@ -26,11 +27,21 @@ from services.security.security_metrics import (
 from services.scanning.penetration_testing import (
     PenetrationTestingEngine, PentestType, AttackPath
 )
+from models.user import User
+from services.auth.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
 
 # Initialize router
 router = APIRouter(prefix="/api/v1/enhanced", tags=["enhanced-security"])
+security = HTTPBearer()
+auth_service = AuthService()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get current authenticated user"""
+    return await auth_service.get_current_user(credentials)
+
 
 # Global service instances
 threat_intel_engine: Optional[ThreatIntelligenceEngine] = None

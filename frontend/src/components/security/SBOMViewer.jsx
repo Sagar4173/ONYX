@@ -220,11 +220,15 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
   // Generate SBOM mutation
   const generateMutation = useMutation({
     mutationFn: async (params) => {
+      const token = localStorage.getItem("access_token");
       const response = await fetch(
         `${API_BASE_URL}/api/enterprise/sbom/generate`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
           body: JSON.stringify(params),
         }
       );
@@ -237,8 +241,14 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
   const { data: formatsData } = useQuery({
     queryKey: ["sbom-formats"],
     queryFn: async () => {
+      const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `${API_BASE_URL}/api/enterprise/sbom/formats`
+        `${API_BASE_URL}/api/enterprise/sbom/formats`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
       );
       if (!response.ok) throw new Error("Failed to fetch formats");
       return response.json();
