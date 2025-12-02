@@ -214,7 +214,7 @@ class APIToken(Document):
     usage_count: int = 0
     
     # Audit
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
     created_by: str
     revoked_at: Optional[datetime] = None
     revoked_by: Optional[str] = None
@@ -404,6 +404,11 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+
+
+class RefreshTokenRequest(BaseModel):
+    """Model for refresh token request"""
+    refresh_token: str
 
 
 class APITokenCreate(BaseModel):

@@ -16,7 +16,7 @@ from models.user import (
     PasswordResetRequest, PasswordResetConfirm,
     EmailVerificationRequest, NotificationPreferencesUpdate,
     TwoFactorSetupResponse, TwoFactorVerifyRequest, SessionResponse,
-    APITokenCreate, APITokenResponse, TokenResponse
+    APITokenCreate, APITokenResponse, TokenResponse, RefreshTokenRequest
 )
 from services.auth.auth_service import auth_service
 from services.notifications.service import email_service
@@ -127,12 +127,15 @@ async def login(login_data: LoginRequest, request: Request):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(refresh_token: str):
+async def refresh_token(request_data: RefreshTokenRequest):
     """
     Refresh access token using refresh token
+    
+    Send refresh_token in request body as JSON:
+    {"refresh_token": "your_refresh_token_here"}
     """
     try:
-        response = await auth_service.refresh_access_token(refresh_token)
+        response = await auth_service.refresh_access_token(request_data.refresh_token)
         return response
     except HTTPException:
         raise

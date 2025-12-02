@@ -33,6 +33,7 @@ router = APIRouter(tags=["reports"])
 async def list_reports(
     limit: int = Query(50, ge=1, le=1000, description="Number of reports to return"),
     skip: int = Query(0, ge=0, description="Number of reports to skip"),
+    project_id: Optional[str] = Query(None, description="Filter by project ID"),
     project_name: Optional[str] = Query(None, description="Filter by project name"),
     status: Optional[ScanStatus] = Query(None, description="Filter by scan status"),
     branch: Optional[str] = Query(None, description="Filter by branch"),
@@ -43,6 +44,7 @@ async def list_reports(
     List scan reports with filtering and pagination
     
     Returns a paginated list of scan reports with optional filtering by:
+    - Project ID
     - Project name
     - Scan status
     - Branch
@@ -50,10 +52,14 @@ async def list_reports(
     - Time range (days back from current time)
     """
     try:
-        logger.info(f"📊 Fetching reports - limit: {limit}, skip: {skip}")
+        logger.info(f"📊 Fetching reports - limit: {limit}, skip: {skip}, project_id: {project_id}")
         
         # Build query filters for database
         filters = {}
+        
+        # Apply project_id filter if provided
+        if project_id:
+            filters["project_id"] = project_id
         
         # Apply filters if provided
         if project_name:
@@ -111,6 +117,7 @@ async def list_reports(
                         "has_more": skip + len(formatted_reports) < total
                     },
                     "filters": {
+                        "project_id": project_id,
                         "project_name": project_name,
                         "status": status,
                         "branch": branch,
@@ -135,6 +142,7 @@ async def list_reports(
                 "has_more": False
             },
             "filters": {
+                "project_id": project_id,
                 "project_name": project_name,
                 "status": status,
                 "branch": branch,
@@ -148,8 +156,6 @@ async def list_reports(
             status_code=500,
             detail=f"Failed to retrieve reports: {str(e)}"
         )
-        logger.error(f"Error listing reports: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve reports: {e}")
 
 
 @router.get("/{report_id}")
