@@ -43,19 +43,15 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     return await auth_service.get_current_user(credentials)
 
 
-# Global service instances - lazy initialized to reduce memory on startup
+# Global service instances
 threat_intel_engine: Optional[ThreatIntelligenceEngine] = None
 vuln_manager: Optional[VulnerabilityManager] = None
 metrics_engine: Optional[SecurityMetricsEngine] = None
 pentest_engine: Optional[PenetrationTestingEngine] = None
-_services_initialized = False
 
 def init_enhanced_security_services():
-    """Initialize all enhanced security services (lazy - only when needed)"""
-    global threat_intel_engine, vuln_manager, metrics_engine, pentest_engine, _services_initialized
-    
-    if _services_initialized:
-        return True
+    """Initialize all enhanced security services"""
+    global threat_intel_engine, vuln_manager, metrics_engine, pentest_engine
     
     try:
         # Initialize Threat Intelligence Engine
@@ -75,17 +71,11 @@ def init_enhanced_security_services():
         logger.info("✅ Penetration Testing Engine initialized")
         
         logger.info("🚀 All Enhanced Security services initialized successfully")
-        _services_initialized = True
         return True
         
     except Exception as e:
         logger.error(f"❌ Failed to initialize Enhanced Security services: {e}")
         return False
-
-def ensure_services():
-    """Ensure services are initialized before use (lazy initialization)"""
-    if not _services_initialized:
-        init_enhanced_security_services()
 
 # Pydantic models for request/response
 class ThreatScanRequest(BaseModel):
@@ -102,7 +92,6 @@ class ComplianceAssessmentRequest(BaseModel):
 @router.get("/status")
 async def get_status():
     """Get enhanced security system status"""
-    ensure_services()
     return {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -127,7 +116,6 @@ async def health_check():
 @router.get("/threat-intel/feeds")
 async def get_threat_intelligence_feeds():
     """Get threat intelligence feeds"""
-    ensure_services()
     try:
         if threat_intel_engine:
             feeds = await threat_intel_engine.get_available_feeds()
@@ -140,7 +128,6 @@ async def get_threat_intelligence_feeds():
 @router.post("/threat-intel/analyze")
 async def analyze_threat_intelligence(request: Dict[str, Any]):
     """Analyze threat intelligence for indicators"""
-    ensure_services()
     try:
         if threat_intel_engine:
             indicators = request.get("indicators", [])
@@ -154,7 +141,6 @@ async def analyze_threat_intelligence(request: Dict[str, Any]):
 @router.get("/vuln-mgmt/dashboard")
 async def get_vulnerability_dashboard():
     """Get vulnerability management dashboard data"""
-    ensure_services()
     try:
         if vuln_manager:
             dashboard_data = await vuln_manager.get_dashboard_data()
@@ -167,7 +153,6 @@ async def get_vulnerability_dashboard():
 @router.post("/vuln-mgmt/scan")
 async def initiate_vulnerability_scan(request: Dict[str, Any]):
     """Initiate a vulnerability scan"""
-    ensure_services()
     try:
         if vuln_manager:
             scan_config = request.get("config", {})
@@ -181,7 +166,6 @@ async def initiate_vulnerability_scan(request: Dict[str, Any]):
 @router.get("/metrics/security-score")
 async def get_security_score():
     """Get overall security score and metrics"""
-    ensure_services()
     try:
         if metrics_engine:
             score_data = await metrics_engine.calculate_security_score()
@@ -194,7 +178,6 @@ async def get_security_score():
 @router.post("/pentest/execute")
 async def execute_penetration_test(request: Dict[str, Any]):
     """Execute penetration testing suite"""
-    ensure_services()
     try:
         if pentest_engine:
             test_config = request.get("config", {})
@@ -221,8 +204,8 @@ async def get_compliance_frameworks():
         logger.error(f"Error getting compliance frameworks: {e}")
         raise HTTPException(status_code=500, detail="Failed to get compliance frameworks")
 
-# Note: Services are lazy-initialized on first use to reduce memory at startup
-# init_enhanced_security_services() is called by ensure_services() when needed
+# Initialize services when module is imported
+init_enhanced_security_services()
 
 # Export router
 __all__ = ['router']

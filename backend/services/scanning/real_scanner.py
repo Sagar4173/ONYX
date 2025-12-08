@@ -20,8 +20,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 # Thread pool for running blocking operations
-# Reduced to 2 workers to conserve memory on free tier (512MB limit)
-_executor = ThreadPoolExecutor(max_workers=2)
+_executor = ThreadPoolExecutor(max_workers=4)
 
 class RealSecurityScanner:
     """
@@ -109,38 +108,15 @@ class RealSecurityScanner:
             await self._cleanup(repo_path if 'repo_path' in locals() else None)
     
     def _clone_repository_sync(self, repository_url: str, branch: str, clone_path: str) -> str:
-        """Synchronous clone operation to run in thread pool with branch fallback"""
-        import gc
-        
+        """Synchronous clone operation to run in thread pool"""
         try:
             logger.info(f"📥 Cloning repository to {clone_path}")
-            
-            # Try with specified branch first
-            try:
-                Repo.clone_from(repository_url, clone_path, branch=branch, depth=1)
-                logger.info(f"✅ Repository cloned successfully (branch: {branch})")
-                return clone_path
-            except git.exc.GitCommandError as e:
-                # Check if error is due to branch not found
-                if "Remote branch" in str(e) and "not found" in str(e):
-                    logger.warning(f"⚠️ Branch '{branch}' not found, trying default branch...")
-                    
-                    # Clean up failed clone attempt
-                    if os.path.exists(clone_path):
-                        shutil.rmtree(clone_path)
-                    
-                    # Clone without specifying branch (uses default)
-                    Repo.clone_from(repository_url, clone_path, depth=1)
-                    logger.info(f"✅ Repository cloned successfully (default branch)")
-                    return clone_path
-                else:
-                    raise
+            Repo.clone_from(repository_url, clone_path, branch=branch, depth=1)
+            logger.info(f"✅ Repository cloned successfully")
+            return clone_path
         except Exception as e:
             logger.error(f"❌ Failed to clone repository: {e}")
             raise
-        finally:
-            # Force garbage collection to free memory
-            gc.collect()
     
     async def _clone_repository(self, repository_url: str, branch: str) -> str:
         """Clone repository to temporary directory (non-blocking)"""
@@ -556,25 +532,10 @@ class RealSecurityScanner:
         return owasp_mapping.get(test_id, 'A05:2021 - Security Misconfiguration')
     
     async def _cleanup(self, repo_path: Optional[str]):
-        """Clean up temporary files and force garbage collection"""
-        import gc
-        
+        """Clean up temporary files"""
         try:
             if repo_path and os.path.exists(repo_path):
                 shutil.rmtree(repo_path)
                 logger.info(f"🧹 Cleaned up temporary directory: {repo_path}")
-            
-            # Also try to clean up the parent temp directory if empty
-            if self.temp_dir and os.path.exists(self.temp_dir):
-                try:
-                    if not os.listdir(self.temp_dir):
-                        os.rmdir(self.temp_dir)
-                        logger.info(f"🧹 Cleaned up temp directory: {self.temp_dir}")
-                except Exception:
-                    pass
-                    
         except Exception as e:
             logger.warning(f"Failed to cleanup {repo_path}: {e}")
-        finally:
-            # Force garbage collection to free memory
-            gc.collect()
