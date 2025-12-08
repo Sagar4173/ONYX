@@ -12,8 +12,10 @@
    - **Root Directory**: `backend`
    - **Runtime**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT`
+   - **Start Command**: `gunicorn app:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT --max-requests 100 --max-requests-jitter 10`
    - **Plan**: Free (or Starter for better performance)
+
+> ⚠️ **Note**: Using 1 worker (`-w 1`) to stay within the 512MB memory limit on the free tier. The `--max-requests` options help prevent memory leaks by recycling workers.
 
 ### Option 2: Using Blueprint (render.yaml)
 

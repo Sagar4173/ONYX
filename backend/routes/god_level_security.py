@@ -84,13 +84,24 @@ def init_god_level_services():
         return True
         
     except Exception as e:
-        logger.error(f"âŒ Failed to initialize God-Level Security services: {e}")
+        logger.error(f"Failed to initialize God-Level Security services: {e}")
         return False
+
+# Lazy initialization flag
+_god_level_services_initialized = False
+
+def ensure_god_level_services():
+    """Ensure services are initialized before use (lazy initialization)"""
+    global _god_level_services_initialized
+    if not _god_level_services_initialized:
+        init_god_level_services()
+        _god_level_services_initialized = True
 
 # FastAPI Routes
 @router.get("/status")
 async def get_god_level_status():
     """Get god-level security system status"""
+    ensure_god_level_services()
     return {
         "status": "operational",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -110,6 +121,7 @@ async def get_baseline_status(
     branch: Optional[str] = Query("main")
 ):
     """Get baseline scan status for repository"""
+    ensure_god_level_services()
     if not baseline_manager:
         raise HTTPException(status_code=503, detail="Baseline manager not initialized")
     
@@ -129,6 +141,7 @@ async def get_baseline_status(
 @router.post("/policy/evaluate")
 async def evaluate_policy(request: PolicyEvaluationRequest):
     """Evaluate policy against repository"""
+    ensure_god_level_services()
     if not policy_engine:
         raise HTTPException(status_code=503, detail="Policy engine not initialized")
     
@@ -153,6 +166,7 @@ async def evaluate_policy(request: PolicyEvaluationRequest):
 @router.get("/rule/test-status/{rule_id}")
 async def get_rule_test_status(rule_id: str):
     """Get rule testing status"""
+    ensure_god_level_services()
     if not rule_tester:
         raise HTTPException(status_code=503, detail="Rule tester not initialized")
     
@@ -167,6 +181,7 @@ async def get_rule_test_status(rule_id: str):
 @router.get("/analytics/dashboard")
 async def get_god_level_analytics():
     """Get god-level security analytics dashboard"""
+    ensure_god_level_services()
     try:
         # Combine analytics from all services
         analytics = {
@@ -198,6 +213,7 @@ async def get_god_level_analytics():
 @router.post("/security/boundaries/test")
 async def test_security_boundaries(request: BoundaryTestRequest):
     """Test security boundaries"""
+    ensure_god_level_services()
     if not advanced_scanner:
         raise HTTPException(status_code=503, detail="Advanced scanner not initialized")
     
@@ -254,6 +270,7 @@ async def handle_god_level_error(error: Exception):
 @router.post("/rule-engine/parse")
 async def parse_security_rules(request: Dict[str, Any]):
     """Parse and validate security rules"""
+    ensure_god_level_services()
     if not rule_parser:
         raise HTTPException(status_code=503, detail="Rule parser not initialized")
     
@@ -272,6 +289,7 @@ async def parse_security_rules(request: Dict[str, Any]):
 @router.post("/policy/enforce")
 async def enforce_security_policy(request: Dict[str, Any]):
     """Enforce security policies across the platform"""
+    ensure_god_level_services()
     if not policy_engine:
         raise HTTPException(status_code=503, detail="Policy engine not initialized")
     
@@ -310,6 +328,7 @@ async def get_security_boundaries_status():
 @router.post("/advanced-scan/execute")
 async def execute_advanced_scan(request: Dict[str, Any]):
     """Execute god-level advanced security scanning"""
+    ensure_god_level_services()
     if not advanced_scanner:
         raise HTTPException(status_code=503, detail="Advanced scanner not initialized")
     
@@ -345,8 +364,8 @@ async def get_compliance_dashboard():
         logger.error(f"Compliance dashboard error: {error}")
         raise HTTPException(status_code=500, detail=f"Compliance dashboard failed: {str(error)}")
 
-# Initialize services when module is imported
-init_god_level_services()
+# Note: Services are lazy-initialized on first use to reduce memory at startup
+# init_god_level_services() is called by endpoints when needed
 
 # Export router
 __all__ = ['router']
