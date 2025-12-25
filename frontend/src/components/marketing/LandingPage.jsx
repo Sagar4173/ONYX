@@ -28,9 +28,110 @@ import {
   DocumentCheckIcon,
   ExclamationTriangleIcon,
   ClockIcon,
+  ArrowDownIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon } from "@heroicons/react/24/solid";
+import { StarIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { OnyxLogo } from "../common";
+
+// Typing animation component
+const TypeWriter = ({ words, className }) => {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const word = words[currentWordIndex];
+    const timeout = setTimeout(
+      () => {
+        if (!isDeleting) {
+          if (currentText.length < word.length) {
+            setCurrentText(word.slice(0, currentText.length + 1));
+          } else {
+            setTimeout(() => setIsDeleting(true), 2000);
+          }
+        } else {
+          if (currentText.length > 0) {
+            setCurrentText(word.slice(0, currentText.length - 1));
+          } else {
+            setIsDeleting(false);
+            setCurrentWordIndex((prev) => (prev + 1) % words.length);
+          }
+        }
+      },
+      isDeleting ? 50 : 100
+    );
+    return () => clearTimeout(timeout);
+  }, [currentText, isDeleting, currentWordIndex, words]);
+
+  return (
+    <span className={className}>
+      {currentText}
+      <span className="animate-pulse text-cyan-400">|</span>
+    </span>
+  );
+};
+
+// Animated counter component
+const AnimatedCounter = ({ end, suffix = "" }) => {
+  const [count, setCount] = useState(0);
+  const countRef = useRef(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          let start = 0;
+          const duration = 2000;
+          const startTime = Date.now();
+          const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 4);
+            setCount(Math.floor(easeOut * end));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          animate();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    if (countRef.current) observer.observe(countRef.current);
+    return () => observer.disconnect();
+  }, [end]);
+
+  return (
+    <span ref={countRef}>
+      {count.toLocaleString()}
+      {suffix}
+    </span>
+  );
+};
+
+// Floating particles background
+const FloatingParticles = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {[...Array(15)].map((_, i) => (
+      <div
+        key={i}
+        className="absolute w-1 h-1 bg-cyan-500/30 rounded-full"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
+          animationDelay: `${Math.random() * 5}s`,
+        }}
+      />
+    ))}
+    <style>{`
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+        50% { transform: translateY(-30px) scale(1.5); opacity: 0.8; }
+      }
+    `}</style>
+  </div>
+);
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -40,12 +141,21 @@ const LandingPage = () => {
     scans: 0,
     vulnerabilities: 0,
     developers: 0,
-    uptime: 0,
+    uptime: 99.9,
   });
   const [isVisible, setIsVisible] = useState({});
   const heroRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  // Words for typing animation
+  const heroWords = [
+    "Vulnerabilities",
+    "Threats",
+    "Breaches",
+    "Attacks",
+    "Risks",
+  ];
 
   // Handle scroll
   useEffect(() => {
@@ -219,37 +329,49 @@ const LandingPage = () => {
       name: "Semgrep",
       category: "SAST",
       description: "Semantic code analysis",
+      icon: "🔍",
     },
     {
       name: "Trivy",
       category: "Container",
       description: "Container vulnerability scanning",
+      icon: "🐳",
     },
-    { name: "GitLeaks", category: "Secrets", description: "Secrets detection" },
+    {
+      name: "GitLeaks",
+      category: "Secrets",
+      description: "Secrets detection",
+      icon: "🔐",
+    },
     {
       name: "Bandit",
       category: "Python",
       description: "Python security linting",
+      icon: "🐍",
     },
     {
       name: "ESLint Security",
       category: "JavaScript",
       description: "JS/TS security rules",
+      icon: "📜",
     },
     {
       name: "OWASP ZAP",
       category: "DAST",
       description: "Dynamic application testing",
+      icon: "⚡",
     },
     {
       name: "Nuclei",
       category: "Vulnerability",
       description: "Template-based scanning",
+      icon: "🎯",
     },
     {
       name: "Checkov",
       category: "IaC",
       description: "Infrastructure as Code scanning",
+      icon: "☁️",
     },
   ];
 
@@ -429,27 +551,31 @@ const LandingPage = () => {
             <div className="hidden md:flex items-center space-x-8">
               <a
                 href="#features"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
               >
                 Features
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
               </a>
               <a
                 href="#scanners"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
               >
                 Scanners
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
               </a>
               <a
                 href="#pricing"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
               >
                 Pricing
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
               </a>
               <a
-                href="#testimonials"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                href="#why-onyx"
+                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
               >
-                Features
+                Why ONYX
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
               </a>
             </div>
 
@@ -482,34 +608,55 @@ const LandingPage = () => {
         ref={heroRef}
         className="relative min-h-screen flex items-center justify-center pt-20"
       >
+        <FloatingParticles />
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-8 animate-pulse">
               <SparklesIcon className="w-4 h-4 text-cyan-400" />
               <span className="text-sm text-gray-300">
                 AI-Powered Security Intelligence Platform
               </span>
-              <ChevronRightIcon className="w-4 h-4 text-gray-500" />
+              <span className="flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
             </div>
 
-            {/* Main Heading */}
+            {/* Main Heading with typing animation */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
-              <span className="block text-white">Unbreakable</span>
-              <span className="block bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
-                Security Intelligence
+              <span className="block text-white mb-2">Stop</span>
+              <span className="block bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent min-h-[1.2em]">
+                <TypeWriter words={heroWords} />
               </span>
+              <span className="block text-white mt-2">Before They Start</span>
             </h1>
 
             {/* Subheading */}
             <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
               Enterprise-grade AI security platform that scans, analyzes, and
               protects your entire codebase.
-              <span className="text-white">
+              <span className="text-cyan-400 font-medium">
                 {" "}
-                Detect threats before they become breaches.
+                Detect threats in milliseconds.
               </span>
             </p>
+
+            {/* Trust Badges */}
+            <div className="flex items-center justify-center gap-6 mb-10 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <CheckBadgeIcon className="w-5 h-5 text-green-500" />
+                <span>SOC 2 Certified</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckBadgeIcon className="w-5 h-5 text-green-500" />
+                <span>GDPR Compliant</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckBadgeIcon className="w-5 h-5 text-green-500" />
+                <span>256-bit Encryption</span>
+              </div>
+            </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -541,12 +688,21 @@ const LandingPage = () => {
               {securityMetrics.map((stat, index) => (
                 <div
                   key={index}
-                  className="relative group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50 transition-all"
+                  className="relative group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-cyan-500/30 transition-all hover:transform hover:-translate-y-1"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <stat.icon className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">
-                    {stat.value}
+                  <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 mb-3">
+                    <stat.icon className="w-5 h-5 text-cyan-400" />
+                  </div>
+                  <div className="text-3xl md:text-4xl font-black text-white mb-1">
+                    {counters[Object.keys(counters)[index]] > 0 ? (
+                      <AnimatedCounter
+                        end={counters[Object.keys(counters)[index]]}
+                        suffix={stat.label.includes("Uptime") ? "%" : "+"}
+                      />
+                    ) : (
+                      <span className="text-gray-600">--</span>
+                    )}
                   </div>
                   <div className="text-sm text-gray-500">{stat.label}</div>
                 </div>
@@ -556,33 +712,77 @@ const LandingPage = () => {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <span className="text-xs text-gray-500 uppercase tracking-widest">
-            Scroll
+            Explore
           </span>
           <div className="w-6 h-10 rounded-full border-2 border-gray-700 flex items-start justify-center p-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <ArrowDownIcon className="w-3 h-3 text-cyan-400 animate-bounce" />
           </div>
         </div>
       </section>
 
-      {/* Trusted By */}
-      <section className="py-16 border-y border-gray-800/50">
+      {/* How It Works - New Section */}
+      <section className="py-24 border-b border-gray-800/50 bg-gray-900/30">
         <div className="max-w-7xl mx-auto px-6">
-          <p className="text-center text-gray-500 text-sm uppercase tracking-widest mb-8">
-            Trusted by security teams at leading companies
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-12 opacity-40">
-            {["Microsoft", "Google", "Amazon", "Meta", "Netflix", "Stripe"].map(
-              (company, i) => (
-                <div
-                  key={i}
-                  className="text-2xl font-bold text-gray-400 hover:text-gray-300 transition-colors cursor-default"
-                >
-                  {company}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+              <RocketLaunchIcon className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm text-emerald-400">Quick Setup</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Secure in <span className="text-cyan-400">Minutes</span>
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              From zero to protected in just a few simple steps
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-8">
+            {[
+              {
+                step: 1,
+                title: "Connect",
+                desc: "Link your repository",
+                icon: CodeBracketIcon,
+              },
+              {
+                step: 2,
+                title: "Scan",
+                desc: "AI analyzes your code",
+                icon: CpuChipIcon,
+              },
+              {
+                step: 3,
+                title: "Fix",
+                desc: "Get remediation steps",
+                icon: BoltIcon,
+              },
+              {
+                step: 4,
+                title: "Protect",
+                desc: "Continuous monitoring",
+                icon: ShieldCheckIcon,
+              },
+            ].map((item, i) => (
+              <div key={i} className="relative group">
+                {i < 3 && (
+                  <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-cyan-500/50 to-transparent z-0" />
+                )}
+                <div className="relative bg-gray-900/50 rounded-2xl p-6 border border-gray-800/50 hover:border-cyan-500/30 transition-all group-hover:transform group-hover:-translate-y-2">
+                  <div className="absolute -top-4 -left-4 w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm">
+                    {item.step}
+                  </div>
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 w-fit mb-4">
+                    <item.icon className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-400 text-sm">{item.desc}</p>
                 </div>
-              )
-            )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -723,15 +923,15 @@ const LandingPage = () => {
             {scanners.map((scanner, index) => (
               <div
                 key={index}
-                className="group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-violet-500/30 hover:bg-gray-800/50 transition-all"
+                className="group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-violet-500/30 hover:bg-gray-800/50 transition-all hover:transform hover:-translate-y-1"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
-                    <CodeBracketIcon className="w-5 h-5 text-violet-400" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center text-2xl">
+                    {scanner.icon}
                   </div>
                   <div>
                     <h4 className="font-semibold text-white">{scanner.name}</h4>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-violet-400 font-medium">
                       {scanner.category}
                     </span>
                   </div>
@@ -768,8 +968,10 @@ const LandingPage = () => {
                 key={index}
                 className="flex items-center gap-3 px-6 py-3 rounded-xl bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50 transition-all"
               >
-                <span className="text-2xl">{framework.icon}</span>
-                <span className="font-medium text-gray-300">
+                <span className="text-2xl group-hover:scale-125 transition-transform">
+                  {framework.icon}
+                </span>
+                <span className="font-medium text-gray-300 group-hover:text-white transition-colors">
                   {framework.name}
                 </span>
               </div>
@@ -778,17 +980,22 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Platform Highlights - Real Features */}
-      <section id="testimonials" className="py-32 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* Why ONYX Section */}
+      <section id="why-onyx" className="py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/50 to-gray-950" />
+        <div className="max-w-7xl mx-auto px-6 relative">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
               <StarIcon className="w-4 h-4 text-amber-400" />
               <span className="text-sm text-amber-400">Why Choose ONYX</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Built for Modern Security
+              Built for <span className="text-cyan-400">Modern</span> Security
+              Teams
             </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Everything you need to secure your code, all in one platform
+            </p>
           </div>
 
           {/* Feature Highlight Cards */}
@@ -796,37 +1003,53 @@ const LandingPage = () => {
             {platformHighlights.map((highlight, index) => (
               <div
                 key={index}
-                className={`relative p-8 rounded-3xl transition-all duration-500 ${
+                className={`relative p-8 rounded-3xl transition-all duration-500 cursor-pointer ${
                   currentTestimonial === index
-                    ? "bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700/50 scale-105 shadow-2xl shadow-cyan-500/10"
-                    : "bg-gray-900/30 border border-gray-800/30"
+                    ? "bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-cyan-500/30 scale-105 shadow-2xl shadow-cyan-500/10"
+                    : "bg-gray-900/30 border border-gray-800/30 hover:border-gray-700/50 hover:bg-gray-900/50"
                 }`}
+                onClick={() => setCurrentTestimonial(index)}
               >
+                {/* Icon */}
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center text-white font-bold mb-6">
+                  {highlight.highlight}
+                </div>
+
+                {/* Category Badge */}
+                <span className="inline-block px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium mb-4">
+                  {highlight.category}
+                </span>
+
+                {/* Title */}
+                <h3 className="text-xl font-bold text-white mb-3">
+                  {highlight.title}
+                </h3>
+
                 {/* Description */}
-                <p className="text-gray-300 mb-6 leading-relaxed">
+                <p className="text-gray-400 leading-relaxed">
                   {highlight.description}
                 </p>
 
-                {/* Category Badge */}
-                <div className="flex gap-1 mb-4">
-                  <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium">
-                    {highlight.category}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-white font-bold">
-                    {highlight.highlight}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-white">
-                      {highlight.title}
-                    </div>
-                    <div className="text-sm text-gray-500">Core Feature</div>
-                  </div>
-                </div>
+                {/* Active indicator */}
+                {currentTestimonial === index && (
+                  <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
+                )}
               </div>
+            ))}
+          </div>
+
+          {/* Indicator dots */}
+          <div className="flex justify-center gap-2 mt-8">
+            {platformHighlights.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentTestimonial(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  currentTestimonial === index
+                    ? "w-8 bg-cyan-400"
+                    : "bg-gray-700 hover:bg-gray-600"
+                }`}
+              />
             ))}
           </div>
         </div>
@@ -919,16 +1142,17 @@ const LandingPage = () => {
             Ready to Secure Your Code?
           </h2>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Join thousands of developers who trust ONYX to protect their
-            applications. Start your free trial today.
+            Join developers who trust ONYX to protect their applications. Start
+            your free trial today — no credit card required.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <button
               onClick={() => navigate("/register")}
-              className="group relative px-8 py-4 rounded-2xl font-bold text-lg overflow-hidden"
+              className="group relative px-10 py-5 rounded-2xl font-bold text-lg overflow-hidden shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-shadow"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600" />
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(255,255,255,0.3),transparent_70%)]" />
               <span className="relative text-white flex items-center gap-3">
                 Start Free Trial
                 <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -936,10 +1160,26 @@ const LandingPage = () => {
             </button>
             <button
               onClick={() => navigate("/login")}
-              className="px-8 py-4 rounded-2xl font-bold text-lg border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition-all"
+              className="px-10 py-5 rounded-2xl font-bold text-lg border border-gray-700 hover:border-cyan-500/50 text-gray-300 hover:text-white transition-all"
             >
               Sign In
             </button>
+          </div>
+
+          {/* Trust indicators */}
+          <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <LockClosedIcon className="w-4 h-4 text-green-500" />
+              <span>256-bit SSL</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheckIcon className="w-4 h-4 text-green-500" />
+              <span>SOC 2 Type II</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckBadgeIcon className="w-4 h-4 text-green-500" />
+              <span>GDPR Compliant</span>
+            </div>
           </div>
         </div>
       </section>
@@ -947,17 +1187,33 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="py-16 border-t border-gray-800/50 bg-gray-950">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid md:grid-cols-5 gap-12 mb-12">
             {/* Brand */}
-            <div className="md:col-span-1">
+            <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <OnyxLogo className="w-8 h-8" />
-                <span className="text-xl font-bold text-white">ONYX</span>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-xl blur opacity-50" />
+                  <OnyxLogo className="w-10 h-10 relative" />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+                  ONYX
+                </span>
               </div>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Enterprise-grade AI security platform for modern development
-                teams.
+              <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm">
+                Enterprise-grade AI security platform protecting modern
+                development teams worldwide. Secure your code with confidence.
               </p>
+              <div className="flex items-center gap-4">
+                {["T", "G", "L", "D"].map((social, i) => (
+                  <a
+                    key={i}
+                    href="#"
+                    className="w-10 h-10 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center text-gray-500 hover:text-white transition-all"
+                  >
+                    <span className="text-sm font-medium">{social}</span>
+                  </a>
+                ))}
+              </div>
             </div>
 
             {/* Links */}
@@ -1028,16 +1284,16 @@ const LandingPage = () => {
               © {new Date().getFullYear()} ONYX Security Intelligence. All
               rights reserved.
             </p>
-            <div className="flex items-center gap-6">
-              {["Twitter", "GitHub", "LinkedIn", "Discord"].map((social, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
-                >
-                  {social}
-                </a>
-              ))}
+            <div className="flex items-center gap-6 text-sm text-gray-500">
+              <a href="#" className="hover:text-gray-300 transition-colors">
+                Privacy Policy
+              </a>
+              <a href="#" className="hover:text-gray-300 transition-colors">
+                Terms of Service
+              </a>
+              <a href="#" className="hover:text-gray-300 transition-colors">
+                Cookie Policy
+              </a>
             </div>
           </div>
         </div>
