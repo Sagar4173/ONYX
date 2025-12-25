@@ -1,0 +1,4 @@
+# Fly.io uses fly.toml for process configuration
+# This Procfile is for compatibility with other platforms
+
+web: gunicorn app:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT --timeout 120 --max-requests 500 --max-requests-jitter 50
