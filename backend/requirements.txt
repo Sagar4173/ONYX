@@ -23,13 +23,13 @@ pydantic-settings>=2.1.0
 
 # Enhanced Security Dependencies - Updated for Python 3.13 compatibility
 numpy>=1.26.0
-# scipy>=1.11.4  # Removed to save memory - numpy sufficient for basic ML
+# scipy>=1.11.4  # Lazy-loaded on-demand (see utils/lazy_imports.py)
 aiohttp>=3.9.1
 aiofiles>=23.2.1
 xmltodict>=0.13.0
 
 # Security Boundary Dependencies
-# docker>=7.0.0  # Removed to save memory - container scanning disabled on free tier
+# docker>=7.0.0  # Lazy-loaded on-demand for container scanning (see utils/lazy_imports.py)
 psutil>=5.9.6
 deepdiff>=8.6.0
 jsonschema>=4.20.0

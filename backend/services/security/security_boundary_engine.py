@@ -8,7 +8,7 @@ import subprocess
 import psutil
 import signal
 import time
-import docker
+# docker - Lazy-loaded on-demand for container scanning
 import tempfile
 import os
 import threading
@@ -72,20 +72,36 @@ class SecurityBoundaryEngine:
         # Default limits
         self.default_limits = ResourceLimits()
         
-        # Docker client for containerized execution
-        try:
-            self.docker_client = docker.from_env()
-            self.docker_available = True
-            logger.info("Docker client initialized for sandboxed execution")
-        except Exception as e:
-            logger.warning(f"Docker not available, falling back to process isolation: {e}")
-            self.docker_available = False
+        # Docker client for containerized execution (lazy-loaded)
+        self.docker_client = None
+        self.docker_available = False
         
         # Adversarial test corpus
         self.adversarial_tests = self._create_adversarial_corpus()
         
         # Resource monitoring
         self.active_executions = {}
+    
+    async def _ensure_docker(self):
+        """Lazy-load docker client when needed"""
+        if self.docker_client is not None:
+            return self.docker_available
+        
+        try:
+            from utils.lazy_imports import get_docker
+            docker = await get_docker()
+            if docker:
+                self.docker_client = docker.from_env()
+                self.docker_available = True
+                logger.info("✅ Docker client initialized for sandboxed execution")
+            else:
+                logger.warning("Docker SDK installation failed, using process isolation")
+                self.docker_available = False
+        except Exception as e:
+            logger.warning(f"Docker not available, falling back to process isolation: {e}")
+            self.docker_available = False
+        
+        return self.docker_available
         
     def _create_adversarial_corpus(self) -> List[AdversarialTestCase]:
         """Create corpus of adversarial test cases"""
@@ -151,6 +167,9 @@ rules:
         execution_id = str(uuid.uuid4())
         logger.info(f"Starting secure rule execution: {execution_id}")
         
+        # Ensure docker is available if needed
+        await self._ensure_docker()
+        
         # Choose execution method
         if self.docker_available:
             return await self._execute_in_container(execution_id, rule_content, rule_type, target_files, limits)
@@ -183,13 +202,19 @@ rules:
                 script_file = temp_path / "execute.py"
                 script_file.write_text(script_content)
                 
+                # Get docker.types dynamically
+                from utils.lazy_imports import try_import_docker
+                docker_module = try_import_docker()
+                if not docker_module:
+                    raise Exception("Docker SDK not available")
+                
                 # Resource limits for container
                 container_limits = {
                     'mem_limit': f"{limits.memory_limit_mb}m",
                     'cpus': str(limits.cpu_limit),
                     'ulimits': [
-                        docker.types.Ulimit(name='nproc', soft=100, hard=100),  # Process limit
-                        docker.types.Ulimit(name='fsize', soft=limits.max_file_size_mb * 1024 * 1024),  # File size
+                        docker_module.types.Ulimit(name='nproc', soft=100, hard=100),  # Process limit
+                        docker_module.types.Ulimit(name='fsize', soft=limits.max_file_size_mb * 1024 * 1024),  # File size
                     ],
                     'security_opt': ['no-new-privileges:true'],  # Security options
                     'cap_drop': ['ALL'],  # Drop all capabilities
@@ -229,10 +254,14 @@ rules:
                     
                     return execution_results, usage
                     
-                except docker.errors.ContainerError as e:
-                    usage.killed_by_limit = True
-                    usage.kill_reason = f"Container error: {e}"
-                    logger.warning(f"Container execution failed: {e}")
+                except Exception as e:
+                    # Handle docker errors
+                    if docker_module and hasattr(docker_module, 'errors') and isinstance(e, docker_module.errors.ContainerError):
+                        usage.killed_by_limit = True
+                        usage.kill_reason = f"Container error: {e}"
+                        logger.warning(f"Container execution failed: {e}")
+                    else:
+                        raise
                     return {"error": "Container execution failed", "killed": True}, usage
                     
                 except Exception as e:
