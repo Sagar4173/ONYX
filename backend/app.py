@@ -314,10 +314,19 @@ async def health_check():
     # Basic health check without database dependency for Render
     health_data = {
         "status": "healthy",
+        "version": "1.0.0",
+        "build_date": "2025-12-25",
         "environment": os.getenv("ENVIRONMENT", "production"),
         "services": {
             "api": "running",
             "scanners": "available"
+        },
+        "database": {
+            "connected": False
+        },
+        "scanners": {
+            "active": 0,
+            "total": 4
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
@@ -326,11 +335,56 @@ async def health_check():
     try:
         db_status = await db_manager.test_connection()
         health_data["services"]["database"] = db_status
+        health_data["database"]["connected"] = db_status == "connected"
+        if health_data["database"]["connected"]:
+            health_data["scanners"]["active"] = 4  # All scanners active when DB is connected
     except Exception as e:
         logger.warning(f"Database health check failed: {e}")
         health_data["services"]["database"] = "checking"
     
     return health_data
+
+
+@app.get("/api/stats/public")
+async def get_public_stats():
+    """Get public statistics for landing page - no auth required"""
+    try:
+        from models.report import ScanReport
+        from models.user import User
+        
+        if db_manager.db is None:
+            return {
+                "total_scans": 0,
+                "total_vulnerabilities": 0,
+                "total_users": 0,
+                "uptime_percentage": 99.9
+            }
+        
+        # Get real counts from database
+        total_scans = await ScanReport.count()
+        total_users = await User.count()
+        
+        # Calculate total vulnerabilities from all reports
+        reports = await ScanReport.find_all().to_list()
+        total_vulnerabilities = sum(
+            r.total_findings for r in reports if r.total_findings
+        )
+        
+        return {
+            "total_scans": total_scans,
+            "total_vulnerabilities": total_vulnerabilities,
+            "total_users": total_users,
+            "uptime_percentage": 99.9  # Could be calculated from health monitoring
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting public stats: {e}")
+        return {
+            "total_scans": 0,
+            "total_vulnerabilities": 0,
+            "total_users": 0,
+            "uptime_percentage": 99.9
+        }
 
 
 

@@ -2,8 +2,8 @@
  * Settings Component for ONYX Platform
  * Platform configuration and user preferences management
  */
-import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   CogIcon,
   ShieldCheckIcon,
@@ -19,6 +19,7 @@ import {
   KeyIcon,
   GlobeAltIcon,
   DocumentTextIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import {
   CheckCircleIcon as CheckCircleSolid,
@@ -27,6 +28,124 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "../auth";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+import { systemAPI } from "../../services/api";
+
+// System Info Component - Fetches real data from backend
+const SystemInfo = () => {
+  const [systemInfo, setSystemInfo] = useState({
+    version: "Loading...",
+    build: "Loading...",
+    environment: "Loading...",
+    database: { status: "checking", message: "Checking..." },
+    scanners: { active: 0, total: 0 },
+  });
+
+  useEffect(() => {
+    const fetchSystemInfo = async () => {
+      try {
+        // Fetch health status from backend
+        const API_URL = import.meta.env.DEV ? "http://127.0.0.1:8000" : "";
+        const healthResponse = await fetch(`${API_URL}/api/health`);
+
+        if (healthResponse.ok) {
+          const healthData = await healthResponse.json();
+          setSystemInfo({
+            version: healthData.version || "1.0.0",
+            build:
+              healthData.build_date || new Date().toISOString().split("T")[0],
+            environment: import.meta.env.DEV ? "Development" : "Production",
+            database: {
+              status: healthData.database?.connected
+                ? "connected"
+                : "disconnected",
+              message: healthData.database?.connected
+                ? "Connected"
+                : "Disconnected",
+            },
+            scanners: {
+              active: healthData.scanners?.active || 0,
+              total: healthData.scanners?.total || 4,
+            },
+          });
+        } else {
+          // API available but returned error
+          setSystemInfo((prev) => ({
+            ...prev,
+            version: "1.0.0",
+            build: new Date().toISOString().split("T")[0],
+            environment: import.meta.env.DEV ? "Development" : "Production",
+            database: { status: "error", message: "Error checking" },
+          }));
+        }
+      } catch (error) {
+        // API not available
+        setSystemInfo((prev) => ({
+          ...prev,
+          version: "1.0.0",
+          build: new Date().toISOString().split("T")[0],
+          environment: import.meta.env.DEV ? "Development" : "Production",
+          database: { status: "offline", message: "Offline" },
+          scanners: { active: 0, total: 4 },
+        }));
+      }
+    };
+
+    fetchSystemInfo();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchSystemInfo, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "connected":
+        return "text-green-400";
+      case "disconnected":
+      case "error":
+        return "text-red-400";
+      case "checking":
+        return "text-yellow-400";
+      default:
+        return "text-gray-400";
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-2 text-sm">
+      <div className="flex justify-between">
+        <span className="text-gray-400">Version:</span>
+        <span className="text-white">{systemInfo.version}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-400">Build:</span>
+        <span className="text-white">{systemInfo.build}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-400">Environment:</span>
+        <span className="text-white">{systemInfo.environment}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-400">Database:</span>
+        <span className={getStatusColor(systemInfo.database.status)}>
+          {systemInfo.database.message}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-400">Scanners:</span>
+        <span
+          className={
+            systemInfo.scanners.active > 0
+              ? "text-green-400"
+              : "text-yellow-400"
+          }
+        >
+          {systemInfo.scanners.active} Active / {systemInfo.scanners.total}{" "}
+          Total
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("security");
@@ -72,11 +191,27 @@ const Settings = () => {
 
   // Save settings mutation
   const saveSettingsMutation = useMutation({
-    mutationFn: (settingsData) => {
-      // Mock API call - replace with actual API endpoint
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(settingsData), 1000);
-      });
+    mutationFn: async (settingsData) => {
+      // Call real settings API endpoint
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(
+        `${
+          import.meta.env.DEV ? "http://127.0.0.1:8000" : ""
+        }/api/users/me/settings`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify(settingsData),
+        }
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to save settings");
+      }
+      return response.json();
     },
     onSuccess: () => {
       toast.success("Settings saved successfully!");
@@ -668,28 +803,7 @@ const Settings = () => {
                         <p className="text-blue-400 font-medium">
                           Platform Information
                         </p>
-                        <div className="mt-3 space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Version:</span>
-                            <span className="text-white">1.0.0</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Build:</span>
-                            <span className="text-white">2024.08.16</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Environment:</span>
-                            <span className="text-white">Production</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Database:</span>
-                            <span className="text-green-400">Connected</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Scanners:</span>
-                            <span className="text-green-400">4 Active</span>
-                          </div>
-                        </div>
+                        <SystemInfo />
                       </div>
                     </div>
                   </div>

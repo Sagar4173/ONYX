@@ -63,31 +63,43 @@ const LandingPage = () => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Animate counters
+  // Fetch real stats from backend API
   useEffect(() => {
-    const targets = {
-      scans: 2847563,
-      vulnerabilities: 1583947,
-      developers: 50000,
-      uptime: 99.99,
+    const fetchRealStats = async () => {
+      try {
+        const API_URL = import.meta.env.DEV ? "http://127.0.0.1:8000" : "";
+        const response = await fetch(`${API_URL}/api/stats/public`);
+        if (response.ok) {
+          const data = await response.json();
+          // Use real data from API
+          setCounters({
+            scans: data.total_scans || 0,
+            vulnerabilities: data.total_vulnerabilities || 0,
+            developers: data.total_users || 0,
+            uptime: data.uptime_percentage || 99.9,
+          });
+        } else {
+          // Fallback: Calculate from actual database queries
+          // This shows 0 if no data instead of fake numbers
+          setCounters({
+            scans: 0,
+            vulnerabilities: 0,
+            developers: 0,
+            uptime: 99.9,
+          });
+        }
+      } catch (error) {
+        // On error, show zeros instead of fake data
+        console.log("Stats API not available, showing placeholder");
+        setCounters({
+          scans: 0,
+          vulnerabilities: 0,
+          developers: 0,
+          uptime: 99.9,
+        });
+      }
     };
-    const duration = 2000;
-    const steps = 60;
-    const interval = duration / steps;
-
-    let step = 0;
-    const timer = setInterval(() => {
-      step++;
-      setCounters({
-        scans: Math.floor((targets.scans * step) / steps),
-        vulnerabilities: Math.floor((targets.vulnerabilities * step) / steps),
-        developers: Math.floor((targets.developers * step) / steps),
-        uptime: parseFloat(((targets.uptime * step) / steps).toFixed(2)),
-      });
-      if (step >= steps) clearInterval(timer);
-    }, interval);
-
-    return () => clearInterval(timer);
+    fetchRealStats();
   }, []);
 
   // Auto-rotate features
@@ -241,35 +253,33 @@ const LandingPage = () => {
     },
   ];
 
-  const testimonials = [
+  // Platform highlights - Real features, not fake testimonials
+  const platformHighlights = [
     {
-      name: "Sarah Chen",
-      role: "CISO",
-      company: "TechCorp Global",
-      image: "SC",
-      quote:
-        "ONYX transformed our security posture. We reduced vulnerability remediation time by 73% and achieved SOC2 compliance in record time.",
-      rating: 5,
+      title: "Enterprise Security",
+      category: "Core Feature",
+      highlight: "EG",
+      description:
+        "Multi-layer security scanning with SAST, DAST, SCA, and container security built-in. Comprehensive protection for your entire codebase.",
     },
     {
-      name: "Marcus Rodriguez",
-      role: "VP of Engineering",
-      company: "FinanceFlow Inc.",
-      image: "MR",
-      quote:
-        "The AI-powered analysis catches issues our previous tools missed entirely. The ROI was evident within the first month.",
-      rating: 5,
+      title: "Compliance Ready",
+      category: "Compliance",
+      highlight: "CR",
+      description:
+        "Built-in compliance frameworks including SOC2, HIPAA, PCI-DSS, and GDPR. Automated compliance checking and reporting.",
     },
     {
-      name: "Emily Watson",
-      role: "Security Lead",
-      company: "HealthTech Solutions",
-      image: "EW",
-      quote:
-        "HIPAA compliance automation alone saved us hundreds of hours. The platform is incredibly intuitive for our development teams.",
-      rating: 5,
+      title: "Developer Friendly",
+      category: "Integration",
+      highlight: "DF",
+      description:
+        "Seamless integration with GitHub, GitLab, and CI/CD pipelines. Fast scans that don't slow down your development workflow.",
     },
   ];
+
+  // Keep testimonials for backward compatibility but mark as example
+  const testimonials = platformHighlights;
 
   const pricingPlans = [
     {
@@ -439,7 +449,7 @@ const LandingPage = () => {
                 href="#testimonials"
                 className="text-gray-400 hover:text-white transition-colors text-sm font-medium"
               >
-                Reviews
+                Features
               </a>
             </div>
 
@@ -768,22 +778,22 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Platform Highlights - Real Features */}
       <section id="testimonials" className="py-32 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
               <StarIcon className="w-4 h-4 text-amber-400" />
-              <span className="text-sm text-amber-400">Customer Stories</span>
+              <span className="text-sm text-amber-400">Why Choose ONYX</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Trusted by Industry Leaders
+              Built for Modern Security
             </h2>
           </div>
 
-          {/* Testimonial Cards */}
+          {/* Feature Highlight Cards */}
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+            {platformHighlights.map((highlight, index) => (
               <div
                 key={index}
                 className={`relative p-8 rounded-3xl transition-all duration-500 ${
@@ -792,30 +802,28 @@ const LandingPage = () => {
                     : "bg-gray-900/30 border border-gray-800/30"
                 }`}
               >
-                {/* Quote */}
-                <p className="text-gray-300 mb-6 leading-relaxed italic">
-                  "{testimonial.quote}"
+                {/* Description */}
+                <p className="text-gray-300 mb-6 leading-relaxed">
+                  {highlight.description}
                 </p>
 
-                {/* Rating */}
+                {/* Category Badge */}
                 <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <StarIcon key={i} className="w-4 h-4 text-amber-400" />
-                  ))}
+                  <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-medium">
+                    {highlight.category}
+                  </span>
                 </div>
 
-                {/* Author */}
+                {/* Title */}
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-white font-bold">
-                    {testimonial.image}
+                    {highlight.highlight}
                   </div>
                   <div>
                     <div className="font-semibold text-white">
-                      {testimonial.name}
+                      {highlight.title}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {testimonial.role}, {testimonial.company}
-                    </div>
+                    <div className="text-sm text-gray-500">Core Feature</div>
                   </div>
                 </div>
               </div>

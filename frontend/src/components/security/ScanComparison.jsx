@@ -221,40 +221,44 @@ const ScanComparison = ({
     enabled: !!selectedBaseScan && !!selectedCompareScan,
   });
 
-  // Fetch available scans for selection
+  // Fetch available scans for selection from real API
   const { data: scansData } = useQuery({
     queryKey: ["available-scans", projectId],
     queryFn: async () => {
-      // Mock data - in real implementation, fetch from API
-      return {
-        scans: [
-          {
-            id: "scan-001",
-            timestamp: "2025-01-20T10:00:00Z",
-            branch: "main",
-            findings: 45,
+      const token = localStorage.getItem("access_token");
+      // Fetch real scan history from reports API
+      const response = await fetch(
+        `${API_BASE_URL}/api/reports?project_id=${
+          projectId || ""
+        }&limit=50&sort_by=created_at&sort_order=desc`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
           },
-          {
-            id: "scan-002",
-            timestamp: "2025-01-19T10:00:00Z",
-            branch: "main",
-            findings: 48,
-          },
-          {
-            id: "scan-003",
-            timestamp: "2025-01-18T10:00:00Z",
-            branch: "feature",
-            findings: 52,
-          },
-          {
-            id: "scan-004",
-            timestamp: "2025-01-17T10:00:00Z",
-            branch: "main",
-            findings: 55,
-          },
-        ],
-      };
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch scans");
+      }
+      const data = await response.json();
+      // Transform reports to scan format
+      const scans = (data.reports || []).map((report) => ({
+        id: report.id || report._id,
+        timestamp: report.created_at,
+        branch: report.branch || report.repository_branch || "main",
+        findings:
+          report.total_findings ||
+          Object.values(report.findings_by_severity || {}).reduce(
+            (a, b) => a + b,
+            0
+          ) ||
+          0,
+        status: report.status,
+        scan_type: report.scan_type,
+      }));
+      return { scans };
     },
+    enabled: true, // Always try to fetch
   });
 
   const data = comparisonData?.data || {};

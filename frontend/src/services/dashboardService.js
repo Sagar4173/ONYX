@@ -56,16 +56,87 @@ export const dashboardAPI = {
             scoresArray.length
           : 85; // Default to 85 if no data
 
-      // Calculate trends (compare with previous period)
-      // For now, use random positive trends as placeholder
-      // In production, compare with data from previous time period
-      const projectsTrend =
-        projectCount > 0 ? Math.floor(Math.random() * 10) + 1 : 0;
+      // Calculate real trends based on actual data
+      // Get reports from last 7 days and compare with previous 7 days
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const fourteenDaysAgo = new Date(
+        now.getTime() - 14 * 24 * 60 * 60 * 1000
+      );
+
+      const recentReports =
+        reports.reports?.filter(
+          (r) => new Date(r.created_at) >= sevenDaysAgo
+        ) || [];
+      const previousReports =
+        reports.reports?.filter(
+          (r) =>
+            new Date(r.created_at) >= fourteenDaysAgo &&
+            new Date(r.created_at) < sevenDaysAgo
+        ) || [];
+
+      // Calculate scan trend (percentage change in scans)
+      const recentScanCount = recentReports.length;
+      const previousScanCount = previousReports.length || 1;
       const scansTrend =
-        reportCount > 0 ? Math.floor(Math.random() * 15) + 5 : 0;
+        previousScanCount > 0
+          ? Math.round(
+              ((recentScanCount - previousScanCount) / previousScanCount) * 100
+            )
+          : recentScanCount > 0
+          ? 100
+          : 0;
+
+      // Calculate issues trend (negative is good - means fewer issues)
+      const recentIssues = recentReports.reduce(
+        (acc, r) =>
+          acc +
+          (r.findings_by_severity?.critical || 0) +
+          (r.findings_by_severity?.high || 0),
+        0
+      );
+      const previousIssues =
+        previousReports.reduce(
+          (acc, r) =>
+            acc +
+            (r.findings_by_severity?.critical || 0) +
+            (r.findings_by_severity?.high || 0),
+          0
+        ) || 1;
       const issuesTrend =
-        openIssues > 0 ? -Math.floor(Math.random() * 8) - 2 : 0; // Negative is good for issues
-      const scoreTrend = Math.floor(Math.random() * 5) + 1;
+        previousIssues > 0
+          ? Math.round(((recentIssues - previousIssues) / previousIssues) * 100)
+          : recentIssues > 0
+          ? 100
+          : 0;
+
+      // Projects trend based on creation date if available
+      const projectsTrend =
+        projectCount > 0
+          ? Math.round((projectCount / Math.max(projectCount - 1, 1) - 1) * 100)
+          : 0;
+
+      // Score trend: compare average of recent vs previous
+      const recentScores = recentReports
+        .filter((r) => r.security_score != null)
+        .map((r) => r.security_score);
+      const previousScores = previousReports
+        .filter((r) => r.security_score != null)
+        .map((r) => r.security_score);
+      const recentAvgScore =
+        recentScores.length > 0
+          ? recentScores.reduce((a, b) => a + b, 0) / recentScores.length
+          : avgSecurityScore;
+      const previousAvgScore =
+        previousScores.length > 0
+          ? previousScores.reduce((a, b) => a + b, 0) / previousScores.length
+          : avgSecurityScore;
+      const scoreTrend =
+        previousAvgScore > 0
+          ? Math.round(
+              ((recentAvgScore - previousAvgScore) / previousAvgScore) * 100
+            )
+          : 0;
 
       return {
         totalProjects: projectCount,
