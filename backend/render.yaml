@@ -1,5 +1,6 @@
 # Render Blueprint - ONYX Security Intelligence Platform
 # https://render.com/docs/blueprint-spec
+# Optimized for 512MB free tier with lazy-loaded semgrep
 
 services:
   - type: web
@@ -9,8 +10,8 @@ services:
     plan: free
     branch: master
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: gunicorn app:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT --timeout 120 --max-requests 100
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
@@ -29,3 +30,8 @@ services:
         sync: false # Set manually if using AI features
       - key: GEMINI_API_KEY
         sync: false # Set manually if using Gemini AI
+      # Memory optimization
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: MALLOC_TRIM_THRESHOLD_
+        value: "100000"

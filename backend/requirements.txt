@@ -23,13 +23,13 @@ pydantic-settings>=2.1.0
 
 # Enhanced Security Dependencies - Updated for Python 3.13 compatibility
 numpy>=1.26.0
-scipy>=1.11.4
+# scipy>=1.11.4  # Removed to save memory - numpy sufficient for basic ML
 aiohttp>=3.9.1
 aiofiles>=23.2.1
 xmltodict>=0.13.0
 
 # Security Boundary Dependencies
-docker>=7.0.0
+# docker>=7.0.0  # Removed to save memory - container scanning disabled on free tier
 psutil>=5.9.6
 deepdiff>=8.6.0
 jsonschema>=4.20.0
@@ -55,7 +55,7 @@ reportlab>=4.0.7
 # Real Security Scanning Tools
 bandit>=1.7.5           # Python SAST scanner
 safety>=2.3.5           # Python dependency vulnerability scanner
-semgrep>=1.45.0         # Multi-language SAST scanner
+# semgrep - Installed on-demand to save memory (see utils/lazy_semgrep.py)
 
 # Advanced Scanning Dependencies
 requests>=2.31.0        # HTTP client for API calls
