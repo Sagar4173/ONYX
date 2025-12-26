@@ -3,7 +3,13 @@
  * Wraps authenticated pages with sidebar, header, footer and main content area
  */
 import React, { useState, useEffect } from "react";
-import { Outlet, Routes, Route, Navigate } from "react-router-dom";
+import { Outlet, Routes, Route, Navigate, useParams } from "react-router-dom";
+
+// Redirect component for /compliance/:reportId to /report/:reportId
+const ComplianceRedirect = () => {
+  const { reportId } = useParams();
+  return <Navigate to={`/report/${reportId}`} replace />;
+};
 import toast from "react-hot-toast";
 import Sidebar, { MobileMenuButton } from "./Sidebar";
 import Header from "./Header";
@@ -16,7 +22,7 @@ import { websocketService } from "../services/api";
 import Dashboard from "../pages/Dashboard";
 import { Analytics, Reports, NotFound, AdminDashboard } from "../pages";
 import { ProjectManagement, ProjectDetails } from "../components/projects";
-import { EnhancedReportDetails, ComplianceReport } from "../components/reports";
+import { EnhancedReportDetails } from "../components/reports";
 import {
   AdvancedCompliance,
   DataRetentionPolicies,
@@ -236,9 +242,10 @@ export const MainLayout = () => {
               path="/report/:reportId"
               element={<EnhancedReportDetails />}
             />
+            {/* Redirect /compliance/:reportId to unified /report/:reportId */}
             <Route
               path="/compliance/:reportId"
-              element={<ComplianceReport />}
+              element={<ComplianceRedirect />}
             />
             <Route path="/analytics" element={<Analytics />} />
             <Route

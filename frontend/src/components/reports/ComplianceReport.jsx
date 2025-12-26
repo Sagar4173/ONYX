@@ -1,6 +1,10 @@
 /**
  * ComplianceReport Component - Generate compliance-ready PDF reports
  * Enhanced UI/UX with professional styling and interactive elements
+ *
+ * @deprecated This component has been deprecated and merged into EnhancedReportDetails.
+ * All routes to /compliance/:reportId now redirect to /report/:reportId.
+ * This file is kept for reference only.
  */
 import React, { useState, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";

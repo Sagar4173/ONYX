@@ -770,11 +770,11 @@ const ReportDetails = () => {
 
           <div className="flex items-center space-x-3">
             <Link
-              to={`/compliance/${report.id}`}
+              to={`/report/${report.id}`}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
             >
               <DocumentIcon className="h-4 w-4 mr-2" />
-              Generate Compliance Report
+              View Enhanced Report
             </Link>
 
             <button

@@ -40,7 +40,7 @@ import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 import { PageContainer, PageHeader } from "../../layouts";
 
-// Compliance Standards Configuration - Synchronized with ComplianceReport
+// Compliance Standards Configuration - Unified from ComplianceReport (now deprecated)
 const COMPLIANCE_STANDARDS = {
   OWASP: {
     name: "OWASP Top 10",
@@ -491,7 +491,7 @@ const EnhancedReportDetails = () => {
     },
   ];
 
-  // Unified SeverityBadge component - matches ComplianceReport styling
+  // Unified SeverityBadge component - consolidated from ComplianceReport
   const SeverityBadge = ({ severity }) => {
     const severityColors = {
       critical: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -605,11 +605,17 @@ const EnhancedReportDetails = () => {
               </button>
 
               <Link
-                to={`/compliance/${reportId}`}
+                to="#compliance-section"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document
+                    .getElementById("compliance-section")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
                 className="inline-flex items-center px-3 py-2 border border-green-600 text-sm font-medium rounded-md text-green-400 bg-green-900/20 hover:bg-green-900/30"
               >
                 <DocumentTextIcon className="h-4 w-4 mr-2" />
-                Compliance Report
+                Jump to Compliance
               </Link>
             </div>
           }
@@ -1825,233 +1831,236 @@ const EnhancedReportDetails = () => {
                   </div>
                 </div>
               </div>
-
               {/* Compliance Standards Analysis */}
-              {selectedStandards.map((standardKey) => {
-                const standard = COMPLIANCE_STANDARDS[standardKey];
-                const allFindings = getFilteredFindings();
+              <div id="compliance-section">
+                {selectedStandards.map((standardKey) => {
+                  const standard = COMPLIANCE_STANDARDS[standardKey];
+                  const allFindings = getFilteredFindings();
 
-                // Calculate compliance for each category
-                const categoryCompliance = {};
-                Object.keys(standard.categories).forEach((cat) => {
-                  categoryCompliance[cat] = {
-                    findings: [],
-                    compliant: true,
-                    riskLevel: "low",
-                  };
-                });
-
-                allFindings.forEach((finding) => {
-                  const mappedCats = mapFindingToCompliance(
-                    finding,
-                    standardKey
-                  );
-                  mappedCats.forEach((cat) => {
-                    if (categoryCompliance[cat]) {
-                      categoryCompliance[cat].findings.push(finding);
-                      categoryCompliance[cat].compliant = false;
-                      if (
-                        finding.severity === "critical" ||
-                        finding.severity === "high"
-                      ) {
-                        categoryCompliance[cat].riskLevel = finding.severity;
-                      } else if (
-                        categoryCompliance[cat].riskLevel === "low" &&
-                        finding.severity === "medium"
-                      ) {
-                        categoryCompliance[cat].riskLevel = "medium";
-                      }
-                    }
+                  // Calculate compliance for each category
+                  const categoryCompliance = {};
+                  Object.keys(standard.categories).forEach((cat) => {
+                    categoryCompliance[cat] = {
+                      findings: [],
+                      compliant: true,
+                      riskLevel: "low",
+                    };
                   });
-                });
 
-                const totalCategories = Object.keys(standard.categories).length;
-                const compliantCategories = Object.values(
-                  categoryCompliance
-                ).filter((c) => c.compliant).length;
-                const complianceRate = (
-                  (compliantCategories / totalCategories) *
-                  100
-                ).toFixed(0);
+                  allFindings.forEach((finding) => {
+                    const mappedCats = mapFindingToCompliance(
+                      finding,
+                      standardKey
+                    );
+                    mappedCats.forEach((cat) => {
+                      if (categoryCompliance[cat]) {
+                        categoryCompliance[cat].findings.push(finding);
+                        categoryCompliance[cat].compliant = false;
+                        if (
+                          finding.severity === "critical" ||
+                          finding.severity === "high"
+                        ) {
+                          categoryCompliance[cat].riskLevel = finding.severity;
+                        } else if (
+                          categoryCompliance[cat].riskLevel === "low" &&
+                          finding.severity === "medium"
+                        ) {
+                          categoryCompliance[cat].riskLevel = "medium";
+                        }
+                      }
+                    });
+                  });
 
-                return (
-                  <div
-                    key={standardKey}
-                    className="glass-container rounded-xl overflow-hidden"
-                  >
-                    {/* Standard Header */}
+                  const totalCategories = Object.keys(
+                    standard.categories
+                  ).length;
+                  const compliantCategories = Object.values(
+                    categoryCompliance
+                  ).filter((c) => c.compliant).length;
+                  const complianceRate = (
+                    (compliantCategories / totalCategories) *
+                    100
+                  ).toFixed(0);
+
+                  return (
                     <div
-                      className={`p-6 border-b border-gray-700/50 bg-gradient-to-r ${
-                        standardKey === "OWASP"
-                          ? "from-orange-900/30 to-red-900/30"
-                          : standardKey === "NIST"
-                          ? "from-blue-900/30 to-cyan-900/30"
-                          : "from-purple-900/30 to-pink-900/30"
-                      }`}
+                      key={standardKey}
+                      className="glass-container rounded-xl overflow-hidden"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <span className="text-4xl">{standard.icon}</span>
-                          <div>
-                            <h4 className="text-lg font-bold text-white">
-                              {standard.name}
-                            </h4>
-                            <p className="text-sm text-gray-400">
-                              {standard.description}
-                            </p>
+                      {/* Standard Header */}
+                      <div
+                        className={`p-6 border-b border-gray-700/50 bg-gradient-to-r ${
+                          standardKey === "OWASP"
+                            ? "from-orange-900/30 to-red-900/30"
+                            : standardKey === "NIST"
+                            ? "from-blue-900/30 to-cyan-900/30"
+                            : "from-purple-900/30 to-pink-900/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <span className="text-4xl">{standard.icon}</span>
+                            <div>
+                              <h4 className="text-lg font-bold text-white">
+                                {standard.name}
+                              </h4>
+                              <p className="text-sm text-gray-400">
+                                {standard.description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div
+                              className={`text-3xl font-bold ${
+                                complianceRate >= 80
+                                  ? "text-green-400"
+                                  : complianceRate >= 50
+                                  ? "text-yellow-400"
+                                  : "text-red-400"
+                              }`}
+                            >
+                              {complianceRate}%
+                            </div>
+                            <div className="text-sm text-gray-400">
+                              Compliance Rate
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div
-                            className={`text-3xl font-bold ${
-                              complianceRate >= 80
-                                ? "text-green-400"
-                                : complianceRate >= 50
-                                ? "text-yellow-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {complianceRate}%
+
+                        {/* Progress Bar */}
+                        <div className="mt-4">
+                          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-500 ${
+                                complianceRate >= 80
+                                  ? "bg-green-500"
+                                  : complianceRate >= 50
+                                  ? "bg-yellow-500"
+                                  : "bg-red-500"
+                              }`}
+                              style={{ width: `${complianceRate}%` }}
+                            />
                           </div>
-                          <div className="text-sm text-gray-400">
-                            Compliance Rate
+                          <div className="flex justify-between mt-2 text-xs text-gray-500">
+                            <span>
+                              {compliantCategories}/{totalCategories} Controls
+                              Compliant
+                            </span>
+                            <span>{allFindings.length} Related Findings</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Progress Bar */}
-                      <div className="mt-4">
-                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all duration-500 ${
-                              complianceRate >= 80
-                                ? "bg-green-500"
-                                : complianceRate >= 50
-                                ? "bg-yellow-500"
-                                : "bg-red-500"
-                            }`}
-                            style={{ width: `${complianceRate}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between mt-2 text-xs text-gray-500">
-                          <span>
-                            {compliantCategories}/{totalCategories} Controls
-                            Compliant
-                          </span>
-                          <span>{allFindings.length} Related Findings</span>
-                        </div>
-                      </div>
-                    </div>
+                      {/* Category Grid */}
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {Object.entries(standard.categories).map(
+                            ([catKey, catName]) => {
+                              const catData = categoryCompliance[catKey];
+                              const isCompliant = catData.compliant;
+                              const findingCount = catData.findings.length;
 
-                    {/* Category Grid */}
-                    <div className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.entries(standard.categories).map(
-                          ([catKey, catName]) => {
-                            const catData = categoryCompliance[catKey];
-                            const isCompliant = catData.compliant;
-                            const findingCount = catData.findings.length;
-
-                            return (
-                              <div
-                                key={catKey}
-                                className={`p-4 rounded-lg border transition-all duration-200 ${
-                                  isCompliant
-                                    ? "bg-green-900/10 border-green-500/30 hover:border-green-500/50"
-                                    : "bg-red-900/10 border-red-500/30 hover:border-red-500/50"
-                                }`}
-                              >
-                                <div className="flex items-start justify-between">
-                                  <div className="flex items-start gap-3">
-                                    <div
-                                      className={`p-1.5 rounded-lg ${
-                                        isCompliant
-                                          ? "bg-green-500/20"
-                                          : "bg-red-500/20"
-                                      }`}
-                                    >
-                                      {isCompliant ? (
-                                        <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                                      ) : (
-                                        <XCircleIcon className="h-5 w-5 text-red-400" />
-                                      )}
-                                    </div>
-                                    <div>
-                                      <div className="font-medium text-white">
-                                        {catKey}
-                                      </div>
-                                      <div className="text-sm text-gray-400">
-                                        {catName}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {!isCompliant && (
-                                    <span
-                                      className={`px-2 py-1 rounded text-xs font-medium ${
-                                        catData.riskLevel === "critical"
-                                          ? "bg-red-500/20 text-red-400"
-                                          : catData.riskLevel === "high"
-                                          ? "bg-orange-500/20 text-orange-400"
-                                          : "bg-yellow-500/20 text-yellow-400"
-                                      }`}
-                                    >
-                                      {findingCount} issue
-                                      {findingCount > 1 ? "s" : ""}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Show findings for non-compliant categories */}
-                                {!isCompliant &&
-                                  catData.findings.length > 0 && (
-                                    <div className="mt-3 pt-3 border-t border-gray-700/50">
-                                      <div className="space-y-2">
-                                        {catData.findings
-                                          .slice(0, 3)
-                                          .map((finding, idx) => (
-                                            <div
-                                              key={idx}
-                                              className="flex items-start gap-2 text-sm"
-                                            >
-                                              <span
-                                                className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                                                  finding.severity ===
-                                                  "critical"
-                                                    ? "bg-red-500"
-                                                    : finding.severity ===
-                                                      "high"
-                                                    ? "bg-orange-500"
-                                                    : finding.severity ===
-                                                      "medium"
-                                                    ? "bg-yellow-500"
-                                                    : "bg-blue-500"
-                                                }`}
-                                              />
-                                              <span className="text-gray-300 truncate">
-                                                {finding.title ||
-                                                  finding.message}
-                                              </span>
-                                            </div>
-                                          ))}
-                                        {catData.findings.length > 3 && (
-                                          <div className="text-xs text-gray-500 pl-4">
-                                            +{catData.findings.length - 3} more
-                                            findings
-                                          </div>
+                              return (
+                                <div
+                                  key={catKey}
+                                  className={`p-4 rounded-lg border transition-all duration-200 ${
+                                    isCompliant
+                                      ? "bg-green-900/10 border-green-500/30 hover:border-green-500/50"
+                                      : "bg-red-900/10 border-red-500/30 hover:border-red-500/50"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3">
+                                      <div
+                                        className={`p-1.5 rounded-lg ${
+                                          isCompliant
+                                            ? "bg-green-500/20"
+                                            : "bg-red-500/20"
+                                        }`}
+                                      >
+                                        {isCompliant ? (
+                                          <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                                        ) : (
+                                          <XCircleIcon className="h-5 w-5 text-red-400" />
                                         )}
                                       </div>
+                                      <div>
+                                        <div className="font-medium text-white">
+                                          {catKey}
+                                        </div>
+                                        <div className="text-sm text-gray-400">
+                                          {catName}
+                                        </div>
+                                      </div>
                                     </div>
-                                  )}
-                              </div>
-                            );
-                          }
-                        )}
+                                    {!isCompliant && (
+                                      <span
+                                        className={`px-2 py-1 rounded text-xs font-medium ${
+                                          catData.riskLevel === "critical"
+                                            ? "bg-red-500/20 text-red-400"
+                                            : catData.riskLevel === "high"
+                                            ? "bg-orange-500/20 text-orange-400"
+                                            : "bg-yellow-500/20 text-yellow-400"
+                                        }`}
+                                      >
+                                        {findingCount} issue
+                                        {findingCount > 1 ? "s" : ""}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Show findings for non-compliant categories */}
+                                  {!isCompliant &&
+                                    catData.findings.length > 0 && (
+                                      <div className="mt-3 pt-3 border-t border-gray-700/50">
+                                        <div className="space-y-2">
+                                          {catData.findings
+                                            .slice(0, 3)
+                                            .map((finding, idx) => (
+                                              <div
+                                                key={idx}
+                                                className="flex items-start gap-2 text-sm"
+                                              >
+                                                <span
+                                                  className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                                                    finding.severity ===
+                                                    "critical"
+                                                      ? "bg-red-500"
+                                                      : finding.severity ===
+                                                        "high"
+                                                      ? "bg-orange-500"
+                                                      : finding.severity ===
+                                                        "medium"
+                                                      ? "bg-yellow-500"
+                                                      : "bg-blue-500"
+                                                  }`}
+                                                />
+                                                <span className="text-gray-300 truncate">
+                                                  {finding.title ||
+                                                    finding.message}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          {catData.findings.length > 3 && (
+                                            <div className="text-xs text-gray-500 pl-4">
+                                              +{catData.findings.length - 3}{" "}
+                                              more findings
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-
+                  );
+                })}
+              </div>{" "}
+              {/* End of compliance-section */}
               {/* Recommendations based on compliance gaps */}
               <div className="glass-container rounded-xl p-6">
                 <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -2095,7 +2104,6 @@ const EnhancedReportDetails = () => {
                   ))}
                 </div>
               </div>
-
               {/* Export Options */}
               <div className="glass-container rounded-xl p-6">
                 <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -2116,11 +2124,15 @@ const EnhancedReportDetails = () => {
                     Download PDF Report
                   </button>
                   <Link
-                    to={`/compliance/${reportId}`}
+                    to="#top"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
                     className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
                   >
                     <ExternalLinkIcon className="h-4 w-4 mr-2" />
-                    Full Compliance View
+                    Back to Top
                   </Link>
                 </div>
               </div>
