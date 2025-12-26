@@ -436,6 +436,318 @@ class TrivyResultParser(BaseResultParser):
             return []
 
 
+class SecretAnalyzer:
+    """
+    Analyzes detected secrets to determine if they are:
+    - Real credentials (high risk)
+    - Example/placeholder credentials (low risk but still flagged)
+    - Test/dummy credentials (informational)
+    
+    This helps reduce false positive anxiety while still alerting about potential issues.
+    """
+    
+    # Patterns that indicate a placeholder/example credential
+    PLACEHOLDER_PATTERNS = [
+        # Generic placeholders
+        r'^your[-_]?.*[-_]?here$',
+        r'^<.*>$',                          # <your_api_key>
+        r'^\[.*\]$',                        # [your_api_key]
+        r'^\{.*\}$',                        # {your_api_key}
+        r'^xxx+$',                          # xxx, xxxx
+        r'^X{3,}$',                         # XXX, XXXX
+        r'^\*{3,}$',                        # ***, ****
+        r'^\.{3,}$',                        # ..., ....
+        r'^_+$',                            # ___, ____
+        r'^placeholder',
+        r'^example',
+        r'^sample',
+        r'^dummy',
+        r'^fake',
+        r'^test[-_]?',
+        r'^demo[-_]?',
+        r'^my[-_]?',
+        r'^changeme',
+        r'^replace[-_]?me',
+        r'^insert[-_]?',
+        r'^enter[-_]?',
+        r'^todo',
+        r'^fixme',
+        r'^your[-_]?',
+        r'^put[-_]?',
+        r'^add[-_]?',
+        r'^fill[-_]?in',
+        r'^update[-_]?this',
+        r'^set[-_]?this',
+        
+        # Common example passwords
+        r'^password$',
+        r'^password\d+$',
+        r'^pass\d*$',
+        r'^secret$',
+        r'^secret\d+$',
+        r'^admin$',
+        r'^admin\d+$',
+        r'^root$',
+        r'^user$',
+        r'^guest$',
+        r'^default$',
+        r'^qwerty',
+        r'^123456',
+        r'^abcdef',
+        r'^abc123',
+        r'^letmein',
+        r'^welcome',
+        r'^monkey',
+        r'^dragon',
+        r'^master',
+        r'^login',
+        r'^passw0rd',
+        r'^iloveyou',
+        r'^princess',
+        r'^sunshine',
+        r'^12345',
+        
+        # API key placeholders
+        r'^sk[-_]?test',
+        r'^pk[-_]?test',
+        r'^api[-_]?key[-_]?here',
+        r'^your[-_]?api[-_]?key',
+        r'^insert[-_]?api[-_]?key',
+        r'^api[-_]?key[-_]?goes[-_]?here',
+        r'^put[-_]?your[-_]?key',
+        r'^replace[-_]?with[-_]?',
+        r'^sk_test_',
+        r'^pk_test_',
+        r'^test_api_key',
+        r'^development_key',
+        r'^dev_key',
+        r'^staging_key',
+        r'^sandbox',
+    ]
+    
+    # File patterns that commonly contain example credentials
+    EXAMPLE_FILE_PATTERNS = [
+        r'\.example$',
+        r'\.sample$',
+        r'\.template$',
+        r'\.dist$',
+        r'\.default$',
+        r'-example\.',
+        r'-sample\.',
+        r'-template\.',
+        r'\.env\.example',
+        r'\.env\.sample',
+        r'\.env\.template',
+        r'\.env\.local\.example',
+        r'config\.example\.',
+        r'settings\.example\.',
+        r'README\.md$',
+        r'README\.txt$',
+        r'readme\.',
+        r'CONTRIBUTING\.md$',
+        r'INSTALL\.md$',
+        r'SETUP\.md$',
+        r'CONFIGURATION\.md$',
+        r'docs[/\\]',
+        r'documentation[/\\]',
+        r'examples[/\\]',
+        r'samples[/\\]',
+        r'templates[/\\]',
+        r'fixtures[/\\]',
+        r'__tests__[/\\]',
+        r'tests?[/\\]',
+        r'spec[/\\]',
+        r'\.md$',
+        r'\.rst$',
+        r'\.txt$',
+        r'docker-compose\.yml\.example',
+        r'docker-compose\.sample\.yml',
+    ]
+    
+    # Entropy thresholds for different secret types
+    ENTROPY_THRESHOLDS = {
+        'api_key': 3.5,
+        'password': 2.5,
+        'token': 4.0,
+        'secret': 3.0,
+        'default': 3.0
+    }
+    
+    @classmethod
+    def calculate_entropy(cls, secret: str) -> float:
+        """Calculate Shannon entropy of a string"""
+        import math
+        if not secret:
+            return 0.0
+        
+        # Count character frequencies
+        freq = {}
+        for char in secret:
+            freq[char] = freq.get(char, 0) + 1
+        
+        # Calculate entropy
+        length = len(secret)
+        entropy = 0.0
+        for count in freq.values():
+            if count > 0:
+                prob = count / length
+                entropy -= prob * math.log2(prob)
+        
+        return entropy
+    
+    @classmethod
+    def is_example_file(cls, file_path: str) -> bool:
+        """Check if file is likely an example/documentation file"""
+        if not file_path:
+            return False
+        
+        file_path_lower = file_path.lower().replace('\\', '/')
+        
+        for pattern in cls.EXAMPLE_FILE_PATTERNS:
+            if re.search(pattern, file_path_lower, re.IGNORECASE):
+                return True
+        
+        return False
+    
+    @classmethod
+    def is_placeholder_secret(cls, secret: str) -> bool:
+        """Check if secret matches common placeholder patterns"""
+        if not secret:
+            return False
+        
+        secret_lower = secret.lower().strip()
+        
+        # Check against placeholder patterns
+        for pattern in cls.PLACEHOLDER_PATTERNS:
+            if re.match(pattern, secret_lower, re.IGNORECASE):
+                return True
+        
+        # Check for repeated characters (like aaaa, 1111)
+        if len(set(secret)) <= 2 and len(secret) > 3:
+            return True
+        
+        # Check for sequential patterns
+        if secret_lower in ['abcdefghijklmnopqrstuvwxyz', '0123456789', 'qwertyuiop']:
+            return True
+        
+        return False
+    
+    @classmethod
+    def analyze_secret(cls, secret: str, file_path: str, secret_type: str = 'default') -> Dict[str, Any]:
+        """
+        Comprehensive secret analysis
+        
+        Returns:
+            Dict with analysis results:
+            - is_likely_real: bool - True if secret appears to be real
+            - is_placeholder: bool - True if secret matches placeholder patterns
+            - is_example_file: bool - True if file is an example/doc file
+            - confidence: str - 'high', 'medium', 'low'
+            - entropy: float - Shannon entropy of secret
+            - adjusted_severity: str - Recommended severity level
+            - reason: str - Human-readable explanation
+            - recommendation: str - What user should do
+        """
+        analysis = {
+            'is_likely_real': True,
+            'is_placeholder': False,
+            'is_example_file': False,
+            'confidence': 'medium',
+            'entropy': 0.0,
+            'adjusted_severity': 'high',
+            'reason': '',
+            'recommendation': ''
+        }
+        
+        # Check if file is example/documentation
+        analysis['is_example_file'] = cls.is_example_file(file_path)
+        
+        # Check if secret is a placeholder
+        analysis['is_placeholder'] = cls.is_placeholder_secret(secret)
+        
+        # Calculate entropy
+        analysis['entropy'] = cls.calculate_entropy(secret)
+        
+        # Get entropy threshold for this secret type
+        threshold = cls.ENTROPY_THRESHOLDS.get(
+            secret_type.lower() if secret_type else 'default',
+            cls.ENTROPY_THRESHOLDS['default']
+        )
+        
+        low_entropy = analysis['entropy'] < threshold
+        
+        # Determine if secret is likely real
+        reasons = []
+        
+        if analysis['is_placeholder']:
+            analysis['is_likely_real'] = False
+            reasons.append('matches placeholder pattern')
+        
+        if analysis['is_example_file']:
+            if not analysis['is_placeholder'] and not low_entropy:
+                # High entropy secret in example file - could be accidentally committed!
+                analysis['is_likely_real'] = True
+                reasons.append('HIGH ENTROPY secret in example file - may be accidentally committed!')
+                analysis['confidence'] = 'medium'
+            else:
+                analysis['is_likely_real'] = False
+                reasons.append('found in example/documentation file')
+        
+        if low_entropy and not analysis['is_example_file']:
+            # Low entropy in regular file - suspicious
+            if analysis['is_placeholder']:
+                analysis['is_likely_real'] = False
+                reasons.append('low entropy placeholder')
+            else:
+                # Low entropy but not a known placeholder - might still be a weak password
+                analysis['is_likely_real'] = True
+                reasons.append('low entropy (weak credential) but in production file')
+                analysis['confidence'] = 'low'
+        
+        # Set adjusted severity and recommendation
+        if not analysis['is_likely_real']:
+            if analysis['is_example_file'] and analysis['is_placeholder']:
+                analysis['adjusted_severity'] = 'info'
+                analysis['recommendation'] = (
+                    'This appears to be a placeholder/example credential in a documentation or example file. '
+                    'No immediate action required, but ensure real credentials are never committed to this file.'
+                )
+            elif analysis['is_placeholder']:
+                analysis['adjusted_severity'] = 'low'
+                analysis['recommendation'] = (
+                    'This appears to be a placeholder credential. Verify it is not used in production. '
+                    'Consider using more obviously fake values like "REPLACE_ME_WITH_REAL_KEY".'
+                )
+            elif analysis['is_example_file']:
+                analysis['adjusted_severity'] = 'low'
+                analysis['recommendation'] = (
+                    'Secret found in example/documentation file. While likely intentional, '
+                    'verify this is not a real credential accidentally committed. Check entropy and pattern.'
+                )
+            analysis['confidence'] = 'high'
+        else:
+            if analysis['is_example_file']:
+                # Real-looking secret in example file - DANGER
+                analysis['adjusted_severity'] = 'critical'
+                analysis['recommendation'] = (
+                    '⚠️ CAUTION: This secret has high entropy and may be a REAL credential accidentally '
+                    'committed to an example file! Immediately verify if this is a real secret. '
+                    'If real: 1) Rotate immediately, 2) Remove from git history, 3) Add to .gitignore'
+                )
+                analysis['confidence'] = 'high'
+            else:
+                analysis['adjusted_severity'] = 'high'
+                analysis['recommendation'] = (
+                    'This appears to be a real credential. '
+                    '1) Rotate/revoke immediately, 2) Remove from code and git history, '
+                    '3) Use environment variables or secrets manager'
+                )
+        
+        analysis['reason'] = '; '.join(reasons) if reasons else 'Standard secret detection'
+        
+        return analysis
+
+
 class GitLeaksResultParser(BaseResultParser):
     """Parser for GitLeaks JSON output"""
     
@@ -451,39 +763,81 @@ class GitLeaksResultParser(BaseResultParser):
             for item in data:
                 rule_id = item.get('RuleID', '')
                 secret_type = item.get('Description', rule_id)
-                file_path = item.get('File', '')
+                detected_file_path = item.get('File', '')
+                secret_value = item.get('Secret', '')
                 
-                # Generate remediation for secrets
-                remediation = (
-                    f"1. Immediately rotate or revoke the exposed {secret_type}. "
-                    f"2. Remove the secret from {file_path} and git history using tools like BFG or git filter-branch. "
-                    f"3. Store secrets securely using environment variables, secrets managers (AWS Secrets Manager, HashiCorp Vault), or .env files excluded from version control. "
-                    f"4. Add patterns to .gitignore to prevent future commits of sensitive files."
+                # Analyze the secret to determine if it's real or placeholder
+                secret_analysis = SecretAnalyzer.analyze_secret(
+                    secret=secret_value,
+                    file_path=detected_file_path,
+                    secret_type=secret_type
                 )
+                
+                # Adjust severity based on analysis
+                severity_map = {
+                    'critical': SeverityLevel.CRITICAL,
+                    'high': SeverityLevel.HIGH,
+                    'medium': SeverityLevel.MEDIUM,
+                    'low': SeverityLevel.LOW,
+                    'info': SeverityLevel.INFO
+                }
+                adjusted_severity = severity_map.get(
+                    secret_analysis['adjusted_severity'], 
+                    SeverityLevel.HIGH
+                )
+                
+                # Create title with context
+                if not secret_analysis['is_likely_real']:
+                    if secret_analysis['is_placeholder']:
+                        title = f"[Placeholder] Example credential detected: {secret_type}"
+                    else:
+                        title = f"[Example File] Credential in documentation: {secret_type}"
+                else:
+                    if secret_analysis['is_example_file']:
+                        title = f"⚠️ [VERIFY] Possible real secret in example file: {secret_type}"
+                    else:
+                        title = f"🚨 Secret detected: {secret_type}"
+                
+                # Generate context-aware remediation
+                remediation = secret_analysis['recommendation']
+                if secret_analysis['is_likely_real']:
+                    remediation += (
+                        f"\n\nSteps to remediate:\n"
+                        f"1. Immediately rotate or revoke the exposed {secret_type}.\n"
+                        f"2. Remove the secret from {detected_file_path} and git history using BFG Repo-Cleaner or git filter-branch.\n"
+                        f"3. Store secrets securely using environment variables or secrets managers (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault).\n"
+                        f"4. Add patterns to .gitignore to prevent future commits of sensitive files."
+                    )
                 
                 finding = VulnerabilityFinding(
                     id=f"gitleaks-{rule_id}-{hash(str(item))}",
                     scanner=self.scanner_type,
                     rule_id=rule_id,
-                    title=f"Secret detected: {secret_type}",
-                    description=item.get('Description', ''),
-                    severity=SeverityLevel.HIGH,  # Secrets are generally high severity
-                    file_path=file_path,
+                    title=title,
+                    description=item.get('Description', '') + f"\n\nAnalysis: {secret_analysis['reason']}",
+                    severity=adjusted_severity,
+                    file_path=detected_file_path,
                     line_start=item.get('StartLine'),
                     line_end=item.get('EndLine'),
                     column_start=item.get('StartColumn'),
                     column_end=item.get('EndColumn'),
-                    code_snippet=item.get('Secret', ''),
+                    code_snippet=secret_value,
                     remediation=remediation,
-                    fix_effort='medium',
+                    fix_effort='low' if not secret_analysis['is_likely_real'] else 'medium',
                     metadata={
                         'commit': item.get('Commit', ''),
-                        'entropy': item.get('Entropy'),
+                        'entropy': item.get('Entropy') or secret_analysis['entropy'],
                         'author': item.get('Author', ''),
                         'email': item.get('Email', ''),
                         'date': item.get('Date', ''),
                         'message': item.get('Message', ''),
-                        'tags': item.get('Tags', [])
+                        'tags': item.get('Tags', []),
+                        # Secret analysis metadata
+                        'is_likely_real': secret_analysis['is_likely_real'],
+                        'is_placeholder': secret_analysis['is_placeholder'],
+                        'is_example_file': secret_analysis['is_example_file'],
+                        'analysis_confidence': secret_analysis['confidence'],
+                        'calculated_entropy': secret_analysis['entropy']
                     }
                 )
                 findings.append(finding)

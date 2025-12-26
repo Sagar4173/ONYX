@@ -791,6 +791,97 @@ const EnhancedReportDetails = () => {
 
           {activeTab === "findings" && (
             <div className="space-y-6">
+              {/* Secret Detection Summary */}
+              {(() => {
+                const secretFindings = filteredFindings.filter(
+                  (f) =>
+                    f.scanner?.toLowerCase() === "gitleaks" ||
+                    f.title?.toLowerCase().includes("secret") ||
+                    f.title?.toLowerCase().includes("credential")
+                );
+                const placeholderCount = secretFindings.filter(
+                  (f) => f.metadata?.is_placeholder
+                ).length;
+                const exampleFileCount = secretFindings.filter(
+                  (f) =>
+                    f.metadata?.is_example_file && !f.metadata?.is_placeholder
+                ).length;
+                const realSecretCount = secretFindings.filter(
+                  (f) => f.metadata?.is_likely_real !== false
+                ).length;
+
+                if (secretFindings.length > 0) {
+                  return (
+                    <div className="glass-container rounded-xl p-4 border border-gray-700">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-white flex items-center">
+                          <ShieldCheckIcon className="h-4 w-4 mr-2 text-purple-400" />
+                          Secret Detection Summary
+                        </h4>
+                        <span className="text-xs text-gray-400">
+                          {secretFindings.length} secret-related finding
+                          {secretFindings.length !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        {realSecretCount > 0 && (
+                          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-red-400">
+                              {realSecretCount}
+                            </div>
+                            <div className="text-xs text-red-300">
+                              Likely Real
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Requires Action
+                            </div>
+                          </div>
+                        )}
+                        {placeholderCount > 0 && (
+                          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-blue-400">
+                              {placeholderCount}
+                            </div>
+                            <div className="text-xs text-blue-300">
+                              Placeholders
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Example Values
+                            </div>
+                          </div>
+                        )}
+                        {exampleFileCount > 0 && (
+                          <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-yellow-400">
+                              {exampleFileCount}
+                            </div>
+                            <div className="text-xs text-yellow-300">
+                              In Example Files
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Verify If Real
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {placeholderCount > 0 || exampleFileCount > 0 ? (
+                        <p className="text-xs text-gray-400 mt-3 flex items-start">
+                          <InformationCircleIcon className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" />
+                          <span>
+                            Placeholder credentials in .env.example, README.md,
+                            or documentation files are flagged for awareness but
+                            typically don't require immediate action. Always
+                            verify secrets in example files aren't accidentally
+                            real.
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               {/* Filters */}
               <div className="glass-container rounded-xl p-4">
                 <div className="flex items-center justify-between">
@@ -827,46 +918,160 @@ const EnhancedReportDetails = () => {
               {/* Findings List */}
               <div className="space-y-4">
                 {filteredFindings.length > 0 ? (
-                  filteredFindings.map((finding, index) => (
-                    <div key={index} className="glass-container rounded-xl p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <SeverityBadge severity={finding.severity} />
-                            <span className="text-sm text-gray-400">
-                              {finding.scanner}
-                            </span>
+                  filteredFindings.map((finding, index) => {
+                    // Check if this is a placeholder/example credential
+                    const isPlaceholder = finding.metadata?.is_placeholder;
+                    const isExampleFile = finding.metadata?.is_example_file;
+                    const isLikelyReal =
+                      finding.metadata?.is_likely_real !== false; // Default to true if not specified
+                    const isSecretFinding =
+                      finding.scanner?.toLowerCase() === "gitleaks" ||
+                      finding.title?.toLowerCase().includes("secret") ||
+                      finding.title?.toLowerCase().includes("credential");
+
+                    return (
+                      <div
+                        key={index}
+                        className={`glass-container rounded-xl p-6 ${
+                          isSecretFinding && !isLikelyReal
+                            ? "border-l-4 border-l-blue-500 bg-blue-900/10"
+                            : isSecretFinding && isExampleFile && isLikelyReal
+                            ? "border-l-4 border-l-orange-500 bg-orange-900/10"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
+                              <SeverityBadge severity={finding.severity} />
+                              <span className="text-sm text-gray-400">
+                                {finding.scanner}
+                              </span>
+
+                              {/* Placeholder/Example Credential Indicator */}
+                              {isSecretFinding && !isLikelyReal && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                  <InformationCircleIcon className="h-3 w-3 mr-1" />
+                                  {isPlaceholder
+                                    ? "Placeholder Credential"
+                                    : "Example File"}
+                                </span>
+                              )}
+
+                              {/* Warning for real-looking secrets in example files */}
+                              {isSecretFinding &&
+                                isLikelyReal &&
+                                isExampleFile && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                    <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
+                                    Verify - May Be Real
+                                  </span>
+                                )}
+                            </div>
+
+                            <h4 className="text-lg font-semibold text-white mb-2">
+                              {finding.title}
+                            </h4>
+
+                            {/* Entropy indicator for secrets */}
+                            {isSecretFinding &&
+                              finding.metadata?.calculated_entropy && (
+                                <div className="flex items-center text-xs text-gray-400 mb-2">
+                                  <span className="mr-2">Entropy:</span>
+                                  <div className="flex items-center">
+                                    <div className="w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden mr-2">
+                                      <div
+                                        className={`h-full ${
+                                          finding.metadata.calculated_entropy >
+                                          4
+                                            ? "bg-red-500"
+                                            : finding.metadata
+                                                .calculated_entropy > 3
+                                            ? "bg-yellow-500"
+                                            : "bg-green-500"
+                                        }`}
+                                        style={{
+                                          width: `${Math.min(
+                                            finding.metadata
+                                              .calculated_entropy * 15,
+                                            100
+                                          )}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span
+                                      className={
+                                        finding.metadata.calculated_entropy > 4
+                                          ? "text-red-400"
+                                          : finding.metadata
+                                              .calculated_entropy > 3
+                                          ? "text-yellow-400"
+                                          : "text-green-400"
+                                      }
+                                    >
+                                      {finding.metadata.calculated_entropy.toFixed(
+                                        2
+                                      )}
+                                      {finding.metadata.calculated_entropy > 4
+                                        ? " (High - Likely Real)"
+                                        : finding.metadata.calculated_entropy >
+                                          3
+                                        ? " (Medium)"
+                                        : " (Low - Likely Fake)"}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                            <p className="text-gray-300 mb-3">
+                              {finding.description}
+                            </p>
+
+                            {finding.file_path && (
+                              <div className="flex items-center text-sm text-gray-400 mb-2">
+                                <DocumentIcon className="h-4 w-4 mr-1" />
+                                {finding.file_path}
+                                {finding.line_number &&
+                                  `:${finding.line_number}`}
+                              </div>
+                            )}
+
+                            {finding.remediation && (
+                              <div
+                                className={`mt-4 p-4 rounded-lg ${
+                                  isSecretFinding && !isLikelyReal
+                                    ? "bg-blue-900/20 border border-blue-500/30"
+                                    : "bg-green-900/20 border border-green-500/30"
+                                }`}
+                              >
+                                <h5
+                                  className={`text-sm font-medium mb-2 flex items-center ${
+                                    isSecretFinding && !isLikelyReal
+                                      ? "text-blue-400"
+                                      : "text-green-400"
+                                  }`}
+                                >
+                                  <LightBulbIcon className="h-4 w-4 mr-1" />
+                                  {isSecretFinding && !isLikelyReal
+                                    ? "Context"
+                                    : "Remediation"}
+                                </h5>
+                                <p
+                                  className={`text-sm whitespace-pre-line ${
+                                    isSecretFinding && !isLikelyReal
+                                      ? "text-blue-300"
+                                      : "text-green-300"
+                                  }`}
+                                >
+                                  {finding.remediation}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                          <h4 className="text-lg font-semibold text-white mb-2">
-                            {finding.title}
-                          </h4>
-                          <p className="text-gray-300 mb-3">
-                            {finding.description}
-                          </p>
-
-                          {finding.file_path && (
-                            <div className="flex items-center text-sm text-gray-400 mb-2">
-                              <DocumentIcon className="h-4 w-4 mr-1" />
-                              {finding.file_path}
-                              {finding.line_number && `:${finding.line_number}`}
-                            </div>
-                          )}
-
-                          {finding.remediation && (
-                            <div className="mt-4 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-                              <h5 className="text-sm font-medium text-green-400 mb-2 flex items-center">
-                                <LightBulbIcon className="h-4 w-4 mr-1" />
-                                Remediation
-                              </h5>
-                              <p className="text-green-300 text-sm">
-                                {finding.remediation}
-                              </p>
-                            </div>
-                          )}
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="glass-container rounded-xl p-8 text-center">
                     <CheckCircleIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
