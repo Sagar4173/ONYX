@@ -40,7 +40,7 @@ import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 import { PageContainer, PageHeader } from "../../layouts";
 
-// Compliance Standards Configuration
+// Compliance Standards Configuration - Synchronized with ComplianceReport
 const COMPLIANCE_STANDARDS = {
   OWASP: {
     name: "OWASP Top 10",
@@ -61,7 +61,7 @@ const COMPLIANCE_STANDARDS = {
     },
   },
   NIST: {
-    name: "NIST CSF",
+    name: "NIST Cybersecurity Framework",
     version: "1.1",
     icon: "🏛️",
     description:
@@ -83,8 +83,34 @@ const COMPLIANCE_STANDARDS = {
       "A.8": "Asset Management",
       "A.9": "Access Control",
       "A.10": "Cryptography",
+      "A.11": "Physical and Environmental Security",
       "A.12": "Operations Security",
-      "A.14": "System Development",
+      "A.13": "Communications Security",
+      "A.14": "System Acquisition, Development and Maintenance",
+      "A.15": "Supplier Relationships",
+      "A.16": "Information Security Incident Management",
+      "A.17": "Information Security Aspects of Business Continuity Management",
+      "A.18": "Compliance",
+    },
+  },
+  PCI_DSS: {
+    name: "PCI DSS",
+    version: "4.0",
+    icon: "💳",
+    description: "Payment Card Industry Data Security Standard",
+    categories: {
+      1: "Install and maintain network security controls",
+      2: "Apply secure configurations to all system components",
+      3: "Protect stored account data",
+      4: "Protect cardholder data with strong cryptography",
+      5: "Protect all systems against malware",
+      6: "Develop and maintain secure systems and software",
+      7: "Restrict access to system components and cardholder data",
+      8: "Identify users and authenticate access",
+      9: "Restrict physical access to cardholder data",
+      10: "Log and monitor all access to system components",
+      11: "Test security of systems and networks regularly",
+      12: "Support information security with organizational policies",
     },
   },
 };
@@ -345,7 +371,8 @@ const EnhancedReportDetails = () => {
             100,
             (report?.findings_by_severity?.critical || 0) * 25 +
               (report?.findings_by_severity?.high || 0) * 15 +
-              (report?.findings_by_severity?.medium || 0) * 5
+              (report?.findings_by_severity?.medium || 0) * 5 +
+              (report?.findings_by_severity?.low || 0) * 1
           ),
         securityScore:
           aiAnalysis?.security_score ||
@@ -353,7 +380,8 @@ const EnhancedReportDetails = () => {
             0,
             100 -
               ((report?.findings_by_severity?.critical || 0) * 20 +
-                (report?.findings_by_severity?.high || 0) * 10)
+                (report?.findings_by_severity?.high || 0) * 10 +
+                (report?.findings_by_severity?.medium || 0) * 3)
           ),
       };
 
@@ -463,13 +491,30 @@ const EnhancedReportDetails = () => {
     },
   ];
 
+  // Unified SeverityBadge component - matches ComplianceReport styling
   const SeverityBadge = ({ severity }) => {
-    const colorClass = utils.getSeverityColor(severity);
+    const severityColors = {
+      critical: "bg-red-500/20 text-red-400 border-red-500/30",
+      high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+      medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+      low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      info: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+    };
+    const severityIcons = {
+      critical: "🔴",
+      high: "🟠",
+      medium: "🟡",
+      low: "🔵",
+      info: "⚪",
+    };
+    const colorClass =
+      severityColors[severity?.toLowerCase()] || severityColors.info;
     return (
       <span
-        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorClass} border`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colorClass} border shadow-sm`}
       >
-        {severity.charAt(0).toUpperCase() + severity.slice(1)}
+        <span>{severityIcons[severity?.toLowerCase()] || "⚪"}</span>
+        {severity?.charAt(0).toUpperCase() + severity?.slice(1)}
       </span>
     );
   };
