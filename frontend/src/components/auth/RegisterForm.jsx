@@ -10,6 +10,7 @@ import {
   ArrowRightIcon,
   CheckCircleIcon,
   SparklesIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { UserCircleIcon as UserCircleSolid } from "@heroicons/react/24/solid";
 import { useAuth } from "./AuthContext";
