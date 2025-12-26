@@ -395,6 +395,25 @@ const EnhancedReportDetails = () => {
           ),
       };
 
+      // Calculate page estimates for TOC
+      const criticalCount = reportData.critical;
+      const highCount = reportData.high;
+      const mediumCount = reportData.medium;
+      const lowCount = reportData.low;
+      const infoCount = reportData.info;
+
+      // Estimate pages: Cover=1, TOC=1, Summary=1, Findings=variable, Compliance=2, Remediation=1, AI=1
+      const findingsPages = Math.ceil(totalFindings / 4) || 1; // ~4 findings per page
+      const pageEstimates = {
+        cover: 1,
+        toc: 2,
+        summary: 3,
+        findings: 4,
+        compliance: 4 + findingsPages,
+        remediation: 4 + findingsPages + 2,
+        ai: 4 + findingsPages + 3,
+      };
+
       // Build comprehensive PDF content
       const pdfContent = document.createElement("div");
       pdfContent.style.fontFamily = "'Inter', 'Segoe UI', Arial, sans-serif";
@@ -421,6 +440,17 @@ const EnhancedReportDetails = () => {
             <p style="font-size: 14px; opacity: 0.8; margin: 8px 0;">Branch: ${
               report?.git_metadata?.branch || "main"
             }</p>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+              <div style="display: flex; justify-content: space-around;">
+                <div><div style="font-size: 28px; font-weight: 700;">${totalFindings}</div><div style="font-size: 11px; opacity: 0.7;">Vulnerabilities</div></div>
+                <div><div style="font-size: 28px; font-weight: 700; color: #fca5a5;">${
+                  criticalCount + highCount
+                }</div><div style="font-size: 11px; opacity: 0.7;">Critical/High</div></div>
+                <div><div style="font-size: 28px; font-weight: 700;">${
+                  reportData.securityScore
+                }</div><div style="font-size: 11px; opacity: 0.7;">Security Score</div></div>
+              </div>
+            </div>
           </div>
           <div style="margin-top: auto;">
             <p style="font-size: 14px; opacity: 0.7;">Report Generated: ${new Date().toLocaleDateString(
@@ -445,39 +475,102 @@ const EnhancedReportDetails = () => {
       const tocPage = `
         <div style="page-break-after: always; padding: 40px;">
           <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">📑 Table of Contents</h2>
-          <div style="font-size: 14px; line-height: 2.5;">
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
-              <span>1. Executive Summary</span>
-              <span style="color: #64748b;">Page 2</span>
+          <div style="font-size: 14px; line-height: 2.2;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 10px 0;">
+              <span style="font-weight: 600;">1. Executive Summary</span>
+              <span style="color: #64748b; font-weight: 500;">Page ${
+                pageEstimates.summary
+              }</span>
             </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
-              <span>2. Security Overview</span>
-              <span style="color: #64748b;">Page 2</span>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 10px 0;">
+              <span style="font-weight: 600;">2. Detailed Vulnerability Analysis</span>
+              <span style="color: #64748b; font-weight: 500;">Page ${
+                pageEstimates.findings
+              }</span>
             </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
-              <span>3. Findings by Severity</span>
-              <span style="color: #64748b;">Page 3</span>
+            <div style="padding-left: 24px; font-size: 13px; color: #64748b; margin: 4px 0 8px 0;">
+              ${
+                criticalCount > 0
+                  ? `<div>• Critical Vulnerabilities (${criticalCount} issues)</div>`
+                  : ""
+              }
+              ${
+                highCount > 0
+                  ? `<div>• High Severity Issues (${highCount} issues)</div>`
+                  : ""
+              }
+              ${
+                mediumCount > 0
+                  ? `<div>• Medium Severity Issues (${mediumCount} issues)</div>`
+                  : ""
+              }
+              ${
+                lowCount > 0
+                  ? `<div>• Low Severity Issues (${lowCount} issues)</div>`
+                  : ""
+              }
+              ${
+                infoCount > 0
+                  ? `<div>• Informational Findings (${infoCount} issues)</div>`
+                  : ""
+              }
             </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
-              <span>4. Detailed Vulnerability Analysis</span>
-              <span style="color: #64748b;">Page 4+</span>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 10px 0;">
+              <span style="font-weight: 600;">3. Compliance Assessment</span>
+              <span style="color: #64748b; font-weight: 500;">Page ${
+                pageEstimates.compliance
+              }</span>
             </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
-              <span>5. Compliance Assessment</span>
-              <span style="color: #64748b;">Page 5+</span>
+            <div style="padding-left: 24px; font-size: 13px; color: #64748b; margin: 4px 0 8px 0;">
+              <div>• OWASP Top 10 (2021)</div>
+              <div>• NIST Cybersecurity Framework</div>
+              <div>• ISO/IEC 27001</div>
+              <div>• PCI DSS 4.0</div>
             </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
-              <span>6. Remediation Recommendations</span>
-              <span style="color: #64748b;">Page 6+</span>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 10px 0;">
+              <span style="font-weight: 600;">4. Remediation Roadmap</span>
+              <span style="color: #64748b; font-weight: 500;">Page ${
+                pageEstimates.remediation
+              }</span>
             </div>
             ${
               aiAnalysis
-                ? `<div style="display: flex; justify-content: space-between; padding: 8px 0;">
-              <span>7. AI Security Analysis</span>
-              <span style="color: #64748b;">Page 7+</span>
-            </div>`
+                ? `
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 10px 0;">
+              <span style="font-weight: 600;">5. AI-Powered Security Analysis</span>
+              <span style="color: #64748b; font-weight: 500;">Page ${pageEstimates.ai}</span>
+            </div>
+            `
                 : ""
             }
+          </div>
+          
+          <div style="margin-top: 40px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #1e293b;">📊 Report Summary</h4>
+            <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Total Vulnerabilities:</td>
+                <td style="padding: 8px 0; font-weight: 600; color: #1e293b;">${totalFindings}</td>
+                <td style="padding: 8px 0; color: #64748b;">Security Score:</td>
+                <td style="padding: 8px 0; font-weight: 600; color: ${
+                  reportData.securityScore >= 70
+                    ? "#059669"
+                    : reportData.securityScore >= 40
+                    ? "#d97706"
+                    : "#dc2626"
+                };">${reportData.securityScore}/100</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #64748b;">Critical/High Issues:</td>
+                <td style="padding: 8px 0; font-weight: 600; color: #dc2626;">${
+                  criticalCount + highCount
+                }</td>
+                <td style="padding: 8px 0; color: #64748b;">Scanners Used:</td>
+                <td style="padding: 8px 0; font-weight: 600; color: #1e293b;">${
+                  report?.scan_results?.length || 1
+                }</td>
+              </tr>
+            </table>
           </div>
         </div>
       `;
@@ -647,27 +740,71 @@ const EnhancedReportDetails = () => {
       };
 
       let findingsHtml = `<div style="padding: 40px; page-break-before: always;">
-        <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🔍 Detailed Vulnerability Analysis</h2>`;
+        <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🔍 Detailed Vulnerability Analysis</h2>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Complete list of security vulnerabilities identified during the scan, organized by severity level with file locations, line numbers, and recommended fixes.</p>`;
+
+      // Generate default remediation based on finding type
+      const getDefaultRemediation = (finding) => {
+        const title = (finding.title || finding.message || "").toLowerCase();
+        const desc = (finding.description || "").toLowerCase();
+
+        if (title.includes("sql") || desc.includes("sql injection")) {
+          return "Use parameterized queries or prepared statements instead of string concatenation. Implement input validation and use ORM frameworks.";
+        } else if (
+          title.includes("xss") ||
+          desc.includes("cross-site scripting")
+        ) {
+          return "Encode all user-supplied data before rendering. Use Content Security Policy (CSP) headers and sanitize HTML input.";
+        } else if (
+          title.includes("hardcoded") ||
+          desc.includes("secret") ||
+          desc.includes("password")
+        ) {
+          return "Remove hardcoded credentials. Use environment variables or secure secret management solutions like HashiCorp Vault.";
+        } else if (title.includes("auth") || desc.includes("authentication")) {
+          return "Implement proper authentication mechanisms. Use secure session management and multi-factor authentication where possible.";
+        } else if (title.includes("crypto") || desc.includes("encryption")) {
+          return "Use strong, modern encryption algorithms (AES-256, RSA-2048+). Avoid deprecated algorithms like MD5, SHA1, or DES.";
+        } else if (
+          title.includes("injection") ||
+          desc.includes("command injection")
+        ) {
+          return "Validate and sanitize all user inputs. Avoid executing shell commands with user-supplied data. Use safe APIs.";
+        } else if (title.includes("path") || desc.includes("traversal")) {
+          return "Validate file paths and use allowlists for permitted directories. Never use user input directly in file operations.";
+        } else if (
+          title.includes("ssrf") ||
+          desc.includes("server-side request")
+        ) {
+          return "Validate and sanitize URLs. Use allowlists for permitted domains. Disable unnecessary URL schemes.";
+        } else if (title.includes("insecure") || desc.includes("http://")) {
+          return "Use HTTPS instead of HTTP. Implement HSTS headers and ensure all connections are encrypted.";
+        } else if (title.includes("log") || desc.includes("sensitive data")) {
+          return "Avoid logging sensitive information. Implement data masking and secure log storage practices.";
+        }
+        return "Review the code and apply security best practices. Consult OWASP guidelines for specific remediation steps.";
+      };
 
       severityOrder.forEach((severity) => {
         const findings = findingsBySeverity[severity];
         if (findings.length > 0) {
           const colors = severityColors[severity];
           findingsHtml += `
-            <div style="margin-bottom: 32px;">
+            <div style="margin-bottom: 32px; page-break-inside: avoid;">
               <div style="background: ${
                 colors.headerBg
-              }; color: white; padding: 12px 16px; border-radius: 8px 8px 0 0;">
-                <h3 style="margin: 0; font-size: 16px; font-weight: 600; text-transform: uppercase;">${severity} Severity (${
-            findings.length
-          } ${findings.length === 1 ? "issue" : "issues"})</h3>
+              }; color: white; padding: 14px 18px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600; text-transform: uppercase;">${severity.toUpperCase()} SEVERITY</h3>
+                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 12px;">${
+                  findings.length
+                } ${findings.length === 1 ? "issue" : "issues"}</span>
               </div>
               <div style="border: 2px solid ${
                 colors.border
               }; border-top: none; border-radius: 0 0 8px 8px; padding: 16px;">
           `;
 
-          // Show ALL findings, not just 20
+          // Show ALL findings with complete details
           findings.forEach((finding, idx) => {
             const title =
               finding.title ||
@@ -684,65 +821,151 @@ const EnhancedReportDetails = () => {
               finding.line ||
               finding.location?.line ||
               "";
+            const endLine =
+              finding.end_line || finding.location?.end_line || "";
+            const colNum =
+              finding.column || finding.col || finding.location?.column || "";
             const description = finding.description || finding.message || "";
             const recommendation =
               finding.recommendation ||
               finding.fix ||
               finding.remediation ||
-              "";
+              getDefaultRemediation(finding);
             const ruleId =
               finding.rule_id || finding.check_id || finding.id || "";
             const scanner =
               finding.scanner || finding.tool || finding.source || "";
+            const cwe = finding.cwe || finding.cwe_id || "";
+            const owasp = finding.owasp || finding.owasp_category || "";
+            const codeSnippet =
+              finding.code_snippet ||
+              finding.snippet ||
+              finding.vulnerable_code ||
+              finding.extra?.lines ||
+              "";
+            const confidence = finding.confidence || finding.certainty || "";
+            const category =
+              finding.category || finding.vulnerability_class || "";
 
             findingsHtml += `
-              <div style="margin-bottom: 16px; padding: 16px; background: ${
+              <div style="margin-bottom: 20px; padding: 18px; background: ${
                 colors.bg
-              }; border-radius: 8px; border-left: 4px solid ${colors.border};">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                  <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b; flex: 1;">${
+              }; border-radius: 10px; border-left: 5px solid ${
+              colors.border
+            }; page-break-inside: avoid;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                  <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a; flex: 1; min-width: 200px;">${
                     idx + 1
                   }. ${title}</h4>
-                  ${
-                    ruleId
-                      ? `<span style="font-size: 10px; background: ${colors.border}; color: white; padding: 2px 8px; border-radius: 4px; margin-left: 8px;">${ruleId}</span>`
-                      : ""
-                  }
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    ${
+                      ruleId
+                        ? `<span style="font-size: 10px; background: ${colors.border}; color: white; padding: 3px 10px; border-radius: 4px; font-weight: 600;">${ruleId}</span>`
+                        : ""
+                    }
+                    ${
+                      cwe
+                        ? `<span style="font-size: 10px; background: #7c3aed; color: white; padding: 3px 10px; border-radius: 4px;">CWE-${cwe}</span>`
+                        : ""
+                    }
+                    ${
+                      owasp
+                        ? `<span style="font-size: 10px; background: #0891b2; color: white; padding: 3px 10px; border-radius: 4px;">${owasp}</span>`
+                        : ""
+                    }
+                  </div>
                 </div>
-                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
-                  <strong>📁 File:</strong> ${filePath}${
-              lineNum ? `:${lineNum}` : ""
-            }
-                  ${scanner ? ` | <strong>🔧 Scanner:</strong> ${scanner}` : ""}
+                <div style="background: #1e293b; color: #e2e8f0; padding: 12px 16px; border-radius: 6px; margin-bottom: 14px; font-family: Consolas, Monaco, monospace;">
+                  <div style="display: flex; align-items: center; gap: 16px; font-size: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span style="color: #60a5fa;">📁</span>
+                      <span style="color: #94a3b8;">File:</span>
+                      <span style="color: #fbbf24; font-weight: 600;">${filePath}</span>
+                    </div>
+                    ${
+                      lineNum
+                        ? `
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #60a5fa;">📍</span>
+                        <span style="color: #94a3b8;">Line:</span>
+                        <span style="color: #4ade80; font-weight: 600;">${lineNum}${
+                            endLine && endLine !== lineNum
+                              ? ` - ${endLine}`
+                              : ""
+                          }${colNum ? `, Col: ${colNum}` : ""}</span>
+                      </div>
+                    `
+                        : ""
+                    }
+                    ${
+                      scanner
+                        ? `
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #60a5fa;">🔧</span>
+                        <span style="color: #94a3b8;">Scanner:</span>
+                        <span style="color: #a78bfa;">${scanner}</span>
+                      </div>
+                    `
+                        : ""
+                    }
+                  </div>
                 </div>
+                ${
+                  category || confidence
+                    ? `
+                  <div style="display: flex; gap: 16px; margin-bottom: 12px; font-size: 12px;">
+                    ${
+                      category
+                        ? `<div><strong style="color: #64748b;">Category:</strong> <span style="color: #1e293b;">${category}</span></div>`
+                        : ""
+                    }
+                    ${
+                      confidence
+                        ? `<div><strong style="color: #64748b;">Confidence:</strong> <span style="color: #1e293b;">${confidence}</span></div>`
+                        : ""
+                    }
+                  </div>
+                `
+                    : ""
+                }
                 ${
                   description
                     ? `
-                  <div style="font-size: 12px; color: #475569; margin-bottom: 8px; line-height: 1.6;">
-                    <strong>📋 Description:</strong><br/>
-                    ${
-                      description.length > 500
-                        ? description.substring(0, 500) + "..."
-                        : description
-                    }
+                  <div style="margin-bottom: 14px;">
+                    <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                      <span>📋</span> VULNERABILITY DESCRIPTION
+                    </div>
+                    <div style="font-size: 13px; color: #334155; line-height: 1.7; background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                      ${description}
+                    </div>
                   </div>
                 `
                     : ""
                 }
                 ${
-                  recommendation
+                  codeSnippet
                     ? `
-                  <div style="font-size: 12px; color: #059669; background: #ecfdf5; padding: 8px; border-radius: 4px; line-height: 1.6;">
-                    <strong>💡 Recommendation:</strong><br/>
-                    ${
-                      recommendation.length > 300
-                        ? recommendation.substring(0, 300) + "..."
-                        : recommendation
-                    }
+                  <div style="margin-bottom: 14px;">
+                    <div style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                      <span>💻</span> VULNERABLE CODE
+                    </div>
+                    <pre style="background: #1e293b; color: #e2e8f0; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; margin: 0; font-family: Consolas, Monaco, monospace; line-height: 1.5;">${
+                      typeof codeSnippet === "string"
+                        ? codeSnippet
+                        : JSON.stringify(codeSnippet, null, 2)
+                    }</pre>
                   </div>
                 `
                     : ""
                 }
+                <div style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); padding: 14px; border-radius: 8px; border: 1px solid #10b981;">
+                  <div style="font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>💡</span> HOW TO FIX
+                  </div>
+                  <div style="font-size: 13px; color: #064e3b; line-height: 1.7;">
+                    ${recommendation}
+                  </div>
+                </div>
               </div>
             `;
           });
@@ -906,42 +1129,187 @@ const EnhancedReportDetails = () => {
       // ============ AI ANALYSIS (if available) ============
       let aiHtml = "";
       if (aiAnalysis) {
+        // Parse AI analysis data properly
+        const aiSummary =
+          aiAnalysis.summary ||
+          aiAnalysis.analysis_summary ||
+          aiAnalysis.executive_summary ||
+          "";
+        const aiRecs =
+          aiAnalysis.recommendations ||
+          aiAnalysis.suggested_fixes ||
+          aiAnalysis.remediation_steps ||
+          [];
+        const aiRiskAssessment =
+          aiAnalysis.risk_assessment || aiAnalysis.threat_analysis || "";
+        const aiScore =
+          aiAnalysis.security_score ||
+          aiAnalysis.score ||
+          reportData.securityScore;
+        const aiRiskLevel =
+          aiAnalysis.risk_level ||
+          aiAnalysis.severity ||
+          (aiScore >= 70 ? "Low" : aiScore >= 40 ? "Medium" : "High");
+        const aiVulnBreakdown =
+          aiAnalysis.vulnerability_breakdown ||
+          aiAnalysis.findings_analysis ||
+          null;
+        const aiThreatVectors =
+          aiAnalysis.threat_vectors || aiAnalysis.attack_vectors || [];
+        const aiPriorityFixes =
+          aiAnalysis.priority_fixes || aiAnalysis.critical_fixes || [];
+
         aiHtml = `<div style="padding: 40px; page-break-before: always;">
           <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🤖 AI-Powered Security Analysis</h2>
-          <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 12px; padding: 24px;">
-            ${
-              aiAnalysis.summary
-                ? `
-              <h3 style="color: #0369a1; margin: 0 0 12px 0;">Analysis Summary</h3>
-              <p style="font-size: 14px; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">${aiAnalysis.summary}</p>
-            `
-                : ""
-            }
-            ${
-              aiAnalysis.recommendations &&
-              aiAnalysis.recommendations.length > 0
-                ? `
-              <h3 style="color: #0369a1; margin: 0 0 12px 0;">AI Recommendations</h3>
-              <ul style="font-size: 13px; color: #1e293b; line-height: 1.8; padding-left: 20px; margin: 0;">
-                ${(Array.isArray(aiAnalysis.recommendations)
-                  ? aiAnalysis.recommendations
-                  : [aiAnalysis.recommendations]
-                )
-                  .map((rec) => `<li>${rec}</li>`)
-                  .join("")}
-              </ul>
-            `
-                : ""
-            }
-            ${
-              aiAnalysis.risk_assessment
-                ? `
-              <h3 style="color: #0369a1; margin: 20px 0 12px 0;">Risk Assessment</h3>
-              <p style="font-size: 13px; color: #1e293b; line-height: 1.8;">${aiAnalysis.risk_assessment}</p>
-            `
-                : ""
-            }
+          
+          <!-- AI Analysis Header -->
+          <div style="background: linear-gradient(135deg, #1e40af, #7c3aed); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <h3 style="margin: 0 0 8px 0; font-size: 18px;">Automated Security Intelligence</h3>
+                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Powered by advanced AI models for comprehensive vulnerability analysis</p>
+              </div>
+              <div style="text-align: center; background: rgba(255,255,255,0.15); padding: 16px 24px; border-radius: 8px;">
+                <div style="font-size: 32px; font-weight: 800;">${aiScore}</div>
+                <div style="font-size: 11px; opacity: 0.8;">AI Security Score</div>
+              </div>
+              <div style="text-align: center; background: rgba(255,255,255,0.15); padding: 16px 24px; border-radius: 8px;">
+                <div style="font-size: 18px; font-weight: 700;">${aiRiskLevel}</div>
+                <div style="font-size: 11px; opacity: 0.8;">Risk Level</div>
+              </div>
+            </div>
           </div>
+
+          ${
+            aiSummary
+              ? `
+          <!-- AI Summary -->
+          <div style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #0369a1; margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+              <span>📊</span> AI Analysis Summary
+            </h3>
+            <p style="font-size: 14px; color: #1e293b; line-height: 1.8; margin: 0;">${aiSummary}</p>
+          </div>
+          `
+              : ""
+          }
+
+          ${
+            aiRiskAssessment
+              ? `
+          <!-- Risk Assessment -->
+          <div style="background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #dc2626; margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+              <span>⚠️</span> AI Risk Assessment
+            </h3>
+            <p style="font-size: 14px; color: #1e293b; line-height: 1.8; margin: 0;">${aiRiskAssessment}</p>
+          </div>
+          `
+              : ""
+          }
+
+          ${
+            Array.isArray(aiThreatVectors) && aiThreatVectors.length > 0
+              ? `
+          <!-- Threat Vectors -->
+          <div style="background: #fff7ed; border: 2px solid #ea580c; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #ea580c; margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+              <span>🎯</span> Identified Threat Vectors
+            </h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8; color: #1e293b;">
+              ${aiThreatVectors.map((v) => `<li>${v}</li>`).join("")}
+            </ul>
+          </div>
+          `
+              : ""
+          }
+
+          ${
+            Array.isArray(aiPriorityFixes) && aiPriorityFixes.length > 0
+              ? `
+          <!-- Priority Fixes -->
+          <div style="background: #ecfdf5; border: 2px solid #059669; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="color: #059669; margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+              <span>🔧</span> AI-Recommended Priority Fixes
+            </h3>
+            <ol style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 2; color: #1e293b;">
+              ${aiPriorityFixes
+                .map(
+                  (fix) =>
+                    `<li style="margin-bottom: 8px;"><strong>${
+                      typeof fix === "object" ? fix.title || fix.name : fix
+                    }</strong>${
+                      typeof fix === "object" && fix.description
+                        ? `<br/><span style="color: #64748b;">${fix.description}</span>`
+                        : ""
+                    }</li>`
+                )
+                .join("")}
+            </ol>
+          </div>
+          `
+              : ""
+          }
+
+          ${
+            Array.isArray(aiRecs) && aiRecs.length > 0
+              ? `
+          <!-- AI Recommendations -->
+          <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 12px; padding: 20px;">
+            <h3 style="color: #0369a1; margin: 0 0 12px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+              <span>💡</span> AI Security Recommendations
+            </h3>
+            <div style="display: grid; gap: 12px;">
+              ${(Array.isArray(aiRecs) ? aiRecs : [aiRecs])
+                .map(
+                  (rec, idx) => `
+                <div style="background: white; padding: 14px; border-radius: 8px; border-left: 4px solid #0284c7;">
+                  <div style="font-size: 13px; color: #1e293b; line-height: 1.7;">
+                    <strong style="color: #0369a1;">${idx + 1}.</strong> ${
+                    typeof rec === "object"
+                      ? rec.recommendation ||
+                        rec.text ||
+                        rec.description ||
+                        JSON.stringify(rec)
+                      : rec
+                  }
+                  </div>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+          </div>
+          `
+              : `
+          <!-- Default AI Insights -->
+          <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 12px; padding: 20px;">
+            <h3 style="color: #0369a1; margin: 0 0 12px 0; font-size: 16px;">💡 AI Security Insights</h3>
+            <p style="font-size: 14px; color: #1e293b; line-height: 1.8; margin: 0;">
+              Based on the automated analysis, the following key areas require attention:
+            </p>
+            <ul style="margin: 12px 0 0 0; padding-left: 20px; font-size: 13px; line-height: 1.8; color: #1e293b;">
+              ${
+                reportData.critical > 0
+                  ? `<li>Address ${reportData.critical} critical vulnerabilities immediately to prevent potential security breaches.</li>`
+                  : ""
+              }
+              ${
+                reportData.high > 0
+                  ? `<li>Remediate ${reportData.high} high-severity issues as part of your sprint priorities.</li>`
+                  : ""
+              }
+              ${
+                reportData.medium > 0
+                  ? `<li>Plan fixes for ${reportData.medium} medium-severity findings in upcoming releases.</li>`
+                  : ""
+              }
+              <li>Implement continuous security monitoring and regular vulnerability assessments.</li>
+              <li>Review and update security policies based on identified vulnerability patterns.</li>
+            </ul>
+          </div>
+          `
+          }
         </div>`;
       }
 
