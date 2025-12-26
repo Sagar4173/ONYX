@@ -114,7 +114,7 @@ async def comprehensive_scan(
     Start comprehensive security scan with all available scanners
     """
     try:
-        user_id = current_user["user_id"]
+        user_id = str(current_user.id)
         repository_url = str(request.repository_url)
         target_url = str(request.target_url) if request.target_url else None
         

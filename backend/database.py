@@ -364,36 +364,24 @@ async def init_database():
     if manager_connected:
         init_collections()
     
-    # Initialize Beanie ODM
+    # Initialize Beanie ODM using the same database connection
     beanie_connected = False
     try:
-        # Get MongoDB URI from environment
-        mongodb_uri = os.getenv('MONGODB_URI')
-        if not mongodb_uri:
-            logger.warning("No MongoDB URI found for Beanie initialization")
+        if not manager_connected or db_manager.db is None:
+            logger.warning("Database not connected - skipping Beanie initialization")
             return manager_connected
-            
-        # Replace placeholder with actual password if needed
-        if '<db_password>' in mongodb_uri:
-            db_password = os.getenv('MONGO_PASSWORD', 'your-password')
-            mongodb_uri = mongodb_uri.replace('<db_password>', db_password)
-        
-        # Create client for Beanie
-        beanie_client = AsyncIOMotorClient(mongodb_uri)
-        db_name = os.getenv('DATABASE_NAME', 'onyx')
-        beanie_db = beanie_client[db_name]
         
         # Import document models
         from models.report import ScanReport, WebhookEvent
         
-        # Initialize Beanie with document models
+        # Initialize Beanie using the existing db_manager connection (no duplicate client)
         await init_beanie(
-            database=beanie_db,
+            database=db_manager.db,
             document_models=[ScanReport, WebhookEvent, ScannerHealth, User, UserSession, APIToken, Project]
         )
         
         beanie_connected = True
-        logger.info("✅ Beanie ODM initialized successfully")
+        logger.info("✅ Beanie ODM initialized successfully (using shared connection)")
         
     except Exception as e:
         logger.error(f"❌ Failed to initialize Beanie ODM: {e}")

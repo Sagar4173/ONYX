@@ -12,13 +12,16 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 import json
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -63,6 +66,9 @@ from config import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Rate limiter setup
+limiter = Limiter(key_func=get_remote_address)
+
 # Lifespan context manager for startup/shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -84,6 +90,10 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# Add rate limiting to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS settings from environment variables
 allowed_origins = settings.cors_origins_list
@@ -151,6 +161,25 @@ async def redirect_trailing_slash(request: Request, call_next):
     
     response = await call_next(request)
     return response
+
+# Request body size limit middleware (10MB max)
+MAX_REQUEST_SIZE = 10 * 1024 * 1024  # 10MB
+
+@app.middleware("http")
+async def limit_request_body_size(request: Request, call_next):
+    """Limit request body size to prevent DoS attacks"""
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            if int(content_length) > MAX_REQUEST_SIZE:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Request body too large. Maximum size is 10MB."}
+                )
+        except ValueError:
+            pass  # Invalid content-length header, let FastAPI handle it
+    
+    return await call_next(request)
 
 @app.get("/api/analytics/overview")
 async def get_analytics_overview(days_back: int = 30):

@@ -84,7 +84,7 @@ class VulnerabilityStateUpdate(BaseModel):
 async def execute_comprehensive_workflow(
     scan_request: ScanRequest, 
     background_tasks: BackgroundTasks,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
     Execute comprehensive security workflow:
@@ -115,7 +115,7 @@ async def execute_comprehensive_workflow(
              description="Update NVD, KEV, and EPSS threat intelligence feeds and re-score existing vulnerabilities")
 async def update_threat_intelligence(
     background_tasks: BackgroundTasks,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Update all threat intelligence feeds and re-score vulnerabilities"""
     try:
@@ -137,7 +137,7 @@ async def update_threat_intelligence(
 @router.get("/threat-intelligence/stats",
             summary="Get Threat Intelligence Statistics",
             description="Get comprehensive threat intelligence statistics and coverage metrics")
-async def get_threat_intelligence_stats(token: str = Depends(security)) -> Dict[str, Any]:
+async def get_threat_intelligence_stats(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
     """Get threat intelligence statistics"""
     try:
         stats = await orchestration_engine.threat_intelligence.get_threat_stats()
@@ -157,7 +157,7 @@ async def get_threat_intelligence_stats(token: str = Depends(security)) -> Dict[
              description="Register or update an asset for vulnerability management tracking")
 async def register_asset(
     asset: AssetRegistration,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Register asset for vulnerability management"""
     try:
@@ -198,7 +198,7 @@ async def register_asset(
 async def update_vulnerability_state(
     vulnerability_id: str,
     state_update: VulnerabilityStateUpdate,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Update vulnerability lifecycle state"""
     try:
@@ -228,7 +228,7 @@ async def update_vulnerability_state(
              description="Create security policy gate for automated compliance checking")
 async def create_policy_gate(
     gate_config: PolicyGateConfig,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Create security policy gate"""
     try:
@@ -252,7 +252,7 @@ async def create_policy_gate(
             description="Get comprehensive vulnerability management metrics and KPIs")
 async def get_vulnerability_metrics(
     time_period: str = "30d",
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Get vulnerability management metrics"""
     try:
@@ -272,7 +272,7 @@ async def get_vulnerability_metrics(
 @router.get("/metrics/sla-performance",
             summary="Get SLA Performance Metrics",
             description="Get SLA performance metrics against defined targets")
-async def get_sla_performance(token: str = Depends(security)) -> Dict[str, Any]:
+async def get_sla_performance(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
     """Get SLA performance metrics"""
     try:
         sla_performance = await orchestration_engine.metrics_kpi.calculate_sla_performance()
@@ -290,7 +290,7 @@ async def get_sla_performance(token: str = Depends(security)) -> Dict[str, Any]:
 @router.get("/metrics/executive-dashboard",
             summary="Get Executive Security Dashboard",
             description="Get executive-level security metrics and KPIs dashboard")
-async def get_executive_dashboard(token: str = Depends(security)) -> Dict[str, Any]:
+async def get_executive_dashboard(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
     """Get executive security dashboard"""
     try:
         dashboard = await orchestration_engine.metrics_kpi.get_executive_dashboard()
@@ -310,7 +310,7 @@ async def get_executive_dashboard(token: str = Depends(security)) -> Dict[str, A
             description="Get trend analysis for key security metrics over time")
 async def get_trends_analysis(
     days: int = 30,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Get security trends analysis"""
     try:
@@ -331,7 +331,7 @@ async def get_trends_analysis(
              description="Execute automated SLA breach response workflow with escalation")
 async def execute_sla_breach_response(
     background_tasks: BackgroundTasks,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Execute SLA breach response workflow"""
     try:
@@ -351,7 +351,7 @@ async def execute_sla_breach_response(
 @router.get("/orchestration/status",
             summary="Get Orchestration Engine Status",
             description="Get comprehensive status of the security orchestration engine")
-async def get_orchestration_status(token: str = Depends(security)) -> Dict[str, Any]:
+async def get_orchestration_status(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
     """Get orchestration engine status"""
     try:
         status = await orchestration_engine.get_orchestration_status()
@@ -374,7 +374,7 @@ async def rescore_vulnerability(
     new_epss_score: Optional[float] = None,
     new_business_criticality: Optional[str] = None,
     kev_added: bool = False,
-    token: str = Depends(security)
+    current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Re-score vulnerability based on updated threat intelligence"""
     try:
@@ -402,7 +402,7 @@ async def rescore_vulnerability(
 @router.get("/workflow/definitions",
             summary="Get Workflow Definitions",
             description="Get available security orchestration workflow definitions")
-async def get_workflow_definitions(token: str = Depends(security)) -> Dict[str, Any]:
+async def get_workflow_definitions(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
     """Get available workflow definitions"""
     try:
         workflows = {}
