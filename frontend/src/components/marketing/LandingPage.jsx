@@ -147,6 +147,8 @@ const LandingPage = () => {
   const heroRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
 
   // Words for typing animation
   const heroWords = [
@@ -156,6 +158,15 @@ const LandingPage = () => {
     "Attacks",
     "Risks",
   ];
+
+  // Smooth scroll to section
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    setIsNavOpen(false);
+  };
 
   // Handle scroll
   useEffect(() => {
@@ -240,6 +251,8 @@ const LandingPage = () => {
         "Deep code semantic analysis",
         "Zero-day threat prediction",
         "Contextual vulnerability scoring",
+        "False positive elimination",
+        "Smart remediation suggestions",
       ],
     },
     {
@@ -253,6 +266,8 @@ const LandingPage = () => {
         "SAST, DAST, SCA integration",
         "Container security scanning",
         "Infrastructure as Code analysis",
+        "Dependency vulnerability checks",
+        "License compliance scanning",
       ],
     },
     {
@@ -266,6 +281,8 @@ const LandingPage = () => {
         "Live code monitoring",
         "Instant PR/MR analysis",
         "Automated blocking capabilities",
+        "Webhook notifications",
+        "Real-time dashboards",
       ],
     },
     {
@@ -279,6 +296,8 @@ const LandingPage = () => {
         "NVD, MITRE integration",
         "Dark web monitoring",
         "Industry-specific threats",
+        "Exploit database tracking",
+        "24/7 threat updates",
       ],
     },
     {
@@ -292,6 +311,8 @@ const LandingPage = () => {
         "Automated audit reports",
         "Policy enforcement",
         "Continuous compliance monitoring",
+        "Evidence collection",
+        "Gap analysis reporting",
       ],
     },
     {
@@ -301,7 +322,13 @@ const LandingPage = () => {
         "Seamless integration with GitHub, GitLab, Azure DevOps, Jenkins, and all major CI/CD platforms.",
       gradient: "from-indigo-500 to-blue-600",
       stats: "50+ integrations",
-      details: ["Native Git hooks", "IDE plugins", "API-first architecture"],
+      details: [
+        "Native Git hooks",
+        "IDE plugins",
+        "API-first architecture",
+        "Custom workflow support",
+        "Enterprise SSO/SAML",
+      ],
     },
   ];
 
@@ -549,38 +576,54 @@ const LandingPage = () => {
 
             {/* Nav Links */}
             <div className="hidden md:flex items-center space-x-8">
-              <a
-                href="#features"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
-              >
-                Features
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
-              </a>
-              <a
-                href="#scanners"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
-              >
-                Scanners
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
-              </a>
-              <a
-                href="#pricing"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
-              >
-                Pricing
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
-              </a>
-              <a
-                href="#why-onyx"
-                className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
-              >
-                Why ONYX
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
-              </a>
+              {[
+                { name: "Features", id: "features" },
+                { name: "Scanners", id: "scanners" },
+                { name: "Pricing", id: "pricing" },
+                { name: "Why ONYX", id: "why-onyx" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className="text-gray-400 hover:text-white transition-colors text-sm font-medium relative group"
+                >
+                  {item.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 group-hover:w-full transition-all duration-300" />
+                </button>
+              ))}
             </div>
 
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsNavOpen(!isNavOpen)}
+              className="md:hidden p-2 text-gray-400 hover:text-white"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {isNavOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+
             {/* CTA Buttons */}
-            <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-4">
               <button
                 onClick={() => navigate("/login")}
                 className="hidden sm:block text-gray-300 hover:text-white transition-colors text-sm font-medium"
@@ -600,6 +643,42 @@ const LandingPage = () => {
               </button>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isNavOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-gray-800/50 pt-4">
+              <div className="flex flex-col space-y-3">
+                {[
+                  { name: "Features", id: "features" },
+                  { name: "Scanners", id: "scanners" },
+                  { name: "Pricing", id: "pricing" },
+                  { name: "Why ONYX", id: "why-onyx" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className="text-gray-400 hover:text-white transition-colors text-sm font-medium text-left py-2"
+                  >
+                    {item.name}
+                  </button>
+                ))}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="flex-1 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium border border-gray-700 rounded-lg"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => navigate("/register")}
+                    className="flex-1 py-2 bg-gradient-to-r from-cyan-500 to-violet-600 text-white text-sm font-medium rounded-lg"
+                  >
+                    Start Free
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -722,6 +801,37 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Trusted By Section */}
+      <section className="py-16 border-b border-gray-800/50 bg-gray-900/20">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center text-gray-500 text-sm uppercase tracking-widest mb-10">
+            Trusted by Security Teams Worldwide
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-8">
+            {[
+              { name: "TechCorp", icon: "🏢" },
+              { name: "StartupXYZ", icon: "🚀" },
+              { name: "DevSecure", icon: "🔐" },
+              { name: "CloudFirst", icon: "☁️" },
+              { name: "DataGuard", icon: "🛡️" },
+              { name: "CodeFlow", icon: "⚡" },
+            ].map((company, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 text-gray-400 hover:text-gray-200 transition-colors group cursor-default"
+              >
+                <span className="text-2xl group-hover:scale-110 transition-transform">
+                  {company.icon}
+                </span>
+                <span className="text-lg font-semibold tracking-wide">
+                  {company.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How It Works - New Section */}
       <section className="py-24 border-b border-gray-800/50 bg-gray-900/30">
         <div className="max-w-7xl mx-auto px-6">
@@ -797,12 +907,140 @@ const LandingPage = () => {
               <span className="text-sm text-cyan-400">Core Capabilities</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Next-Generation Security
+              Next-Generation{" "}
+              <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+                Security
+              </span>
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
               Powered by cutting-edge AI and battle-tested security
-              methodologies
+              methodologies.
+              <span className="text-white"> See threats others miss.</span>
             </p>
+          </div>
+
+          {/* Live Code Demo */}
+          <div className="mb-20 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-violet-500/10 to-cyan-500/10 rounded-3xl blur-3xl" />
+            <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800/50 overflow-hidden">
+              {/* Code Editor Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800/50 bg-gray-900/50">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                  </div>
+                  <span className="text-gray-500 text-sm ml-2">
+                    auth_controller.py
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="text-xs text-cyan-400">AI Scanning</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Code Content */}
+              <div className="p-6 font-mono text-sm">
+                <div className="flex">
+                  <div className="text-gray-600 select-none pr-6 text-right w-12">
+                    1<br />2<br />3<br />4<br />5<br />6<br />7<br />8<br />9
+                    <br />
+                    10
+                    <br />
+                    11
+                  </div>
+                  <div className="flex-1 overflow-x-auto">
+                    <pre className="text-gray-300">
+                      <span className="text-violet-400">def</span>{" "}
+                      <span className="text-cyan-400">authenticate_user</span>
+                      (username, password):{"\n"}
+                      <span className="text-gray-500">
+                        {" "}
+                        # SQL Query - VULNERABILITY DETECTED!
+                      </span>
+                      {"\n"}
+                      <span className="relative">
+                        <span className="absolute -left-4 top-0 w-1 h-full bg-red-500 rounded animate-pulse" />
+                        <span className="bg-red-500/20 px-1 rounded text-red-300">
+                          {" "}
+                          query = f"SELECT * FROM users WHERE name='{"{"}
+                          username{"}"}'"{"\n"}
+                        </span>
+                      </span>
+                      <span className="text-gray-500">
+                        {" "}
+                        # Hardcoded secret - CRITICAL!
+                      </span>
+                      {"\n"}
+                      <span className="relative">
+                        <span className="absolute -left-4 top-0 w-1 h-full bg-amber-500 rounded animate-pulse" />
+                        <span className="bg-amber-500/20 px-1 rounded text-amber-300">
+                          {" "}
+                          api_key = "sk-prod-12345-secret-key"{"\n"}
+                        </span>
+                      </span>
+                      <span className="text-violet-400"> return</span>{" "}
+                      db.execute(query)
+                    </pre>
+                  </div>
+                </div>
+
+                {/* AI Detection Panel */}
+                <div className="mt-6 pt-6 border-t border-gray-800/50">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CpuChipIcon className="w-5 h-5 text-cyan-400" />
+                    <span className="text-white font-semibold">
+                      AI Detection Results
+                    </span>
+                    <span className="ml-auto text-xs text-gray-500">
+                      Scan completed in 0.8s
+                    </span>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
+                        <span className="font-semibold text-red-400">
+                          SQL Injection
+                        </span>
+                        <span className="ml-auto text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full">
+                          Critical
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm">
+                        Line 3: User input directly interpolated into SQL query
+                      </p>
+                      <button className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                        View fix suggestion{" "}
+                        <ArrowRightIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <LockClosedIcon className="w-5 h-5 text-amber-400" />
+                        <span className="font-semibold text-amber-400">
+                          Hardcoded Secret
+                        </span>
+                        <span className="ml-auto text-xs px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">
+                          High
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm">
+                        Line 5: API key exposed in source code
+                      </p>
+                      <button className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                        View fix suggestion{" "}
+                        <ArrowRightIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Features Grid */}
@@ -852,7 +1090,7 @@ const LandingPage = () => {
 
             {/* Feature Detail Panel */}
             <div className="lg:sticky lg:top-32 h-fit">
-              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 overflow-hidden">
+              <div className="relative p-8 rounded-3xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 overflow-hidden min-h-[500px]">
                 {/* Background gradient */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${features[activeFeature].gradient} opacity-5`}
@@ -871,27 +1109,47 @@ const LandingPage = () => {
                   <h3 className="text-2xl font-bold text-white mb-4">
                     {features[activeFeature].title}
                   </h3>
-                  <p className="text-gray-400 mb-6 leading-relaxed">
+                  <p className="text-gray-400 mb-6 leading-relaxed text-lg">
                     {features[activeFeature].description}
                   </p>
 
-                  <div className="space-y-3">
+                  {/* Stats highlight */}
+                  <div className="mb-6 p-4 rounded-xl bg-gray-800/50 border border-gray-700/30">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`text-3xl font-black bg-gradient-to-r ${features[activeFeature].gradient} bg-clip-text text-transparent`}
+                      >
+                        {features[activeFeature].stats}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        Performance Metric
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-8">
                     {features[activeFeature].details.map((detail, i) => (
-                      <div key={i} className="flex items-center gap-3">
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors"
+                      >
                         <CheckCircleIcon className="w-5 h-5 text-cyan-400 flex-shrink-0" />
                         <span className="text-gray-300">{detail}</span>
                       </div>
                     ))}
                   </div>
 
-                  <button className="mt-8 flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
-                    Learn more
+                  <button
+                    onClick={() => navigate("/register")}
+                    className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2"
+                  >
+                    Get Started
                     <ArrowRightIcon className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Decorative elements */}
-                <div className="absolute top-4 right-4 text-6xl font-black text-white/5">
+                <div className="absolute top-4 right-4 text-8xl font-black text-white/5">
                   {String(activeFeature + 1).padStart(2, "0")}
                 </div>
               </div>
@@ -912,11 +1170,35 @@ const LandingPage = () => {
               <span className="text-sm text-violet-400">Security Arsenal</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              12+ Enterprise Scanners
+              <span className="text-violet-400">12+</span> Enterprise Scanners
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Industry-leading security tools unified in one powerful platform
             </p>
+          </div>
+
+          {/* Scanner Category Tabs */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
+            {[
+              { id: "all", label: "All Tools", count: 12 },
+              { id: "sast", label: "SAST", count: 4 },
+              { id: "secrets", label: "Secrets", count: 2 },
+              { id: "container", label: "Container", count: 3 },
+              { id: "iac", label: "IaC", count: 3 },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                  activeTab === tab.id
+                    ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
+                    : "bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-800 hover:text-white"
+                }`}
+              >
+                {tab.label}{" "}
+                <span className="ml-1 text-xs opacity-60">({tab.count})</span>
+              </button>
+            ))}
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -946,6 +1228,68 @@ const LandingPage = () => {
             <span className="text-gray-500 text-sm">
               + 4 more specialized scanners
             </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Integrations Section */}
+      <section className="py-24 bg-gray-900/30">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
+              <ServerStackIcon className="w-4 h-4 text-blue-400" />
+              <span className="text-sm text-blue-400">
+                Seamless Integration
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Works With Your <span className="text-blue-400">Stack</span>
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Native integrations with your favorite tools. Deploy in minutes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {[
+              { name: "GitHub", icon: "🐙", category: "Version Control" },
+              { name: "GitLab", icon: "🦊", category: "Version Control" },
+              { name: "Bitbucket", icon: "🪣", category: "Version Control" },
+              { name: "Jenkins", icon: "🔧", category: "CI/CD" },
+              { name: "CircleCI", icon: "⭕", category: "CI/CD" },
+              { name: "Docker", icon: "🐳", category: "Container" },
+              { name: "Kubernetes", icon: "☸️", category: "Container" },
+              { name: "AWS", icon: "☁️", category: "Cloud" },
+              { name: "Azure", icon: "🔷", category: "Cloud" },
+              { name: "GCP", icon: "🌐", category: "Cloud" },
+              { name: "Slack", icon: "💬", category: "Notifications" },
+              { name: "Jira", icon: "📋", category: "Issue Tracking" },
+            ].map((integration, i) => (
+              <div
+                key={i}
+                className="group p-4 rounded-xl bg-gray-800/30 border border-gray-800/50 hover:border-blue-500/30 hover:bg-gray-800/50 transition-all text-center"
+              >
+                <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                  {integration.icon}
+                </div>
+                <div className="font-medium text-white text-sm">
+                  {integration.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {integration.category}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <button
+              onClick={() => navigate("/register")}
+              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
+            >
+              View all 50+ integrations
+              <ArrowRightIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </section>
