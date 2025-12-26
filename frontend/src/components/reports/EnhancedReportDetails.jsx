@@ -282,8 +282,8 @@ const EnhancedReportDetails = () => {
     );
   }
 
-  // Download report function
-  const downloadReport = async (format = "pdf") => {
+  // Download report function for JSON/CSV exports
+  const downloadReport = async (format = "json") => {
     try {
       toast.loading("Preparing download...", { id: "download" });
 
@@ -320,8 +320,7 @@ const EnhancedReportDetails = () => {
       const a = document.createElement("a");
       a.href = url;
 
-      const extension =
-        format === "csv" ? "csv" : format === "json" ? "json" : "pdf";
+      const extension = format === "csv" ? "csv" : "json";
       a.download = `security-report-${reportId}.${extension}`;
 
       document.body.appendChild(a);
@@ -341,23 +340,34 @@ const EnhancedReportDetails = () => {
     }
   };
 
-  // Generate PDF from current view with enhanced options
-  const generateViewPDF = async () => {
-    if (!reportRef.current) return;
+  // Print report function - uses browser's print dialog
+  const printReport = () => {
+    window.print();
+  };
 
+  // Get all findings from report
+  const getAllFindings = () => {
+    let allFindings = [];
+    if (report?.findings && Array.isArray(report.findings)) {
+      allFindings = report.findings;
+    } else if (report?.scan_results) {
+      report.scan_results.forEach((scanResult) => {
+        if (scanResult.findings && Array.isArray(scanResult.findings)) {
+          allFindings = [...allFindings, ...scanResult.findings];
+        }
+      });
+    }
+    return allFindings;
+  };
+
+  // Generate comprehensive PDF with ALL sections - FULL DETAILED REPORT
+  const generateViewPDF = async () => {
     setIsGenerating(true);
     try {
-      // Calculate total findings
-      let totalFindings = 0;
-      if (report?.findings) {
-        totalFindings = report.findings.length;
-      } else if (report?.scan_results) {
-        report.scan_results.forEach((sr) => {
-          if (sr.findings) totalFindings += sr.findings.length;
-        });
-      }
+      const allFindings = getAllFindings();
+      const totalFindings = allFindings.length;
 
-      // Prepare report data for PDF executive summary
+      // Prepare report data
       const reportData = {
         totalFindings: totalFindings,
         critical: report?.findings_by_severity?.critical || 0,
@@ -385,27 +395,613 @@ const EnhancedReportDetails = () => {
           ),
       };
 
-      await generatePDF(reportRef.current, {
-        filename: `security-report-${report?.project_name || reportId}-${
+      // Build comprehensive PDF content
+      const pdfContent = document.createElement("div");
+      pdfContent.style.fontFamily = "'Inter', 'Segoe UI', Arial, sans-serif";
+      pdfContent.style.color = "#1f2937";
+      pdfContent.style.backgroundColor = "#ffffff";
+      pdfContent.style.padding = "0";
+      pdfContent.style.width = "100%";
+
+      // ============ COVER PAGE ============
+      const coverPage = `
+        <div style="page-break-after: always; padding: 40px; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%); color: white; text-align: center;">
+          <div style="margin-bottom: 40px;">
+            <div style="font-size: 60px; margin-bottom: 20px;">🛡️</div>
+            <h1 style="font-size: 36px; font-weight: 800; margin: 0; letter-spacing: -1px;">ONYX Security Report</h1>
+            <p style="font-size: 18px; opacity: 0.9; margin: 16px 0 0 0;">Comprehensive Security Analysis</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.15); border-radius: 16px; padding: 32px; margin: 40px auto; max-width: 500px;">
+            <h2 style="font-size: 24px; font-weight: 600; margin: 0 0 16px 0;">${
+              report?.project_name || "Security Assessment"
+            }</h2>
+            <p style="font-size: 14px; opacity: 0.8; margin: 8px 0;">${
+              report?.git_metadata?.repository_url || "Repository Analysis"
+            }</p>
+            <p style="font-size: 14px; opacity: 0.8; margin: 8px 0;">Branch: ${
+              report?.git_metadata?.branch || "main"
+            }</p>
+          </div>
+          <div style="margin-top: auto;">
+            <p style="font-size: 14px; opacity: 0.7;">Report Generated: ${new Date().toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            )}</p>
+            <p style="font-size: 12px; opacity: 0.6; margin-top: 8px;">Report ID: ${
+              report?.scan_id || reportId
+            }</p>
+            <p style="font-size: 11px; opacity: 0.5; margin-top: 16px;">🔒 CONFIDENTIAL - For authorized personnel only</p>
+          </div>
+        </div>
+      `;
+
+      // ============ TABLE OF CONTENTS ============
+      const tocPage = `
+        <div style="page-break-after: always; padding: 40px;">
+          <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">📑 Table of Contents</h2>
+          <div style="font-size: 14px; line-height: 2.5;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
+              <span>1. Executive Summary</span>
+              <span style="color: #64748b;">Page 2</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
+              <span>2. Security Overview</span>
+              <span style="color: #64748b;">Page 2</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
+              <span>3. Findings by Severity</span>
+              <span style="color: #64748b;">Page 3</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
+              <span>4. Detailed Vulnerability Analysis</span>
+              <span style="color: #64748b;">Page 4+</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
+              <span>5. Compliance Assessment</span>
+              <span style="color: #64748b;">Page 5+</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dotted #cbd5e1; padding: 8px 0;">
+              <span>6. Remediation Recommendations</span>
+              <span style="color: #64748b;">Page 6+</span>
+            </div>
+            ${
+              aiAnalysis
+                ? `<div style="display: flex; justify-content: space-between; padding: 8px 0;">
+              <span>7. AI Security Analysis</span>
+              <span style="color: #64748b;">Page 7+</span>
+            </div>`
+                : ""
+            }
+          </div>
+        </div>
+      `;
+
+      // ============ EXECUTIVE SUMMARY ============
+      const riskLevel =
+        reportData.riskScore <= 25
+          ? "Low"
+          : reportData.riskScore <= 50
+          ? "Medium"
+          : reportData.riskScore <= 75
+          ? "High"
+          : "Critical";
+      const riskColor =
+        reportData.riskScore <= 25
+          ? "#059669"
+          : reportData.riskScore <= 50
+          ? "#d97706"
+          : reportData.riskScore <= 75
+          ? "#ea580c"
+          : "#dc2626";
+
+      const executiveSummary = `
+        <div style="page-break-after: always; padding: 40px;">
+          <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">📊 Executive Summary</h2>
+          
+          <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <h3 style="font-size: 16px; color: #0369a1; margin: 0 0 16px 0;">Assessment Overview</h3>
+            <p style="font-size: 14px; color: #1e293b; line-height: 1.8; margin: 0;">
+              This security assessment of <strong>${
+                report?.project_name || "the target repository"
+              }</strong> identified 
+              <strong style="color: #dc2626;">${totalFindings} security vulnerabilities</strong> across the codebase. 
+              The overall security posture is rated as <strong style="color: ${riskColor};">${riskLevel} Risk</strong> 
+              with a security score of <strong>${
+                reportData.securityScore
+              }/100</strong>.
+            </p>
+          </div>
+
+          <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin: 24px 0 16px 0;">Severity Distribution</h3>
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+            <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 12px; border: 2px solid #dc2626;">
+              <div style="font-size: 36px; font-weight: 800; color: #dc2626;">${
+                reportData.critical
+              }</div>
+              <div style="font-size: 12px; color: #991b1b; font-weight: 700; text-transform: uppercase; margin-top: 4px;">Critical</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #fff7ed; border-radius: 12px; border: 2px solid #ea580c;">
+              <div style="font-size: 36px; font-weight: 800; color: #ea580c;">${
+                reportData.high
+              }</div>
+              <div style="font-size: 12px; color: #9a3412; font-weight: 700; text-transform: uppercase; margin-top: 4px;">High</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #fffbeb; border-radius: 12px; border: 2px solid #d97706;">
+              <div style="font-size: 36px; font-weight: 800; color: #d97706;">${
+                reportData.medium
+              }</div>
+              <div style="font-size: 12px; color: #92400e; font-weight: 700; text-transform: uppercase; margin-top: 4px;">Medium</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #eff6ff; border-radius: 12px; border: 2px solid #2563eb;">
+              <div style="font-size: 36px; font-weight: 800; color: #2563eb;">${
+                reportData.low
+              }</div>
+              <div style="font-size: 12px; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-top: 4px;">Low</div>
+            </div>
+            <div style="text-align: center; padding: 20px; background: #f3f4f6; border-radius: 12px; border: 2px solid #6b7280;">
+              <div style="font-size: 36px; font-weight: 800; color: #6b7280;">${
+                reportData.info
+              }</div>
+              <div style="font-size: 12px; color: #374151; font-weight: 700; text-transform: uppercase; margin-top: 4px;">Info</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin: 24px 0 16px 0;">Key Metrics</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr style="background: #f8fafc;">
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Total Vulnerabilities</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0;">${totalFindings}</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Security Score</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; color: ${
+                reportData.securityScore >= 70
+                  ? "#059669"
+                  : reportData.securityScore >= 40
+                  ? "#d97706"
+                  : "#dc2626"
+              }; font-weight: 600;">${reportData.securityScore}/100</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Risk Level</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; color: ${riskColor}; font-weight: 600;">${riskLevel}</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Scan Duration</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0;">${
+                report?.duration_seconds
+                  ? Math.round(report.duration_seconds) + "s"
+                  : "N/A"
+              }</td>
+            </tr>
+            <tr style="background: #f8fafc;">
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Repository</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0;" colspan="3">${
+                report?.git_metadata?.repository_url || "N/A"
+              }</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Branch</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0;">${
+                report?.git_metadata?.branch || "main"
+              }</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0; font-weight: 600;">Scan Date</td>
+              <td style="padding: 12px; border: 1px solid #e2e8f0;">${
+                report?.created_at
+                  ? new Date(report.created_at).toLocaleString()
+                  : new Date().toLocaleString()
+              }</td>
+            </tr>
+          </table>
+        </div>
+      `;
+
+      // ============ DETAILED FINDINGS ============
+      const severityOrder = ["critical", "high", "medium", "low", "info"];
+      const findingsBySeverity = {};
+      severityOrder.forEach((sev) => {
+        findingsBySeverity[sev] = [];
+      });
+      allFindings.forEach((f) => {
+        const sev = (f.severity || "info").toLowerCase();
+        if (findingsBySeverity[sev]) {
+          findingsBySeverity[sev].push(f);
+        } else {
+          findingsBySeverity["info"].push(f);
+        }
+      });
+
+      const severityColors = {
+        critical: {
+          bg: "#fef2f2",
+          border: "#dc2626",
+          text: "#dc2626",
+          headerBg: "#dc2626",
+        },
+        high: {
+          bg: "#fff7ed",
+          border: "#ea580c",
+          text: "#ea580c",
+          headerBg: "#ea580c",
+        },
+        medium: {
+          bg: "#fffbeb",
+          border: "#d97706",
+          text: "#d97706",
+          headerBg: "#d97706",
+        },
+        low: {
+          bg: "#eff6ff",
+          border: "#2563eb",
+          text: "#2563eb",
+          headerBg: "#2563eb",
+        },
+        info: {
+          bg: "#f3f4f6",
+          border: "#6b7280",
+          text: "#6b7280",
+          headerBg: "#6b7280",
+        },
+      };
+
+      let findingsHtml = `<div style="padding: 40px; page-break-before: always;">
+        <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🔍 Detailed Vulnerability Analysis</h2>`;
+
+      severityOrder.forEach((severity) => {
+        const findings = findingsBySeverity[severity];
+        if (findings.length > 0) {
+          const colors = severityColors[severity];
+          findingsHtml += `
+            <div style="margin-bottom: 32px;">
+              <div style="background: ${
+                colors.headerBg
+              }; color: white; padding: 12px 16px; border-radius: 8px 8px 0 0;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600; text-transform: uppercase;">${severity} Severity (${
+            findings.length
+          } ${findings.length === 1 ? "issue" : "issues"})</h3>
+              </div>
+              <div style="border: 2px solid ${
+                colors.border
+              }; border-top: none; border-radius: 0 0 8px 8px; padding: 16px;">
+          `;
+
+          // Show ALL findings, not just 20
+          findings.forEach((finding, idx) => {
+            const title =
+              finding.title ||
+              finding.message ||
+              finding.rule_id ||
+              `Finding ${idx + 1}`;
+            const filePath =
+              finding.file_path ||
+              finding.path ||
+              finding.location?.path ||
+              "Unknown file";
+            const lineNum =
+              finding.line_number ||
+              finding.line ||
+              finding.location?.line ||
+              "";
+            const description = finding.description || finding.message || "";
+            const recommendation =
+              finding.recommendation ||
+              finding.fix ||
+              finding.remediation ||
+              "";
+            const ruleId =
+              finding.rule_id || finding.check_id || finding.id || "";
+            const scanner =
+              finding.scanner || finding.tool || finding.source || "";
+
+            findingsHtml += `
+              <div style="margin-bottom: 16px; padding: 16px; background: ${
+                colors.bg
+              }; border-radius: 8px; border-left: 4px solid ${colors.border};">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                  <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b; flex: 1;">${
+                    idx + 1
+                  }. ${title}</h4>
+                  ${
+                    ruleId
+                      ? `<span style="font-size: 10px; background: ${colors.border}; color: white; padding: 2px 8px; border-radius: 4px; margin-left: 8px;">${ruleId}</span>`
+                      : ""
+                  }
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
+                  <strong>📁 File:</strong> ${filePath}${
+              lineNum ? `:${lineNum}` : ""
+            }
+                  ${scanner ? ` | <strong>🔧 Scanner:</strong> ${scanner}` : ""}
+                </div>
+                ${
+                  description
+                    ? `
+                  <div style="font-size: 12px; color: #475569; margin-bottom: 8px; line-height: 1.6;">
+                    <strong>📋 Description:</strong><br/>
+                    ${
+                      description.length > 500
+                        ? description.substring(0, 500) + "..."
+                        : description
+                    }
+                  </div>
+                `
+                    : ""
+                }
+                ${
+                  recommendation
+                    ? `
+                  <div style="font-size: 12px; color: #059669; background: #ecfdf5; padding: 8px; border-radius: 4px; line-height: 1.6;">
+                    <strong>💡 Recommendation:</strong><br/>
+                    ${
+                      recommendation.length > 300
+                        ? recommendation.substring(0, 300) + "..."
+                        : recommendation
+                    }
+                  </div>
+                `
+                    : ""
+                }
+              </div>
+            `;
+          });
+          findingsHtml += `</div></div>`;
+        }
+      });
+
+      if (totalFindings === 0) {
+        findingsHtml += `
+          <div style="text-align: center; padding: 40px; background: #ecfdf5; border-radius: 12px; border: 2px solid #059669;">
+            <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+            <h3 style="color: #059669; margin: 0 0 8px 0;">No Vulnerabilities Found</h3>
+            <p style="color: #047857; margin: 0;">The security scan did not detect any vulnerabilities in the codebase.</p>
+          </div>
+        `;
+      }
+      findingsHtml += `</div>`;
+
+      // ============ COMPLIANCE SECTION ============
+      let complianceHtml = `<div style="padding: 40px; page-break-before: always;">
+        <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">📋 Compliance Assessment</h2>
+        <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;">Assessment of security findings against major compliance frameworks and security standards.</p>`;
+
+      Object.entries(COMPLIANCE_STANDARDS).forEach(([key, standard]) => {
+        const categories = Object.entries(standard.categories);
+        const affectedCategories = categories.filter(([code, name]) => {
+          return allFindings.some((f) => {
+            const desc = (
+              (f.description || "") +
+              (f.title || "") +
+              (f.message || "")
+            ).toLowerCase();
+            return (
+              desc.includes(code.toLowerCase()) ||
+              desc.includes(name.toLowerCase().split(" ")[0])
+            );
+          });
+        });
+        const complianceScore =
+          categories.length > 0
+            ? Math.round(
+                ((categories.length - affectedCategories.length) /
+                  categories.length) *
+                  100
+              )
+            : 100;
+        const scoreColor =
+          complianceScore >= 80
+            ? "#059669"
+            : complianceScore >= 50
+            ? "#d97706"
+            : "#dc2626";
+
+        complianceHtml += `
+          <div style="margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #1e40af, #7c3aed); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 24px; margin-right: 12px;">${
+                  standard.icon
+                }</span>
+                <span style="font-size: 18px; font-weight: 600;">${
+                  standard.name
+                }</span>
+                <span style="font-size: 12px; opacity: 0.8; margin-left: 8px;">v${
+                  standard.version
+                }</span>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 28px; font-weight: 800;">${complianceScore}%</div>
+                <div style="font-size: 11px; opacity: 0.8;">Compliance Score</div>
+              </div>
+            </div>
+            <div style="padding: 16px; background: #f8fafc;">
+              <p style="font-size: 12px; color: #64748b; margin: 0 0 12px 0;">${
+                standard.description
+              }</p>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11px;">
+                ${categories
+                  .map(([code, name]) => {
+                    const isAffected = affectedCategories.some(
+                      ([c]) => c === code
+                    );
+                    return `<div style="padding: 8px; background: ${
+                      isAffected ? "#fef2f2" : "#ecfdf5"
+                    }; border-radius: 4px; border-left: 3px solid ${
+                      isAffected ? "#dc2626" : "#059669"
+                    };">
+                    <strong>${code}:</strong> ${name}
+                    <span style="float: right;">${
+                      isAffected ? "⚠️" : "✅"
+                    }</span>
+                  </div>`;
+                  })
+                  .join("")}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      complianceHtml += `</div>`;
+
+      // ============ REMEDIATION RECOMMENDATIONS ============
+      let remediationHtml = `<div style="padding: 40px; page-break-before: always;">
+        <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">💡 Remediation Recommendations</h2>`;
+
+      const priorityActions = [
+        {
+          priority: "Immediate",
+          color: "#dc2626",
+          items: findingsBySeverity.critical
+            .slice(0, 5)
+            .map((f) => f.title || f.message || "Critical vulnerability"),
+        },
+        {
+          priority: "High Priority",
+          color: "#ea580c",
+          items: findingsBySeverity.high
+            .slice(0, 5)
+            .map((f) => f.title || f.message || "High severity issue"),
+        },
+        {
+          priority: "Medium Priority",
+          color: "#d97706",
+          items: findingsBySeverity.medium
+            .slice(0, 5)
+            .map((f) => f.title || f.message || "Medium severity issue"),
+        },
+      ];
+
+      priorityActions.forEach(({ priority, color, items }) => {
+        if (items.length > 0) {
+          remediationHtml += `
+            <div style="margin-bottom: 24px;">
+              <h3 style="font-size: 16px; font-weight: 600; color: ${color}; margin-bottom: 12px;">${priority} Actions</h3>
+              <ul style="margin: 0; padding-left: 24px; font-size: 13px; line-height: 2;">
+                ${items
+                  .map((item) => `<li style="color: #1e293b;">${item}</li>`)
+                  .join("")}
+              </ul>
+            </div>
+          `;
+        }
+      });
+
+      remediationHtml += `
+        <div style="background: #f0f9ff; border: 1px solid #0284c7; border-radius: 8px; padding: 20px; margin-top: 24px;">
+          <h4 style="color: #0369a1; margin: 0 0 12px 0;">📚 General Security Best Practices</h4>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8; color: #1e293b;">
+            <li>Implement secure coding guidelines and conduct regular code reviews</li>
+            <li>Keep all dependencies and frameworks updated to latest secure versions</li>
+            <li>Enable security scanning in CI/CD pipelines for continuous monitoring</li>
+            <li>Conduct regular penetration testing and security assessments</li>
+            <li>Implement proper input validation and output encoding</li>
+            <li>Use parameterized queries to prevent SQL injection attacks</li>
+            <li>Implement proper authentication and session management</li>
+            <li>Enable comprehensive logging and monitoring for security events</li>
+          </ul>
+        </div>
+      </div>`;
+
+      // ============ AI ANALYSIS (if available) ============
+      let aiHtml = "";
+      if (aiAnalysis) {
+        aiHtml = `<div style="padding: 40px; page-break-before: always;">
+          <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🤖 AI-Powered Security Analysis</h2>
+          <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 12px; padding: 24px;">
+            ${
+              aiAnalysis.summary
+                ? `
+              <h3 style="color: #0369a1; margin: 0 0 12px 0;">Analysis Summary</h3>
+              <p style="font-size: 14px; color: #1e293b; line-height: 1.8; margin-bottom: 20px;">${aiAnalysis.summary}</p>
+            `
+                : ""
+            }
+            ${
+              aiAnalysis.recommendations &&
+              aiAnalysis.recommendations.length > 0
+                ? `
+              <h3 style="color: #0369a1; margin: 0 0 12px 0;">AI Recommendations</h3>
+              <ul style="font-size: 13px; color: #1e293b; line-height: 1.8; padding-left: 20px; margin: 0;">
+                ${(Array.isArray(aiAnalysis.recommendations)
+                  ? aiAnalysis.recommendations
+                  : [aiAnalysis.recommendations]
+                )
+                  .map((rec) => `<li>${rec}</li>`)
+                  .join("")}
+              </ul>
+            `
+                : ""
+            }
+            ${
+              aiAnalysis.risk_assessment
+                ? `
+              <h3 style="color: #0369a1; margin: 20px 0 12px 0;">Risk Assessment</h3>
+              <p style="font-size: 13px; color: #1e293b; line-height: 1.8;">${aiAnalysis.risk_assessment}</p>
+            `
+                : ""
+            }
+          </div>
+        </div>`;
+      }
+
+      // ============ FOOTER ============
+      const footer = `
+        <div style="padding: 40px; background: #f8fafc; border-top: 2px solid #e2e8f0; text-align: center;">
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
+            <strong>ONYX Security Intelligence Platform</strong> - Comprehensive Security Analysis Report
+          </div>
+          <div style="font-size: 11px; color: #94a3b8;">
+            Generated: ${new Date().toLocaleString()} | Report ID: ${
+        report?.scan_id || reportId
+      }
+          </div>
+          <div style="font-size: 10px; color: #94a3b8; margin-top: 8px;">
+            🔒 This document contains confidential security information. Distribution should be limited to authorized personnel only.
+          </div>
+        </div>
+      `;
+
+      // Assemble the complete PDF
+      pdfContent.innerHTML =
+        coverPage +
+        tocPage +
+        executiveSummary +
+        findingsHtml +
+        complianceHtml +
+        remediationHtml +
+        aiHtml +
+        footer;
+
+      await generatePDF(pdfContent, {
+        filename: `ONYX-Security-Report-${report?.project_name || reportId}-${
           new Date().toISOString().split("T")[0]
         }.pdf`,
-        title: "ONYX Security",
-        subtitle: `Security Analysis Report - ${
-          report?.project_name || "Vulnerability Scan"
+        title: "ONYX Security Report",
+        subtitle: `Complete Security Analysis - ${
+          report?.project_name || "Security Assessment"
         }`,
-        showExecutiveSummary: true,
+        showExecutiveSummary: false,
         showTableOfContents: false,
+        showHeader: false,
+        showFooter: false,
         reportData: reportData,
         companyName: report?.project_name,
         confidential: true,
+        format: "a4",
+        orientation: "portrait",
+        margin: 0,
       });
-      toast.success("🎉 PDF report generated successfully!", {
+
+      toast.success("🎉 Complete security report generated!", {
         icon: "📄",
-        duration: 3000,
+        duration: 4000,
       });
     } catch (error) {
       console.error("PDF generation error:", error);
-      toast.error("Failed to generate PDF. Please try again.");
+      toast.error(
+        "Failed to generate PDF: " + (error.message || "Unknown error")
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -558,719 +1154,749 @@ const EnhancedReportDetails = () => {
 
   return (
     <PageContainer>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <PageHeader
-          title="Security Scan Report"
-          description={report.project_name}
-          icon={DocumentTextIcon}
-          breadcrumb={["Reports", report.project_name]}
-          actions={
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => downloadReport("json")}
-                className="inline-flex items-center px-3 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
-              >
-                <DownloadIcon className="h-4 w-4 mr-2" />
-                JSON
-              </button>
-
-              <button
-                onClick={() => downloadReport("csv")}
-                className="inline-flex items-center px-3 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
-              >
-                <DownloadIcon className="h-4 w-4 mr-2" />
-                CSV
-              </button>
-
-              <button
-                onClick={() => downloadReport("pdf")}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-              >
-                <DownloadIcon className="h-4 w-4 mr-2" />
-                PDF Report
-              </button>
-
-              <button
-                onClick={generateViewPDF}
-                disabled={isGenerating}
-                className="inline-flex items-center px-3 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
-              >
-                {isGenerating ? (
-                  <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <PrinterIcon className="h-4 w-4 mr-2" />
-                )}
-                {isGenerating ? "Generating..." : "Print View"}
-              </button>
-
-              <Link
-                to="#compliance-section"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document
-                    .getElementById("compliance-section")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="inline-flex items-center px-3 py-2 border border-green-600 text-sm font-medium rounded-md text-green-400 bg-green-900/20 hover:bg-green-900/30"
-              >
-                <DocumentTextIcon className="h-4 w-4 mr-2" />
-                Jump to Compliance
-              </Link>
-            </div>
-          }
-        />
-
-        <div className="glass-container rounded-2xl p-6 mb-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center space-x-6 text-sm text-gray-400">
-                <div className="flex items-center">
-                  <ClockIcon className="h-4 w-4 mr-1" />
-                  {utils.formatDate(report.created_at)}
-                </div>
-                <div className="flex items-center">
-                  <CodeIcon className="h-4 w-4 mr-1" />
-                  {report.git_metadata?.repository_url}
-                </div>
-                <div className="flex items-center">
-                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                    {report.git_metadata?.branch || "main"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <StatusBadge status={report.status} />
-              <div className="mt-2 text-sm text-gray-400">
-                Scan ID: {report.scan_id}
-              </div>
-              {report.duration_seconds && (
-                <div className="text-sm text-gray-400">
-                  Duration: {Math.round(report.duration_seconds)}s
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="mb-8">
-          <div className="glass-container rounded-2xl p-1">
-            <nav className="flex space-x-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
+      <div className="max-w-7xl mx-auto print:max-w-none">
+        {/* Header - Hidden in print */}
+        <div className="no-print">
+          <PageHeader
+            title="Security Scan Report"
+            description={report.project_name}
+            icon={DocumentTextIcon}
+            breadcrumb={["Reports", report.project_name]}
+            actions={
+              <div className="flex items-center space-x-2">
+                {/* Export Dropdown Menu */}
+                <div className="relative group">
                   <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? "bg-blue-600 text-white shadow-lg"
-                        : "text-gray-400 hover:text-gray-300 hover:bg-gray-800/50"
-                    }`}
+                    className="inline-flex items-center px-3 py-2 border border-gray-600 text-sm font-medium rounded-md text-gray-300 bg-gray-800 hover:bg-gray-700"
+                    title="Export Options"
                   >
-                    <Icon className="h-4 w-4 mr-2" />
-                    {tab.name}
+                    <DownloadIcon className="h-4 w-4 mr-2" />
+                    Export
+                    <ChevronDownIcon className="h-4 w-4 ml-1" />
                   </button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div ref={reportRef} className="space-y-8">
-          {activeTab === "overview" && (
-            <div className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="glass-container rounded-xl p-6">
-                  <div className="flex items-center">
-                    <div className="p-2 rounded-lg bg-blue-500/20">
-                      <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm text-gray-400">Total Findings</p>
-                      <p className="text-2xl font-bold text-white">
-                        {report.total_findings || 0}
-                      </p>
-                    </div>
+                  <div className="absolute right-0 mt-1 w-44 bg-gray-800 border border-gray-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <button
+                      onClick={() => downloadReport("json")}
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-700 flex items-center gap-2 rounded-t-lg"
+                    >
+                      <CodeIcon className="h-4 w-4" />
+                      JSON Data
+                    </button>
+                    <button
+                      onClick={() => downloadReport("csv")}
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-700 flex items-center gap-2"
+                    >
+                      <DocumentIcon className="h-4 w-4" />
+                      CSV Spreadsheet
+                    </button>
+                    <button
+                      onClick={printReport}
+                      className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-700 flex items-center gap-2 rounded-b-lg border-t border-gray-700"
+                    >
+                      <PrinterIcon className="h-4 w-4" />
+                      Print Report
+                    </button>
                   </div>
                 </div>
 
-                {Object.entries(report.findings_by_severity || {}).map(
-                  ([severity, count]) => (
-                    <div
-                      key={severity}
-                      className="glass-container rounded-xl p-6"
-                    >
-                      <div className="flex items-center">
-                        <div
-                          className={`p-2 rounded-lg ${utils.getSeverityBgColor(
-                            severity
-                          )}`}
-                        >
-                          <FireIcon
-                            className={`h-6 w-6 ${utils.getSeverityTextColor(
-                              severity
-                            )}`}
-                          />
-                        </div>
-                        <div className="ml-4">
-                          <p className="text-sm text-gray-400 capitalize">
-                            {severity}
-                          </p>
-                          <p className="text-2xl font-bold text-white">
-                            {count}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                )}
+                {/* Primary PDF Download Button */}
+                <button
+                  onClick={generateViewPDF}
+                  disabled={isGenerating}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 shadow-lg shadow-blue-500/25"
+                  title="Download complete PDF report"
+                >
+                  {isGenerating ? (
+                    <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <DocumentTextIcon className="h-4 w-4 mr-2" />
+                  )}
+                  {isGenerating ? "Generating..." : "Download PDF"}
+                </button>
+              </div>
+            }
+          />
+        </div>
+        {/* Print-only Header - Hidden on screen, shown in print */}
+        <div className="hidden print:block print:mb-8 print:pb-4 print:border-b-2 print:border-blue-600">
+          <div className="print:text-center">
+            <h1 className="print:text-2xl print:font-bold print:text-blue-800 print:mb-2">
+              🛡️ ONYX Security Report
+            </h1>
+            <p className="print:text-gray-600 print:text-sm">
+              Security Analysis Report for {report.project_name}
+            </p>
+            <p className="print:text-gray-500 print:text-xs print:mt-1">
+              Generated:{" "}
+              {new Date().toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}{" "}
+              | Report ID: {reportId}
+            </p>
+          </div>
+        </div>
+        {/* Main Report Content - Add ref for PDF generation */}
+        <div ref={reportRef} className="print:bg-white">
+          <div className="glass-container rounded-2xl p-6 mb-8 print:bg-white print:shadow-none print:border print:border-gray-200">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center space-x-6 text-sm text-gray-400 print:text-gray-600">
+                  <div className="flex items-center">
+                    <ClockIcon className="h-4 w-4 mr-1" />
+                    {utils.formatDate(report.created_at)}
+                  </div>
+                  <div className="flex items-center">
+                    <CodeIcon className="h-4 w-4 mr-1" />
+                    {report.git_metadata?.repository_url}
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-xs bg-gray-700 print:bg-gray-200 px-2 py-1 rounded print:text-gray-700">
+                      {report.git_metadata?.branch || "main"}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {/* AI Analysis Summary */}
-              {aiAnalysis && (
-                <div className="glass-container rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                    <SparklesIcon className="h-5 w-5 mr-2 text-purple-400" />
-                    AI Risk Assessment
-                  </h3>
-                  <div className="prose prose-invert max-w-none">
-                    <p className="text-gray-300">
-                      {aiAnalysis.executive_summary}
-                    </p>
-                    {aiAnalysis.risk_assessment && (
-                      <div className="mt-4 p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-                        <p className="text-purple-300">
-                          {aiAnalysis.risk_assessment}
+              <div className="text-right">
+                <StatusBadge status={report.status} />
+                <div className="mt-2 text-sm text-gray-400 print:text-gray-600">
+                  Scan ID: {report.scan_id}
+                </div>
+                {report.duration_seconds && (
+                  <div className="text-sm text-gray-400 print:text-gray-600">
+                    Duration: {Math.round(report.duration_seconds)}s
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* Tabs - Hidden in print */}
+          <div className="mb-8 no-print">
+            <div className="glass-container rounded-2xl p-1">
+              <nav className="flex space-x-1">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        activeTab === tab.id
+                          ? "bg-blue-600 text-white shadow-lg"
+                          : "text-gray-400 hover:text-gray-300 hover:bg-gray-800/50"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {tab.name}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+          {/* Main Content */}
+          <div className="space-y-8">
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="glass-container rounded-xl p-6">
+                    <div className="flex items-center">
+                      <div className="p-2 rounded-lg bg-blue-500/20">
+                        <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm text-gray-400">Total Findings</p>
+                        <p className="text-2xl font-bold text-white">
+                          {report.total_findings || 0}
                         </p>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Scanner Summary */}
-              {report.scan_results && (
-                <div className="glass-container rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">
-                    Scanner Results
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {report.scan_results.map((scanResult, index) => (
+                  {Object.entries(report.findings_by_severity || {}).map(
+                    ([severity, count]) => (
                       <div
-                        key={index}
-                        className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+                        key={severity}
+                        className="glass-container rounded-xl p-6"
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-white">
-                            {scanResult.scanner}
-                          </span>
-                          <StatusBadge status={scanResult.status} />
+                        <div className="flex items-center">
+                          <div
+                            className={`p-2 rounded-lg ${utils.getSeverityBgColor(
+                              severity
+                            )}`}
+                          >
+                            <FireIcon
+                              className={`h-6 w-6 ${utils.getSeverityTextColor(
+                                severity
+                              )}`}
+                            />
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm text-gray-400 capitalize">
+                              {severity}
+                            </p>
+                            <p className="text-2xl font-bold text-white">
+                              {count}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-400">
-                          <div>Findings: {scanResult.findings_count || 0}</div>
-                          {scanResult.duration_seconds && (
+                      </div>
+                    )
+                  )}
+                </div>
+
+                {/* AI Analysis Summary */}
+                {aiAnalysis && (
+                  <div className="glass-container rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <SparklesIcon className="h-5 w-5 mr-2 text-purple-400" />
+                      AI Risk Assessment
+                    </h3>
+                    <div className="prose prose-invert max-w-none">
+                      <p className="text-gray-300">
+                        {aiAnalysis.executive_summary}
+                      </p>
+                      {aiAnalysis.risk_assessment && (
+                        <div className="mt-4 p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                          <p className="text-purple-300">
+                            {aiAnalysis.risk_assessment}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Scanner Summary */}
+                {report.scan_results && (
+                  <div className="glass-container rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">
+                      Scanner Results
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {report.scan_results.map((scanResult, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-white">
+                              {scanResult.scanner}
+                            </span>
+                            <StatusBadge status={scanResult.status} />
+                          </div>
+                          <div className="text-sm text-gray-400">
                             <div>
-                              Duration:{" "}
-                              {Math.round(scanResult.duration_seconds)}s
+                              Findings: {scanResult.findings_count || 0}
+                            </div>
+                            {scanResult.duration_seconds && (
+                              <div>
+                                Duration:{" "}
+                                {Math.round(scanResult.duration_seconds)}s
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "findings" && (
+              <div className="space-y-6">
+                {/* Secret Detection Summary */}
+                {(() => {
+                  const secretFindings = filteredFindings.filter(
+                    (f) =>
+                      f.scanner?.toLowerCase() === "gitleaks" ||
+                      f.title?.toLowerCase().includes("secret") ||
+                      f.title?.toLowerCase().includes("credential")
+                  );
+                  const placeholderCount = secretFindings.filter(
+                    (f) => f.metadata?.is_placeholder
+                  ).length;
+                  const exampleFileCount = secretFindings.filter(
+                    (f) =>
+                      f.metadata?.is_example_file && !f.metadata?.is_placeholder
+                  ).length;
+                  const realSecretCount = secretFindings.filter(
+                    (f) => f.metadata?.is_likely_real !== false
+                  ).length;
+
+                  if (secretFindings.length > 0) {
+                    return (
+                      <div className="glass-container rounded-xl p-4 border border-gray-700">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-white flex items-center">
+                            <ShieldCheckIcon className="h-4 w-4 mr-2 text-purple-400" />
+                            Secret Detection Summary
+                          </h4>
+                          <span className="text-xs text-gray-400">
+                            {secretFindings.length} secret-related finding
+                            {secretFindings.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          {realSecretCount > 0 && (
+                            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-red-400">
+                                {realSecretCount}
+                              </div>
+                              <div className="text-xs text-red-300">
+                                Likely Real
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Requires Action
+                              </div>
+                            </div>
+                          )}
+                          {placeholderCount > 0 && (
+                            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-blue-400">
+                                {placeholderCount}
+                              </div>
+                              <div className="text-xs text-blue-300">
+                                Placeholders
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Example Values
+                              </div>
+                            </div>
+                          )}
+                          {exampleFileCount > 0 && (
+                            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-yellow-400">
+                                {exampleFileCount}
+                              </div>
+                              <div className="text-xs text-yellow-300">
+                                In Example Files
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Verify If Real
+                              </div>
                             </div>
                           )}
                         </div>
+                        {placeholderCount > 0 || exampleFileCount > 0 ? (
+                          <p className="text-xs text-gray-400 mt-3 flex items-start">
+                            <InformationCircleIcon className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" />
+                            <span>
+                              Placeholder credentials in .env.example,
+                              README.md, or documentation files are flagged for
+                              awareness but typically don't require immediate
+                              action. Always verify secrets in example files
+                              aren't accidentally real.
+                            </span>
+                          </p>
+                        ) : null}
                       </div>
-                    ))}
+                    );
+                  }
+                  return null;
+                })()}
+
+                {/* Filters */}
+                <div className="glass-container rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white">
+                      Security Findings
+                    </h3>
+                    <select
+                      value={severityFilter}
+                      onChange={(e) => setSeverityFilter(e.target.value)}
+                      className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm [&>option]:bg-gray-800 [&>option]:text-white"
+                    >
+                      <option value="all" className="bg-gray-800 text-white">
+                        All Severities
+                      </option>
+                      <option
+                        value="critical"
+                        className="bg-gray-800 text-white"
+                      >
+                        Critical
+                      </option>
+                      <option value="high" className="bg-gray-800 text-white">
+                        High
+                      </option>
+                      <option value="medium" className="bg-gray-800 text-white">
+                        Medium
+                      </option>
+                      <option value="low" className="bg-gray-800 text-white">
+                        Low
+                      </option>
+                      <option value="info" className="bg-gray-800 text-white">
+                        Info
+                      </option>
+                    </select>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
 
-          {activeTab === "findings" && (
-            <div className="space-y-6">
-              {/* Secret Detection Summary */}
-              {(() => {
-                const secretFindings = filteredFindings.filter(
-                  (f) =>
-                    f.scanner?.toLowerCase() === "gitleaks" ||
-                    f.title?.toLowerCase().includes("secret") ||
-                    f.title?.toLowerCase().includes("credential")
-                );
-                const placeholderCount = secretFindings.filter(
-                  (f) => f.metadata?.is_placeholder
-                ).length;
-                const exampleFileCount = secretFindings.filter(
-                  (f) =>
-                    f.metadata?.is_example_file && !f.metadata?.is_placeholder
-                ).length;
-                const realSecretCount = secretFindings.filter(
-                  (f) => f.metadata?.is_likely_real !== false
-                ).length;
+                {/* Findings List */}
+                <div className="space-y-4">
+                  {filteredFindings.length > 0 ? (
+                    filteredFindings.map((finding, index) => {
+                      // Check if this is a placeholder/example credential
+                      const isPlaceholder = finding.metadata?.is_placeholder;
+                      const isExampleFile = finding.metadata?.is_example_file;
+                      const isLikelyReal =
+                        finding.metadata?.is_likely_real !== false; // Default to true if not specified
+                      const isSecretFinding =
+                        finding.scanner?.toLowerCase() === "gitleaks" ||
+                        finding.title?.toLowerCase().includes("secret") ||
+                        finding.title?.toLowerCase().includes("credential");
 
-                if (secretFindings.length > 0) {
-                  return (
-                    <div className="glass-container rounded-xl p-4 border border-gray-700">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-white flex items-center">
-                          <ShieldCheckIcon className="h-4 w-4 mr-2 text-purple-400" />
-                          Secret Detection Summary
-                        </h4>
-                        <span className="text-xs text-gray-400">
-                          {secretFindings.length} secret-related finding
-                          {secretFindings.length !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4">
-                        {realSecretCount > 0 && (
-                          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-red-400">
-                              {realSecretCount}
-                            </div>
-                            <div className="text-xs text-red-300">
-                              Likely Real
-                            </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              Requires Action
-                            </div>
-                          </div>
-                        )}
-                        {placeholderCount > 0 && (
-                          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-blue-400">
-                              {placeholderCount}
-                            </div>
-                            <div className="text-xs text-blue-300">
-                              Placeholders
-                            </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              Example Values
-                            </div>
-                          </div>
-                        )}
-                        {exampleFileCount > 0 && (
-                          <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-yellow-400">
-                              {exampleFileCount}
-                            </div>
-                            <div className="text-xs text-yellow-300">
-                              In Example Files
-                            </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              Verify If Real
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      {placeholderCount > 0 || exampleFileCount > 0 ? (
-                        <p className="text-xs text-gray-400 mt-3 flex items-start">
-                          <InformationCircleIcon className="h-4 w-4 mr-1 flex-shrink-0 mt-0.5" />
-                          <span>
-                            Placeholder credentials in .env.example, README.md,
-                            or documentation files are flagged for awareness but
-                            typically don't require immediate action. Always
-                            verify secrets in example files aren't accidentally
-                            real.
-                          </span>
-                        </p>
-                      ) : null}
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
-              {/* Filters */}
-              <div className="glass-container rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-white">
-                    Security Findings
-                  </h3>
-                  <select
-                    value={severityFilter}
-                    onChange={(e) => setSeverityFilter(e.target.value)}
-                    className="px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm [&>option]:bg-gray-800 [&>option]:text-white"
-                  >
-                    <option value="all" className="bg-gray-800 text-white">
-                      All Severities
-                    </option>
-                    <option value="critical" className="bg-gray-800 text-white">
-                      Critical
-                    </option>
-                    <option value="high" className="bg-gray-800 text-white">
-                      High
-                    </option>
-                    <option value="medium" className="bg-gray-800 text-white">
-                      Medium
-                    </option>
-                    <option value="low" className="bg-gray-800 text-white">
-                      Low
-                    </option>
-                    <option value="info" className="bg-gray-800 text-white">
-                      Info
-                    </option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Findings List */}
-              <div className="space-y-4">
-                {filteredFindings.length > 0 ? (
-                  filteredFindings.map((finding, index) => {
-                    // Check if this is a placeholder/example credential
-                    const isPlaceholder = finding.metadata?.is_placeholder;
-                    const isExampleFile = finding.metadata?.is_example_file;
-                    const isLikelyReal =
-                      finding.metadata?.is_likely_real !== false; // Default to true if not specified
-                    const isSecretFinding =
-                      finding.scanner?.toLowerCase() === "gitleaks" ||
-                      finding.title?.toLowerCase().includes("secret") ||
-                      finding.title?.toLowerCase().includes("credential");
-
-                    return (
-                      <div
-                        key={index}
-                        className={`glass-container rounded-xl p-6 ${
-                          isSecretFinding && !isLikelyReal
-                            ? "border-l-4 border-l-blue-500 bg-blue-900/10"
-                            : isSecretFinding && isExampleFile && isLikelyReal
-                            ? "border-l-4 border-l-orange-500 bg-orange-900/10"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
-                              <SeverityBadge severity={finding.severity} />
-                              <span className="text-sm text-gray-400">
-                                {finding.scanner}
-                              </span>
-
-                              {/* Placeholder/Example Credential Indicator */}
-                              {isSecretFinding && !isLikelyReal && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                                  <InformationCircleIcon className="h-3 w-3 mr-1" />
-                                  {isPlaceholder
-                                    ? "Placeholder Credential"
-                                    : "Example File"}
+                      return (
+                        <div
+                          key={index}
+                          className={`glass-container rounded-xl p-6 ${
+                            isSecretFinding && !isLikelyReal
+                              ? "border-l-4 border-l-blue-500 bg-blue-900/10"
+                              : isSecretFinding && isExampleFile && isLikelyReal
+                              ? "border-l-4 border-l-orange-500 bg-orange-900/10"
+                              : ""
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
+                                <SeverityBadge severity={finding.severity} />
+                                <span className="text-sm text-gray-400">
+                                  {finding.scanner}
                                 </span>
-                              )}
 
-                              {/* Warning for real-looking secrets in example files */}
-                              {isSecretFinding &&
-                                isLikelyReal &&
-                                isExampleFile && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30">
-                                    <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
-                                    Verify - May Be Real
+                                {/* Placeholder/Example Credential Indicator */}
+                                {isSecretFinding && !isLikelyReal && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                    <InformationCircleIcon className="h-3 w-3 mr-1" />
+                                    {isPlaceholder
+                                      ? "Placeholder Credential"
+                                      : "Example File"}
                                   </span>
                                 )}
-                            </div>
 
-                            <h4 className="text-lg font-semibold text-white mb-2">
-                              {finding.title}
-                            </h4>
+                                {/* Warning for real-looking secrets in example files */}
+                                {isSecretFinding &&
+                                  isLikelyReal &&
+                                  isExampleFile && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                                      <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
+                                      Verify - May Be Real
+                                    </span>
+                                  )}
+                              </div>
 
-                            {/* Entropy indicator for secrets */}
-                            {isSecretFinding &&
-                              finding.metadata?.calculated_entropy && (
-                                <div className="flex items-center text-xs text-gray-400 mb-2">
-                                  <span className="mr-2">Entropy:</span>
-                                  <div className="flex items-center">
-                                    <div className="w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden mr-2">
-                                      <div
-                                        className={`h-full ${
+                              <h4 className="text-lg font-semibold text-white mb-2">
+                                {finding.title}
+                              </h4>
+
+                              {/* Entropy indicator for secrets */}
+                              {isSecretFinding &&
+                                finding.metadata?.calculated_entropy && (
+                                  <div className="flex items-center text-xs text-gray-400 mb-2">
+                                    <span className="mr-2">Entropy:</span>
+                                    <div className="flex items-center">
+                                      <div className="w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden mr-2">
+                                        <div
+                                          className={`h-full ${
+                                            finding.metadata
+                                              .calculated_entropy > 4
+                                              ? "bg-red-500"
+                                              : finding.metadata
+                                                  .calculated_entropy > 3
+                                              ? "bg-yellow-500"
+                                              : "bg-green-500"
+                                          }`}
+                                          style={{
+                                            width: `${Math.min(
+                                              finding.metadata
+                                                .calculated_entropy * 15,
+                                              100
+                                            )}%`,
+                                          }}
+                                        />
+                                      </div>
+                                      <span
+                                        className={
                                           finding.metadata.calculated_entropy >
                                           4
-                                            ? "bg-red-500"
+                                            ? "text-red-400"
                                             : finding.metadata
                                                 .calculated_entropy > 3
-                                            ? "bg-yellow-500"
-                                            : "bg-green-500"
-                                        }`}
-                                        style={{
-                                          width: `${Math.min(
-                                            finding.metadata
-                                              .calculated_entropy * 15,
-                                            100
-                                          )}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <span
-                                      className={
-                                        finding.metadata.calculated_entropy > 4
-                                          ? "text-red-400"
+                                            ? "text-yellow-400"
+                                            : "text-green-400"
+                                        }
+                                      >
+                                        {finding.metadata.calculated_entropy.toFixed(
+                                          2
+                                        )}
+                                        {finding.metadata.calculated_entropy > 4
+                                          ? " (High - Likely Real)"
                                           : finding.metadata
                                               .calculated_entropy > 3
-                                          ? "text-yellow-400"
-                                          : "text-green-400"
-                                      }
-                                    >
-                                      {finding.metadata.calculated_entropy.toFixed(
-                                        2
-                                      )}
-                                      {finding.metadata.calculated_entropy > 4
-                                        ? " (High - Likely Real)"
-                                        : finding.metadata.calculated_entropy >
-                                          3
-                                        ? " (Medium)"
-                                        : " (Low - Likely Fake)"}
-                                    </span>
+                                          ? " (Medium)"
+                                          : " (Low - Likely Fake)"}
+                                      </span>
+                                    </div>
                                   </div>
+                                )}
+
+                              <p className="text-gray-300 mb-3">
+                                {finding.description}
+                              </p>
+
+                              {finding.file_path && (
+                                <div className="flex items-center text-sm text-gray-400 mb-2">
+                                  <DocumentIcon className="h-4 w-4 mr-1" />
+                                  {finding.file_path}
+                                  {finding.line_number &&
+                                    `:${finding.line_number}`}
                                 </div>
                               )}
 
-                            <p className="text-gray-300 mb-3">
-                              {finding.description}
-                            </p>
-
-                            {finding.file_path && (
-                              <div className="flex items-center text-sm text-gray-400 mb-2">
-                                <DocumentIcon className="h-4 w-4 mr-1" />
-                                {finding.file_path}
-                                {finding.line_number &&
-                                  `:${finding.line_number}`}
-                              </div>
-                            )}
-
-                            {finding.remediation && (
-                              <div
-                                className={`mt-4 p-4 rounded-lg ${
-                                  isSecretFinding && !isLikelyReal
-                                    ? "bg-blue-900/20 border border-blue-500/30"
-                                    : "bg-green-900/20 border border-green-500/30"
-                                }`}
-                              >
-                                <h5
-                                  className={`text-sm font-medium mb-2 flex items-center ${
+                              {finding.remediation && (
+                                <div
+                                  className={`mt-4 p-4 rounded-lg ${
                                     isSecretFinding && !isLikelyReal
-                                      ? "text-blue-400"
-                                      : "text-green-400"
+                                      ? "bg-blue-900/20 border border-blue-500/30"
+                                      : "bg-green-900/20 border border-green-500/30"
                                   }`}
                                 >
-                                  <LightBulbIcon className="h-4 w-4 mr-1" />
-                                  {isSecretFinding && !isLikelyReal
-                                    ? "Context"
-                                    : "Remediation"}
-                                </h5>
-                                <p
-                                  className={`text-sm whitespace-pre-line ${
-                                    isSecretFinding && !isLikelyReal
-                                      ? "text-blue-300"
-                                      : "text-green-300"
-                                  }`}
-                                >
-                                  {finding.remediation}
-                                </p>
-                              </div>
-                            )}
+                                  <h5
+                                    className={`text-sm font-medium mb-2 flex items-center ${
+                                      isSecretFinding && !isLikelyReal
+                                        ? "text-blue-400"
+                                        : "text-green-400"
+                                    }`}
+                                  >
+                                    <LightBulbIcon className="h-4 w-4 mr-1" />
+                                    {isSecretFinding && !isLikelyReal
+                                      ? "Context"
+                                      : "Remediation"}
+                                  </h5>
+                                  <p
+                                    className={`text-sm whitespace-pre-line ${
+                                      isSecretFinding && !isLikelyReal
+                                        ? "text-blue-300"
+                                        : "text-green-300"
+                                    }`}
+                                  >
+                                    {finding.remediation}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="glass-container rounded-xl p-8 text-center">
-                    <CheckCircleIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-white mb-2">
-                      No Findings
-                    </h3>
-                    <p className="text-gray-400">
-                      {severityFilter === "all"
-                        ? "No security findings were detected in this scan."
-                        : `No ${severityFilter} severity findings found.`}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === "ai-analysis" && (
-            <div className="space-y-6">
-              {aiLoading ? (
-                <div className="glass-container rounded-xl p-8 text-center">
-                  <RefreshIcon className="h-8 w-8 text-blue-400 animate-spin mx-auto mb-4" />
-                  <p className="text-gray-400">Loading AI analysis...</p>
-                </div>
-              ) : aiAnalysis && aiAnalysis.has_analysis ? (
-                <>
-                  {/* Security Score Dashboard */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Security Score */}
-                    <div className="glass-container rounded-xl p-6 text-center">
-                      <h4 className="text-sm font-medium text-gray-400 mb-3">
-                        Security Score
-                      </h4>
-                      <div className="relative inline-flex items-center justify-center">
-                        <svg className="w-24 h-24 transform -rotate-90">
-                          <circle
-                            cx="48"
-                            cy="48"
-                            r="40"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className="text-gray-700"
-                          />
-                          <circle
-                            cx="48"
-                            cy="48"
-                            r="40"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className={`${
-                              (aiAnalysis.security_score || 0) >= 80
-                                ? "text-green-500"
-                                : (aiAnalysis.security_score || 0) >= 50
-                                ? "text-yellow-500"
-                                : "text-red-500"
-                            }`}
-                            strokeDasharray={`${
-                              (aiAnalysis.security_score || 0) * 2.51
-                            } 251`}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        <span className="absolute text-2xl font-bold text-white">
-                          {aiAnalysis.security_score || "N/A"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2">out of 100</p>
+                      );
+                    })
+                  ) : (
+                    <div className="glass-container rounded-xl p-8 text-center">
+                      <CheckCircleIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        No Findings
+                      </h3>
+                      <p className="text-gray-400">
+                        {severityFilter === "all"
+                          ? "No security findings were detected in this scan."
+                          : `No ${severityFilter} severity findings found.`}
+                      </p>
                     </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-                    {/* Risk Level */}
-                    <div className="glass-container rounded-xl p-6 text-center">
-                      <h4 className="text-sm font-medium text-gray-400 mb-3">
-                        Risk Level
-                      </h4>
-                      <div
-                        className={`inline-flex items-center justify-center w-24 h-24 rounded-full ${
-                          aiAnalysis.risk_level === "CRITICAL"
-                            ? "bg-red-500/20 border-2 border-red-500"
-                            : aiAnalysis.risk_level === "HIGH"
-                            ? "bg-orange-500/20 border-2 border-orange-500"
-                            : aiAnalysis.risk_level === "MEDIUM"
-                            ? "bg-yellow-500/20 border-2 border-yellow-500"
-                            : "bg-green-500/20 border-2 border-green-500"
-                        }`}
-                      >
-                        <span
-                          className={`text-lg font-bold ${
+            {activeTab === "ai-analysis" && (
+              <div className="space-y-6">
+                {aiLoading ? (
+                  <div className="glass-container rounded-xl p-8 text-center">
+                    <RefreshIcon className="h-8 w-8 text-blue-400 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-400">Loading AI analysis...</p>
+                  </div>
+                ) : aiAnalysis && aiAnalysis.has_analysis ? (
+                  <>
+                    {/* Security Score Dashboard */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Security Score */}
+                      <div className="glass-container rounded-xl p-6 text-center">
+                        <h4 className="text-sm font-medium text-gray-400 mb-3">
+                          Security Score
+                        </h4>
+                        <div className="relative inline-flex items-center justify-center">
+                          <svg className="w-24 h-24 transform -rotate-90">
+                            <circle
+                              cx="48"
+                              cy="48"
+                              r="40"
+                              stroke="currentColor"
+                              strokeWidth="8"
+                              fill="transparent"
+                              className="text-gray-700"
+                            />
+                            <circle
+                              cx="48"
+                              cy="48"
+                              r="40"
+                              stroke="currentColor"
+                              strokeWidth="8"
+                              fill="transparent"
+                              className={`${
+                                (aiAnalysis.security_score || 0) >= 80
+                                  ? "text-green-500"
+                                  : (aiAnalysis.security_score || 0) >= 50
+                                  ? "text-yellow-500"
+                                  : "text-red-500"
+                              }`}
+                              strokeDasharray={`${
+                                (aiAnalysis.security_score || 0) * 2.51
+                              } 251`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span className="absolute text-2xl font-bold text-white">
+                            {aiAnalysis.security_score || "N/A"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">out of 100</p>
+                      </div>
+
+                      {/* Risk Level */}
+                      <div className="glass-container rounded-xl p-6 text-center">
+                        <h4 className="text-sm font-medium text-gray-400 mb-3">
+                          Risk Level
+                        </h4>
+                        <div
+                          className={`inline-flex items-center justify-center w-24 h-24 rounded-full ${
                             aiAnalysis.risk_level === "CRITICAL"
-                              ? "text-red-400"
+                              ? "bg-red-500/20 border-2 border-red-500"
                               : aiAnalysis.risk_level === "HIGH"
-                              ? "text-orange-400"
+                              ? "bg-orange-500/20 border-2 border-orange-500"
                               : aiAnalysis.risk_level === "MEDIUM"
-                              ? "text-yellow-400"
-                              : "text-green-400"
+                              ? "bg-yellow-500/20 border-2 border-yellow-500"
+                              : "bg-green-500/20 border-2 border-green-500"
                           }`}
                         >
-                          {aiAnalysis.risk_level || "N/A"}
-                        </span>
+                          <span
+                            className={`text-lg font-bold ${
+                              aiAnalysis.risk_level === "CRITICAL"
+                                ? "text-red-400"
+                                : aiAnalysis.risk_level === "HIGH"
+                                ? "text-orange-400"
+                                : aiAnalysis.risk_level === "MEDIUM"
+                                ? "text-yellow-400"
+                                : "text-green-400"
+                            }`}
+                          >
+                            {aiAnalysis.risk_level || "N/A"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Risk Score: {aiAnalysis.risk_score || "N/A"}/100
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Risk Score: {aiAnalysis.risk_score || "N/A"}/100
-                      </p>
-                    </div>
 
-                    {/* Fix Time Estimate */}
-                    <div className="glass-container rounded-xl p-6 text-center">
-                      <h4 className="text-sm font-medium text-gray-400 mb-3">
-                        Estimated Fix Time
-                      </h4>
-                      <div className="flex items-center justify-center w-24 h-24 mx-auto bg-blue-500/20 rounded-full border-2 border-blue-500">
-                        <ClockIcon className="h-10 w-10 text-blue-400" />
+                      {/* Fix Time Estimate */}
+                      <div className="glass-container rounded-xl p-6 text-center">
+                        <h4 className="text-sm font-medium text-gray-400 mb-3">
+                          Estimated Fix Time
+                        </h4>
+                        <div className="flex items-center justify-center w-24 h-24 mx-auto bg-blue-500/20 rounded-full border-2 border-blue-500">
+                          <ClockIcon className="h-10 w-10 text-blue-400" />
+                        </div>
+                        <p className="text-sm font-medium text-white mt-3">
+                          {aiAnalysis.estimated_fix_time || "N/A"}
+                        </p>
                       </div>
-                      <p className="text-sm font-medium text-white mt-3">
-                        {aiAnalysis.estimated_fix_time || "N/A"}
-                      </p>
                     </div>
-                  </div>
 
-                  {/* Executive Summary */}
-                  {aiAnalysis.executive_summary && (
-                    <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                        <SparklesIcon className="h-5 w-5 mr-2 text-blue-400" />
-                        Executive Summary
-                      </h3>
-                      <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                        {aiAnalysis.executive_summary}
-                      </p>
-                    </div>
-                  )}
-
-                  {aiAnalysis.overall_risk_assessment && (
-                    <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                        <ExclamationTriangleIcon className="h-5 w-5 mr-2 text-amber-400" />
-                        Risk Assessment
-                      </h3>
-                      <p className="text-gray-300 leading-relaxed">
-                        {aiAnalysis.overall_risk_assessment}
-                      </p>
-                    </div>
-                  )}
-
-                  {aiAnalysis.priority_findings &&
-                    aiAnalysis.priority_findings.length > 0 && (
+                    {/* Executive Summary */}
+                    {aiAnalysis.executive_summary && (
                       <div className="glass-container rounded-xl p-6">
                         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                          <FireIcon className="h-5 w-5 mr-2 text-red-400" />
-                          Priority Findings
+                          <SparklesIcon className="h-5 w-5 mr-2 text-blue-400" />
+                          Executive Summary
                         </h3>
-                        <ul className="space-y-3">
-                          {aiAnalysis.priority_findings.map(
-                            (finding, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="flex-shrink-0 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center mr-3 mt-0.5">
-                                  {index + 1}
-                                </span>
-                                <span className="text-gray-300">{finding}</span>
-                              </li>
-                            )
-                          )}
-                        </ul>
+                        <p className="text-gray-300 leading-relaxed whitespace-pre-line">
+                          {aiAnalysis.executive_summary}
+                        </p>
                       </div>
                     )}
 
-                  {aiAnalysis.priority_recommendations &&
-                    aiAnalysis.priority_recommendations.length > 0 && (
+                    {aiAnalysis.overall_risk_assessment && (
                       <div className="glass-container rounded-xl p-6">
                         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                          <LightBulbIcon className="h-5 w-5 mr-2 text-yellow-400" />
-                          Recommendations
+                          <ExclamationTriangleIcon className="h-5 w-5 mr-2 text-amber-400" />
+                          Risk Assessment
                         </h3>
-                        <ul className="space-y-3">
-                          {aiAnalysis.priority_recommendations.map(
-                            (recommendation, index) => (
-                              <li key={index} className="flex items-start">
-                                <CheckCircleIcon className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
-                                <span className="text-gray-300">
-                                  {recommendation}
-                                </span>
-                              </li>
-                            )
-                          )}
-                        </ul>
+                        <p className="text-gray-300 leading-relaxed">
+                          {aiAnalysis.overall_risk_assessment}
+                        </p>
                       </div>
                     )}
 
-                  {aiAnalysis.secure_code_examples &&
-                    Object.keys(aiAnalysis.secure_code_examples).length > 0 && (
-                      <div className="glass-container rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                          <CodeIcon className="h-5 w-5 mr-2 text-green-400" />
-                          Secure Code Examples
-                        </h3>
-                        <div className="space-y-4">
-                          {Object.entries(aiAnalysis.secure_code_examples).map(
-                            ([key, example], index) => (
+                    {aiAnalysis.priority_findings &&
+                      aiAnalysis.priority_findings.length > 0 && (
+                        <div className="glass-container rounded-xl p-6">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <FireIcon className="h-5 w-5 mr-2 text-red-400" />
+                            Priority Findings
+                          </h3>
+                          <ul className="space-y-3">
+                            {aiAnalysis.priority_findings.map(
+                              (finding, index) => (
+                                <li key={index} className="flex items-start">
+                                  <span className="flex-shrink-0 w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                    {index + 1}
+                                  </span>
+                                  <span className="text-gray-300">
+                                    {finding}
+                                  </span>
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                    {aiAnalysis.priority_recommendations &&
+                      aiAnalysis.priority_recommendations.length > 0 && (
+                        <div className="glass-container rounded-xl p-6">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <LightBulbIcon className="h-5 w-5 mr-2 text-yellow-400" />
+                            Recommendations
+                          </h3>
+                          <ul className="space-y-3">
+                            {aiAnalysis.priority_recommendations.map(
+                              (recommendation, index) => (
+                                <li key={index} className="flex items-start">
+                                  <CheckCircleIcon className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
+                                  <span className="text-gray-300">
+                                    {recommendation}
+                                  </span>
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                    {aiAnalysis.secure_code_examples &&
+                      Object.keys(aiAnalysis.secure_code_examples).length >
+                        0 && (
+                        <div className="glass-container rounded-xl p-6">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <CodeIcon className="h-5 w-5 mr-2 text-green-400" />
+                            Secure Code Examples
+                          </h3>
+                          <div className="space-y-4">
+                            {Object.entries(
+                              aiAnalysis.secure_code_examples
+                            ).map(([key, example], index) => (
                               <div
                                 key={index}
                                 className="bg-gray-900/50 rounded-lg p-4"
@@ -1282,1069 +1908,1064 @@ const EnhancedReportDetails = () => {
                                   <code>{example}</code>
                                 </pre>
                               </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                  {aiAnalysis.compliance_impact && (
-                    <div className="glass-container rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                        <DocumentTextIcon className="h-5 w-5 mr-2 text-purple-400" />
-                        Compliance Impact
-                      </h3>
-                      {typeof aiAnalysis.compliance_impact === "string" ? (
-                        <p className="text-gray-300 leading-relaxed">
-                          {aiAnalysis.compliance_impact}
-                        </p>
-                      ) : (
-                        <div className="space-y-4">
-                          {aiAnalysis.compliance_impact.overall_impact && (
-                            <div className="flex items-center space-x-2">
-                              <span className="text-gray-400 font-medium">
-                                Overall Impact:
-                              </span>
-                              <span
-                                className={`px-2 py-1 rounded text-sm font-medium ${
-                                  aiAnalysis.compliance_impact.overall_impact
-                                    .toLowerCase()
-                                    .includes("high")
-                                    ? "bg-red-500/20 text-red-400"
-                                    : aiAnalysis.compliance_impact.overall_impact
-                                        .toLowerCase()
-                                        .includes("medium")
-                                    ? "bg-yellow-500/20 text-yellow-400"
-                                    : "bg-green-500/20 text-green-400"
-                                }`}
-                              >
-                                {aiAnalysis.compliance_impact.overall_impact}
-                              </span>
-                            </div>
-                          )}
-                          {aiAnalysis.compliance_impact.frameworks_affected && (
-                            <div>
-                              <span className="text-gray-400 font-medium">
-                                Frameworks Affected:
-                              </span>
-                              <p className="text-gray-300 mt-1">
-                                {
-                                  aiAnalysis.compliance_impact
-                                    .frameworks_affected
-                                }
-                              </p>
-                            </div>
-                          )}
-                          {aiAnalysis.compliance_impact.analysis && (
-                            <div>
-                              <span className="text-gray-400 font-medium">
-                                Analysis:
-                              </span>
-                              <p className="text-gray-300 mt-1 leading-relaxed">
-                                {aiAnalysis.compliance_impact.analysis}
-                              </p>
-                            </div>
-                          )}
-                          {aiAnalysis.compliance_impact.required_actions && (
-                            <div>
-                              <span className="text-gray-400 font-medium">
-                                Required Actions:
-                              </span>
-                              <p className="text-gray-300 mt-1">
-                                {aiAnalysis.compliance_impact.required_actions}
-                              </p>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Threat Categories */}
-                  {aiAnalysis.threat_categories &&
-                    Object.keys(aiAnalysis.threat_categories).length > 0 && (
+                    {aiAnalysis.compliance_impact && (
                       <div className="glass-container rounded-xl p-6">
                         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                          <ChartBarIcon className="h-5 w-5 mr-2 text-orange-400" />
-                          Threat Categories Breakdown
+                          <DocumentTextIcon className="h-5 w-5 mr-2 text-purple-400" />
+                          Compliance Impact
                         </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {Object.entries(aiAnalysis.threat_categories).map(
-                            ([category, count]) => (
-                              <div
-                                key={category}
-                                className="bg-gray-800/50 rounded-lg p-4 text-center"
-                              >
-                                <p className="text-2xl font-bold text-white">
-                                  {count}
-                                </p>
-                                <p className="text-sm text-gray-400">
-                                  {category}
-                                </p>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Attack Vectors */}
-                  {aiAnalysis.attack_vectors &&
-                    aiAnalysis.attack_vectors.length > 0 && (
-                      <div className="glass-container rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                          <BoltIcon className="h-5 w-5 mr-2 text-red-400" />
-                          Potential Attack Vectors
-                        </h3>
-                        <div className="space-y-3">
-                          {aiAnalysis.attack_vectors.map((vector, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start bg-red-900/20 border border-red-500/30 rounded-lg p-3"
-                            >
-                              <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
-                              <span className="text-gray-300">{vector}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Remediation Roadmap */}
-                  {aiAnalysis.remediation_roadmap &&
-                    aiAnalysis.remediation_roadmap.length > 0 && (
-                      <div className="glass-container rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                          <DocumentTextIcon className="h-5 w-5 mr-2 text-green-400" />
-                          Remediation Roadmap
-                        </h3>
-                        <div className="space-y-4">
-                          {aiAnalysis.remediation_roadmap.map(
-                            (phase, index) => (
-                              <div
-                                key={index}
-                                className="border border-gray-700 rounded-lg overflow-hidden"
-                              >
-                                <div
-                                  className={`p-4 flex items-center justify-between ${
-                                    phase.priority === "CRITICAL"
-                                      ? "bg-red-900/30"
-                                      : phase.priority === "HIGH"
-                                      ? "bg-orange-900/30"
-                                      : phase.priority === "MEDIUM"
-                                      ? "bg-yellow-900/30"
-                                      : "bg-green-900/30"
-                                  }`}
-                                >
-                                  <div className="flex items-center space-x-3">
-                                    <span
-                                      className={`px-2 py-1 rounded text-xs font-bold ${
-                                        phase.priority === "CRITICAL"
-                                          ? "bg-red-500 text-white"
-                                          : phase.priority === "HIGH"
-                                          ? "bg-orange-500 text-white"
-                                          : phase.priority === "MEDIUM"
-                                          ? "bg-yellow-500 text-black"
-                                          : "bg-green-500 text-white"
-                                      }`}
-                                    >
-                                      Phase {phase.phase}
-                                    </span>
-                                    <span className="font-semibold text-white">
-                                      {phase.title}
-                                    </span>
-                                  </div>
-                                  <span className="text-sm text-gray-400">
-                                    {phase.timeline}
-                                  </span>
-                                </div>
-                                <div className="p-4 bg-gray-800/30">
-                                  <ul className="space-y-2">
-                                    {phase.tasks &&
-                                      phase.tasks.map((task, taskIndex) => (
-                                        <li
-                                          key={taskIndex}
-                                          className="flex items-start"
-                                        >
-                                          <CheckCircleIcon className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
-                                          <span className="text-gray-300 text-sm">
-                                            {task}
-                                          </span>
-                                        </li>
-                                      ))}
-                                  </ul>
-                                </div>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                  {aiAnalysis.model_used && (
-                    <div className="glass-container rounded-xl p-4 bg-gray-800/30">
-                      <p className="text-xs text-gray-500 text-center">
-                        🤖 Analysis generated by{" "}
-                        <span className="text-blue-400">
-                          {aiAnalysis.model_used}
-                        </span>
-                        {aiAnalysis.generated_at &&
-                          ` on ${new Date(
-                            aiAnalysis.generated_at
-                          ).toLocaleString()}`}
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="glass-container rounded-xl p-8 text-center">
-                  <SparklesIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    AI Analysis Not Available
-                  </h3>
-                  <p className="text-gray-400 mb-4">
-                    {aiError
-                      ? "Failed to load AI analysis. Please try again later."
-                      : "AI analysis has not been generated for this report yet."}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    AI analysis is automatically generated when a scan
-                    completes. If you're seeing this message, the analysis may
-                    still be processing or may not have been triggered.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "remediation" && (
-            <div className="space-y-6">
-              {/* Remediation Header */}
-              <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                      <RocketLaunchIcon className="h-6 w-6 text-green-400" />
-                      Remediation Roadmap
-                    </h3>
-                    <p className="text-gray-400 mt-1">
-                      Prioritized action plan to resolve security
-                      vulnerabilities
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-400">
-                        {
-                          getFilteredFindings().filter(
-                            (f) =>
-                              f.severity === "critical" || f.severity === "high"
-                          ).length
-                        }
-                      </div>
-                      <div className="text-xs text-gray-400">Critical/High</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-400">
-                        {
-                          getFilteredFindings().filter(
-                            (f) => f.severity === "medium"
-                          ).length
-                        }
-                      </div>
-                      <div className="text-xs text-gray-400">Medium</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">
-                        {
-                          getFilteredFindings().filter(
-                            (f) => f.severity === "low" || f.severity === "info"
-                          ).length
-                        }
-                      </div>
-                      <div className="text-xs text-gray-400">Low/Info</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* AI Remediation Roadmap */}
-              {aiAnalysis?.remediation_roadmap &&
-              aiAnalysis.remediation_roadmap.length > 0 ? (
-                <div className="glass-container rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                    <SparklesIcon className="h-5 w-5 text-purple-400" />
-                    AI-Generated Remediation Plan
-                  </h4>
-                  <div className="relative">
-                    {/* Timeline line */}
-                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-green-500 via-yellow-500 to-blue-500" />
-
-                    <div className="space-y-6">
-                      {aiAnalysis.remediation_roadmap.map((item, idx) => {
-                        const priorityColors = {
-                          immediate: {
-                            bg: "bg-red-500",
-                            border: "border-red-500",
-                            text: "text-red-400",
-                            label: "Immediate",
-                          },
-                          short_term: {
-                            bg: "bg-orange-500",
-                            border: "border-orange-500",
-                            text: "text-orange-400",
-                            label: "Short-term",
-                          },
-                          medium_term: {
-                            bg: "bg-yellow-500",
-                            border: "border-yellow-500",
-                            text: "text-yellow-400",
-                            label: "Medium-term",
-                          },
-                          long_term: {
-                            bg: "bg-blue-500",
-                            border: "border-blue-500",
-                            text: "text-blue-400",
-                            label: "Long-term",
-                          },
-                        };
-                        const priority =
-                          priorityColors[item.priority] ||
-                          priorityColors.medium_term;
-
-                        return (
-                          <div key={idx} className="relative pl-16">
-                            {/* Timeline dot */}
-                            <div
-                              className={`absolute left-4 w-5 h-5 rounded-full ${priority.bg} border-4 border-gray-800`}
-                            />
-
-                            <div
-                              className={`glass-container rounded-xl p-5 border-l-4 ${priority.border}`}
-                            >
-                              <div className="flex flex-wrap items-center gap-3 mb-3">
+                        {typeof aiAnalysis.compliance_impact === "string" ? (
+                          <p className="text-gray-300 leading-relaxed">
+                            {aiAnalysis.compliance_impact}
+                          </p>
+                        ) : (
+                          <div className="space-y-4">
+                            {aiAnalysis.compliance_impact.overall_impact && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-gray-400 font-medium">
+                                  Overall Impact:
+                                </span>
                                 <span
-                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold ${priority.bg}/20 ${priority.text}`}
-                                >
-                                  {priority.label}
-                                </span>
-                                {item.category && (
-                                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
-                                    {item.category}
-                                  </span>
-                                )}
-                                {item.effort && (
-                                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
-                                    ⏱️ {item.effort}
-                                  </span>
-                                )}
-                              </div>
-                              <h5 className="text-white font-semibold mb-2">
-                                {item.action || item.title}
-                              </h5>
-                              <p className="text-gray-400 text-sm mb-3">
-                                {item.description}
-                              </p>
-                              {item.impact && (
-                                <div className="flex items-start gap-2 text-sm">
-                                  <span className="text-green-400 font-medium">
-                                    Impact:
-                                  </span>
-                                  <span className="text-gray-300">
-                                    {item.impact}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="glass-container rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                    <ClockIcon className="h-5 w-5 text-blue-400" />
-                    Prioritized Remediation Timeline
-                  </h4>
-                  <div className="relative">
-                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-red-500 via-yellow-500 to-green-500" />
-
-                    {/* Immediate Priority - Critical/High */}
-                    <div className="relative pl-16 pb-8">
-                      <div className="absolute left-4 w-5 h-5 rounded-full bg-red-500 border-4 border-gray-800" />
-                      <div className="glass-container rounded-xl p-5 border-l-4 border-red-500">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
-                            Immediate (0-48 hours)
-                          </span>
-                          <span className="text-xs text-gray-500">Phase 1</span>
-                        </div>
-                        <h5 className="text-white font-semibold mb-3">
-                          Critical & High Severity Issues
-                        </h5>
-                        <div className="space-y-2">
-                          {getFilteredFindings()
-                            .filter(
-                              (f) =>
-                                f.severity === "critical" ||
-                                f.severity === "high"
-                            )
-                            .slice(0, 5)
-                            .map((finding, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-start gap-2 text-sm"
-                              >
-                                <ExclamationCircleIcon
-                                  className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                                    finding.severity === "critical"
-                                      ? "text-red-400"
-                                      : "text-orange-400"
+                                  className={`px-2 py-1 rounded text-sm font-medium ${
+                                    aiAnalysis.compliance_impact.overall_impact
+                                      .toLowerCase()
+                                      .includes("high")
+                                      ? "bg-red-500/20 text-red-400"
+                                      : aiAnalysis.compliance_impact.overall_impact
+                                          .toLowerCase()
+                                          .includes("medium")
+                                      ? "bg-yellow-500/20 text-yellow-400"
+                                      : "bg-green-500/20 text-green-400"
                                   }`}
-                                />
-                                <span className="text-gray-300">
-                                  {finding.title || finding.message}
+                                >
+                                  {aiAnalysis.compliance_impact.overall_impact}
                                 </span>
                               </div>
-                            ))}
-                          {getFilteredFindings().filter(
-                            (f) =>
-                              f.severity === "critical" || f.severity === "high"
-                          ).length > 5 && (
-                            <p className="text-xs text-gray-500 pl-6">
-                              +
-                              {getFilteredFindings().filter(
-                                (f) =>
-                                  f.severity === "critical" ||
-                                  f.severity === "high"
-                              ).length - 5}{" "}
-                              more issues
-                            </p>
-                          )}
-                          {getFilteredFindings().filter(
-                            (f) =>
-                              f.severity === "critical" || f.severity === "high"
-                          ).length === 0 && (
-                            <div className="flex items-center gap-2 text-sm text-green-400">
-                              <CheckCircleIcon className="h-4 w-4" />
-                              No critical or high severity issues found
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Short-term - Medium */}
-                    <div className="relative pl-16 pb-8">
-                      <div className="absolute left-4 w-5 h-5 rounded-full bg-yellow-500 border-4 border-gray-800" />
-                      <div className="glass-container rounded-xl p-5 border-l-4 border-yellow-500">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400">
-                            Short-term (1-2 weeks)
-                          </span>
-                          <span className="text-xs text-gray-500">Phase 2</span>
-                        </div>
-                        <h5 className="text-white font-semibold mb-3">
-                          Medium Severity Issues
-                        </h5>
-                        <div className="space-y-2">
-                          {getFilteredFindings()
-                            .filter((f) => f.severity === "medium")
-                            .slice(0, 5)
-                            .map((finding, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-start gap-2 text-sm"
-                              >
-                                <ExclamationCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-yellow-400" />
-                                <span className="text-gray-300">
-                                  {finding.title || finding.message}
+                            )}
+                            {aiAnalysis.compliance_impact
+                              .frameworks_affected && (
+                              <div>
+                                <span className="text-gray-400 font-medium">
+                                  Frameworks Affected:
                                 </span>
+                                <p className="text-gray-300 mt-1">
+                                  {
+                                    aiAnalysis.compliance_impact
+                                      .frameworks_affected
+                                  }
+                                </p>
                               </div>
-                            ))}
-                          {getFilteredFindings().filter(
-                            (f) => f.severity === "medium"
-                          ).length > 5 && (
-                            <p className="text-xs text-gray-500 pl-6">
-                              +
-                              {getFilteredFindings().filter(
-                                (f) => f.severity === "medium"
-                              ).length - 5}{" "}
-                              more issues
-                            </p>
-                          )}
-                          {getFilteredFindings().filter(
-                            (f) => f.severity === "medium"
-                          ).length === 0 && (
-                            <div className="flex items-center gap-2 text-sm text-green-400">
-                              <CheckCircleIcon className="h-4 w-4" />
-                              No medium severity issues found
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Long-term - Low/Info */}
-                    <div className="relative pl-16">
-                      <div className="absolute left-4 w-5 h-5 rounded-full bg-green-500 border-4 border-gray-800" />
-                      <div className="glass-container rounded-xl p-5 border-l-4 border-green-500">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
-                            Long-term (1+ month)
-                          </span>
-                          <span className="text-xs text-gray-500">Phase 3</span>
-                        </div>
-                        <h5 className="text-white font-semibold mb-3">
-                          Low Severity & Improvements
-                        </h5>
-                        <div className="space-y-2">
-                          {getFilteredFindings()
-                            .filter(
-                              (f) =>
-                                f.severity === "low" || f.severity === "info"
-                            )
-                            .slice(0, 5)
-                            .map((finding, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-start gap-2 text-sm"
-                              >
-                                <InformationCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-400" />
-                                <span className="text-gray-300">
-                                  {finding.title || finding.message}
+                            )}
+                            {aiAnalysis.compliance_impact.analysis && (
+                              <div>
+                                <span className="text-gray-400 font-medium">
+                                  Analysis:
                                 </span>
+                                <p className="text-gray-300 mt-1 leading-relaxed">
+                                  {aiAnalysis.compliance_impact.analysis}
+                                </p>
                               </div>
-                            ))}
-                          {getFilteredFindings().filter(
-                            (f) => f.severity === "low" || f.severity === "info"
-                          ).length > 5 && (
-                            <p className="text-xs text-gray-500 pl-6">
-                              +
-                              {getFilteredFindings().filter(
-                                (f) =>
-                                  f.severity === "low" || f.severity === "info"
-                              ).length - 5}{" "}
-                              more issues
-                            </p>
-                          )}
-                          {getFilteredFindings().filter(
-                            (f) => f.severity === "low" || f.severity === "info"
-                          ).length === 0 && (
-                            <div className="flex items-center gap-2 text-sm text-green-400">
-                              <CheckCircleIcon className="h-4 w-4" />
-                              No low severity issues found
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Best Practices & Quick Wins */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass-container rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <SparklesIcon className="h-5 w-5 text-yellow-400" />
-                    Quick Wins
-                  </h4>
-                  <div className="space-y-3">
-                    {[
-                      "Enable dependency vulnerability scanning in CI/CD",
-                      "Add security linting to pre-commit hooks",
-                      "Configure SAST tools for automated code review",
-                      "Implement secret scanning in repositories",
-                    ].map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-3 p-3 bg-gray-800/50 rounded-lg"
-                      >
-                        <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-300 text-sm">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="glass-container rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <ShieldCheckIcon className="h-5 w-5 text-blue-400" />
-                    Security Best Practices
-                  </h4>
-                  <div className="space-y-3">
-                    {[
-                      "Implement least privilege access controls",
-                      "Enable multi-factor authentication (MFA)",
-                      "Conduct regular security training for developers",
-                      "Establish incident response procedures",
-                    ].map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-3 p-3 bg-gray-800/50 rounded-lg"
-                      >
-                        <LightBulbIcon className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-300 text-sm">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "scanners" && (
-            <div className="space-y-6">
-              {report.scan_results && report.scan_results.length > 0 ? (
-                report.scan_results.map((scanResult, index) => (
-                  <div key={index} className="glass-container rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-white flex items-center">
-                        <CpuChipIcon className="h-5 w-5 mr-2" />
-                        {scanResult.scanner}
-                      </h3>
-                      <StatusBadge status={scanResult.status} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div className="bg-gray-800/50 rounded-lg p-3">
-                        <p className="text-sm text-gray-400">Findings</p>
-                        <p className="text-xl font-bold text-white">
-                          {scanResult.findings_count || 0}
-                        </p>
-                      </div>
-                      <div className="bg-gray-800/50 rounded-lg p-3">
-                        <p className="text-sm text-gray-400">Duration</p>
-                        <p className="text-xl font-bold text-white">
-                          {scanResult.duration_seconds
-                            ? `${Math.round(scanResult.duration_seconds)}s`
-                            : "N/A"}
-                        </p>
-                      </div>
-                      <div className="bg-gray-800/50 rounded-lg p-3">
-                        <p className="text-sm text-gray-400">Status</p>
-                        <p className="text-xl font-bold text-white capitalize">
-                          {scanResult.status}
-                        </p>
-                      </div>
-                    </div>
-
-                    {scanResult.summary && (
-                      <div className="mb-4">
-                        <h4 className="text-md font-medium text-white mb-2">
-                          Summary
-                        </h4>
-                        {typeof scanResult.summary === "object" ? (
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(scanResult.summary).map(
-                              ([severity, count]) => {
-                                const severityColors = {
-                                  critical:
-                                    "bg-red-500/20 text-red-400 border-red-500/30",
-                                  high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-                                  medium:
-                                    "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-                                  low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-                                  info: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-                                };
-                                const colorClass =
-                                  severityColors[severity.toLowerCase()] ||
-                                  severityColors.info;
-                                return (
-                                  <span
-                                    key={severity}
-                                    className={`px-2 py-1 rounded text-sm border ${colorClass}`}
-                                  >
-                                    {severity}: {count}
-                                  </span>
-                                );
-                              }
+                            )}
+                            {aiAnalysis.compliance_impact.required_actions && (
+                              <div>
+                                <span className="text-gray-400 font-medium">
+                                  Required Actions:
+                                </span>
+                                <p className="text-gray-300 mt-1">
+                                  {
+                                    aiAnalysis.compliance_impact
+                                      .required_actions
+                                  }
+                                </p>
+                              </div>
                             )}
                           </div>
-                        ) : (
-                          <p className="text-gray-300">{scanResult.summary}</p>
                         )}
                       </div>
                     )}
 
-                    {scanResult.error_message && (
-                      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-                        <h4 className="text-md font-medium text-red-400 mb-2">
-                          Error
-                        </h4>
-                        <p className="text-red-300">
-                          {scanResult.error_message}
+                    {/* Threat Categories */}
+                    {aiAnalysis.threat_categories &&
+                      Object.keys(aiAnalysis.threat_categories).length > 0 && (
+                        <div className="glass-container rounded-xl p-6">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <ChartBarIcon className="h-5 w-5 mr-2 text-orange-400" />
+                            Threat Categories Breakdown
+                          </h3>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {Object.entries(aiAnalysis.threat_categories).map(
+                              ([category, count]) => (
+                                <div
+                                  key={category}
+                                  className="bg-gray-800/50 rounded-lg p-4 text-center"
+                                >
+                                  <p className="text-2xl font-bold text-white">
+                                    {count}
+                                  </p>
+                                  <p className="text-sm text-gray-400">
+                                    {category}
+                                  </p>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Attack Vectors */}
+                    {aiAnalysis.attack_vectors &&
+                      aiAnalysis.attack_vectors.length > 0 && (
+                        <div className="glass-container rounded-xl p-6">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <BoltIcon className="h-5 w-5 mr-2 text-red-400" />
+                            Potential Attack Vectors
+                          </h3>
+                          <div className="space-y-3">
+                            {aiAnalysis.attack_vectors.map((vector, index) => (
+                              <div
+                                key={index}
+                                className="flex items-start bg-red-900/20 border border-red-500/30 rounded-lg p-3"
+                              >
+                                <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-300">{vector}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Remediation Roadmap */}
+                    {aiAnalysis.remediation_roadmap &&
+                      aiAnalysis.remediation_roadmap.length > 0 && (
+                        <div className="glass-container rounded-xl p-6">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                            <DocumentTextIcon className="h-5 w-5 mr-2 text-green-400" />
+                            Remediation Roadmap
+                          </h3>
+                          <div className="space-y-4">
+                            {aiAnalysis.remediation_roadmap.map(
+                              (phase, index) => (
+                                <div
+                                  key={index}
+                                  className="border border-gray-700 rounded-lg overflow-hidden"
+                                >
+                                  <div
+                                    className={`p-4 flex items-center justify-between ${
+                                      phase.priority === "CRITICAL"
+                                        ? "bg-red-900/30"
+                                        : phase.priority === "HIGH"
+                                        ? "bg-orange-900/30"
+                                        : phase.priority === "MEDIUM"
+                                        ? "bg-yellow-900/30"
+                                        : "bg-green-900/30"
+                                    }`}
+                                  >
+                                    <div className="flex items-center space-x-3">
+                                      <span
+                                        className={`px-2 py-1 rounded text-xs font-bold ${
+                                          phase.priority === "CRITICAL"
+                                            ? "bg-red-500 text-white"
+                                            : phase.priority === "HIGH"
+                                            ? "bg-orange-500 text-white"
+                                            : phase.priority === "MEDIUM"
+                                            ? "bg-yellow-500 text-black"
+                                            : "bg-green-500 text-white"
+                                        }`}
+                                      >
+                                        Phase {phase.phase}
+                                      </span>
+                                      <span className="font-semibold text-white">
+                                        {phase.title}
+                                      </span>
+                                    </div>
+                                    <span className="text-sm text-gray-400">
+                                      {phase.timeline}
+                                    </span>
+                                  </div>
+                                  <div className="p-4 bg-gray-800/30">
+                                    <ul className="space-y-2">
+                                      {phase.tasks &&
+                                        phase.tasks.map((task, taskIndex) => (
+                                          <li
+                                            key={taskIndex}
+                                            className="flex items-start"
+                                          >
+                                            <CheckCircleIcon className="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-300 text-sm">
+                                              {task}
+                                            </span>
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                    {aiAnalysis.model_used && (
+                      <div className="glass-container rounded-xl p-4 bg-gray-800/30">
+                        <p className="text-xs text-gray-500 text-center">
+                          🤖 Analysis generated by{" "}
+                          <span className="text-blue-400">
+                            {aiAnalysis.model_used}
+                          </span>
+                          {aiAnalysis.generated_at &&
+                            ` on ${new Date(
+                              aiAnalysis.generated_at
+                            ).toLocaleString()}`}
                         </p>
                       </div>
                     )}
-                  </div>
-                ))
-              ) : (
-                <div className="glass-container rounded-xl p-8 text-center">
-                  <CpuChipIcon className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    No Scanner Results
-                  </h3>
-                  <p className="text-gray-400">
-                    No detailed scanner results are available for this report.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "compliance" && (
-            <div className="space-y-6">
-              {/* Compliance Header */}
-              <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                      <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
-                      Compliance Analysis
+                  </>
+                ) : (
+                  <div className="glass-container rounded-xl p-8 text-center">
+                    <SparklesIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      AI Analysis Not Available
                     </h3>
-                    <p className="text-gray-400 mt-1">
-                      Map security findings against industry compliance
-                      frameworks
+                    <p className="text-gray-400 mb-4">
+                      {aiError
+                        ? "Failed to load AI analysis. Please try again later."
+                        : "AI analysis has not been generated for this report yet."}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      AI analysis is automatically generated when a scan
+                      completes. If you're seeing this message, the analysis may
+                      still be processing or may not have been triggered.
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.keys(COMPLIANCE_STANDARDS).map((std) => (
-                      <button
-                        key={std}
-                        onClick={() => {
-                          if (selectedStandards.includes(std)) {
-                            setSelectedStandards(
-                              selectedStandards.filter((s) => s !== std)
-                            );
-                          } else {
-                            setSelectedStandards([...selectedStandards, std]);
+                )}
+              </div>
+            )}
+
+            {activeTab === "remediation" && (
+              <div className="space-y-6">
+                {/* Remediation Header */}
+                <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <RocketLaunchIcon className="h-6 w-6 text-green-400" />
+                        Remediation Roadmap
+                      </h3>
+                      <p className="text-gray-400 mt-1">
+                        Prioritized action plan to resolve security
+                        vulnerabilities
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-400">
+                          {
+                            getFilteredFindings().filter(
+                              (f) =>
+                                f.severity === "critical" ||
+                                f.severity === "high"
+                            ).length
                           }
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          selectedStandards.includes(std)
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-700/50 text-gray-400 hover:bg-gray-700 hover:text-white"
-                        }`}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Critical/High
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-yellow-400">
+                          {
+                            getFilteredFindings().filter(
+                              (f) => f.severity === "medium"
+                            ).length
+                          }
+                        </div>
+                        <div className="text-xs text-gray-400">Medium</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-400">
+                          {
+                            getFilteredFindings().filter(
+                              (f) =>
+                                f.severity === "low" || f.severity === "info"
+                            ).length
+                          }
+                        </div>
+                        <div className="text-xs text-gray-400">Low/Info</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Remediation Roadmap */}
+                {aiAnalysis?.remediation_roadmap &&
+                aiAnalysis.remediation_roadmap.length > 0 ? (
+                  <div className="glass-container rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                      <SparklesIcon className="h-5 w-5 text-purple-400" />
+                      AI-Generated Remediation Plan
+                    </h4>
+                    <div className="relative">
+                      {/* Timeline line */}
+                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-green-500 via-yellow-500 to-blue-500" />
+
+                      <div className="space-y-6">
+                        {aiAnalysis.remediation_roadmap.map((item, idx) => {
+                          const priorityColors = {
+                            immediate: {
+                              bg: "bg-red-500",
+                              border: "border-red-500",
+                              text: "text-red-400",
+                              label: "Immediate",
+                            },
+                            short_term: {
+                              bg: "bg-orange-500",
+                              border: "border-orange-500",
+                              text: "text-orange-400",
+                              label: "Short-term",
+                            },
+                            medium_term: {
+                              bg: "bg-yellow-500",
+                              border: "border-yellow-500",
+                              text: "text-yellow-400",
+                              label: "Medium-term",
+                            },
+                            long_term: {
+                              bg: "bg-blue-500",
+                              border: "border-blue-500",
+                              text: "text-blue-400",
+                              label: "Long-term",
+                            },
+                          };
+                          const priority =
+                            priorityColors[item.priority] ||
+                            priorityColors.medium_term;
+
+                          return (
+                            <div key={idx} className="relative pl-16">
+                              {/* Timeline dot */}
+                              <div
+                                className={`absolute left-4 w-5 h-5 rounded-full ${priority.bg} border-4 border-gray-800`}
+                              />
+
+                              <div
+                                className={`glass-container rounded-xl p-5 border-l-4 ${priority.border}`}
+                              >
+                                <div className="flex flex-wrap items-center gap-3 mb-3">
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-xs font-semibold ${priority.bg}/20 ${priority.text}`}
+                                  >
+                                    {priority.label}
+                                  </span>
+                                  {item.category && (
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+                                      {item.category}
+                                    </span>
+                                  )}
+                                  {item.effort && (
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400">
+                                      ⏱️ {item.effort}
+                                    </span>
+                                  )}
+                                </div>
+                                <h5 className="text-white font-semibold mb-2">
+                                  {item.action || item.title}
+                                </h5>
+                                <p className="text-gray-400 text-sm mb-3">
+                                  {item.description}
+                                </p>
+                                {item.impact && (
+                                  <div className="flex items-start gap-2 text-sm">
+                                    <span className="text-green-400 font-medium">
+                                      Impact:
+                                    </span>
+                                    <span className="text-gray-300">
+                                      {item.impact}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass-container rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                      <ClockIcon className="h-5 w-5 text-blue-400" />
+                      Prioritized Remediation Timeline
+                    </h4>
+                    <div className="relative">
+                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-red-500 via-yellow-500 to-green-500" />
+
+                      {/* Immediate Priority - Critical/High */}
+                      <div className="relative pl-16 pb-8">
+                        <div className="absolute left-4 w-5 h-5 rounded-full bg-red-500 border-4 border-gray-800" />
+                        <div className="glass-container rounded-xl p-5 border-l-4 border-red-500">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">
+                              Immediate (0-48 hours)
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Phase 1
+                            </span>
+                          </div>
+                          <h5 className="text-white font-semibold mb-3">
+                            Critical & High Severity Issues
+                          </h5>
+                          <div className="space-y-2">
+                            {getFilteredFindings()
+                              .filter(
+                                (f) =>
+                                  f.severity === "critical" ||
+                                  f.severity === "high"
+                              )
+                              .slice(0, 5)
+                              .map((finding, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-2 text-sm"
+                                >
+                                  <ExclamationCircleIcon
+                                    className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                                      finding.severity === "critical"
+                                        ? "text-red-400"
+                                        : "text-orange-400"
+                                    }`}
+                                  />
+                                  <span className="text-gray-300">
+                                    {finding.title || finding.message}
+                                  </span>
+                                </div>
+                              ))}
+                            {getFilteredFindings().filter(
+                              (f) =>
+                                f.severity === "critical" ||
+                                f.severity === "high"
+                            ).length > 5 && (
+                              <p className="text-xs text-gray-500 pl-6">
+                                +
+                                {getFilteredFindings().filter(
+                                  (f) =>
+                                    f.severity === "critical" ||
+                                    f.severity === "high"
+                                ).length - 5}{" "}
+                                more issues
+                              </p>
+                            )}
+                            {getFilteredFindings().filter(
+                              (f) =>
+                                f.severity === "critical" ||
+                                f.severity === "high"
+                            ).length === 0 && (
+                              <div className="flex items-center gap-2 text-sm text-green-400">
+                                <CheckCircleIcon className="h-4 w-4" />
+                                No critical or high severity issues found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Short-term - Medium */}
+                      <div className="relative pl-16 pb-8">
+                        <div className="absolute left-4 w-5 h-5 rounded-full bg-yellow-500 border-4 border-gray-800" />
+                        <div className="glass-container rounded-xl p-5 border-l-4 border-yellow-500">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400">
+                              Short-term (1-2 weeks)
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Phase 2
+                            </span>
+                          </div>
+                          <h5 className="text-white font-semibold mb-3">
+                            Medium Severity Issues
+                          </h5>
+                          <div className="space-y-2">
+                            {getFilteredFindings()
+                              .filter((f) => f.severity === "medium")
+                              .slice(0, 5)
+                              .map((finding, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-2 text-sm"
+                                >
+                                  <ExclamationCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-yellow-400" />
+                                  <span className="text-gray-300">
+                                    {finding.title || finding.message}
+                                  </span>
+                                </div>
+                              ))}
+                            {getFilteredFindings().filter(
+                              (f) => f.severity === "medium"
+                            ).length > 5 && (
+                              <p className="text-xs text-gray-500 pl-6">
+                                +
+                                {getFilteredFindings().filter(
+                                  (f) => f.severity === "medium"
+                                ).length - 5}{" "}
+                                more issues
+                              </p>
+                            )}
+                            {getFilteredFindings().filter(
+                              (f) => f.severity === "medium"
+                            ).length === 0 && (
+                              <div className="flex items-center gap-2 text-sm text-green-400">
+                                <CheckCircleIcon className="h-4 w-4" />
+                                No medium severity issues found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Long-term - Low/Info */}
+                      <div className="relative pl-16">
+                        <div className="absolute left-4 w-5 h-5 rounded-full bg-green-500 border-4 border-gray-800" />
+                        <div className="glass-container rounded-xl p-5 border-l-4 border-green-500">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400">
+                              Long-term (1+ month)
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Phase 3
+                            </span>
+                          </div>
+                          <h5 className="text-white font-semibold mb-3">
+                            Low Severity & Improvements
+                          </h5>
+                          <div className="space-y-2">
+                            {getFilteredFindings()
+                              .filter(
+                                (f) =>
+                                  f.severity === "low" || f.severity === "info"
+                              )
+                              .slice(0, 5)
+                              .map((finding, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-2 text-sm"
+                                >
+                                  <InformationCircleIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-400" />
+                                  <span className="text-gray-300">
+                                    {finding.title || finding.message}
+                                  </span>
+                                </div>
+                              ))}
+                            {getFilteredFindings().filter(
+                              (f) =>
+                                f.severity === "low" || f.severity === "info"
+                            ).length > 5 && (
+                              <p className="text-xs text-gray-500 pl-6">
+                                +
+                                {getFilteredFindings().filter(
+                                  (f) =>
+                                    f.severity === "low" ||
+                                    f.severity === "info"
+                                ).length - 5}{" "}
+                                more issues
+                              </p>
+                            )}
+                            {getFilteredFindings().filter(
+                              (f) =>
+                                f.severity === "low" || f.severity === "info"
+                            ).length === 0 && (
+                              <div className="flex items-center gap-2 text-sm text-green-400">
+                                <CheckCircleIcon className="h-4 w-4" />
+                                No low severity issues found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Best Practices & Quick Wins */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="glass-container rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <SparklesIcon className="h-5 w-5 text-yellow-400" />
+                      Quick Wins
+                    </h4>
+                    <div className="space-y-3">
+                      {[
+                        "Enable dependency vulnerability scanning in CI/CD",
+                        "Add security linting to pre-commit hooks",
+                        "Configure SAST tools for automated code review",
+                        "Implement secret scanning in repositories",
+                      ].map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-3 p-3 bg-gray-800/50 rounded-lg"
+                        >
+                          <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-300 text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="glass-container rounded-xl p-6">
+                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <ShieldCheckIcon className="h-5 w-5 text-blue-400" />
+                      Security Best Practices
+                    </h4>
+                    <div className="space-y-3">
+                      {[
+                        "Implement least privilege access controls",
+                        "Enable multi-factor authentication (MFA)",
+                        "Conduct regular security training for developers",
+                        "Establish incident response procedures",
+                      ].map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-3 p-3 bg-gray-800/50 rounded-lg"
+                        >
+                          <LightBulbIcon className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-300 text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "scanners" && (
+              <div className="space-y-6">
+                {report.scan_results && report.scan_results.length > 0 ? (
+                  report.scan_results.map((scanResult, index) => (
+                    <div key={index} className="glass-container rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-white flex items-center">
+                          <CpuChipIcon className="h-5 w-5 mr-2" />
+                          {scanResult.scanner}
+                        </h3>
+                        <StatusBadge status={scanResult.status} />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="bg-gray-800/50 rounded-lg p-3">
+                          <p className="text-sm text-gray-400">Findings</p>
+                          <p className="text-xl font-bold text-white">
+                            {scanResult.findings_count || 0}
+                          </p>
+                        </div>
+                        <div className="bg-gray-800/50 rounded-lg p-3">
+                          <p className="text-sm text-gray-400">Duration</p>
+                          <p className="text-xl font-bold text-white">
+                            {scanResult.duration_seconds
+                              ? `${Math.round(scanResult.duration_seconds)}s`
+                              : "N/A"}
+                          </p>
+                        </div>
+                        <div className="bg-gray-800/50 rounded-lg p-3">
+                          <p className="text-sm text-gray-400">Status</p>
+                          <p className="text-xl font-bold text-white capitalize">
+                            {scanResult.status}
+                          </p>
+                        </div>
+                      </div>
+
+                      {scanResult.summary && (
+                        <div className="mb-4">
+                          <h4 className="text-md font-medium text-white mb-2">
+                            Summary
+                          </h4>
+                          {typeof scanResult.summary === "object" ? (
+                            <div className="flex flex-wrap gap-2">
+                              {Object.entries(scanResult.summary).map(
+                                ([severity, count]) => {
+                                  const severityColors = {
+                                    critical:
+                                      "bg-red-500/20 text-red-400 border-red-500/30",
+                                    high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+                                    medium:
+                                      "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+                                    low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                                    info: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+                                  };
+                                  const colorClass =
+                                    severityColors[severity.toLowerCase()] ||
+                                    severityColors.info;
+                                  return (
+                                    <span
+                                      key={severity}
+                                      className={`px-2 py-1 rounded text-sm border ${colorClass}`}
+                                    >
+                                      {severity}: {count}
+                                    </span>
+                                  );
+                                }
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-gray-300">
+                              {scanResult.summary}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {scanResult.error_message && (
+                        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                          <h4 className="text-md font-medium text-red-400 mb-2">
+                            Error
+                          </h4>
+                          <p className="text-red-300">
+                            {scanResult.error_message}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="glass-container rounded-xl p-8 text-center">
+                    <CpuChipIcon className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-white mb-2">
+                      No Scanner Results
+                    </h3>
+                    <p className="text-gray-400">
+                      No detailed scanner results are available for this report.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "compliance" && (
+              <div className="space-y-6">
+                {/* Compliance Header */}
+                <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
+                        Compliance Analysis
+                      </h3>
+                      <p className="text-gray-400 mt-1">
+                        Map security findings against industry compliance
+                        frameworks
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.keys(COMPLIANCE_STANDARDS).map((std) => (
+                        <button
+                          key={std}
+                          onClick={() => {
+                            if (selectedStandards.includes(std)) {
+                              setSelectedStandards(
+                                selectedStandards.filter((s) => s !== std)
+                              );
+                            } else {
+                              setSelectedStandards([...selectedStandards, std]);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            selectedStandards.includes(std)
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-700/50 text-gray-400 hover:bg-gray-700 hover:text-white"
+                          }`}
+                        >
+                          {COMPLIANCE_STANDARDS[std].icon} {std}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Compliance Standards Analysis */}
+                <div id="compliance-section">
+                  {selectedStandards.map((standardKey) => {
+                    const standard = COMPLIANCE_STANDARDS[standardKey];
+                    const allFindings = getFilteredFindings();
+
+                    // Calculate compliance for each category
+                    const categoryCompliance = {};
+                    Object.keys(standard.categories).forEach((cat) => {
+                      categoryCompliance[cat] = {
+                        findings: [],
+                        compliant: true,
+                        riskLevel: "low",
+                      };
+                    });
+
+                    allFindings.forEach((finding) => {
+                      const mappedCats = mapFindingToCompliance(
+                        finding,
+                        standardKey
+                      );
+                      mappedCats.forEach((cat) => {
+                        if (categoryCompliance[cat]) {
+                          categoryCompliance[cat].findings.push(finding);
+                          categoryCompliance[cat].compliant = false;
+                          if (
+                            finding.severity === "critical" ||
+                            finding.severity === "high"
+                          ) {
+                            categoryCompliance[cat].riskLevel =
+                              finding.severity;
+                          } else if (
+                            categoryCompliance[cat].riskLevel === "low" &&
+                            finding.severity === "medium"
+                          ) {
+                            categoryCompliance[cat].riskLevel = "medium";
+                          }
+                        }
+                      });
+                    });
+
+                    const totalCategories = Object.keys(
+                      standard.categories
+                    ).length;
+                    const compliantCategories = Object.values(
+                      categoryCompliance
+                    ).filter((c) => c.compliant).length;
+                    const complianceRate = (
+                      (compliantCategories / totalCategories) *
+                      100
+                    ).toFixed(0);
+
+                    return (
+                      <div
+                        key={standardKey}
+                        className="glass-container rounded-xl overflow-hidden"
                       >
-                        {COMPLIANCE_STANDARDS[std].icon} {std}
-                      </button>
+                        {/* Standard Header */}
+                        <div
+                          className={`p-6 border-b border-gray-700/50 bg-gradient-to-r ${
+                            standardKey === "OWASP"
+                              ? "from-orange-900/30 to-red-900/30"
+                              : standardKey === "NIST"
+                              ? "from-blue-900/30 to-cyan-900/30"
+                              : "from-purple-900/30 to-pink-900/30"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <span className="text-4xl">{standard.icon}</span>
+                              <div>
+                                <h4 className="text-lg font-bold text-white">
+                                  {standard.name}
+                                </h4>
+                                <p className="text-sm text-gray-400">
+                                  {standard.description}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div
+                                className={`text-3xl font-bold ${
+                                  complianceRate >= 80
+                                    ? "text-green-400"
+                                    : complianceRate >= 50
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
+                                }`}
+                              >
+                                {complianceRate}%
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                Compliance Rate
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="mt-4">
+                            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-500 ${
+                                  complianceRate >= 80
+                                    ? "bg-green-500"
+                                    : complianceRate >= 50
+                                    ? "bg-yellow-500"
+                                    : "bg-red-500"
+                                }`}
+                                style={{ width: `${complianceRate}%` }}
+                              />
+                            </div>
+                            <div className="flex justify-between mt-2 text-xs text-gray-500">
+                              <span>
+                                {compliantCategories}/{totalCategories} Controls
+                                Compliant
+                              </span>
+                              <span>{allFindings.length} Related Findings</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Category Grid */}
+                        <div className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.entries(standard.categories).map(
+                              ([catKey, catName]) => {
+                                const catData = categoryCompliance[catKey];
+                                const isCompliant = catData.compliant;
+                                const findingCount = catData.findings.length;
+
+                                return (
+                                  <div
+                                    key={catKey}
+                                    className={`p-4 rounded-lg border transition-all duration-200 ${
+                                      isCompliant
+                                        ? "bg-green-900/10 border-green-500/30 hover:border-green-500/50"
+                                        : "bg-red-900/10 border-red-500/30 hover:border-red-500/50"
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div className="flex items-start gap-3">
+                                        <div
+                                          className={`p-1.5 rounded-lg ${
+                                            isCompliant
+                                              ? "bg-green-500/20"
+                                              : "bg-red-500/20"
+                                          }`}
+                                        >
+                                          {isCompliant ? (
+                                            <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                                          ) : (
+                                            <XCircleIcon className="h-5 w-5 text-red-400" />
+                                          )}
+                                        </div>
+                                        <div>
+                                          <div className="font-medium text-white">
+                                            {catKey}
+                                          </div>
+                                          <div className="text-sm text-gray-400">
+                                            {catName}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {!isCompliant && (
+                                        <span
+                                          className={`px-2 py-1 rounded text-xs font-medium ${
+                                            catData.riskLevel === "critical"
+                                              ? "bg-red-500/20 text-red-400"
+                                              : catData.riskLevel === "high"
+                                              ? "bg-orange-500/20 text-orange-400"
+                                              : "bg-yellow-500/20 text-yellow-400"
+                                          }`}
+                                        >
+                                          {findingCount} issue
+                                          {findingCount > 1 ? "s" : ""}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Show findings for non-compliant categories */}
+                                    {!isCompliant &&
+                                      catData.findings.length > 0 && (
+                                        <div className="mt-3 pt-3 border-t border-gray-700/50">
+                                          <div className="space-y-2">
+                                            {catData.findings
+                                              .slice(0, 3)
+                                              .map((finding, idx) => (
+                                                <div
+                                                  key={idx}
+                                                  className="flex items-start gap-2 text-sm"
+                                                >
+                                                  <span
+                                                    className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                                                      finding.severity ===
+                                                      "critical"
+                                                        ? "bg-red-500"
+                                                        : finding.severity ===
+                                                          "high"
+                                                        ? "bg-orange-500"
+                                                        : finding.severity ===
+                                                          "medium"
+                                                        ? "bg-yellow-500"
+                                                        : "bg-blue-500"
+                                                    }`}
+                                                  />
+                                                  <span className="text-gray-300 truncate">
+                                                    {finding.title ||
+                                                      finding.message}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            {catData.findings.length > 3 && (
+                                              <div className="text-xs text-gray-500 pl-4">
+                                                +{catData.findings.length - 3}{" "}
+                                                more findings
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>{" "}
+                {/* End of compliance-section */}
+                {/* Recommendations based on compliance gaps */}
+                <div className="glass-container rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <LightBulbIcon className="h-5 w-5 text-yellow-400" />
+                    Compliance Recommendations
+                  </h4>
+                  <div className="space-y-3">
+                    {[
+                      {
+                        priority: "Critical",
+                        color: "red",
+                        text: "Address all critical and high severity findings to meet baseline compliance requirements.",
+                      },
+                      {
+                        priority: "High",
+                        color: "orange",
+                        text: "Implement secure coding practices and code review processes to prevent injection vulnerabilities.",
+                      },
+                      {
+                        priority: "Medium",
+                        color: "yellow",
+                        text: "Enable comprehensive security logging and monitoring for NIST DE (Detect) compliance.",
+                      },
+                      {
+                        priority: "Low",
+                        color: "blue",
+                        text: "Document security procedures and conduct regular compliance assessments.",
+                      },
+                    ].map((rec, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex items-start gap-3 p-3 rounded-lg bg-${rec.color}-500/10 border border-${rec.color}-500/20`}
+                      >
+                        <span
+                          className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-semibold bg-${rec.color}-500/20 text-${rec.color}-400`}
+                        >
+                          {rec.priority}
+                        </span>
+                        <span className="text-gray-300 text-sm print:text-gray-700">
+                          {rec.text}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
-              {/* Compliance Standards Analysis */}
-              <div id="compliance-section">
-                {selectedStandards.map((standardKey) => {
-                  const standard = COMPLIANCE_STANDARDS[standardKey];
-                  const allFindings = getFilteredFindings();
-
-                  // Calculate compliance for each category
-                  const categoryCompliance = {};
-                  Object.keys(standard.categories).forEach((cat) => {
-                    categoryCompliance[cat] = {
-                      findings: [],
-                      compliant: true,
-                      riskLevel: "low",
-                    };
-                  });
-
-                  allFindings.forEach((finding) => {
-                    const mappedCats = mapFindingToCompliance(
-                      finding,
-                      standardKey
-                    );
-                    mappedCats.forEach((cat) => {
-                      if (categoryCompliance[cat]) {
-                        categoryCompliance[cat].findings.push(finding);
-                        categoryCompliance[cat].compliant = false;
-                        if (
-                          finding.severity === "critical" ||
-                          finding.severity === "high"
-                        ) {
-                          categoryCompliance[cat].riskLevel = finding.severity;
-                        } else if (
-                          categoryCompliance[cat].riskLevel === "low" &&
-                          finding.severity === "medium"
-                        ) {
-                          categoryCompliance[cat].riskLevel = "medium";
-                        }
-                      }
-                    });
-                  });
-
-                  const totalCategories = Object.keys(
-                    standard.categories
-                  ).length;
-                  const compliantCategories = Object.values(
-                    categoryCompliance
-                  ).filter((c) => c.compliant).length;
-                  const complianceRate = (
-                    (compliantCategories / totalCategories) *
-                    100
-                  ).toFixed(0);
-
-                  return (
-                    <div
-                      key={standardKey}
-                      className="glass-container rounded-xl overflow-hidden"
-                    >
-                      {/* Standard Header */}
-                      <div
-                        className={`p-6 border-b border-gray-700/50 bg-gradient-to-r ${
-                          standardKey === "OWASP"
-                            ? "from-orange-900/30 to-red-900/30"
-                            : standardKey === "NIST"
-                            ? "from-blue-900/30 to-cyan-900/30"
-                            : "from-purple-900/30 to-pink-900/30"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <span className="text-4xl">{standard.icon}</span>
-                            <div>
-                              <h4 className="text-lg font-bold text-white">
-                                {standard.name}
-                              </h4>
-                              <p className="text-sm text-gray-400">
-                                {standard.description}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div
-                              className={`text-3xl font-bold ${
-                                complianceRate >= 80
-                                  ? "text-green-400"
-                                  : complianceRate >= 50
-                                  ? "text-yellow-400"
-                                  : "text-red-400"
-                              }`}
-                            >
-                              {complianceRate}%
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              Compliance Rate
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="mt-4">
-                          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-500 ${
-                                complianceRate >= 80
-                                  ? "bg-green-500"
-                                  : complianceRate >= 50
-                                  ? "bg-yellow-500"
-                                  : "bg-red-500"
-                              }`}
-                              style={{ width: `${complianceRate}%` }}
-                            />
-                          </div>
-                          <div className="flex justify-between mt-2 text-xs text-gray-500">
-                            <span>
-                              {compliantCategories}/{totalCategories} Controls
-                              Compliant
-                            </span>
-                            <span>{allFindings.length} Related Findings</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Category Grid */}
-                      <div className="p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(standard.categories).map(
-                            ([catKey, catName]) => {
-                              const catData = categoryCompliance[catKey];
-                              const isCompliant = catData.compliant;
-                              const findingCount = catData.findings.length;
-
-                              return (
-                                <div
-                                  key={catKey}
-                                  className={`p-4 rounded-lg border transition-all duration-200 ${
-                                    isCompliant
-                                      ? "bg-green-900/10 border-green-500/30 hover:border-green-500/50"
-                                      : "bg-red-900/10 border-red-500/30 hover:border-red-500/50"
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex items-start gap-3">
-                                      <div
-                                        className={`p-1.5 rounded-lg ${
-                                          isCompliant
-                                            ? "bg-green-500/20"
-                                            : "bg-red-500/20"
-                                        }`}
-                                      >
-                                        {isCompliant ? (
-                                          <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                                        ) : (
-                                          <XCircleIcon className="h-5 w-5 text-red-400" />
-                                        )}
-                                      </div>
-                                      <div>
-                                        <div className="font-medium text-white">
-                                          {catKey}
-                                        </div>
-                                        <div className="text-sm text-gray-400">
-                                          {catName}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {!isCompliant && (
-                                      <span
-                                        className={`px-2 py-1 rounded text-xs font-medium ${
-                                          catData.riskLevel === "critical"
-                                            ? "bg-red-500/20 text-red-400"
-                                            : catData.riskLevel === "high"
-                                            ? "bg-orange-500/20 text-orange-400"
-                                            : "bg-yellow-500/20 text-yellow-400"
-                                        }`}
-                                      >
-                                        {findingCount} issue
-                                        {findingCount > 1 ? "s" : ""}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {/* Show findings for non-compliant categories */}
-                                  {!isCompliant &&
-                                    catData.findings.length > 0 && (
-                                      <div className="mt-3 pt-3 border-t border-gray-700/50">
-                                        <div className="space-y-2">
-                                          {catData.findings
-                                            .slice(0, 3)
-                                            .map((finding, idx) => (
-                                              <div
-                                                key={idx}
-                                                className="flex items-start gap-2 text-sm"
-                                              >
-                                                <span
-                                                  className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                                                    finding.severity ===
-                                                    "critical"
-                                                      ? "bg-red-500"
-                                                      : finding.severity ===
-                                                        "high"
-                                                      ? "bg-orange-500"
-                                                      : finding.severity ===
-                                                        "medium"
-                                                      ? "bg-yellow-500"
-                                                      : "bg-blue-500"
-                                                  }`}
-                                                />
-                                                <span className="text-gray-300 truncate">
-                                                  {finding.title ||
-                                                    finding.message}
-                                                </span>
-                                              </div>
-                                            ))}
-                                          {catData.findings.length > 3 && (
-                                            <div className="text-xs text-gray-500 pl-4">
-                                              +{catData.findings.length - 3}{" "}
-                                              more findings
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                </div>
-                              );
-                            }
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>{" "}
-              {/* End of compliance-section */}
-              {/* Recommendations based on compliance gaps */}
-              <div className="glass-container rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <LightBulbIcon className="h-5 w-5 text-yellow-400" />
-                  Compliance Recommendations
-                </h4>
-                <div className="space-y-3">
-                  {[
-                    {
-                      priority: "Critical",
-                      color: "red",
-                      text: "Address all critical and high severity findings to meet baseline compliance requirements.",
-                    },
-                    {
-                      priority: "High",
-                      color: "orange",
-                      text: "Implement secure coding practices and code review processes to prevent injection vulnerabilities.",
-                    },
-                    {
-                      priority: "Medium",
-                      color: "yellow",
-                      text: "Enable comprehensive security logging and monitoring for NIST DE (Detect) compliance.",
-                    },
-                    {
-                      priority: "Low",
-                      color: "blue",
-                      text: "Document security procedures and conduct regular compliance assessments.",
-                    },
-                  ].map((rec, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-start gap-3 p-3 rounded-lg bg-${rec.color}-500/10 border border-${rec.color}-500/20`}
-                    >
-                      <span
-                        className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-semibold bg-${rec.color}-500/20 text-${rec.color}-400`}
-                      >
-                        {rec.priority}
-                      </span>
-                      <span className="text-gray-300 text-sm">{rec.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Export Options */}
-              <div className="glass-container rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <DownloadIcon className="h-5 w-5 text-green-400" />
-                  Export Compliance Report
-                </h4>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={generateViewPDF}
-                    disabled={isGenerating}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors duration-200"
-                  >
-                    {isGenerating ? (
-                      <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <DocumentTextIcon className="h-4 w-4 mr-2" />
-                    )}
-                    Download PDF Report
-                  </button>
-                  <Link
-                    to="#top"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
-                  >
-                    <ExternalLinkIcon className="h-4 w-4 mr-2" />
-                    Back to Top
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>{" "}
+          {/* End of main content space-y-8 div */}
+        </div>{" "}
+        {/* End of reportRef div */}
+      </div>{" "}
+      {/* End of max-w-7xl div */}
     </PageContainer>
   );
 };

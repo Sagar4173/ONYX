@@ -125,7 +125,7 @@ export const MainLayout = () => {
       } else if (scanStatus === "failed" && projectName) {
         toast.error(`❌ Scan failed for ${projectName}`);
       } else if (scanStatus === "started" && projectName) {
-        toast.info(`🔍 Security scan started for ${projectName}`);
+        toast(`🔍 Security scan started for ${projectName}`, { icon: "🔍" });
       }
     });
 

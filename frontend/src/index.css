@@ -753,3 +753,252 @@ body {
     color: var(--text-primary);
   }
 }
+
+/* =====================================================
+   PRINT STYLES - Professional Report Output
+   ===================================================== */
+@media print {
+  /* Reset backgrounds for printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: #1f2937 !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+
+  #root {
+    background: white !important;
+  }
+
+  /* Hide non-printable elements */
+  .no-print,
+  header,
+  nav,
+  aside,
+  footer,
+  .sidebar,
+  button,
+  .btn,
+  [role="navigation"],
+  .mobile-menu,
+  .toast,
+  .notification,
+  .modal,
+  .dropdown,
+  .tooltip {
+    display: none !important;
+  }
+
+  /* Main content adjustments */
+  main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Glass container styles for print */
+  .glass-container,
+  .glass-card {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Text color adjustments */
+  .text-white,
+  .text-gray-100,
+  .text-gray-200 {
+    color: #111827 !important;
+  }
+
+  .text-gray-300,
+  .text-gray-400,
+  .text-gray-500 {
+    color: #4b5563 !important;
+  }
+
+  /* Severity colors - ensure visibility */
+  .text-red-400,
+  .text-red-500,
+  .text-red-600,
+  .bg-red-500\/10,
+  .bg-red-500\/20 {
+    color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+  }
+
+  .text-orange-400,
+  .text-orange-500 {
+    color: #ea580c !important;
+  }
+
+  .text-yellow-400,
+  .text-yellow-500,
+  .text-amber-400,
+  .text-amber-500 {
+    color: #d97706 !important;
+  }
+
+  .text-green-400,
+  .text-green-500,
+  .text-emerald-400,
+  .text-emerald-500 {
+    color: #059669 !important;
+  }
+
+  .text-blue-400,
+  .text-blue-500 {
+    color: #2563eb !important;
+  }
+
+  .text-purple-400,
+  .text-purple-500 {
+    color: #7c3aed !important;
+  }
+
+  /* Badge backgrounds for print */
+  [class*="bg-red-500"] {
+    background-color: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+  }
+
+  [class*="bg-orange-500"] {
+    background-color: #fff7ed !important;
+    border: 1px solid #fed7aa !important;
+  }
+
+  [class*="bg-yellow-500"],
+  [class*="bg-amber-500"] {
+    background-color: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+  }
+
+  [class*="bg-green-500"],
+  [class*="bg-emerald-500"] {
+    background-color: #ecfdf5 !important;
+    border: 1px solid #a7f3d0 !important;
+  }
+
+  [class*="bg-blue-500"] {
+    background-color: #eff6ff !important;
+    border: 1px solid #bfdbfe !important;
+  }
+
+  [class*="bg-gray-700"],
+  [class*="bg-gray-800"],
+  [class*="bg-gray-900"] {
+    background-color: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Gradients to solid colors */
+  [class*="bg-gradient"] {
+    background: #f9fafb !important;
+  }
+
+  /* Links */
+  a {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+  }
+
+  /* Page breaks */
+  h1,
+  h2,
+  h3,
+  h4 {
+    page-break-after: avoid !important;
+    color: #111827 !important;
+  }
+
+  section,
+  article,
+  .finding-card {
+    page-break-inside: avoid !important;
+  }
+
+  /* Tables */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #e5e7eb !important;
+    padding: 8px !important;
+    text-align: left !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Code blocks */
+  pre,
+  code {
+    background-color: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    color: #1f2937 !important;
+    font-size: 10pt !important;
+    page-break-inside: avoid !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+
+  /* Print header - shown only in print */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #1e40af;
+  }
+
+  .print-header h1 {
+    font-size: 24pt !important;
+    color: #1e40af !important;
+    margin: 0 0 8px 0 !important;
+  }
+
+  .print-header p {
+    color: #6b7280 !important;
+    margin: 0 !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1in;
+    size: A4;
+  }
+
+  @page :first {
+    margin-top: 0.5in;
+  }
+
+  /* Ensure icons are visible */
+  svg {
+    display: inline-block !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Remove animations */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

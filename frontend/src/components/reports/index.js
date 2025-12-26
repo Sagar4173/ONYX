@@ -1,9 +1,11 @@
 /**
  * Reports Components - Security reports and analysis
  *
- * Note: ComplianceReport has been deprecated and merged into EnhancedReportDetails
- * All /compliance/:reportId routes now redirect to /report/:reportId
+ * EnhancedReportDetails is the unified report component that includes:
+ * - Security scan results with findings
+ * - AI-powered analysis and recommendations
+ * - Compliance mapping (OWASP, NIST, ISO27001, PCI-DSS)
+ * - Professional PDF export
+ * - Print-friendly view
  */
-export { default as ReportDetails } from "./ReportDetails";
 export { default as EnhancedReportDetails } from "./EnhancedReportDetails";
-// ComplianceReport deprecated - use EnhancedReportDetails instead
