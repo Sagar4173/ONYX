@@ -181,6 +181,18 @@ class VulnerabilityFinding(BaseModel):
         None, 
         description="False positive likelihood score (0-1)"
     )
+    remediation: Optional[str] = Field(
+        None,
+        description="Specific remediation guidance for this vulnerability"
+    )
+    remediation_code: Optional[str] = Field(
+        None,
+        description="Secure code example to fix this vulnerability"
+    )
+    fix_effort: Optional[str] = Field(
+        None,
+        description="Estimated effort to fix (low/medium/high)"
+    )
 
 
 class ScanResult(BaseModel):

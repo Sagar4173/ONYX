@@ -124,6 +124,126 @@ class GeminiVulnerabilityAIProcessor:
             logger.error(f"Error in Gemini AI analysis: {e}")
             raise GeminiAIProcessorError(f"Analysis failed: {e}")
     
+    async def enrich_findings_with_remediation(
+        self,
+        findings: List[Any],
+        batch_size: int = 5
+    ) -> List[Any]:
+        """
+        Enrich vulnerability findings with AI-generated remediation guidance
+        
+        Args:
+            findings: List of vulnerability findings to enrich
+            batch_size: Number of findings to process in each batch
+            
+        Returns:
+            List of enriched findings with remediation
+        """
+        try:
+            logger.info(f"Enriching {len(findings)} findings with AI remediation guidance")
+            
+            # Process in batches to avoid API rate limits
+            for i in range(0, len(findings), batch_size):
+                batch = findings[i:i + batch_size]
+                await self._enrich_batch_with_remediation(batch)
+            
+            logger.info("Successfully enriched findings with AI remediation")
+            return findings
+            
+        except Exception as e:
+            logger.error(f"Error enriching findings with remediation: {e}")
+            return findings  # Return original findings if enrichment fails
+    
+    async def _enrich_batch_with_remediation(self, findings: List[Any]) -> None:
+        """Enrich a batch of findings with remediation guidance"""
+        for finding in findings:
+            try:
+                # Build context for the finding
+                title = getattr(finding, 'title', '') or finding.get('title', '')
+                description = getattr(finding, 'description', '') or finding.get('description', '')
+                severity = getattr(finding, 'severity', '') or finding.get('severity', '')
+                file_path = getattr(finding, 'file_path', '') or finding.get('file_path', '')
+                code_snippet = getattr(finding, 'code_snippet', '') or finding.get('code_snippet', '')
+                cwe_id = getattr(finding, 'cwe_id', '') or finding.get('cwe_id', '')
+                
+                # Skip if no meaningful context
+                if not title and not description:
+                    continue
+                
+                prompt = f"""
+You are a senior security engineer. Provide specific remediation guidance for this vulnerability:
+
+**Vulnerability:** {title}
+**Severity:** {severity}
+**Description:** {description[:500] if description else 'N/A'}
+**File:** {file_path}
+**CWE ID:** {cwe_id if cwe_id else 'N/A'}
+**Code Context:** {code_snippet[:300] if code_snippet else 'N/A'}
+
+Provide a response in exactly this format:
+
+REMEDIATION:
+[2-4 sentences explaining exactly how to fix this issue step by step]
+
+FIX_EFFORT: [low/medium/high]
+
+SECURE_CODE:
+[If applicable, provide a brief secure code example. If not applicable, write "N/A"]
+"""
+                
+                response = await asyncio.to_thread(self.model.generate_content, prompt)
+                response_text = response.text.strip()
+                
+                # Parse the response
+                remediation = ""
+                fix_effort = "medium"
+                secure_code = ""
+                
+                # Extract REMEDIATION section
+                if "REMEDIATION:" in response_text:
+                    parts = response_text.split("REMEDIATION:")
+                    if len(parts) > 1:
+                        remediation_part = parts[1]
+                        if "FIX_EFFORT:" in remediation_part:
+                            remediation = remediation_part.split("FIX_EFFORT:")[0].strip()
+                        else:
+                            remediation = remediation_part.strip()
+                
+                # Extract FIX_EFFORT
+                if "FIX_EFFORT:" in response_text:
+                    effort_part = response_text.split("FIX_EFFORT:")[1]
+                    if "SECURE_CODE:" in effort_part:
+                        effort_text = effort_part.split("SECURE_CODE:")[0].strip().lower()
+                    else:
+                        effort_text = effort_part.strip().lower()
+                    
+                    if "low" in effort_text:
+                        fix_effort = "low"
+                    elif "high" in effort_text:
+                        fix_effort = "high"
+                    else:
+                        fix_effort = "medium"
+                
+                # Extract SECURE_CODE section
+                if "SECURE_CODE:" in response_text:
+                    code_part = response_text.split("SECURE_CODE:")[1].strip()
+                    if code_part and code_part.lower() != "n/a":
+                        secure_code = code_part
+                
+                # Set the attributes on the finding
+                if hasattr(finding, 'remediation'):
+                    finding.remediation = remediation if remediation else None
+                    finding.fix_effort = fix_effort
+                    finding.remediation_code = secure_code if secure_code else None
+                elif isinstance(finding, dict):
+                    finding['remediation'] = remediation if remediation else None
+                    finding['fix_effort'] = fix_effort
+                    finding['remediation_code'] = secure_code if secure_code else None
+                    
+            except Exception as e:
+                logger.warning(f"Failed to generate remediation for finding: {e}")
+                continue
+    
     def _prepare_findings_data(self, scan_results: List[ScanResult]) -> Dict[str, Any]:
         """Prepare findings data for AI analysis"""
         all_findings = []

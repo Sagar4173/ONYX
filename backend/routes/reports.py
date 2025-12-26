@@ -1282,6 +1282,7 @@ Primary vulnerability categories include: {types_str}.
                         cwe_id = finding.get('cwe_id', 'N/A')
                         description = finding.get('description', '')
                         remediation = finding.get('remediation') or finding.get('recommendation', '')
+                        fix_effort = finding.get('fix_effort', '')
                     else:
                         # Object format
                         severity = getattr(finding, 'severity', 'unknown')
@@ -1299,6 +1300,7 @@ Primary vulnerability categories include: {types_str}.
                         cwe_id = getattr(finding, 'cwe_id', getattr(finding, 'cwe', 'N/A'))
                         description = getattr(finding, 'description', '')
                         remediation = getattr(finding, 'remediation', '')
+                        fix_effort = getattr(finding, 'fix_effort', '')
                     
                     # Severity styling
                     severity_colors = {
@@ -1309,6 +1311,12 @@ Primary vulnerability categories include: {types_str}.
                         'info': secondary_color
                     }
                     sev_color = severity_colors.get(severity, reportlab_colors.grey)
+                    
+                    # Fix effort label
+                    effort_label = ''
+                    if fix_effort:
+                        effort_map = {'low': 'Quick Fix', 'medium': 'Moderate Effort', 'high': 'Complex Fix'}
+                        effort_label = effort_map.get(fix_effort.lower(), '')
                     
                     # Finding header with severity badge
                     finding_title_style = ParagraphStyle(
@@ -1326,7 +1334,7 @@ Primary vulnerability categories include: {types_str}.
                     # Finding details table with better styling
                     finding_details = [
                         ['Property', 'Details'],
-                        ['Severity', severity.upper()],
+                        ['Severity', f"{severity.upper()}{' (' + effort_label + ')' if effort_label else ''}"],
                         ['Scanner', scanner],
                         ['File', file_path if file_path != 'N/A' else 'Not specified'],
                         ['Line', str(line_number) if line_number and line_number != 'N/A' else 'N/A'],

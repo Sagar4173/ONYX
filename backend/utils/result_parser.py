@@ -289,26 +289,55 @@ class SemgrepResultParser(BaseResultParser):
         findings = []
         
         for result in data.get('results', []):
+            extra = result.get('extra', {})
+            metadata = extra.get('metadata', {})
+            
+            # Extract remediation from Semgrep metadata (fix, fix_regex, or message)
+            remediation = None
+            remediation_code = None
+            fix_effort = None
+            
+            # Semgrep provides fix suggestions in metadata
+            if metadata.get('fix'):
+                remediation = metadata.get('fix')
+            elif metadata.get('fix_regex'):
+                remediation = f"Apply regex fix: {metadata.get('fix_regex')}"
+            elif metadata.get('remediation'):
+                remediation = metadata.get('remediation')
+            
+            # Extract fix effort based on metadata
+            if metadata.get('impact'):
+                impact = metadata.get('impact', '').lower()
+                if 'high' in impact:
+                    fix_effort = 'high'
+                elif 'low' in impact:
+                    fix_effort = 'low'
+                else:
+                    fix_effort = 'medium'
+            
             finding = VulnerabilityFinding(
                 id=f"semgrep-{result.get('check_id', '')}-{hash(str(result))}",
                 scanner=self.scanner_type,
                 rule_id=result.get('check_id', ''),
-                title=result.get('extra', {}).get('message', 'Semgrep Finding'),
-                description=result.get('extra', {}).get('message', ''),
+                title=extra.get('message', 'Semgrep Finding'),
+                description=extra.get('message', ''),
                 severity=self._normalize_severity(
-                    result.get('extra', {}).get('severity', 'medium')
+                    extra.get('severity', 'medium')
                 ),
-                confidence=result.get('extra', {}).get('metadata', {}).get('confidence'),
+                confidence=metadata.get('confidence'),
                 file_path=result.get('path', ''),
                 line_start=result.get('start', {}).get('line'),
                 line_end=result.get('end', {}).get('line'),
                 column_start=result.get('start', {}).get('col'),
                 column_end=result.get('end', {}).get('col'),
-                code_snippet=result.get('extra', {}).get('lines'),
-                cwe_id=self._extract_cwe_from_text(str(result.get('extra', {}))),
-                owasp_category=result.get('extra', {}).get('metadata', {}).get('owasp'),
-                references=result.get('extra', {}).get('metadata', {}).get('references', []),
-                metadata=result.get('extra', {}).get('metadata', {})
+                code_snippet=extra.get('lines'),
+                cwe_id=self._extract_cwe_from_text(str(extra)),
+                owasp_category=metadata.get('owasp'),
+                references=metadata.get('references', []),
+                metadata=metadata,
+                remediation=remediation,
+                remediation_code=remediation_code,
+                fix_effort=fix_effort
             )
             findings.append(finding)
         
@@ -365,6 +394,17 @@ class TrivyResultParser(BaseResultParser):
                 vulnerabilities = result.get('Vulnerabilities', [])
                 
                 for vuln in vulnerabilities:
+                    # Generate remediation from Trivy data
+                    pkg_name = vuln.get('PkgName', '')
+                    installed_version = vuln.get('InstalledVersion', '')
+                    fixed_version = vuln.get('FixedVersion', '')
+                    
+                    remediation = None
+                    if fixed_version:
+                        remediation = f"Update {pkg_name} from version {installed_version} to {fixed_version} or later to resolve this vulnerability."
+                    elif pkg_name:
+                        remediation = f"Review and update {pkg_name} (currently {installed_version}) to the latest secure version. Check vendor advisories for patches."
+                    
                     finding = VulnerabilityFinding(
                         id=f"trivy-{vuln.get('VulnerabilityID', '')}-{hash(str(vuln))}",
                         scanner=self.scanner_type,
@@ -376,10 +416,12 @@ class TrivyResultParser(BaseResultParser):
                         cve_id=vuln.get('VulnerabilityID') if vuln.get('VulnerabilityID', '').startswith('CVE') else None,
                         cwe_id=self._extract_cwe_from_text(vuln.get('Description', '')),
                         references=vuln.get('References', []),
+                        remediation=remediation,
+                        fix_effort='low' if fixed_version else 'medium',
                         metadata={
-                            'package_name': vuln.get('PkgName', ''),
-                            'installed_version': vuln.get('InstalledVersion', ''),
-                            'fixed_version': vuln.get('FixedVersion', ''),
+                            'package_name': pkg_name,
+                            'installed_version': installed_version,
+                            'fixed_version': fixed_version,
                             'primary_url': vuln.get('PrimaryURL', ''),
                             'published_date': vuln.get('PublishedDate', ''),
                             'last_modified_date': vuln.get('LastModifiedDate', '')
@@ -407,19 +449,33 @@ class GitLeaksResultParser(BaseResultParser):
             findings = []
             
             for item in data:
+                rule_id = item.get('RuleID', '')
+                secret_type = item.get('Description', rule_id)
+                file_path = item.get('File', '')
+                
+                # Generate remediation for secrets
+                remediation = (
+                    f"1. Immediately rotate or revoke the exposed {secret_type}. "
+                    f"2. Remove the secret from {file_path} and git history using tools like BFG or git filter-branch. "
+                    f"3. Store secrets securely using environment variables, secrets managers (AWS Secrets Manager, HashiCorp Vault), or .env files excluded from version control. "
+                    f"4. Add patterns to .gitignore to prevent future commits of sensitive files."
+                )
+                
                 finding = VulnerabilityFinding(
-                    id=f"gitleaks-{item.get('RuleID', '')}-{hash(str(item))}",
+                    id=f"gitleaks-{rule_id}-{hash(str(item))}",
                     scanner=self.scanner_type,
-                    rule_id=item.get('RuleID', ''),
-                    title=f"Secret detected: {item.get('Description', item.get('RuleID', ''))}",
+                    rule_id=rule_id,
+                    title=f"Secret detected: {secret_type}",
                     description=item.get('Description', ''),
                     severity=SeverityLevel.HIGH,  # Secrets are generally high severity
-                    file_path=item.get('File', ''),
+                    file_path=file_path,
                     line_start=item.get('StartLine'),
                     line_end=item.get('EndLine'),
                     column_start=item.get('StartColumn'),
                     column_end=item.get('EndColumn'),
                     code_snippet=item.get('Secret', ''),
+                    remediation=remediation,
+                    fix_effort='medium',
                     metadata={
                         'commit': item.get('Commit', ''),
                         'entropy': item.get('Entropy'),

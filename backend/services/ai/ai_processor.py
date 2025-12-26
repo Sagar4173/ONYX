@@ -121,6 +121,93 @@ class VulnerabilityAIProcessor:
             logger.error(f"AI analysis failed: {e}")
             raise AIProcessorError(f"Failed to analyze vulnerabilities: {e}")
     
+    async def enrich_findings_with_remediation(
+        self,
+        findings: List[Any],
+        batch_size: int = 5
+    ) -> List[Any]:
+        """
+        Enrich vulnerability findings with AI-generated remediation guidance
+        
+        Args:
+            findings: List of vulnerability findings to enrich
+            batch_size: Number of findings to process in each batch
+            
+        Returns:
+            List of enriched findings with remediation
+        """
+        try:
+            logger.info(f"Enriching {len(findings)} findings with AI remediation guidance")
+            
+            # Process in batches to avoid API rate limits
+            for i in range(0, len(findings), batch_size):
+                batch = findings[i:i + batch_size]
+                await self._enrich_batch_with_remediation(batch)
+            
+            logger.info("Successfully enriched findings with AI remediation")
+            return findings
+            
+        except Exception as e:
+            logger.error(f"Error enriching findings with remediation: {e}")
+            return findings
+    
+    async def _enrich_batch_with_remediation(self, findings: List[Any]) -> None:
+        """Enrich a batch of findings with remediation guidance"""
+        for finding in findings:
+            try:
+                title = getattr(finding, 'title', '') or finding.get('title', '')
+                description = getattr(finding, 'description', '') or finding.get('description', '')
+                severity = getattr(finding, 'severity', '') or finding.get('severity', '')
+                file_path = getattr(finding, 'file_path', '') or finding.get('file_path', '')
+                code_snippet = getattr(finding, 'code_snippet', '') or finding.get('code_snippet', '')
+                cwe_id = getattr(finding, 'cwe_id', '') or finding.get('cwe_id', '')
+                
+                if not title and not description:
+                    continue
+                
+                prompt = f"""
+As a senior security engineer, provide specific remediation guidance for this vulnerability.
+
+Vulnerability: {title}
+Severity: {severity}
+Description: {description[:500] if description else 'N/A'}
+File: {file_path}
+CWE ID: {cwe_id if cwe_id else 'N/A'}
+Code Context: {code_snippet[:300] if code_snippet else 'N/A'}
+
+Return ONLY a JSON object in this exact format:
+{{
+    "remediation": "2-4 sentence step-by-step fix instructions",
+    "fix_effort": "low|medium|high",
+    "secure_code": "Brief secure code example or null if not applicable"
+}}
+"""
+                
+                response = await self._call_openai(prompt)
+                
+                try:
+                    data = json.loads(response.strip())
+                    remediation = data.get('remediation', '')
+                    fix_effort = data.get('fix_effort', 'medium')
+                    secure_code = data.get('secure_code')
+                    
+                    if hasattr(finding, 'remediation'):
+                        finding.remediation = remediation if remediation else None
+                        finding.fix_effort = fix_effort if fix_effort in ['low', 'medium', 'high'] else 'medium'
+                        finding.remediation_code = secure_code if secure_code else None
+                    elif isinstance(finding, dict):
+                        finding['remediation'] = remediation if remediation else None
+                        finding['fix_effort'] = fix_effort if fix_effort in ['low', 'medium', 'high'] else 'medium'
+                        finding['remediation_code'] = secure_code if secure_code else None
+                        
+                except json.JSONDecodeError:
+                    logger.warning(f"Failed to parse AI remediation response as JSON")
+                    continue
+                    
+            except Exception as e:
+                logger.warning(f"Failed to generate remediation for finding: {e}")
+                continue
+    
     def _prepare_findings_data(self, scan_results: List[ScanResult]) -> Dict[str, Any]:
         """Prepare findings data for AI analysis"""
         all_findings = []
