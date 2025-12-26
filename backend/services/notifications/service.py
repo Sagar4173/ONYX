@@ -360,7 +360,7 @@ class EmailService:
     ) -> bool:
         """Send scan completion notification email"""
         try:
-            report_url = f"{settings.frontend_url}/reports/{report_id}" if report_id else f"{settings.frontend_url}/dashboard"
+            report_url = f"{settings.frontend_url}/report/{report_id}" if report_id else f"{settings.frontend_url}/dashboard"
             
             template = self.jinja_env.get_template('scan_completed')
             html_body = template.render(
