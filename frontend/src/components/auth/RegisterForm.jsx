@@ -4,13 +4,8 @@
  */
 import React, { useState, useEffect } from "react";
 import {
-  UserCircleIcon,
   EyeIcon,
   EyeSlashIcon,
-  EnvelopeIcon,
-  LockClosedIcon,
-  UserIcon,
-  BuildingOfficeIcon,
   ArrowPathIcon,
   ArrowRightIcon,
   CheckCircleIcon,
@@ -53,7 +48,7 @@ export const RegisterForm = ({
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
       number: /\d/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password),
+      special: /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password),
     });
   }, [formData.password]);
 
@@ -137,41 +132,21 @@ export const RegisterForm = ({
           </div>
         </div>
 
-        {/* Email and Organization */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-medium text-gray-400 mb-1.5 block">
-              Email
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, email: e.target.value }))
-              }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
-              placeholder="your@email.com"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-gray-400 mb-1.5 block">
-              Company <span className="text-gray-600">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              value={formData.organization}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  organization: e.target.value,
-                }))
-              }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
-              placeholder="Company"
-            />
-          </div>
+        {/* Email */}
+        <div>
+          <label className="text-xs font-medium text-gray-400 mb-1.5 block">
+            Email
+          </label>
+          <input
+            type="email"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, email: e.target.value }))
+            }
+            className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
+            placeholder="your@email.com"
+            required
+          />
         </div>
 
         {/* Password */}

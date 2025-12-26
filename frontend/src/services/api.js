@@ -152,239 +152,142 @@ api.interceptors.response.use(
 export const authAPI = {
   // Login user
   login: async (credentials) => {
-    try {
-      const response = await api.post("/auth/login", credentials);
-
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/login", credentials);
+    return response.data;
   },
 
   // Register user
   register: async (userData) => {
-    try {
-      const response = await api.post("/auth/register", userData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/register", userData);
+    return response.data;
   },
 
   // Logout user
   logout: async () => {
-    try {
-      const response = await api.post("/auth/logout");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/logout");
+    return response.data;
   },
 
   // Refresh token
   refreshToken: async (refreshToken) => {
-    try {
-      const response = await api.post("/auth/refresh", {
-        refresh_token: refreshToken,
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/refresh", {
+      refresh_token: refreshToken,
+    });
+    return response.data;
   },
 
   // Get current user profile
   getProfile: async () => {
-    try {
-      const response = await api.get("/auth/me");
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get("/auth/me");
+    return response.data;
   },
 
   // Update user profile
   updateProfile: async (profileData) => {
-    try {
-      const response = await api.put("/auth/me", profileData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.put("/auth/me", profileData);
+    return response.data;
   },
 
   // Change password
   changePassword: async (passwordData) => {
-    try {
-      const response = await api.post("/auth/change-password", passwordData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/change-password", passwordData);
+    return response.data;
   },
 
   // Request password reset
   requestPasswordReset: async (email) => {
-    try {
-      const response = await api.post("/auth/request-password-reset", {
-        email,
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/request-password-reset", {
+      email,
+    });
+    return response.data;
   },
 
   // Confirm password reset
   confirmPasswordReset: async (resetData) => {
-    try {
-      const response = await api.post("/auth/reset-password", resetData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/auth/reset-password", resetData);
+    return response.data;
   },
 
   // Verify email
   verifyEmail: async (token) => {
-    try {
-      const response = await api.post("/auth/verify-email", { token });
-      return response.data;
-    } catch (error) {
-      console.error("Email verification error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/verify-email", { token });
+    return response.data;
   },
 
   // Resend verification email
   resendVerificationEmail: async (email) => {
-    try {
-      const response = await api.post("/auth/resend-verification", { email });
-      return response.data;
-    } catch (error) {
-      console.error("Resend verification error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/resend-verification", { email });
+    return response.data;
   },
 
   // ===== NOTIFICATION PREFERENCES =====
 
   // Get notification preferences
   getNotificationPreferences: async () => {
-    try {
-      const response = await api.get("/auth/me/notifications");
-      return response.data;
-    } catch (error) {
-      console.error("Get notifications error:", error);
-      throw error;
-    }
+    const response = await api.get("/auth/me/notifications");
+    return response.data;
   },
 
   // Update notification preferences
   updateNotificationPreferences: async (preferences) => {
-    try {
-      const response = await api.put("/auth/me/notifications", preferences);
-      return response.data;
-    } catch (error) {
-      console.error("Update notifications error:", error);
-      throw error;
-    }
+    const response = await api.put("/auth/me/notifications", preferences);
+    return response.data;
   },
 
   // ===== TWO-FACTOR AUTHENTICATION =====
 
   // Get 2FA status
   get2FAStatus: async () => {
-    try {
-      const response = await api.get("/auth/me/2fa/status");
-      return response.data;
-    } catch (error) {
-      console.error("Get 2FA status error:", error);
-      throw error;
-    }
+    const response = await api.get("/auth/me/2fa/status");
+    return response.data;
   },
 
   // Setup 2FA (get secret and QR code)
   setup2FA: async () => {
-    try {
-      const response = await api.post("/auth/me/2fa/setup");
-      return response.data;
-    } catch (error) {
-      console.error("Setup 2FA error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/me/2fa/setup");
+    return response.data;
   },
 
   // Enable 2FA after verification
   enable2FA: async (code) => {
-    try {
-      const response = await api.post("/auth/me/2fa/enable", { code });
-      return response.data;
-    } catch (error) {
-      console.error("Enable 2FA error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/me/2fa/enable", { code });
+    return response.data;
   },
 
   // Disable 2FA
   disable2FA: async (code) => {
-    try {
-      const response = await api.post("/auth/me/2fa/disable", { code });
-      return response.data;
-    } catch (error) {
-      console.error("Disable 2FA error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/me/2fa/disable", { code });
+    return response.data;
   },
 
   // ===== SESSION MANAGEMENT =====
 
   // Get active sessions
   getSessions: async () => {
-    try {
-      const response = await api.get("/auth/me/sessions");
-      return response.data;
-    } catch (error) {
-      console.error("Get sessions error:", error);
-      throw error;
-    }
+    const response = await api.get("/auth/me/sessions");
+    return response.data;
   },
 
   // Revoke a specific session
   revokeSession: async (sessionId) => {
-    try {
-      const response = await api.delete(`/auth/me/sessions/${sessionId}`);
-      return response.data;
-    } catch (error) {
-      console.error("Revoke session error:", error);
-      throw error;
-    }
+    const response = await api.delete(`/auth/me/sessions/${sessionId}`);
+    return response.data;
   },
 
   // Revoke all other sessions
   revokeAllOtherSessions: async () => {
-    try {
-      const response = await api.delete("/auth/me/sessions");
-      return response.data;
-    } catch (error) {
-      console.error("Revoke all sessions error:", error);
-      throw error;
-    }
+    const response = await api.delete("/auth/me/sessions");
+    return response.data;
   },
 
   // ===== AVATAR =====
 
   // Update avatar
   updateAvatar: async (avatarUrl) => {
-    try {
-      const response = await api.post("/auth/me/avatar", {
-        avatar_url: avatarUrl,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Update avatar error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/me/avatar", {
+      avatar_url: avatarUrl,
+    });
+    return response.data;
   },
 };
 
@@ -1330,17 +1233,6 @@ export const utils = {
       failed: "text-red-400 bg-red-400/10 border-red-400/30",
     };
     return colors[status] || colors.pending;
-  },
-
-  // Get color class for severity
-  getSeverityColor: (severity) => {
-    const colors = {
-      critical: "text-red-400 bg-red-400/10 border-red-400/30",
-      high: "text-orange-400 bg-orange-400/10 border-orange-400/30",
-      medium: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-      low: "text-blue-400 bg-blue-400/10 border-blue-400/30",
-    };
-    return colors[severity] || colors.low;
   },
 };
 

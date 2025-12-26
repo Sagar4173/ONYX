@@ -206,7 +206,10 @@ export const UserProfile = ({ onClose }) => {
           updates: prefs.updates ?? false,
           marketing: prefs.marketing ?? false,
         });
-      } catch (error) {      } finally {
+      } catch (error) {
+        // Silently handle notification preferences fetch errors
+        console.debug("Could not fetch notification preferences:", error);
+      } finally {
         setLoadingNotifications(false);
       }
     };
@@ -221,7 +224,10 @@ export const UserProfile = ({ onClose }) => {
         const status = await authAPI.get2FAStatus();
         setTwoFactorEnabled(status.enabled);
         setBackupCodesRemaining(status.backup_codes_remaining || 0);
-      } catch (error) {      } finally {
+      } catch (error) {
+        // Silently handle 2FA status fetch errors
+        console.debug("Could not fetch 2FA status:", error);
+      } finally {
         setLoading2FA(false);
       }
     };
@@ -248,7 +254,8 @@ export const UserProfile = ({ onClose }) => {
             createdAt: session.created_at,
           }))
         );
-      } catch (error) {        setActiveSessions([]);
+      } catch (error) {
+        setActiveSessions([]);
       } finally {
         setLoadingSessions(false);
       }

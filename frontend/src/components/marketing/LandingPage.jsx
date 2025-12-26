@@ -29,6 +29,7 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
   ArrowDownIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { OnyxLogo } from "../common";
@@ -149,6 +150,7 @@ const LandingPage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [showFixModal, setShowFixModal] = useState(null); // null, 'sql', or 'secret'
 
   // Words for typing animation
   const heroWords = [
@@ -355,52 +357,94 @@ const LandingPage = () => {
     {
       name: "Semgrep",
       category: "SAST",
+      type: "sast",
       description: "Semantic code analysis",
       icon: "🔍",
     },
     {
       name: "Trivy",
       category: "Container",
+      type: "container",
       description: "Container vulnerability scanning",
       icon: "🐳",
     },
     {
       name: "GitLeaks",
       category: "Secrets",
+      type: "secrets",
       description: "Secrets detection",
       icon: "🔐",
     },
     {
       name: "Bandit",
-      category: "Python",
+      category: "SAST",
+      type: "sast",
       description: "Python security linting",
       icon: "🐍",
     },
     {
       name: "ESLint Security",
-      category: "JavaScript",
+      category: "SAST",
+      type: "sast",
       description: "JS/TS security rules",
       icon: "📜",
     },
     {
       name: "OWASP ZAP",
-      category: "DAST",
+      category: "SAST",
+      type: "sast",
       description: "Dynamic application testing",
       icon: "⚡",
     },
     {
       name: "Nuclei",
-      category: "Vulnerability",
+      category: "Container",
+      type: "container",
       description: "Template-based scanning",
       icon: "🎯",
     },
     {
       name: "Checkov",
       category: "IaC",
+      type: "iac",
       description: "Infrastructure as Code scanning",
       icon: "☁️",
     },
+    {
+      name: "TruffleHog",
+      category: "Secrets",
+      type: "secrets",
+      description: "Secret scanning in git history",
+      icon: "🐷",
+    },
+    {
+      name: "Grype",
+      category: "Container",
+      type: "container",
+      description: "Container image vulnerability scanner",
+      icon: "📦",
+    },
+    {
+      name: "Terrascan",
+      category: "IaC",
+      type: "iac",
+      description: "IaC security scanner",
+      icon: "🏗️",
+    },
+    {
+      name: "KICS",
+      category: "IaC",
+      type: "iac",
+      description: "Keeping Infrastructure as Code Secure",
+      icon: "🔧",
+    },
   ];
+
+  // Filter scanners based on active tab
+  const filteredScanners =
+    activeTab === "all"
+      ? scanners
+      : scanners.filter((s) => s.type === activeTab);
 
   // Platform highlights - Real features, not fake testimonials
   const platformHighlights = [
@@ -498,8 +542,140 @@ const LandingPage = () => {
     { name: "OWASP", icon: "🛡️" },
   ];
 
+  // Fix suggestion data for modal
+  const fixSuggestions = {
+    sql: {
+      title: "SQL Injection Fix",
+      severity: "Critical",
+      problem:
+        "User input directly interpolated into SQL query allows attackers to execute arbitrary SQL commands.",
+      fix: `// ❌ Vulnerable Code
+const query = \`SELECT * FROM users WHERE id = \${userId}\`;
+
+// ✅ Fixed Code - Use Parameterized Queries
+const query = "SELECT * FROM users WHERE id = ?";
+db.execute(query, [userId]);`,
+      explanation:
+        "Use parameterized queries or prepared statements to prevent SQL injection. Never concatenate user input directly into SQL queries.",
+    },
+    secret: {
+      title: "Hardcoded Secret Fix",
+      severity: "High",
+      problem:
+        "API key exposed in source code can be extracted by attackers from version control or compiled code.",
+      fix: `// ❌ Vulnerable Code
+const API_KEY = "sk_live_abc123xyz";
+
+// ✅ Fixed Code - Use Environment Variables
+const API_KEY = process.env.API_KEY;
+
+// Or use a secrets manager
+const API_KEY = await secretsManager.getSecret("api-key");`,
+      explanation:
+        "Store secrets in environment variables or a secrets manager. Never commit API keys, passwords, or tokens to version control.",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-white overflow-x-hidden">
+      {/* Fix Suggestion Modal */}
+      {showFixModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowFixModal(null)}
+        >
+          <div
+            className="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`p-2 rounded-xl ${
+                      showFixModal === "sql"
+                        ? "bg-red-500/20"
+                        : "bg-amber-500/20"
+                    }`}
+                  >
+                    {showFixModal === "sql" ? (
+                      <ExclamationTriangleIcon className="w-6 h-6 text-red-400" />
+                    ) : (
+                      <LockClosedIcon className="w-6 h-6 text-amber-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">
+                      {fixSuggestions[showFixModal].title}
+                    </h3>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        showFixModal === "sql"
+                          ? "bg-red-500/20 text-red-400"
+                          : "bg-amber-500/20 text-amber-400"
+                      }`}
+                    >
+                      {fixSuggestions[showFixModal].severity}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowFixModal(null)}
+                  className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                  Problem
+                </h4>
+                <p className="text-gray-300">
+                  {fixSuggestions[showFixModal].problem}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                  Fix
+                </h4>
+                <pre className="bg-gray-950 border border-gray-800 rounded-xl p-4 overflow-x-auto">
+                  <code className="text-sm text-gray-300 font-mono whitespace-pre-wrap">
+                    {fixSuggestions[showFixModal].fix}
+                  </code>
+                </pre>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                  Explanation
+                </h4>
+                <p className="text-gray-300">
+                  {fixSuggestions[showFixModal].explanation}
+                </p>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-800 flex justify-end gap-3">
+              <button
+                onClick={() => setShowFixModal(null)}
+                className="px-4 py-2 rounded-xl border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-all"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  navigate("/register");
+                  setShowFixModal(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
+              >
+                Start Free Trial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Animated Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Gradient orbs */}
@@ -752,12 +928,12 @@ const LandingPage = () => {
                 </span>
               </button>
               <button
-                onClick={() => {}}
+                onClick={() => scrollToSection("features")}
                 className="group px-8 py-4 rounded-2xl font-bold text-lg border border-gray-700 hover:border-gray-600 bg-gray-900/50 hover:bg-gray-800/50 transition-all w-full sm:w-auto"
               >
                 <span className="flex items-center justify-center gap-3 text-gray-300 group-hover:text-white">
                   <PlayIcon className="w-5 h-5" />
-                  Watch Demo
+                  See It In Action
                 </span>
               </button>
             </div>
@@ -801,30 +977,33 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Trusted By Section */}
+      {/* Security Standards Section */}
       <section className="py-16 border-b border-gray-800/50 bg-gray-900/20">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-center text-gray-500 text-sm uppercase tracking-widest mb-10">
-            Trusted by Security Teams Worldwide
+            Enterprise-Grade Security Standards
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
             {[
-              { name: "TechCorp", icon: "🏢" },
-              { name: "StartupXYZ", icon: "🚀" },
-              { name: "DevSecure", icon: "🔐" },
-              { name: "CloudFirst", icon: "☁️" },
-              { name: "DataGuard", icon: "🛡️" },
-              { name: "CodeFlow", icon: "⚡" },
-            ].map((company, i) => (
+              { name: "SOC 2 Type II", icon: "🛡️", desc: "Compliant" },
+              { name: "ISO 27001", icon: "📋", desc: "Certified" },
+              { name: "GDPR", icon: "🇪🇺", desc: "Compliant" },
+              { name: "HIPAA", icon: "🏥", desc: "Ready" },
+              { name: "PCI DSS", icon: "💳", desc: "Level 1" },
+              { name: "OWASP", icon: "🔒", desc: "Top 10" },
+            ].map((standard, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 text-gray-400 hover:text-gray-200 transition-colors group cursor-default"
+                className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-800/30 border border-gray-700/30 hover:border-cyan-500/30 hover:bg-gray-800/50 transition-all group cursor-default"
               >
-                <span className="text-2xl group-hover:scale-110 transition-transform">
-                  {company.icon}
+                <span className="text-3xl group-hover:scale-110 transition-transform">
+                  {standard.icon}
                 </span>
-                <span className="text-lg font-semibold tracking-wide">
-                  {company.name}
+                <span className="text-sm font-semibold text-white tracking-wide">
+                  {standard.name}
+                </span>
+                <span className="text-xs text-cyan-400 font-medium">
+                  {standard.desc}
                 </span>
               </div>
             ))}
@@ -1014,7 +1193,10 @@ const LandingPage = () => {
                       <p className="text-gray-400 text-sm">
                         Line 3: User input directly interpolated into SQL query
                       </p>
-                      <button className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                      <button
+                        onClick={() => setShowFixModal("sql")}
+                        className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                      >
                         View fix suggestion{" "}
                         <ArrowRightIcon className="w-3 h-3" />
                       </button>
@@ -1032,7 +1214,10 @@ const LandingPage = () => {
                       <p className="text-gray-400 text-sm">
                         Line 5: API key exposed in source code
                       </p>
-                      <button className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                      <button
+                        onClick={() => setShowFixModal("secret")}
+                        className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                      >
                         View fix suggestion{" "}
                         <ArrowRightIcon className="w-3 h-3" />
                       </button>
@@ -1202,7 +1387,7 @@ const LandingPage = () => {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {scanners.map((scanner, index) => (
+            {filteredScanners.map((scanner, index) => (
               <div
                 key={index}
                 className="group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-violet-500/30 hover:bg-gray-800/50 transition-all hover:transform hover:-translate-y-1"
@@ -1224,11 +1409,13 @@ const LandingPage = () => {
           </div>
 
           {/* More scanners indicator */}
-          <div className="text-center mt-8">
-            <span className="text-gray-500 text-sm">
-              + 4 more specialized scanners
-            </span>
-          </div>
+          {activeTab === "all" && (
+            <div className="text-center mt-8">
+              <span className="text-gray-500 text-sm">
+                Showing all {filteredScanners.length} security scanners
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1548,13 +1735,29 @@ const LandingPage = () => {
                 development teams worldwide. Secure your code with confidence.
               </p>
               <div className="flex items-center gap-4">
-                {["T", "G", "L", "D"].map((social, i) => (
+                {[
+                  { icon: "𝕏", href: "https://twitter.com", label: "Twitter" },
+                  {
+                    icon: "⬢",
+                    href: "https://github.com/Sagar4173/ONYX",
+                    label: "GitHub",
+                  },
+                  {
+                    icon: "in",
+                    href: "https://linkedin.com",
+                    label: "LinkedIn",
+                  },
+                  { icon: "◈", href: "https://discord.com", label: "Discord" },
+                ].map((social, i) => (
                   <a
                     key={i}
-                    href="#"
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={social.label}
                     className="w-10 h-10 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 flex items-center justify-center text-gray-500 hover:text-white transition-all"
                   >
-                    <span className="text-sm font-medium">{social}</span>
+                    <span className="text-sm font-medium">{social.icon}</span>
                   </a>
                 ))}
               </div>
@@ -1565,19 +1768,28 @@ const LandingPage = () => {
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-3">
                 {[
-                  "Features",
-                  "Integrations",
-                  "Pricing",
-                  "Changelog",
-                  "Roadmap",
+                  {
+                    name: "Features",
+                    action: () => scrollToSection("features"),
+                  },
+                  {
+                    name: "Scanners",
+                    action: () => scrollToSection("scanners"),
+                  },
+                  { name: "Pricing", action: () => scrollToSection("pricing") },
+                  {
+                    name: "Why ONYX",
+                    action: () => scrollToSection("why-onyx"),
+                  },
+                  { name: "Get Started", action: () => navigate("/register") },
                 ].map((link, i) => (
                   <li key={i}>
-                    <a
-                      href="#"
-                      className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+                    <button
+                      onClick={link.action}
+                      className="text-gray-500 hover:text-gray-300 text-sm transition-colors text-left"
                     >
-                      {link}
-                    </a>
+                      {link.name}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -1586,18 +1798,26 @@ const LandingPage = () => {
               <h4 className="text-white font-semibold mb-4">Resources</h4>
               <ul className="space-y-3">
                 {[
-                  "Documentation",
-                  "API Reference",
-                  "Blog",
-                  "Community",
-                  "Support",
+                  { name: "Documentation", href: "/docs" },
+                  { name: "API Reference", href: "/docs" },
+                  { name: "GitHub", href: "https://github.com/Sagar4173/ONYX" },
+                  { name: "Support", href: "mailto:support@onyx-security.io" },
+                  { name: "Contact", href: "mailto:hello@onyx-security.io" },
                 ].map((link, i) => (
                   <li key={i}>
                     <a
-                      href="#"
+                      href={link.href}
+                      target={
+                        link.href.startsWith("http") ? "_blank" : undefined
+                      }
+                      rel={
+                        link.href.startsWith("http")
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
                       className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
                     >
-                      {link}
+                      {link.name}
                     </a>
                   </li>
                 ))}
@@ -1606,18 +1826,22 @@ const LandingPage = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-3">
-                {["About", "Careers", "Security", "Privacy", "Terms"].map(
-                  (link, i) => (
-                    <li key={i}>
-                      <a
-                        href="#"
-                        className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
-                      >
-                        {link}
-                      </a>
-                    </li>
-                  )
-                )}
+                {[
+                  { name: "About", action: () => navigate("/about") },
+                  { name: "Data Policy", action: () => navigate("/legal") },
+                  { name: "Terms", action: () => navigate("/terms") },
+                  { name: "Login", action: () => navigate("/login") },
+                  { name: "Register", action: () => navigate("/register") },
+                ].map((link, i) => (
+                  <li key={i}>
+                    <button
+                      onClick={link.action}
+                      className="text-gray-500 hover:text-gray-300 text-sm transition-colors text-left"
+                    >
+                      {link.name}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -1629,15 +1853,24 @@ const LandingPage = () => {
               rights reserved.
             </p>
             <div className="flex items-center gap-6 text-sm text-gray-500">
-              <a href="#" className="hover:text-gray-300 transition-colors">
-                Privacy Policy
-              </a>
-              <a href="#" className="hover:text-gray-300 transition-colors">
+              <button
+                onClick={() => navigate("/legal")}
+                className="hover:text-gray-300 transition-colors"
+              >
+                Data Policy
+              </button>
+              <button
+                onClick={() => navigate("/terms")}
+                className="hover:text-gray-300 transition-colors"
+              >
                 Terms of Service
-              </a>
-              <a href="#" className="hover:text-gray-300 transition-colors">
-                Cookie Policy
-              </a>
+              </button>
+              <button
+                onClick={() => navigate("/register")}
+                className="hover:text-gray-300 transition-colors"
+              >
+                Get Started
+              </button>
             </div>
           </div>
         </div>

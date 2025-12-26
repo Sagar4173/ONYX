@@ -371,25 +371,32 @@ export const AuthModal = ({
               </div>
             </div>
 
-            {/* Quick Testimonial */}
+            {/* Platform Highlight */}
             {currentView === "register" && (
               <div className="mt-8 p-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-cyan-500/20">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 flex items-center justify-center text-white font-bold">
-                      J
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 flex items-center justify-center text-white">
+                      <ShieldCheckIcon className="w-5 h-5" />
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-gray-300 italic mb-2">
-                      "ONYX caught 47 critical vulnerabilities in our first
-                      scan. Best security investment we've made!"
-                    </p>
-                    <div className="text-xs text-gray-400">
+                    <p className="text-sm text-gray-300 mb-2">
                       <span className="font-semibold text-white">
-                        John Smith
+                        Enterprise-grade security scanning
                       </span>{" "}
-                      • CTO, TechCorp
+                      with 12+ integrated scanners covering SAST, secrets
+                      detection, container security, and more.
+                    </p>
+                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <CheckCircleIcon className="w-3 h-3 text-cyan-400" />
+                        Free tier available
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircleIcon className="w-3 h-3 text-cyan-400" />
+                        No credit card required
+                      </span>
                     </div>
                   </div>
                 </div>

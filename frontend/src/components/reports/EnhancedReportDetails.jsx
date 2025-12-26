@@ -200,8 +200,38 @@ const EnhancedReportDetails = () => {
     return categories;
   };
 
-  // Early return if reportId is invalid
-  if (!reportId || reportId === "undefined" || reportId === "null") {
+  // Check if reportId is valid
+  const isValidReportId =
+    reportId && reportId !== "undefined" && reportId !== "null";
+
+  // Fetch report details - hooks must be called unconditionally
+  const {
+    data: report,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["report", reportId],
+    queryFn: () => reportsAPI.getReport(reportId),
+    enabled: isValidReportId,
+    retry: false,
+  });
+
+  // Fetch AI analysis - always try to fetch regardless of has_ai_analysis flag
+  const {
+    data: aiAnalysis,
+    isLoading: aiLoading,
+    error: aiError,
+  } = useQuery({
+    queryKey: ["ai-analysis", reportId],
+    queryFn: () => reportsAPI.getAIAnalysis(reportId),
+    enabled: isValidReportId && !!report, // Only need reportId and report to exist
+    retry: false, // Don't retry if AI analysis isn't available
+  });
+
+  // Early return if reportId is invalid - after all hooks
+  if (!isValidReportId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
@@ -225,32 +255,6 @@ const EnhancedReportDetails = () => {
       </div>
     );
   }
-
-  // Fetch report details
-  const {
-    data: report,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["report", reportId],
-    queryFn: () => reportsAPI.getReport(reportId),
-    enabled: !!reportId,
-    retry: false,
-  });
-
-  // Fetch AI analysis - always try to fetch regardless of has_ai_analysis flag
-  const {
-    data: aiAnalysis,
-    isLoading: aiLoading,
-    error: aiError,
-  } = useQuery({
-    queryKey: ["ai-analysis", reportId],
-    queryFn: () => reportsAPI.getAIAnalysis(reportId),
-    enabled: !!reportId && !!report, // Only need reportId and report to exist
-    retry: false, // Don't retry if AI analysis isn't available
-  });
 
   // Download report function
   const downloadReport = async (format = "pdf") => {

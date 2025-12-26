@@ -24,9 +24,15 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
-    print(f"📄 Loaded environment variables from: {env_path}")
+    try:
+        print(f"📄 Loaded environment variables from: {env_path}")
+    except UnicodeEncodeError:
+        print(f"[OK] Loaded environment variables from: {env_path}")
 else:
-    print(f"⚠️ No .env file found at: {env_path}")
+    try:
+        print(f"⚠️ No .env file found at: {env_path}")
+    except UnicodeEncodeError:
+        print(f"[WARN] No .env file found at: {env_path}")
 
 # Import database manager
 from database import db_manager, init_database, close_database

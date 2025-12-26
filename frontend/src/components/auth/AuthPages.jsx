@@ -120,6 +120,10 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
     "/register",
     "/reset-password",
     "/verify-email",
+    "/legal",
+    "/terms",
+    "/about",
+    "/docs",
   ];
 
   const isPublicRoute =
@@ -129,9 +133,21 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
         location.pathname === route || location.pathname.startsWith(route + "/")
     );
 
-  // Import LandingPage dynamically to avoid circular deps
+  // Import pages dynamically to avoid circular deps
   const LandingPage = React.lazy(() =>
     import("../marketing").then((mod) => ({ default: mod.LandingPage }))
+  );
+  const DataPolicy = React.lazy(() =>
+    import("../marketing").then((mod) => ({ default: mod.DataPolicy }))
+  );
+  const TermsOfService = React.lazy(() =>
+    import("../marketing").then((mod) => ({ default: mod.TermsOfService }))
+  );
+  const AboutPage = React.lazy(() =>
+    import("../marketing").then((mod) => ({ default: mod.AboutPage }))
+  );
+  const DocumentationPage = React.lazy(() =>
+    import("../marketing").then((mod) => ({ default: mod.DocumentationPage }))
   );
 
   if (isPublicRoute) {
@@ -170,6 +186,14 @@ export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
             <div className="min-h-screen flex items-center justify-center p-4">
               <PasswordResetPage />
             </div>
+          ) : location.pathname === "/legal" ? (
+            <DataPolicy />
+          ) : location.pathname === "/terms" ? (
+            <TermsOfService />
+          ) : location.pathname === "/about" ? (
+            <AboutPage />
+          ) : location.pathname === "/docs" ? (
+            <DocumentationPage />
           ) : null}
         </React.Suspense>
       </div>

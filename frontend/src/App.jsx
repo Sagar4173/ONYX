@@ -75,6 +75,10 @@ function AppContent() {
     "/register",
     "/reset-password",
     "/verify-email",
+    "/legal",
+    "/terms",
+    "/about",
+    "/docs",
   ];
   const isPublicRoute = publicRoutes.some(
     (route) =>

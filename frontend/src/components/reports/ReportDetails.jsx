@@ -43,9 +43,45 @@ const ReportDetails = () => {
   const [expandedFindings, setExpandedFindings] = useState(new Set());
   const [showCodeContext, setShowCodeContext] = useState(new Set());
 
-  // Debug logging
-  // Early return if reportId is invalid
-  if (!reportId || reportId === "undefined" || reportId === "null") {
+  // Check if reportId is valid
+  const isValidReportId =
+    reportId && reportId !== "undefined" && reportId !== "null";
+
+  // Fetch report details - hooks must be called unconditionally
+  const {
+    data: report,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["report", reportId],
+    queryFn: () => reportsAPI.getReport(reportId),
+    enabled: isValidReportId,
+    retry: false, // Don't retry on 404 errors
+  });
+
+  // Fetch available reports if the main report is not found
+  const { data: availableReports } = useQuery({
+    queryKey: ["available-reports"],
+    queryFn: () => reportsAPI.getReports({ limit: 5 }),
+    enabled: isError, // Only fetch when there's an error
+  });
+
+  // Fetch AI analysis if available
+  const { data: aiAnalysis, isLoading: _aiLoading } = useQuery({
+    queryKey: ["ai-analysis", reportId],
+    queryFn: () => reportsAPI.getAIAnalysis(reportId),
+    enabled: isValidReportId && report?.has_ai_analysis,
+  });
+
+  // Syntax highlighting effect
+  useEffect(() => {
+    Prism.highlightAll();
+  }, [selectedFinding, showCodeContext]);
+
+  // Early return if reportId is invalid - after all hooks
+  if (!isValidReportId) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="glass-container rounded-2xl p-8 text-center">
@@ -67,39 +103,6 @@ const ReportDetails = () => {
       </div>
     );
   }
-
-  // Fetch report details
-  const {
-    data: report,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["report", reportId],
-    queryFn: () => reportsAPI.getReport(reportId),
-    enabled: !!reportId,
-    retry: false, // Don't retry on 404 errors
-  });
-
-  // Fetch available reports if the main report is not found
-  const { data: availableReports } = useQuery({
-    queryKey: ["available-reports"],
-    queryFn: () => reportsAPI.getReports({ limit: 5 }),
-    enabled: isError, // Only fetch when there's an error
-  });
-
-  // Fetch AI analysis if available
-  const { data: aiAnalysis, isLoading: aiLoading } = useQuery({
-    queryKey: ["ai-analysis", reportId],
-    queryFn: () => reportsAPI.getAIAnalysis(reportId),
-    enabled: !!reportId && report?.has_ai_analysis,
-  });
-
-  // Syntax highlighting effect
-  useEffect(() => {
-    Prism.highlightAll();
-  }, [selectedFinding, showCodeContext]);
 
   if (isLoading) {
     return (
