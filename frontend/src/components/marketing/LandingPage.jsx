@@ -389,7 +389,7 @@ const LandingPage = () => {
     {
       name: "Safety",
       category: "SCA",
-      type: "sast",
+      type: "sca",
       description: "Python dependency vulnerability checking",
       icon: "📦",
       what: "Checks your Python dependencies against known vulnerability databases to find insecure package versions.",
@@ -405,7 +405,7 @@ const LandingPage = () => {
     {
       name: "OWASP ZAP",
       category: "DAST",
-      type: "container",
+      type: "dast",
       description: "Dynamic application security testing",
       icon: "⚡",
       what: "Tests running applications for vulnerabilities like XSS, SQL injection, and authentication flaws by sending actual requests.",
@@ -413,7 +413,7 @@ const LandingPage = () => {
     {
       name: "Nuclei",
       category: "DAST",
-      type: "container",
+      type: "dast",
       description: "Fast template-based vulnerability scanning",
       icon: "🎯",
       what: "Runs thousands of vulnerability checks against web applications using community-maintained templates.",
@@ -472,35 +472,35 @@ const LandingPage = () => {
 
   const pricingPlans = [
     {
-      name: "Starter",
-      price: "Free",
+      name: "Free",
+      price: "$0",
       period: "forever",
       description: "Perfect for individual developers and small projects",
       features: [
-        "Up to 3 repositories",
-        "100 scans per month",
-        "Basic vulnerability detection",
+        "Unlimited public repositories",
+        "Basic vulnerability scanning",
+        "5 security scanners",
         "Community support",
         "GitHub integration",
       ],
-      cta: "Get Started",
+      cta: "Get Started Free",
       popular: false,
       gradient: "from-gray-600 to-gray-700",
     },
     {
-      name: "Professional",
-      price: "$49",
+      name: "Pro",
+      price: "$29",
       period: "per month",
-      description: "For growing teams that need advanced security",
+      description: "For teams that need comprehensive security",
       features: [
         "Unlimited repositories",
-        "Unlimited scans",
-        "AI-powered analysis",
-        "Priority support",
-        "All integrations",
-        "Custom rules engine",
+        "All 10 security scanners",
+        "AI-powered analysis (GPT-4 + Gemini)",
+        "Priority email support",
+        "GitHub, GitLab, Bitbucket",
+        "9 compliance frameworks",
         "Team collaboration",
-        "Compliance reports",
+        "Webhook integrations",
       ],
       cta: "Start Free Trial",
       popular: true,
@@ -508,18 +508,18 @@ const LandingPage = () => {
     },
     {
       name: "Enterprise",
-      price: "Custom",
-      period: "per year",
-      description: "For organizations requiring maximum security",
+      price: "Contact",
+      period: "us",
+      description: "For organizations with custom requirements",
       features: [
-        "Everything in Professional",
-        "Dedicated infrastructure",
-        "SSO / SAML integration",
-        "Custom SLA",
-        "On-premise deployment",
-        "Advanced threat intelligence",
-        "Dedicated success manager",
+        "Everything in Pro",
+        "Self-hosted deployment option",
+        "Custom scanner configurations",
+        "Dedicated support",
         "Custom integrations",
+        "SLA guarantee",
+        "Training & onboarding",
+        "Volume discounts",
       ],
       cta: "Contact Sales",
       popular: false,
@@ -891,11 +891,11 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
 
             {/* Subheading */}
             <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
-              Enterprise-grade AI security platform that scans, analyzes, and
-              protects your entire codebase.
+              AI-powered security platform that scans, analyzes, and protects
+              your codebase with 10 specialized scanners.
               <span className="text-cyan-400 font-medium">
                 {" "}
-                Detect threats in milliseconds.
+                Find vulnerabilities before they ship.
               </span>
             </p>
 
@@ -1094,9 +1094,8 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
               </span>
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Powered by cutting-edge AI and battle-tested security
-              methodologies.
-              <span className="text-white"> See threats others miss.</span>
+              Powered by GPT-4 and Gemini AI with 10 security scanners.
+              <span className="text-white"> Find vulnerabilities fast.</span>
             </p>
           </div>
 
@@ -1357,21 +1356,23 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
               <span className="text-sm text-violet-400">Security Arsenal</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              <span className="text-violet-400">12+</span> Enterprise Scanners
+              <span className="text-violet-400">10</span> Security Scanners
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Industry-leading security tools unified in one powerful platform
+              Open-source security tools integrated into one unified platform
             </p>
           </div>
 
           {/* Scanner Category Tabs */}
           <div className="flex flex-wrap justify-center gap-3 mb-12">
             {[
-              { id: "all", label: "All Tools", count: 12 },
-              { id: "sast", label: "SAST", count: 4 },
-              { id: "secrets", label: "Secrets", count: 2 },
-              { id: "container", label: "Container", count: 3 },
-              { id: "iac", label: "IaC", count: 3 },
+              { id: "all", label: "All Tools", count: 10 },
+              { id: "sast", label: "SAST", count: 3 },
+              { id: "secrets", label: "Secrets", count: 1 },
+              { id: "sca", label: "SCA", count: 1 },
+              { id: "dast", label: "DAST", count: 2 },
+              { id: "container", label: "Container", count: 1 },
+              { id: "iac", label: "IaC", count: 2 },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1703,8 +1704,8 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             Ready to Secure Your Code?
           </h2>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Join developers who trust ONYX to protect their applications. Start
-            your free trial today — no credit card required.
+            Start scanning your repositories with AI-powered security analysis.
+            Get started for free — no credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <button
@@ -1731,15 +1732,15 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
           <div className="flex items-center justify-center gap-8 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <LockClosedIcon className="w-4 h-4 text-green-500" />
-              <span>256-bit SSL</span>
+              <span>Secure API</span>
             </div>
             <div className="flex items-center gap-2">
               <ShieldCheckIcon className="w-4 h-4 text-green-500" />
-              <span>SOC 2 Type II</span>
+              <span>10 Scanners</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckBadgeIcon className="w-4 h-4 text-green-500" />
-              <span>GDPR Compliant</span>
+              <span>Open Source</span>
             </div>
           </div>
         </div>
@@ -1761,8 +1762,9 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 </span>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm">
-                Enterprise-grade AI security platform protecting modern
-                development teams worldwide. Secure your code with confidence.
+                Open-source AI-powered security scanning platform for modern
+                development teams. Detect vulnerabilities before they become
+                threats.
               </p>
               <div className="flex items-center gap-4">
                 {[
