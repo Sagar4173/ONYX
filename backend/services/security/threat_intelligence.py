@@ -560,6 +560,11 @@ class ThreatIntelligenceEngine:
     async def _parse_github_advisory(self, advisory: Dict[str, Any]) -> Optional[CVEData]:
         """Parse GitHub Security Advisory data"""
         try:
+            # Validate that advisory is a dictionary
+            if not isinstance(advisory, dict):
+                logger.debug(f"Skipping non-dict advisory: {type(advisory)}")
+                return None
+            
             ghsa_id = advisory.get("ghsa_id", "")
             cve_id = advisory.get("cve_id", ghsa_id)
             

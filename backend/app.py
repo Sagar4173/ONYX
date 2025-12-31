@@ -691,10 +691,10 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=No
         logger.info(f"WebSocket connection with {client_host} closed")
 
 if __name__ == "__main__":
-    print("🛡️ Starting ONYX Security Intelligence Platform - Production Server")
-    print(f"📖 API Documentation: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/docs")
-    print(f"🏥 Health Check: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/health")
-    print(f"🔧 Frontend should run on: {settings.frontend_url or 'Frontend URL not configured'}")
+    print("[ONYX] Starting ONYX Security Intelligence Platform - Production Server")
+    print(f"[DOCS] API Documentation: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/docs")
+    print(f"[HEALTH] Health Check: {settings.backend_url or f'http://{settings.host}:{settings.port}'}/health")
+    print(f"[FRONTEND] Frontend should run on: {settings.frontend_url or 'Frontend URL not configured'}")
     
     uvicorn.run(
         "app:app",
