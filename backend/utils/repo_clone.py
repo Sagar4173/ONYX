@@ -13,6 +13,7 @@ import git
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 
 from config import settings
+from utils.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ class GitRepoCloner:
         sanitized_name = self._sanitize_path(repo_name)
         
         # Create unique directory with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        timestamp = utc_now().strftime("%Y%m%d_%H%M%S_%f")
         clone_dir = self.base_temp_dir / f"{sanitized_name}_{timestamp}"
         
         try:

@@ -3,12 +3,10 @@ Data Retention Policy Service
 Automated data cleanup, configurable retention periods, and compliance-driven archiving
 """
 import structlog
-from datetime import datetime, timedelta
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
+
+from utils.datetime_utils import utc_now
 from enum import Enum
 from pymongo import ASCENDING, DESCENDING
 import json

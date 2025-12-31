@@ -9,9 +9,11 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 from models.report import ScanReport, ScanStatus, ScanResult
-from services.scanning.advanced_scanner_engine import AdvancedScannerEngine, ScanConfig
+# Use new scanner architecture instead of legacy
+from services.scanning.engine import ScanOrchestrator
+from services.scanning.base import ScanConfig
 from services.ai.ai_processor import get_ai_processor
-from services.scanning.vulnerability_management import VulnerabilityManager
+from services.scanning.vulnerability.manager import VulnerabilityManager
 from services.notifications.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -21,7 +23,8 @@ class EnhancedScanningWorkflow:
     """Enhanced scanning workflow with AI analysis and comprehensive reporting"""
     
     def __init__(self):
-        self.scanner_engine = AdvancedScannerEngine()
+        # Use new ScanOrchestrator instead of legacy AdvancedScannerEngine
+        self.scanner_engine = ScanOrchestrator(ScanConfig())
         self.ai_processor = get_ai_processor()
         self.vuln_manager = VulnerabilityManager()
         self.notification_service = NotificationService()

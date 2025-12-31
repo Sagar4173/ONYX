@@ -1,49 +1,35 @@
 """
 Advanced Compliance & Governance System
 NIST, ISO 27001 mapping, policy enforcement, audit trails, incident response
+
+DEPRECATED: This module uses SQLite for storage.
+Use governance_engine_mongodb.py instead for production.
 """
 import asyncio
 import logging
 import json
 import sqlite3
+import warnings
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Set, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import uuid
 import hashlib
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import (
+    ComplianceFramework, PolicySeverity, IncidentStatus, utc_now
+)
+
 logger = logging.getLogger(__name__)
 
-class ComplianceFramework(Enum):
-    """Supported compliance frameworks"""
-    NIST_CSF = "nist_csf"
-    ISO_27001 = "iso_27001"
-    PCI_DSS = "pci_dss"
-    HIPAA = "hipaa"
-    SOX = "sox"
-    GDPR = "gdpr"
-    SOC2 = "soc2"
-    FedRAMP = "fedramp"
-
-class PolicySeverity(Enum):
-    """Policy violation severity levels"""
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    INFO = "info"
-
-class IncidentStatus(Enum):
-    """Incident response status"""
-    OPEN = "open"
-    INVESTIGATING = "investigating"
-    CONTAINMENT = "containment"
-    ERADICATION = "eradication"
-    RECOVERY = "recovery"
-    LESSONS_LEARNED = "lessons_learned"
-    CLOSED = "closed"
+# Emit deprecation warning
+warnings.warn(
+    "compliance_governance.py is deprecated. Use governance_engine_mongodb.py instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 @dataclass
 class ComplianceControl:

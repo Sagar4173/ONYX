@@ -5,11 +5,9 @@ Comprehensive user administration and profile management
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import HTTPException, status
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
 from pymongo import DESCENDING
+
+from utils.datetime_utils import utc_now
 import hashlib
 import secrets
 

@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Set, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import uuid
 import hashlib
 import jsonschema
@@ -19,31 +18,11 @@ import ast
 import subprocess
 import time
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import RuleFormat, ValidationSeverity, RuleStatus
 from services.security.security_boundary_engine import SecurityBoundaryEngine, ResourceLimits
 
 logger = logging.getLogger(__name__)
-
-class RuleFormat(Enum):
-    """Supported rule formats"""
-    SEMGREP = "semgrep"
-    REGEX = "regex" 
-    CODEQL = "codeql"
-    CUSTOM = "custom"
-
-class ValidationSeverity(Enum):
-    """Validation issue severity"""
-    ERROR = "error"
-    WARNING = "warning"
-    INFO = "info"
-
-class RuleStatus(Enum):
-    """Rule lifecycle status"""
-    DRAFT = "draft"
-    TESTING = "testing"
-    APPROVED = "approved"
-    PRODUCTION = "production"
-    DEPRECATED = "deprecated"
-    REJECTED = "rejected"
 
 @dataclass
 class ValidationIssue:

@@ -7,13 +7,25 @@ automated incident response, remediation workflows, and real-time alerting.
 
 Author: ONYX Platform  
 Date: August 2025
+
+Status: INTERNAL SERVICE (Not exposed via REST API routes)
+--------
+This service provides internal automation capabilities for security workflows.
+It is designed to be used by other services rather than directly via API endpoints.
+
+Future Integration Points:
+- Can be exposed via /api/v1/soar routes when SOAR functionality is productized
+- Currently used internally by incident response and alerting pipelines
+- Integration with external SIEM/SOAR platforms planned for future release
+
+Note: Uses SQLite for playbook storage - migration to MongoDB planned.
 """
 
 import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -24,8 +36,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import requests
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+from utils.datetime_utils import utc_now
+
+# Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -222,7 +235,7 @@ class SOARPlaybookEngine:
             json.dumps(workflow.trigger_conditions), workflow.severity_threshold,
             json.dumps([asdict(action) for action in workflow.actions]),
             workflow.parallel_execution, workflow.enabled, workflow.created_by,
-            workflow.created_date, datetime.now().isoformat()
+            workflow.created_date, utc_now().isoformat()
         ))
         
         conn.commit()
@@ -332,13 +345,13 @@ class SOARPlaybookEngine:
     async def _execute_playbook(self, playbook: PlaybookWorkflow, 
                                event: Dict[str, Any]) -> Optional[str]:
         """Execute a SOAR playbook"""
-        execution_id = f"exec_{playbook.playbook_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        execution_id = f"exec_{playbook.playbook_id}_{utc_now().strftime('%Y%m%d_%H%M%S')}"
         
         execution = PlaybookExecution(
             execution_id=execution_id,
             playbook_id=playbook.playbook_id,
             trigger_event=event,
-            start_time=datetime.now().isoformat(),
+            start_time=utc_now().isoformat(),
             end_time=None,
             status="running",
             executed_actions=[],
@@ -366,7 +379,7 @@ class SOARPlaybookEngine:
             successful_actions = sum(1 for result in results if isinstance(result, dict) and result.get('success'))
             execution.success_rate = successful_actions / len(results) if results else 0.0
             execution.status = "completed"
-            execution.end_time = datetime.now().isoformat()
+            execution.end_time = utc_now().isoformat()
             
             # Store execution results
             await self._store_execution_results(execution)
@@ -375,7 +388,7 @@ class SOARPlaybookEngine:
             
         except Exception as e:
             execution.status = "failed"
-            execution.end_time = datetime.now().isoformat()
+            execution.end_time = utc_now().isoformat()
             execution.execution_log.append(f"Execution failed: {str(e)}")
             logger.error(f"❌ Playbook execution failed: {execution_id} - {e}")
             
@@ -415,7 +428,7 @@ class SOARPlaybookEngine:
                 execution.executed_actions.append({
                     "action_id": action.action_id,
                     "action_type": action.action_type,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": utc_now().isoformat(),
                     "result": result
                 })
                 execution.execution_log.append(f"Action completed: {action.name}")
@@ -528,7 +541,7 @@ class SOARPlaybookEngine:
             payload = {
                 "event": event,
                 "execution_id": execution.execution_id,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": utc_now().isoformat()
             }
             
             # Simulate webhook call
@@ -616,7 +629,7 @@ class SOARPlaybookEngine:
             assignee = action.parameters.get('assignee', 'security-team')
             
             # Generate ticket details
-            ticket_id = f"SEC-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            ticket_id = f"SEC-{utc_now().strftime('%Y%m%d%H%M%S')}"
             
             logger.info(f"🎫 Creating security ticket: {ticket_id}")
             

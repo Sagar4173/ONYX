@@ -3,38 +3,15 @@ Advanced Compliance Reporting Service
 SOX, HIPAA, ISO 27001, and custom compliance framework support
 """
 import structlog
-from datetime import datetime, timedelta
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
-from enum import Enum
 from pymongo import ASCENDING, DESCENDING
 import json
 
+# Import from canonical source
+from models.base import ComplianceFramework, ComplianceStatus, utc_now
+
 logger = structlog.get_logger()
-
-
-class ComplianceFramework(str, Enum):
-    SOX = "sox"  # Sarbanes-Oxley Act
-    HIPAA = "hipaa"  # Health Insurance Portability and Accountability Act
-    ISO_27001 = "iso_27001"  # Information Security Management
-    PCI_DSS = "pci_dss"  # Payment Card Industry Data Security Standard
-    GDPR = "gdpr"  # General Data Protection Regulation
-    SOC2 = "soc2"  # Service Organization Control 2
-    NIST = "nist"  # National Institute of Standards and Technology
-    CIS = "cis"  # Center for Internet Security
-    OWASP = "owasp"  # Open Web Application Security Project
-    CUSTOM = "custom"  # Custom compliance framework
-
-
-class ComplianceStatus(str, Enum):
-    COMPLIANT = "compliant"
-    NON_COMPLIANT = "non_compliant"
-    PARTIALLY_COMPLIANT = "partially_compliant"
-    NOT_APPLICABLE = "not_applicable"
-    UNDER_REVIEW = "under_review"
 
 
 class AdvancedComplianceService:

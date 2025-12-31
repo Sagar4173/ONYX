@@ -17,13 +17,17 @@ import shutil
 import git
 from urllib.parse import urlparse
 
-from services.scanning.advanced_scanner_engine import (
-    AdvancedScannerEngine, 
+# Use new scanner architecture (legacy is deprecated)
+from services.scanning.engine import ScanOrchestrator
+from services.scanning.base import (
     ScanConfig, 
     Finding,
     ScanType,
     Severity
 )
+# Import canonical enums from models.base
+from models.base import ScannerType, ScanStatus
+
 from models.user import User
 from services.auth.auth_service import AuthService
 from database import db_manager
@@ -71,12 +75,12 @@ class ScanResponse(BaseModel):
     duration: Optional[float] = None
 
 # Global scanner engine instance
-scanner_engine = None
+scanner_orchestrator = None
 
 def get_scanner_engine():
-    """Get or create scanner engine instance"""
-    global scanner_engine
-    if scanner_engine is None:
+    """Get or create scanner orchestrator instance"""
+    global scanner_orchestrator
+    if scanner_orchestrator is None:
         config = ScanConfig(
             max_concurrent_scans=3,
             scan_timeout=1800,  # 30 minutes
@@ -87,8 +91,8 @@ def get_scanner_engine():
             suppression_file=".security-suppressions.yaml",
             allow_inline_suppressions=True
         )
-        scanner_engine = AdvancedScannerEngine(config)
-    return scanner_engine
+        scanner_orchestrator = ScanOrchestrator(config)
+    return scanner_orchestrator
 
 def get_allowed_targets():
     """Get allowed DAST targets from configuration"""

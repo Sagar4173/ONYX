@@ -1,6 +1,9 @@
 """
 Security Metrics & KPIs System
 Posture scoring, compliance readiness, and risk trend analysis
+
+NOTE: This module uses SQLite for metrics storage.
+Future versions should migrate to MongoDB for consistency.
 """
 import asyncio
 import logging
@@ -11,40 +14,18 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import numpy as np
 from collections import defaultdict
 
-from services.scanning.vulnerability_management import VulnerabilityManager, RiskMetrics, VulnerabilityStatus, VulnerabilityPriority
-from services.security.threat_intelligence import ThreatIntelligenceEngine, ThreatSeverity
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import (
+    MetricType, TrendDirection, ComplianceFramework, ThreatSeverity,
+    VulnerabilityStatus, VulnerabilityPriority
+)
+from services.scanning.vulnerability import VulnerabilityManager, RiskMetrics
+from services.security.threat_intelligence import ThreatIntelligenceEngine
 
 logger = logging.getLogger(__name__)
-
-class MetricType(Enum):
-    """Types of security metrics"""
-    VULNERABILITY = "vulnerability"
-    COMPLIANCE = "compliance"
-    THREAT = "threat"
-    POSTURE = "posture"
-    PERFORMANCE = "performance"
-
-class TrendDirection(Enum):
-    """Trend direction indicators"""
-    IMPROVING = "improving"
-    DEGRADING = "degrading"
-    STABLE = "stable"
-    UNKNOWN = "unknown"
-
-class ComplianceFramework(Enum):
-    """Compliance frameworks"""
-    PCI_DSS = "pci_dss"
-    HIPAA = "hipaa"
-    SOX = "sox"
-    GDPR = "gdpr"
-    ISO27001 = "iso27001"
-    NIST = "nist"
-    CIS = "cis"
-    CUSTOM = "custom"
 
 @dataclass
 class SecurityScore:

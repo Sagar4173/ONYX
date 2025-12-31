@@ -26,7 +26,7 @@ from services.rules.rule_engine import (
     rule_engine, CustomRule, RuleTemplate, RuleValidationResult, 
     AllowedRuleType, SeverityLevel, RuleStatus
 )
-from services.scanning.baseline_scanner import (
+from services.scanning.baseline import (
     baseline_service, ScanBaseline, SecurityDrift, RegressionAlert,
     DriftSeverity
 )

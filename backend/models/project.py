@@ -4,37 +4,12 @@ Handles project creation, management, and organization
 """
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
-from enum import Enum
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 from pymongo import IndexModel
 
-
-class ProjectStatus(str, Enum):
-    """Project status enumeration"""
-    ACTIVE = "active"
-    INACTIVE = "inactive" 
-    ARCHIVED = "archived"
-    DELETED = "deleted"
-
-
-class ProjectCategory(str, Enum):
-    """Project category enumeration"""
-    WEB_APPLICATION = "web_application"
-    MOBILE_APPLICATION = "mobile_application"
-    API_SERVICE = "api_service"
-    INFRASTRUCTURE = "infrastructure"
-    MICROSERVICE = "microservice"
-    LIBRARY = "library"
-    OTHER = "other"
-
-
-class ProjectPriority(str, Enum):
-    """Project priority levels"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+# Import shared enums from the single source of truth
+from .base import ProjectStatus, ProjectCategory, ProjectPriority, utc_now
 
 
 class RepositoryConfig(BaseModel):

@@ -31,7 +31,7 @@ from services.infrastructure.osv_nvd_integration import (
     get_osv_nvd_service,
     OSVNVDIntegrationService
 )
-from services.scanning.sbom_generator import (
+from services.scanning.utils.sbom import (
     get_sbom_service,
     SBOMGeneratorService,
     SBOMFormat
@@ -41,7 +41,7 @@ from services.security.security_trends import (
     SecurityTrendsService,
     TrendPeriod
 )
-from services.scanning.scan_comparison import (
+from services.scanning.utils.comparison import (
     get_scan_comparison_service,
     ScanComparisonService
 )
@@ -49,7 +49,8 @@ from models.user import User
 from services.auth.auth_service import AuthService
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/enterprise", tags=["Enterprise Security"])
+# Changed prefix to avoid conflict with enterprise.py which also uses /api/enterprise
+router = APIRouter(prefix="/api/v1/enterprise-security", tags=["Enterprise Security"])
 security = HTTPBearer()
 auth_service = AuthService()
 

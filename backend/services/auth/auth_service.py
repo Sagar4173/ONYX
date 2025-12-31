@@ -426,8 +426,7 @@ class AuthService:
         
         await user.save()
         
-        # TODO: Send email with reset link
-        # await send_password_reset_email(user.email, reset_token)
+        # Send password reset email
         await self.send_password_reset_email(user.email, reset_token)
         
         return True

@@ -13,14 +13,15 @@ import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import statistics
 from collections import defaultdict
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+from utils.datetime_utils import utc_now
+
+# Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -747,7 +748,7 @@ class MetricsKPIEngine:
             'sla_performance': sla_performance,
             'risk_distribution': risk_distribution,
             'trends': trends.get('trends', {}),
-            'generated_at': datetime.now().isoformat(),
+            'generated_at': utc_now().isoformat(),
             'period': 'Last 30 days'
         }
         

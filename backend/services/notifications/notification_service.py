@@ -7,9 +7,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from enum import Enum
 
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from utils.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 

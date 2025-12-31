@@ -4,6 +4,7 @@ Webhook routes for handling repository events and scan submissions
 import asyncio
 import json
 import logging
+import re
 import uuid
 import random
 from datetime import datetime, timezone, timedelta
@@ -19,11 +20,11 @@ from models.report import (
     ScanResult, VulnerabilityFinding, SeverityLevel
 )
 from models.user import User
-from services.scanning.enhanced_scanning_workflow import enhanced_workflow
+from services.scanning.workflow import enhanced_workflow
 from services.ai.ai_processor import get_ai_processor
 from services.notifications.notifier import notification_service
 from services.notifications.websocket_manager import ws_manager
-from services.scanning.real_scanner import RealSecurityScanner
+from services.scanning.scanners import RealSecurityScanner
 from services.infrastructure.project_service import ProjectService
 from services.auth.auth_service import AuthService
 from utils.repo_clone import repo_cloner
@@ -552,6 +553,76 @@ async def process_real_scan(
             logger.error(f"❌ AI analysis failed for scan {scan_id}: {str(ai_error)}")
             logger.exception("Full AI analysis error:")
         
+        # Auto-run compliance analysis on findings
+        compliance_result = None
+        try:
+            if scan_results_list and any(r.findings for r in scan_results_list):
+                logger.info(f"📋 Starting compliance analysis for scan {scan_id}")
+                from services.compliance.compliance_analyzer import ComplianceAnalysisService
+                compliance_service = ComplianceAnalysisService()
+                
+                # Get the report for compliance analysis
+                report_for_compliance = await ScanReport.find_one(ScanReport.scan_id == scan_id)
+                if report_for_compliance:
+                    compliance_result = await compliance_service.analyze_scan_for_compliance(
+                        report_for_compliance
+                    )
+                    if compliance_result:
+                        logger.info(f"✅ Compliance analysis completed for scan {scan_id}")
+        except Exception as compliance_error:
+            logger.warning(f"⚠️ Compliance analysis failed for scan {scan_id}: {str(compliance_error)}")
+        
+        # Enrich findings with CVE threat intelligence
+        cve_enrichments = []
+        try:
+            if detailed_findings:
+                logger.info(f"🔍 Starting CVE correlation for scan {scan_id}")
+                from services.security.threat_intelligence import ThreatIntelligenceEngine
+                threat_intel = ThreatIntelligenceEngine()
+                
+                # Extract CVE IDs and dependency names from findings
+                cve_ids_found = set()
+                dependencies_found = set()
+                
+                for finding in detailed_findings:
+                    # Look for CVE patterns in finding descriptions/titles
+                    cve_pattern = r'CVE-\d{4}-\d{4,7}'
+                    cve_matches = re.findall(cve_pattern, finding.get('description', '') + ' ' + finding.get('title', ''))
+                    cve_ids_found.update(cve_matches)
+                    
+                    # Extract dependency names from Safety/SCA findings
+                    if finding.get('scanner') == 'safety':
+                        package_name = finding.get('metadata', {}).get('package')
+                        if package_name:
+                            dependencies_found.add(package_name)
+                
+                # Query threat intelligence for CVE details
+                enriched_count = 0
+                for cve_id in cve_ids_found:
+                    cve_data = await threat_intel.get_cve_data(cve_id)
+                    if cve_data:
+                        enrichment = {
+                            "cve_id": cve_id,
+                            "cvss_score": cve_data.cvss_score,
+                            "severity": cve_data.severity.value,
+                            "kev_listed": cve_data.kev_listed,
+                            "exploit_available": cve_data.exploit_available,
+                            "epss_score": cve_data.epss_score,
+                            "description": cve_data.description,
+                            "published_date": cve_data.published_date.isoformat(),
+                            "reference_urls": cve_data.reference_urls[:3]  # Top 3 refs
+                        }
+                        cve_enrichments.append(enrichment)
+                        enriched_count += 1
+                
+                if enriched_count > 0:
+                    logger.info(f"✅ Enriched {enriched_count} findings with CVE threat intelligence")
+                else:
+                    logger.info(f"ℹ️ No CVE threat intelligence correlations found")
+                    
+        except Exception as cve_error:
+            logger.warning(f"⚠️ CVE correlation failed for scan {scan_id}: {str(cve_error)}")
+        
         # Final update - mark as completed with 100% progress
         final_update = {
             "status": ScanStatus.COMPLETED,
@@ -562,6 +633,10 @@ async def process_real_scan(
         }
         if ai_analysis_result:
             final_update["ai_analysis"] = ai_analysis_result.model_dump()
+        if compliance_result:
+            final_update["compliance_analysis"] = compliance_result
+        if cve_enrichments:
+            final_update["cve_threat_intelligence"] = cve_enrichments
         
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update({"$set": final_update})
         

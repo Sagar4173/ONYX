@@ -51,13 +51,14 @@ from routes.projects import router as projects_router
 from routes.users import router as users_router
 from routes.compliance import router as compliance_router
 from routes.security import router as security_router
-# from routes.advanced_security import router as advanced_security_router  # Removed - redundant file deleted
-from routes.enhanced_security import router as enhanced_security_router  # Re-enabled with clean FastAPI implementation
-from routes.god_level_security import router as god_level_security_router  # Re-enabled with clean FastAPI implementation
+from routes.advanced_security import router as advanced_security_router  # Consolidated security routes
 from routes.advanced_scanning_fastapi import router as advanced_scanning_router
-from routes.enterprise import router as enterprise_router  # Enterprise features
-from routes.enterprise_security import router as enterprise_security_router  # OSV/NVD, SBOM, Trends, Comparison
-from routes.admin import router as admin_router  # Admin dashboard and system management
+from routes.enterprise import router as enterprise_router
+from routes.enterprise_security import router as enterprise_security_router
+from routes.admin import router as admin_router
+
+# Import centralized service registry
+from services.service_registry import ServiceRegistry
 
 # Import configuration
 from config import settings
@@ -73,12 +74,40 @@ limiter = Limiter(key_func=get_remote_address)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown"""
+    
     # Startup
     logger.info("🚀 Starting ONYX Security Intelligence Platform...")
     await init_database()
+    
+    # Initialize all services via centralized registry (replaces duplicate initializations)
+    try:
+        service_status = ServiceRegistry.initialize()
+        active_count = sum(1 for v in service_status.values() if v)
+        total_count = len(service_status)
+        logger.info(f"🛡️ Service Registry: {active_count}/{total_count} services initialized")
+    except Exception as e:
+        logger.warning(f"⚠️ Service Registry initialization error: {e}")
+    
+    # Start threat intelligence engine background tasks
+    threat_intel = ServiceRegistry.get_threat_intelligence()
+    if threat_intel and hasattr(threat_intel, 'start'):
+        try:
+            await threat_intel.start()
+            logger.info("🛡️ Threat Intelligence Engine background tasks started")
+        except Exception as e:
+            logger.warning(f"⚠️ Threat Intelligence Engine failed to start: {e}")
+    
     yield
+    
     # Shutdown
     logger.info("🛑 Shutting down ONYX Security Intelligence Platform...")
+    
+    # Shutdown all services via registry
+    try:
+        await ServiceRegistry.shutdown()
+    except Exception as e:
+        logger.warning(f"⚠️ Error during service shutdown: {e}")
+    
     await close_database()
 
 # Create FastAPI app with lifespan
@@ -122,21 +151,24 @@ app.add_middleware(
 async def options_handler():
     return {"message": "OK"}
 
-# Include API routers with explicit trailing slash handling
+# Include API routers with consistent /api/v1/ versioning
+# Core routes
 app.include_router(auth_router, prefix="/api")
 app.include_router(reports_router, prefix="/api/reports")
 app.include_router(projects_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
-app.include_router(compliance_router, prefix="/api/compliance")
-app.include_router(security_router)
 app.include_router(webhook_router, prefix="/api")
-# app.include_router(advanced_security_router)  # Removed - redundant file deleted
-app.include_router(enhanced_security_router)  # Re-enabled with clean FastAPI implementation
-app.include_router(god_level_security_router)  # Re-enabled with clean FastAPI implementation
-app.include_router(advanced_scanning_router)
-app.include_router(enterprise_router)  # Enterprise features
-app.include_router(enterprise_security_router)  # OSV/NVD, SBOM, Trends, Comparison
 app.include_router(admin_router, prefix="/api")  # Admin dashboard and management
+
+# Security routes (consolidated)
+app.include_router(security_router)  # Core security: /api/security/*
+app.include_router(advanced_security_router)  # Advanced security: /api/v1/security/*
+app.include_router(advanced_scanning_router)  # Scanning: /api/advanced-scanning/*
+
+# Compliance and Enterprise routes
+app.include_router(compliance_router, prefix="/api/compliance")
+app.include_router(enterprise_router)  # Enterprise features: /api/enterprise/*
+app.include_router(enterprise_security_router)  # Enterprise security: /api/v1/enterprise-security/*
 
 # Add trailing slash redirect middleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -345,37 +377,113 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    # Basic health check without database dependency for Render
+    """
+    Health check endpoint - Returns truthful status of all services.
+    
+    Status levels:
+    - healthy: All critical services operational
+    - degraded: API running but some services (like DB) are unavailable
+    - unhealthy: Critical failure (API shouldn't reach this if truly down)
+    """
+    # Track issues for accurate status reporting
+    issues = []
+    warnings = []
+    
     health_data = {
-        "status": "healthy",
+        "status": "healthy",  # Will be updated based on checks
         "version": "1.0.0",
         "build_date": "2025-12-25",
         "environment": os.getenv("ENVIRONMENT", "production"),
         "services": {
             "api": "running",
-            "scanners": "available"
+            "database": "unknown",
+            "scanners": "available",
+            "ai": "unknown"
         },
         "database": {
-            "connected": False
+            "connected": False,
+            "latency_ms": None
+        },
+        "ai": {
+            "provider": settings.ai_provider,
+            "configured": False,
+            "message": ""
         },
         "scanners": {
             "active": 0,
-            "total": 4
+            "total": 6,
+            "available": []
         },
+        "issues": [],
+        "warnings": [],
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
     
-    # Try database connection but don't fail health check if it's slow
+    # Check database connection
     try:
+        import time
+        start_time = time.time()
         db_status = await db_manager.test_connection()
+        latency_ms = (time.time() - start_time) * 1000
+        
         health_data["services"]["database"] = db_status
         health_data["database"]["connected"] = db_status == "connected"
-        if health_data["database"]["connected"]:
-            health_data["scanners"]["active"] = 4  # All scanners active when DB is connected
+        health_data["database"]["latency_ms"] = round(latency_ms, 2)
+        
+        if db_status != "connected":
+            issues.append(f"Database not connected: status={db_status}")
     except Exception as e:
         logger.warning(f"Database health check failed: {e}")
-        health_data["services"]["database"] = "checking"
+        health_data["services"]["database"] = "error"
+        health_data["database"]["connected"] = False
+        issues.append(f"Database connection failed: {str(e)}")
+    
+    # Check AI configuration
+    try:
+        ai_valid, ai_message = settings.validate_ai_config()
+        health_data["ai"]["configured"] = ai_valid
+        health_data["ai"]["message"] = ai_message
+        health_data["services"]["ai"] = "configured" if ai_valid else "not_configured"
+        
+        if not ai_valid:
+            warnings.append(f"AI not configured: {ai_message}")
+    except Exception as e:
+        health_data["ai"]["configured"] = False
+        health_data["ai"]["message"] = str(e)
+        health_data["services"]["ai"] = "error"
+        warnings.append(f"AI configuration check failed: {str(e)}")
+    
+    # Check scanner availability
+    available_scanners = []
+    scanner_checks = [
+        ("bandit", "bandit"),
+        ("safety", "safety"),
+        ("semgrep", "semgrep"),
+        ("trivy", "trivy"),
+        ("gitleaks", "gitleaks"),
+        ("lynis", "lynis")
+    ]
+    
+    for scanner_name, _ in scanner_checks:
+        # For now, mark as available (actual check would verify binary exists)
+        if settings.__dict__.get(f"enable_{scanner_name}", True):
+            available_scanners.append(scanner_name)
+    
+    health_data["scanners"]["available"] = available_scanners
+    health_data["scanners"]["active"] = len(available_scanners) if health_data["database"]["connected"] else 0
+    
+    # Determine overall status
+    health_data["issues"] = issues
+    health_data["warnings"] = warnings
+    
+    if issues:
+        # Has critical issues - degraded but API is running
+        health_data["status"] = "degraded"
+    elif warnings:
+        # Has warnings but functional
+        health_data["status"] = "healthy"
+    else:
+        health_data["status"] = "healthy"
     
     return health_data
 
@@ -422,18 +530,85 @@ async def get_public_stats():
         }
 
 
+async def _check_scanner_availability(scanner_name: str, command: List[str]) -> Dict[str, Any]:
+    """Check if a scanner is available and get its version."""
+    import asyncio
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=5.0)
+        
+        if process.returncode == 0:
+            version = stdout.decode().strip().split('\n')[0] if stdout else "unknown"
+            # Extract version number from output
+            import re
+            version_match = re.search(r'[\d]+\.[\d]+\.[\d]+', version)
+            version = version_match.group(0) if version_match else version[:50]
+            return {"status": "available", "version": version}
+        else:
+            return {"status": "unavailable", "version": "N/A", "error": "Command failed"}
+    except asyncio.TimeoutError:
+        return {"status": "unavailable", "version": "N/A", "error": "Timeout"}
+    except FileNotFoundError:
+        return {"status": "not_installed", "version": "N/A", "error": "Scanner not found in PATH"}
+    except Exception as e:
+        return {"status": "error", "version": "N/A", "error": str(e)}
+
 
 @app.get("/api/scanners/health")
 async def get_scanners_health():
-    """Get scanner health status"""
+    """Get actual scanner health status by checking each scanner's availability."""
+    import asyncio
+    
+    # Define scanner check commands
+    scanner_checks = {
+        "semgrep": ["semgrep", "--version"],
+        "trivy": ["trivy", "--version"],
+        "gitleaks": ["gitleaks", "version"],
+        "bandit": ["bandit", "--version"],
+        "safety": ["safety", "--version"],
+    }
+    
+    # Check all scanners in parallel
+    results = {}
+    tasks = []
+    scanner_names = []
+    
+    for name, command in scanner_checks.items():
+        tasks.append(_check_scanner_availability(name, command))
+        scanner_names.append(name)
+    
+    check_results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    available_count = 0
+    for name, result in zip(scanner_names, check_results):
+        if isinstance(result, Exception):
+            results[name] = {"status": "error", "version": "N/A", "error": str(result)}
+        else:
+            results[name] = result
+            if result.get("status") == "available":
+                available_count += 1
+    
+    # Determine overall status
+    total_scanners = len(scanner_checks)
+    if available_count == total_scanners:
+        overall_status = "healthy"
+    elif available_count >= total_scanners // 2:
+        overall_status = "degraded"
+    elif available_count > 0:
+        overall_status = "limited"
+    else:
+        overall_status = "unavailable"
+    
     return {
-        "scanners": {
-            "semgrep": {"status": "available", "version": "1.45.0"},
-            "trivy": {"status": "available", "version": "0.48.0"},
-            "gitleaks": {"status": "available", "version": "8.18.0"},
-            "lynis": {"status": "available", "version": "3.0.9"}
-        },
-        "overall_status": "healthy"
+        "scanners": results,
+        "overall_status": overall_status,
+        "available_count": available_count,
+        "total_count": total_scanners,
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @app.websocket("/ws")

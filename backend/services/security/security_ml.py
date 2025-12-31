@@ -1,6 +1,9 @@
 """
 Machine Learning for Security System
 Anomaly detection, behavioral analysis, threat hunting automation
+
+NOTE: This module uses SQLite for ML model storage.
+Future versions should migrate to MongoDB for consistency.
 """
 import asyncio
 import logging
@@ -11,31 +14,16 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Set, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import uuid
 import hashlib
 import re
 from collections import defaultdict, Counter
 import statistics
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import AnomalyType, ThreatIndicator
+
 logger = logging.getLogger(__name__)
-
-class AnomalyType(Enum):
-    """Types of security anomalies"""
-    COMMIT_SIZE = "commit_size"
-    SECRET_DENSITY = "secret_density"
-    UNUSUAL_PATTERNS = "unusual_patterns"
-    BEHAVIORAL = "behavioral"
-    TEMPORAL = "temporal"
-    CONTENT = "content"
-
-class ThreatIndicator(Enum):
-    """Threat indicators for hunting"""
-    SUSPICIOUS_PATTERNS = "suspicious_patterns"
-    MALICIOUS_DOMAINS = "malicious_domains"
-    KNOWN_EXPLOITS = "known_exploits"
-    CREDENTIAL_EXPOSURE = "credential_exposure"
-    BACKDOOR_SIGNATURES = "backdoor_signatures"
 
 @dataclass
 class CommitAnalysis:

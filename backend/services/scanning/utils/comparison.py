@@ -16,6 +16,9 @@ import json
 logger = logging.getLogger(__name__)
 
 
+from models.base import SeverityLevel
+
+
 class ChangeType(Enum):
     """Type of change between scans"""
     FIXED = "fixed"
@@ -25,13 +28,8 @@ class ChangeType(Enum):
     MODIFIED = "modified"  # Same issue, different severity
 
 
-class FindingSeverity(Enum):
-    """Finding severity levels"""
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    INFO = "info"
+# Use SeverityLevel from models.base for consistency
+FindingSeverity = SeverityLevel
 
 
 @dataclass

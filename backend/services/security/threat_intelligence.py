@@ -1,6 +1,9 @@
 """
 Threat Intelligence System
 CVE database integration, real-time threat feeds, and zero-day alerts
+
+NOTE: This module uses SQLite for CVE/threat caching.
+Future versions should migrate to MongoDB for consistency.
 """
 import asyncio
 import aiohttp
@@ -11,42 +14,15 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Set
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import hashlib
 import gzip
 import sqlite3
 from urllib.parse import urljoin
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import ThreatSeverity, ThreatType, ThreatSource
+
 logger = logging.getLogger(__name__)
-
-class ThreatSeverity(Enum):
-    """Threat severity levels"""
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    INFO = "info"
-
-class ThreatType(Enum):
-    """Types of threats"""
-    CVE = "cve"
-    ZERO_DAY = "zero_day"
-    MALWARE = "malware"
-    APT = "apt"
-    RANSOMWARE = "ransomware"
-    PHISHING = "phishing"
-    SUPPLY_CHAIN = "supply_chain"
-
-class ThreatSource(Enum):
-    """Threat intelligence sources"""
-    NVD = "nvd"
-    OSV = "osv"
-    CISA_KEV = "cisa_kev"
-    MITRE = "mitre"
-    GITHUB_ADVISORY = "github_advisory"
-    CUSTOM = "custom"
-    MANUAL = "manual"
-    AUTOMATED = "automated"
 
 @dataclass
 class ThreatFeed:

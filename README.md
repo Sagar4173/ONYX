@@ -39,11 +39,23 @@
 
 ### 🔍 Security Scanning
 
-- **Semgrep** - Static code analysis (SAST)
-- **Trivy** - Container & dependency scanning
-- **GitLeaks** - Secret detection
-- **Bandit/Safety** - Python security
+#### Core Scanners (Built-in)
+
+- **Semgrep** - Static code analysis (SAST) with custom rules
+- **Bandit** - Python security analysis
+- **Safety** - Python dependency vulnerability scanning
+- **GitLeaks/detect-secrets** - Secret detection
+
+#### Optional Scanners (Require External Installation)
+
+- **Trivy** - Container & dependency scanning (requires Trivy CLI)
+- **ZAP** - Dynamic Application Security Testing (requires OWASP ZAP)
+- **Nuclei** - Vulnerability scanning (requires Nuclei CLI)
+- **CodeQL** - Advanced SAST (requires CodeQL CLI)
+- **Checkov** - Infrastructure as Code scanning
 - **Lynis** - Infrastructure auditing
+
+> 💡 Optional scanners gracefully degrade when not installed. See [Installation Guide](docs/INSTALLATION.md) for setup.
 
 ### 🤖 AI-Powered Analysis
 

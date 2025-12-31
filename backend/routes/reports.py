@@ -26,6 +26,7 @@ from models.user import User
 from models.project import Project
 from services.auth.auth_service import AuthService
 from config import settings
+from utils.error_handling import safe_error_message, SafeHTTPException
 
 logger = logging.getLogger(__name__)
 

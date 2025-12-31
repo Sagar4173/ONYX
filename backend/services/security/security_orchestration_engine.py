@@ -13,21 +13,22 @@ import asyncio
 import json
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from dataclasses import dataclass, asdict
+
+from utils.datetime_utils import utc_now
 
 # Import threat intelligence from same package (safe)
 from .threat_intelligence import ThreatIntelligenceEngine, ThreatAlert, CVEData
 
 # Lazy imports to avoid circular dependencies
 if TYPE_CHECKING:
-    from services.scanning.vulnerability_management import VulnerabilityManager, Asset, Vulnerability
+    from services.scanning.vulnerability import VulnerabilityManager, Asset, Vulnerability
     from services.analytics.metrics_kpi_engine import MetricsKPIEngine
-    from services.scanning.advanced_scanner_engine import AdvancedScannerEngine
+    from services.scanning.engine import ScanOrchestrator
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -58,15 +59,15 @@ class SecurityOrchestrationEngine:
     
     def __init__(self):
         # Lazy imports to avoid circular dependencies
-        from services.scanning.vulnerability_management import VulnerabilityManager
+        from services.scanning.vulnerability import VulnerabilityManager
         from services.analytics.metrics_kpi_engine import MetricsKPIEngine
-        from services.scanning.advanced_scanner_engine import AdvancedScannerEngine
+        from services.scanning.engine import ScanOrchestrator
         
         # Initialize component engines
         self.threat_intelligence = ThreatIntelligenceEngine()
         self.vulnerability_management = VulnerabilityManager()
         self.metrics_kpi = MetricsKPIEngine()
-        self.scanner_engine = AdvancedScannerEngine()
+        self.scanner_engine = ScanOrchestrator()
         
         # Workflow definitions
         self.workflows = self._define_default_workflows()
@@ -237,7 +238,7 @@ class SecurityOrchestrationEngine:
             execution_id=execution_id,
             workflow_id=workflow.workflow_id,
             trigger_data=scan_request,
-            start_time=datetime.now().isoformat(),
+            start_time=utc_now().isoformat(),
             end_time=None,
             status='running',
             steps_completed=0,
@@ -387,7 +388,7 @@ class SecurityOrchestrationEngine:
             
             # Complete execution
             execution.status = 'completed'
-            execution.end_time = datetime.now().isoformat()
+            execution.end_time = utc_now().isoformat()
             
             logger.info(f"✅ Comprehensive security workflow completed: {execution_id}")
             
@@ -406,7 +407,7 @@ class SecurityOrchestrationEngine:
         except Exception as e:
             execution.status = 'failed'
             execution.error_message = str(e)
-            execution.end_time = datetime.now().isoformat()
+            execution.end_time = utc_now().isoformat()
             
             logger.error(f"❌ Workflow execution failed: {execution_id} - {str(e)}")
             raise
@@ -414,7 +415,7 @@ class SecurityOrchestrationEngine:
     async def _execute_scan_step(self, scan_request: Dict[str, Any]) -> Dict[str, Any]:
         """Execute comprehensive scanning step"""
         scan_id = str(uuid.uuid4())
-        start_time = datetime.now().isoformat()
+        start_time = utc_now().isoformat()
         
         # Simulate comprehensive scan execution
         # In real implementation, this would call the AdvancedScannerEngine
@@ -453,7 +454,7 @@ class SecurityOrchestrationEngine:
             }
         ]
         
-        end_time = datetime.now().isoformat()
+        end_time = utc_now().isoformat()
         
         return {
             'scan_id': scan_id,

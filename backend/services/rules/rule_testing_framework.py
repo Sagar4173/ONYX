@@ -14,27 +14,17 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Set, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import uuid
 import statistics
 import time
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import SeverityLevel, TestStatus
+
 logger = logging.getLogger(__name__)
 
-class TestSeverity(Enum):
-    """Test result severity"""
-    CRITICAL = "critical"
-    HIGH = "high" 
-    MEDIUM = "medium"
-    LOW = "low"
-
-class TestStatus(Enum):
-    """Test execution status"""
-    PENDING = "pending"
-    RUNNING = "running"
-    PASSED = "passed"
-    FAILED = "failed"
-    ERROR = "error"
+# Alias for backward compatibility
+TestSeverity = SeverityLevel
 
 @dataclass
 class VulnerableTestCase:

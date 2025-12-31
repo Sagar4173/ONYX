@@ -2,12 +2,9 @@
 User Management Routes for ONYX Security Intelligence Platform
 Comprehensive user administration and profile management
 """
-from datetime import datetime
-
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
+from utils.datetime_utils import utc_now
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import JSONResponse
 

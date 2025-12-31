@@ -2,6 +2,7 @@
 Project Management API Routes for ONYX Platform
 Handles project CRUD operations, team management, and analytics
 """
+import logging
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -14,6 +15,9 @@ from models.project import (
 from models.user import User
 from services.infrastructure.project_service import ProjectService
 from services.auth.auth_service import AuthService
+from utils.error_handling import safe_error_message, SafeHTTPException
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 security = HTTPBearer()
@@ -45,10 +49,7 @@ async def create_project(
     - **tags**: Optional project tags
     """
     try:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"🚀 Creating project with data: {project_data.model_dump()}")
-        logger.info(f"👤 Current user: {current_user.username} (ID: {current_user.id})")
+        logger.info(f"🚀 Creating project for user: {current_user.username}")
         
         project = await project_service.create_project(project_data, str(current_user.id))
         logger.info(f"✅ Project created successfully: {project.name}")
@@ -60,16 +61,7 @@ async def create_project(
     except HTTPException:
         raise
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"❌ Project creation failed: {str(e)}")
-        logger.error(f"❌ Error type: {type(e).__name__}")
-        import traceback
-        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create project: {str(e)}"
-        )
+        raise SafeHTTPException.internal_error("Project creation", e)
 
 
 @router.get("/", response_model=Dict[str, Any])
@@ -111,10 +103,7 @@ async def get_user_projects(
             }
         }
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch projects: {str(e)}"
-        )
+        raise SafeHTTPException.internal_error("Fetching projects", e)
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
@@ -162,10 +151,7 @@ async def update_project(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update project: {str(e)}"
-        )
+        raise SafeHTTPException.internal_error("Project update", e)
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -183,10 +169,7 @@ async def delete_project(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete project: {str(e)}"
-        )
+        raise SafeHTTPException.internal_error("Project deletion", e)
 
 
 @router.post("/{project_id}/team", response_model=ProjectResponse)

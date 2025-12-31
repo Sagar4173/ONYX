@@ -8,27 +8,13 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
-from enum import Enum
 from collections import defaultdict
 import statistics
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import TrendPeriod, TrendDirection
+
 logger = logging.getLogger(__name__)
-
-
-class TrendPeriod(Enum):
-    """Time periods for trend analysis"""
-    DAILY = "daily"
-    WEEKLY = "weekly"
-    MONTHLY = "monthly"
-    QUARTERLY = "quarterly"
-    YEARLY = "yearly"
-
-
-class TrendDirection(Enum):
-    """Trend direction indicators"""
-    IMPROVING = "improving"
-    STABLE = "stable"
-    DEGRADING = "degrading"
 
 
 @dataclass

@@ -12,45 +12,16 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Any, Set, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
-from enum import Enum
 import uuid
 import hashlib
 import jsonschema
 
+# Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
+from models.base import (
+    PolicyType, EnforcementMode, PolicyStatus, ViolationAction
+)
+
 logger = logging.getLogger(__name__)
-
-class PolicyType(Enum):
-    """Types of security policies"""
-    VULNERABILITY_THRESHOLD = "vulnerability_threshold"
-    COMPLIANCE_REQUIREMENT = "compliance_requirement"
-    CODE_QUALITY_GATE = "code_quality_gate"
-    SECRET_DETECTION = "secret_detection"
-    DEPENDENCY_POLICY = "dependency_policy"
-    CUSTOM_RULE = "custom_rule"
-
-class EnforcementMode(Enum):
-    """Policy enforcement modes"""
-    ENFORCE = "enforce"       # Block merges on violation
-    WARN = "warn"            # Allow merge with warnings
-    CANARY = "canary"        # Test mode, collect data only
-    DISABLED = "disabled"    # Policy disabled
-
-class PolicyStatus(Enum):
-    """Policy lifecycle status"""
-    DRAFT = "draft"
-    REVIEW = "review"
-    APPROVED = "approved"
-    ACTIVE = "active"
-    DEPRECATED = "deprecated"
-    REJECTED = "rejected"
-
-class ViolationAction(Enum):
-    """Actions to take on policy violation"""
-    BLOCK_MERGE = "block_merge"
-    REQUIRE_APPROVAL = "require_approval"
-    SEND_NOTIFICATION = "send_notification"
-    CREATE_ISSUE = "create_issue"
-    LOG_ONLY = "log_only"
 
 @dataclass
 class PolicyRule:

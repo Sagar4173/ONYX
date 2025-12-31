@@ -14,7 +14,7 @@ import json
 import logging
 import numpy as np
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -22,8 +22,9 @@ import pickle
 from collections import defaultdict, Counter
 import statistics
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+from utils.datetime_utils import utc_now
+
+# Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -372,7 +373,7 @@ class MLAnomalyDetectionEngine:
         anomaly_count = np.sum(predictions == -1)
         
         # Create model metrics
-        model_id = f"anomaly_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        model_id = f"anomaly_model_{utc_now().strftime('%Y%m%d_%H%M%S')}"
         metrics = MLModelMetrics(
             model_id=model_id,
             model_type="IsolationForest",
@@ -381,7 +382,7 @@ class MLAnomalyDetectionEngine:
             precision=0.85,  # Simulated for demo
             recall=0.78,     # Simulated for demo
             f1_score=0.81,   # Simulated for demo
-            last_trained=datetime.now().isoformat(),
+            last_trained=utc_now().isoformat(),
             feature_importance=dict(zip(feature_names, [0.2, 0.15, 0.13, 0.12, 0.1, 0.3]))
         )
         
@@ -410,7 +411,7 @@ class MLAnomalyDetectionEngine:
         # For demo, we'll generate realistic training data
         
         training_data = []
-        start_date = datetime.now() - timedelta(days=days)
+        start_date = utc_now() - timedelta(days=days)
         
         for i in range(days):
             date = start_date + timedelta(days=i)
@@ -489,7 +490,7 @@ class MLAnomalyDetectionEngine:
         total_findings = features.get('total_findings', 0)
         if total_findings > 50:  # Threshold
             alerts.append(AnomalyAlert(
-                alert_id=f"spike_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                alert_id=f"spike_{utc_now().strftime('%Y%m%d_%H%M%S')}",
                 anomaly_type="spike",
                 finding_type="total_findings",
                 severity="HIGH",
@@ -498,7 +499,7 @@ class MLAnomalyDetectionEngine:
                 baseline_value=20.0,
                 deviation_percentage=((total_findings - 20) / 20) * 100,
                 confidence_score=0.9,
-                timestamp=datetime.now().isoformat(),
+                timestamp=utc_now().isoformat(),
                 recommended_actions=[
                     "Investigate potential security incident",
                     "Review recent deployments", 
@@ -510,7 +511,7 @@ class MLAnomalyDetectionEngine:
         critical_ratio = features.get('critical_ratio', 0)
         if critical_ratio > 0.3:  # More than 30% critical
             alerts.append(AnomalyAlert(
-                alert_id=f"critical_spike_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                alert_id=f"critical_spike_{utc_now().strftime('%Y%m%d_%H%M%S')}",
                 anomaly_type="severity_spike",
                 finding_type="critical_vulnerabilities",
                 severity="CRITICAL",
@@ -519,7 +520,7 @@ class MLAnomalyDetectionEngine:
                 baseline_value=0.1,
                 deviation_percentage=((critical_ratio - 0.1) / 0.1) * 100,
                 confidence_score=0.95,
-                timestamp=datetime.now().isoformat(),
+                timestamp=utc_now().isoformat(),
                 recommended_actions=[
                     "Immediate security team escalation",
                     "Block deployments until review",
@@ -533,7 +534,7 @@ class MLAnomalyDetectionEngine:
         
         if rare_cwes:
             alerts.append(AnomalyAlert(
-                alert_id=f"new_cwe_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                alert_id=f"new_cwe_{utc_now().strftime('%Y%m%d_%H%M%S')}",
                 anomaly_type="new_pattern",
                 finding_type="cwe_types",
                 severity="MEDIUM",
@@ -542,7 +543,7 @@ class MLAnomalyDetectionEngine:
                 baseline_value=0.0,
                 deviation_percentage=100.0,
                 confidence_score=0.8,
-                timestamp=datetime.now().isoformat(),
+                timestamp=utc_now().isoformat(),
                 recommended_actions=[
                     "Research new vulnerability types",
                     "Update security training materials",
@@ -572,7 +573,7 @@ class MLAnomalyDetectionEngine:
             
             if prediction == -1:  # Anomaly detected
                 alerts.append(AnomalyAlert(
-                    alert_id=f"ml_anomaly_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                    alert_id=f"ml_anomaly_{utc_now().strftime('%Y%m%d_%H%M%S')}",
                     anomaly_type="ml_detected",
                     finding_type="pattern_anomaly", 
                     severity="MEDIUM",
@@ -581,7 +582,7 @@ class MLAnomalyDetectionEngine:
                     baseline_value=0.0,
                     deviation_percentage=abs(anomaly_score) * 100,
                     confidence_score=min(abs(anomaly_score), 1.0),
-                    timestamp=datetime.now().isoformat(),
+                    timestamp=utc_now().isoformat(),
                     recommended_actions=[
                         "Review finding patterns for unusual activity",
                         "Validate with security team",

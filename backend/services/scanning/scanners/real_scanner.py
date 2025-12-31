@@ -146,6 +146,18 @@ class RealSecurityScanner:
             
             logger.info(f"Found {len(python_files)} Python files to scan")
             
+            # Check if Bandit is installed
+            bandit_check = await asyncio.to_thread(
+                subprocess.run,
+                ['bandit', '--version'],
+                capture_output=True,
+                text=True
+            )
+            
+            if bandit_check.returncode != 0:
+                logger.warning("⚠️ Bandit not installed. Install with: pip install bandit")
+                return findings
+            
             # Run Bandit scan (in thread to avoid blocking event loop)
             bandit_cmd = [
                 'bandit', '-r', repo_path, '-f', 'json', '--quiet'
@@ -181,11 +193,13 @@ class RealSecurityScanner:
             logger.info(f"🔍 Bandit found {len(findings)} security issues")
             
         except subprocess.CalledProcessError as e:
-            logger.warning(f"Bandit scan failed: {e}")
+            logger.warning(f"⚠️ Bandit scan failed: {e}")
         except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse Bandit output: {e}")
+            logger.warning(f"⚠️ Failed to parse Bandit output: {e}")
+        except FileNotFoundError:
+            logger.warning("⚠️ Bandit command not found. Install with: pip install bandit")
         except Exception as e:
-            logger.error(f"SAST scan error: {e}")
+            logger.error(f"❌ SAST scan error: {e}")
         
         return findings
     
@@ -194,6 +208,18 @@ class RealSecurityScanner:
         findings = []
         
         try:
+            # Check if detect-secrets is installed
+            secrets_check = await asyncio.to_thread(
+                subprocess.run,
+                ['detect-secrets', '--version'],
+                capture_output=True,
+                text=True
+            )
+            
+            if secrets_check.returncode != 0:
+                logger.warning("⚠️ detect-secrets not installed. Install with: pip install detect-secrets")
+                return findings
+            
             # Run detect-secrets scan (in thread to avoid blocking event loop)
             secrets_cmd = [
                 'detect-secrets', 'scan', '--all-files', '--force-use-all-plugins', repo_path
@@ -228,11 +254,13 @@ class RealSecurityScanner:
             logger.info(f"🔍 Secrets scan found {len(findings)} potential secrets")
             
         except subprocess.CalledProcessError as e:
-            logger.warning(f"Secrets scan failed: {e}")
+            logger.warning(f"⚠️ Secrets scan failed: {e}")
         except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse secrets scan output: {e}")
+            logger.warning(f"⚠️ Failed to parse secrets scan output: {e}")
+        except FileNotFoundError:
+            logger.warning("⚠️ detect-secrets command not found. Install with: pip install detect-secrets")
         except Exception as e:
-            logger.error(f"Secrets scan error: {e}")
+            logger.error(f"❌ Secrets scan error: {e}")
         
         return findings
     
@@ -258,6 +286,18 @@ class RealSecurityScanner:
                 return findings
             
             logger.info(f"Found dependency files: {found_req_files}")
+            
+            # Check if Safety is installed
+            safety_check = await asyncio.to_thread(
+                subprocess.run,
+                ['safety', '--version'],
+                capture_output=True,
+                text=True
+            )
+            
+            if safety_check.returncode != 0:
+                logger.warning("⚠️ Safety not installed. Install with: pip install safety")
+                return findings
             
             # Run Safety check (in thread to avoid blocking event loop)
             for req_file in found_req_files:
@@ -292,14 +332,16 @@ class RealSecurityScanner:
                                 }
                                 findings.append(finding)
                         except json.JSONDecodeError:
-                            logger.warning(f"Failed to parse Safety output for {req_file}")
+                            logger.warning(f"⚠️ Failed to parse Safety output for {req_file}")
                             
             logger.info(f"🔍 Dependency scan found {len(findings)} vulnerable packages")
             
         except subprocess.CalledProcessError as e:
-            logger.warning(f"Dependency scan failed: {e}")
+            logger.warning(f"⚠️ Dependency scan failed: {e}")
+        except FileNotFoundError:
+            logger.warning("⚠️ Safety command not found. Install with: pip install safety")
         except Exception as e:
-            logger.error(f"Dependency scan error: {e}")
+            logger.error(f"❌ Dependency scan error: {e}")
         
         return findings
     

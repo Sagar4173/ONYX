@@ -1673,5 +1673,264 @@ export const enterpriseAPI = {
   },
 };
 
+/**
+ * Advanced Security API (Consolidated)
+ * Combines threat intelligence, vulnerability management, security metrics,
+ * rule management, baseline scanning, and policy enforcement.
+ */
+export const advancedSecurityAPI = {
+  // ===== STATUS & HEALTH =====
+
+  // Get comprehensive security system status
+  getStatus: async () => {
+    try {
+      const response = await api.get("/v1/security/status");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting security status:", error);
+      throw error;
+    }
+  },
+
+  // Health check
+  healthCheck: async () => {
+    try {
+      const response = await api.get("/v1/security/health");
+      return response.data;
+    } catch (error) {
+      console.error("Error checking security health:", error);
+      throw error;
+    }
+  },
+
+  // ===== THREAT INTELLIGENCE =====
+
+  // Get threat intelligence feeds
+  getThreatFeeds: async () => {
+    try {
+      const response = await api.get("/v1/security/threat-intel/feeds");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting threat feeds:", error);
+      throw error;
+    }
+  },
+
+  // Analyze threat indicators
+  analyzeThreats: async (indicators) => {
+    try {
+      const response = await api.post("/v1/security/threat-intel/analyze", {
+        indicators,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error analyzing threats:", error);
+      throw error;
+    }
+  },
+
+  // ===== VULNERABILITY MANAGEMENT =====
+
+  // Get vulnerability dashboard
+  getVulnerabilityDashboard: async () => {
+    try {
+      const response = await api.get("/v1/security/vulnerabilities/dashboard");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting vulnerability dashboard:", error);
+      throw error;
+    }
+  },
+
+  // Initiate vulnerability scan
+  scanVulnerabilities: async (config = {}) => {
+    try {
+      const response = await api.post("/v1/security/vulnerabilities/scan", {
+        config,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error initiating vulnerability scan:", error);
+      throw error;
+    }
+  },
+
+  // ===== SECURITY METRICS =====
+
+  // Get security score
+  getSecurityScore: async () => {
+    try {
+      const response = await api.get("/v1/security/metrics/security-score");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting security score:", error);
+      throw error;
+    }
+  },
+
+  // Get metrics dashboard
+  getMetricsDashboard: async () => {
+    try {
+      const response = await api.get("/v1/security/metrics/dashboard");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting metrics dashboard:", error);
+      throw error;
+    }
+  },
+
+  // ===== PENETRATION TESTING =====
+
+  // Execute penetration test
+  executePentest: async (config = {}) => {
+    try {
+      const response = await api.post("/v1/security/pentest/execute", {
+        config,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error executing pentest:", error);
+      throw error;
+    }
+  },
+
+  // ===== RULE ENGINE =====
+
+  // Parse security rules
+  parseRules: async (rules) => {
+    try {
+      const response = await api.post("/v1/security/rules/parse", { rules });
+      return response.data;
+    } catch (error) {
+      console.error("Error parsing rules:", error);
+      throw error;
+    }
+  },
+
+  // Get rule test status
+  getRuleTestStatus: async (ruleId) => {
+    try {
+      const response = await api.get(
+        `/v1/security/rules/test-status/${ruleId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error getting rule test status:", error);
+      throw error;
+    }
+  },
+
+  // ===== BASELINE MANAGEMENT =====
+
+  // Get baseline status
+  getBaselineStatus: async (repository = null, branch = "main") => {
+    try {
+      const params = {};
+      if (repository) params.repository = repository;
+      if (branch) params.branch = branch;
+      const response = await api.get("/v1/security/baseline/status", {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting baseline status:", error);
+      throw error;
+    }
+  },
+
+  // ===== POLICY ENGINE =====
+
+  // Evaluate policy
+  evaluatePolicy: async (repository, commitHash, policies = []) => {
+    try {
+      const response = await api.post("/v1/security/policy/evaluate", {
+        repository,
+        commit_hash: commitHash,
+        policies,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error evaluating policy:", error);
+      throw error;
+    }
+  },
+
+  // Enforce policy
+  enforcePolicy: async (policy) => {
+    try {
+      const response = await api.post("/v1/security/policy/enforce", {
+        policy,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error enforcing policy:", error);
+      throw error;
+    }
+  },
+
+  // ===== ADVANCED SCANNING =====
+
+  // Execute advanced scan
+  executeAdvancedScan: async (config = {}) => {
+    try {
+      const response = await api.post("/v1/security/scan/execute", { config });
+      return response.data;
+    } catch (error) {
+      console.error("Error executing advanced scan:", error);
+      throw error;
+    }
+  },
+
+  // Test security boundaries
+  testBoundaries: async (ruleId, testInput, boundaryType = "resource") => {
+    try {
+      const response = await api.post("/v1/security/scan/boundaries/test", {
+        rule_id: ruleId,
+        test_input: testInput,
+        boundary_type: boundaryType,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error testing boundaries:", error);
+      throw error;
+    }
+  },
+
+  // Get security boundaries status
+  getBoundariesStatus: async () => {
+    try {
+      const response = await api.get("/v1/security/boundaries/status");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting boundaries status:", error);
+      throw error;
+    }
+  },
+
+  // ===== COMPLIANCE =====
+
+  // Get compliance frameworks
+  getComplianceFrameworks: async () => {
+    try {
+      const response = await api.get("/v1/security/compliance/frameworks");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting compliance frameworks:", error);
+      throw error;
+    }
+  },
+
+  // Get compliance dashboard
+  getComplianceDashboard: async () => {
+    try {
+      const response = await api.get("/v1/security/compliance/dashboard");
+      return response.data;
+    } catch (error) {
+      console.error("Error getting compliance dashboard:", error);
+      throw error;
+    }
+  },
+};
+
 // Default export
 export default api;

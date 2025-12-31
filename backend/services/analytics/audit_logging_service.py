@@ -10,9 +10,7 @@ from pymongo import ASCENDING, DESCENDING
 import hashlib
 import json
 
-# Helper function to get timezone-aware UTC datetime (replaces deprecated utc_now())
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from utils.datetime_utils import utc_now
 
 logger = structlog.get_logger()
 

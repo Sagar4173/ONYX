@@ -18,6 +18,9 @@ import statistics
 
 logger = logging.getLogger(__name__)
 
+from models.base import SeverityLevel
+
+
 class ChangeType(Enum):
     """Types of baseline changes"""
     NEW_ISSUE = "new_issue"           # New vulnerability found
@@ -25,13 +28,15 @@ class ChangeType(Enum):
     MODIFIED_ISSUE = "modified_issue" # Existing vulnerability changed
     RECURRING_ISSUE = "recurring_issue" # Previously fixed vulnerability returned
 
+
+# DriftSeverity extends SeverityLevel with IMPROVED status for drift detection
 class DriftSeverity(Enum):
-    """Severity of baseline drift"""
+    """Severity of baseline drift - extends standard levels with IMPROVED"""
     CRITICAL = "critical"  # Critical new vulnerabilities
     HIGH = "high"         # High severity new issues or many new issues
     MEDIUM = "medium"     # Medium severity changes
     LOW = "low"          # Minor changes or improvements
-    IMPROVED = "improved" # Overall security improvement
+    IMPROVED = "improved" # Overall security improvement (unique to drift detection)
 
 class BaselineStatus(Enum):
     """Baseline status"""

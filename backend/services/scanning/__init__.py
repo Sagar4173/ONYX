@@ -1,35 +1,205 @@
 """
 Security Scanning Services
+===========================
+
+A modular, well-organized security scanning framework.
+
+⚠️ IMPORTANT: Legacy modules in services/scanning/legacy/ are DEPRECATED
+and will be removed in a future version. Do not use them for new code.
+
+PACKAGE STRUCTURE:
+==================
+
+    services/scanning/
+    ├── base/           # Core models, config, exceptions
+    ├── scanners/       # Individual scanner implementations  
+    ├── engine/         # Orchestration and workflow
+    ├── baseline/       # Baseline tracking and drift detection
+    ├── vulnerability/  # Vulnerability lifecycle management
+    ├── pentest/        # Penetration testing automation
+    ├── workflow/       # Enhanced scanning workflows
+    ├── utils/          # SBOM, comparison utilities
+    └── legacy/         # ⚠️ DEPRECATED - DO NOT USE (backward compat only)
+
+RECOMMENDED USAGE:
+==================
+
+    # Models and configuration
+    from services.scanning.base import Finding, ScanResult, Severity, ScanConfig
+    
+    # Individual scanners
+    from services.scanning.scanners import (
+        RealSecurityScanner,
+        BanditScanner, SemgrepScanner, CodeQLScanner,  # SAST
+        ZAPScanner, NucleiScanner,                      # DAST
+        TrivyScanner, GitLeaksScanner, SafetyScanner,   # Container/Secrets/SCA
+        CheckovScanner,                                  # IaC
+    )
+    
+    # Orchestration
+    from services.scanning.engine import ScanOrchestrator, ScanWorkflow
+    
+    # Baseline management
+    from services.scanning.baseline import BaselineManager, BaselineScanningService
+    
+    # Vulnerability management
+    from services.scanning.vulnerability import VulnerabilityManager
+
+MIGRATION GUIDE:
+================
+If you're using legacy imports, please migrate to the recommended imports above.
+Legacy modules will be removed in version 2.0.0.
 """
-from .real_scanner import RealSecurityScanner
-from .advanced_scanners import *
-from .advanced_scanner_engine import AdvancedScannerEngine, ScanConfig
-from .advanced_scanner_implementations import *
-from .baseline_scanner import BaselineScanningService, BaselineFingerprint, ScanBaseline, SecurityDrift, RegressionAlert
-from .baseline_manager import BaselineManager, SecurityBaseline, SecurityFinding, BaselineDrift
-from .codeql_checkov_scanners import *
-from .enhanced_scanning_workflow import enhanced_workflow
-from .penetration_testing import *
-from .sbom_generator import *
-from .scan_comparison import *
-from .vulnerability_management import VulnerabilityManager, RiskMetrics, VulnerabilityStatus, VulnerabilityPriority
+
+# ============================================================================
+# BASE - Core models, configuration, exceptions
+# ============================================================================
+from .base import (
+    # Models
+    Finding,
+    ScanFinding,
+    ScanResult,
+    ScanMetrics,
+    ScanType,
+    Severity,
+    ScanSeverity,
+    ScannerType,
+    
+    # Configuration
+    ScanConfig,
+    AdvancedScannerConfig,
+    
+    # Exceptions
+    ScannerError,
+    ScanTimeoutError,
+    ScanConfigurationError,
+)
+
+# ============================================================================
+# SCANNERS - Individual scanner implementations
+# ============================================================================
+from .scanners import (
+    BaseScanner,
+    RealSecurityScanner,
+    ZAPScanner,
+    NucleiScanner,
+    CodeQLScanner,
+    CheckovScanner,
+    BanditScanner,
+    SemgrepScanner,
+    TrivyScanner,
+    GitLeaksScanner,
+    SafetyScanner,
+)
+
+# ============================================================================
+# ENGINE - Orchestration and workflow
+# ============================================================================
+from .engine import (
+    ScanOrchestrator,
+    SuppressionEngine,
+    ScanWorkflow,
+)
+
+# ============================================================================
+# BASELINE - Baseline tracking and drift detection
+# ============================================================================
+from .baseline import (
+    BaselineScanningService,
+    BaselineFingerprint,
+    ScanBaseline,
+    SecurityDrift,
+    RegressionAlert,
+    BaselineManager,
+    SecurityBaseline,
+    SecurityFinding,
+    BaselineDrift,
+)
+
+# ============================================================================
+# VULNERABILITY - Vulnerability lifecycle management
+# ============================================================================
+from .vulnerability import (
+    VulnerabilityManager,
+    RiskMetrics,
+    VulnerabilityStatus,
+    VulnerabilityPriority,
+)
+
+# ============================================================================
+# WORKFLOW - Enhanced scanning workflows
+# ============================================================================
+from .workflow import enhanced_workflow
+
+# Note: Legacy imports removed - use new scanner architecture:
+#   - ScanOrchestrator replaces AdvancedScannerEngine
+#   - ZAPScanner replaces OWASPZAPScanner  
+#   - RealSecurityScanner replaces AdvancedSecurityScanner
+
 
 __all__ = [
-    "RealSecurityScanner",
-    "AdvancedScannerEngine",
+    # ==================
+    # BASE
+    # ==================
+    "Finding",
+    "ScanFinding",
+    "ScanResult",
+    "ScanMetrics",
+    "ScanType",
+    "Severity",
+    "ScanSeverity",
+    "ScannerType",
     "ScanConfig",
+    "AdvancedScannerConfig",
+    "ScannerError",
+    "ScanTimeoutError",
+    "ScanConfigurationError",
+    
+    # ==================
+    # SCANNERS
+    # ==================
+    "BaseScanner",
+    "RealSecurityScanner",
+    "ZAPScanner",
+    "NucleiScanner",
+    "CodeQLScanner",
+    "CheckovScanner",
+    "BanditScanner",
+    "SemgrepScanner",
+    "TrivyScanner",
+    "GitLeaksScanner",
+    "SafetyScanner",
+    
+    # ==================
+    # ENGINE
+    # ==================
+    "ScanOrchestrator",
+    "SuppressionEngine",
+    "ScanWorkflow",
+    
+    # ==================
+    # BASELINE
+    # ==================
     "BaselineScanningService",
     "BaselineFingerprint",
     "ScanBaseline",
     "SecurityDrift",
     "RegressionAlert",
+    "BaselineManager",
     "SecurityBaseline",
     "SecurityFinding",
     "BaselineDrift",
-    "BaselineManager",
-    "enhanced_workflow",
+    
+    # ==================
+    # VULNERABILITY
+    # ==================
     "VulnerabilityManager",
     "RiskMetrics",
     "VulnerabilityStatus",
     "VulnerabilityPriority",
+    
+    # ==================
+    # WORKFLOW
+    # ==================
+    "enhanced_workflow",
 ]

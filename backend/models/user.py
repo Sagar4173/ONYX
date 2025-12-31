@@ -4,32 +4,14 @@ Handles user authentication, roles, and profile management
 """
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
-from enum import Enum
 import uuid
 
 from beanie import Document, Indexed
 from pydantic import BaseModel, EmailStr, Field, validator
 from pymongo import IndexModel
 
-# Helper function for timezone-aware UTC datetime (avoids circular imports)
-def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-class UserRole(str, Enum):
-    """User roles with hierarchical permissions"""
-    ADMIN = "admin"
-    SECURITY_MANAGER = "security_manager"
-    DEVELOPER = "developer"
-    VIEWER = "viewer"
-
-
-class UserStatus(str, Enum):
-    """User account status"""
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    SUSPENDED = "suspended"
-    PENDING_VERIFICATION = "pending_verification"
+# Import shared enums and utilities from the single source of truth
+from .base import UserRole, UserStatus, utc_now
 
 
 class User(Document):
@@ -83,8 +65,8 @@ class User(Document):
     api_tokens: List[str] = Field(default_factory=list)  # API token IDs
     
     # Audit Trail
-    created_at: datetime = Field(default_factory=_utc_now)
-    updated_at: datetime = Field(default_factory=_utc_now)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     created_by: Optional[str] = None  # User ID who created this user
     last_updated_by: Optional[str] = None
     
@@ -176,8 +158,8 @@ class UserSession(Document):
     logged_out_at: Optional[datetime] = None
     
     # Audit
-    created_at: datetime = Field(default_factory=_utc_now)
-    last_activity: datetime = Field(default_factory=_utc_now)
+    created_at: datetime = Field(default_factory=utc_now)
+    last_activity: datetime = Field(default_factory=utc_now)
     
     class Settings:
         name = "user_sessions"
@@ -214,7 +196,7 @@ class APIToken(Document):
     usage_count: int = 0
     
     # Audit
-    created_at: datetime = Field(default_factory=_utc_now)
+    created_at: datetime = Field(default_factory=utc_now)
     created_by: str
     revoked_at: Optional[datetime] = None
     revoked_by: Optional[str] = None
