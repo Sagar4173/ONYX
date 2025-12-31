@@ -246,90 +246,90 @@ const LandingPage = () => {
       icon: CpuChipIcon,
       title: "AI-Powered Analysis",
       description:
-        "Advanced machine learning models trained on millions of code patterns to detect sophisticated threats invisible to traditional scanners.",
+        "Dual AI provider support with OpenAI GPT-4 and Google Gemini to analyze vulnerabilities, explain risks in plain language, and suggest code fixes automatically.",
       gradient: "from-cyan-500 to-blue-600",
-      stats: "99.7% accuracy",
+      stats: "GPT-4 + Gemini",
       details: [
-        "Deep code semantic analysis",
-        "Zero-day threat prediction",
-        "Contextual vulnerability scoring",
-        "False positive elimination",
-        "Smart remediation suggestions",
+        "Vulnerability explanation in plain language",
+        "Risk assessment and prioritization",
+        "Automated code fix suggestions",
+        "False positive detection",
+        "Remediation guidance generation",
       ],
     },
     {
       icon: ShieldCheckIcon,
       title: "Multi-Layer Protection",
       description:
-        "Comprehensive defense-in-depth strategy with 12+ specialized security scanners working in parallel.",
+        "Comprehensive defense-in-depth with 10 specialized security scanners covering SAST, DAST, secrets, containers, and infrastructure.",
       gradient: "from-violet-500 to-purple-600",
-      stats: "12+ scanners",
+      stats: "10 scanners",
       details: [
-        "SAST, DAST, SCA integration",
-        "Container security scanning",
-        "Infrastructure as Code analysis",
-        "Dependency vulnerability checks",
-        "License compliance scanning",
+        "SAST: Semgrep, Bandit, CodeQL",
+        "DAST: OWASP ZAP, Nuclei",
+        "Secrets: GitLeaks, detect-secrets",
+        "Container: Trivy scanning",
+        "IaC: Checkov, Lynis",
       ],
     },
     {
       icon: BoltIcon,
       title: "Real-Time Detection",
       description:
-        "Instant threat identification with sub-second response times. Never miss a vulnerability in your CI/CD pipeline.",
+        "WebSocket-powered live scan progress updates. See vulnerabilities as they're found, not after the scan completes.",
       gradient: "from-amber-500 to-orange-600",
-      stats: "<100ms response",
+      stats: "Live WebSocket",
       details: [
-        "Live code monitoring",
-        "Instant PR/MR analysis",
-        "Automated blocking capabilities",
-        "Webhook notifications",
-        "Real-time dashboards",
+        "Real-time scan progress",
+        "Instant finding notifications",
+        "Live dashboard updates",
+        "Webhook integrations",
+        "Email alerts on completion",
       ],
     },
     {
       icon: GlobeAltIcon,
-      title: "Global Threat Intelligence",
+      title: "Vulnerability Intelligence",
       description:
-        "Connected to worldwide vulnerability databases, CVE feeds, and proprietary threat intelligence networks.",
+        "Integration with NVD (National Vulnerability Database) and OSV for comprehensive CVE data, CVSS scoring, and exploit information.",
       gradient: "from-emerald-500 to-teal-600",
-      stats: "500K+ CVEs tracked",
+      stats: "NVD + OSV",
       details: [
-        "NVD, MITRE integration",
-        "Dark web monitoring",
-        "Industry-specific threats",
-        "Exploit database tracking",
-        "24/7 threat updates",
+        "NVD CVE database integration",
+        "Google OSV vulnerability data",
+        "CVSS score enrichment",
+        "Exploit availability tracking",
+        "Automated severity mapping",
       ],
     },
     {
       icon: DocumentCheckIcon,
       title: "Compliance Automation",
       description:
-        "Automatic compliance checking against SOC2, HIPAA, PCI-DSS, GDPR, and 15+ regulatory frameworks.",
+        "Built-in compliance mapping for 9 major frameworks including OWASP Top 10, NIST, PCI-DSS, HIPAA, SOC2, and more.",
       gradient: "from-rose-500 to-pink-600",
-      stats: "15+ frameworks",
+      stats: "9 frameworks",
       details: [
-        "Automated audit reports",
-        "Policy enforcement",
-        "Continuous compliance monitoring",
-        "Evidence collection",
-        "Gap analysis reporting",
+        "OWASP Top 10 mapping",
+        "NIST 800-53 controls",
+        "PCI-DSS requirements",
+        "HIPAA security rules",
+        "SOC2, GDPR, ISO27001, CIS, MITRE",
       ],
     },
     {
       icon: RocketLaunchIcon,
       title: "DevSecOps Integration",
       description:
-        "Seamless integration with GitHub, GitLab, Azure DevOps, Jenkins, and all major CI/CD platforms.",
+        "Connect with GitHub, GitLab, and Bitbucket. Webhook support for CI/CD pipelines. RESTful API for custom integrations.",
       gradient: "from-indigo-500 to-blue-600",
-      stats: "50+ integrations",
+      stats: "REST API",
       details: [
-        "Native Git hooks",
-        "IDE plugins",
-        "API-first architecture",
-        "Custom workflow support",
-        "Enterprise SSO/SAML",
+        "GitHub, GitLab, Bitbucket support",
+        "Webhook triggers for CI/CD",
+        "Full REST API access",
+        "JWT authentication",
+        "Role-based access control",
       ],
     },
   ];
@@ -358,85 +358,81 @@ const LandingPage = () => {
       name: "Semgrep",
       category: "SAST",
       type: "sast",
-      description: "Semantic code analysis",
+      description: "Multi-language semantic code analysis with custom rules",
       icon: "🔍",
-    },
-    {
-      name: "Trivy",
-      category: "Container",
-      type: "container",
-      description: "Container vulnerability scanning",
-      icon: "🐳",
-    },
-    {
-      name: "GitLeaks",
-      category: "Secrets",
-      type: "secrets",
-      description: "Secrets detection",
-      icon: "🔐",
+      what: "Finds security vulnerabilities, bugs, and code patterns across 30+ languages using semantic pattern matching.",
     },
     {
       name: "Bandit",
       category: "SAST",
       type: "sast",
-      description: "Python security linting",
+      description: "Python-specific security vulnerability detection",
       icon: "🐍",
+      what: "Scans Python code for common security issues like SQL injection, hardcoded passwords, and unsafe function calls.",
     },
     {
-      name: "ESLint Security",
+      name: "CodeQL",
       category: "SAST",
       type: "sast",
-      description: "JS/TS security rules",
-      icon: "📜",
+      description: "Advanced semantic code analysis by GitHub",
+      icon: "🔬",
+      what: "Uses database queries to find complex vulnerability patterns, data flow issues, and security anti-patterns.",
+    },
+    {
+      name: "GitLeaks",
+      category: "Secrets",
+      type: "secrets",
+      description: "Detect hardcoded secrets and credentials",
+      icon: "🔐",
+      what: "Scans git history and current code for API keys, passwords, tokens, and other sensitive data that shouldn't be in code.",
+    },
+    {
+      name: "Safety",
+      category: "SCA",
+      type: "sast",
+      description: "Python dependency vulnerability checking",
+      icon: "📦",
+      what: "Checks your Python dependencies against known vulnerability databases to find insecure package versions.",
+    },
+    {
+      name: "Trivy",
+      category: "Container",
+      type: "container",
+      description: "Container and artifact vulnerability scanning",
+      icon: "🐳",
+      what: "Scans Docker images, filesystems, and git repos for vulnerabilities in OS packages and application dependencies.",
     },
     {
       name: "OWASP ZAP",
-      category: "SAST",
-      type: "sast",
-      description: "Dynamic application testing",
+      category: "DAST",
+      type: "container",
+      description: "Dynamic application security testing",
       icon: "⚡",
+      what: "Tests running applications for vulnerabilities like XSS, SQL injection, and authentication flaws by sending actual requests.",
     },
     {
       name: "Nuclei",
-      category: "Container",
+      category: "DAST",
       type: "container",
-      description: "Template-based scanning",
+      description: "Fast template-based vulnerability scanning",
       icon: "🎯",
+      what: "Runs thousands of vulnerability checks against web applications using community-maintained templates.",
     },
     {
       name: "Checkov",
       category: "IaC",
       type: "iac",
-      description: "Infrastructure as Code scanning",
+      description: "Infrastructure as Code security scanning",
       icon: "☁️",
+      what: "Scans Terraform, CloudFormation, Kubernetes, and ARM templates for security misconfigurations before deployment.",
     },
     {
-      name: "TruffleHog",
-      category: "Secrets",
-      type: "secrets",
-      description: "Secret scanning in git history",
-      icon: "🐷",
-    },
-    {
-      name: "Grype",
-      category: "Container",
-      type: "container",
-      description: "Container image vulnerability scanner",
-      icon: "📦",
-    },
-    {
-      name: "Terrascan",
+      name: "Lynis",
       category: "IaC",
       type: "iac",
-      description: "IaC security scanner",
-      icon: "🏗️",
-    },
-    {
-      name: "KICS",
-      category: "IaC",
-      type: "iac",
-      description: "Keeping Infrastructure as Code Secure",
-      icon: "🔧",
+      description: "Linux/Unix system security auditing",
+      icon: "🖥️",
+      what: "Audits system hardening, compliance, and security configuration of Linux/Unix servers and containers.",
     },
   ];
 
@@ -531,15 +527,21 @@ const LandingPage = () => {
     },
   ];
 
+  // Actual 9 compliance frameworks supported by backend
   const complianceFrameworks = [
-    { name: "SOC 2", icon: "🔒" },
-    { name: "HIPAA", icon: "🏥" },
-    { name: "PCI-DSS", icon: "💳" },
-    { name: "GDPR", icon: "🇪🇺" },
-    { name: "ISO 27001", icon: "📋" },
-    { name: "NIST", icon: "🏛️" },
-    { name: "FedRAMP", icon: "🦅" },
-    { name: "OWASP", icon: "🛡️" },
+    {
+      name: "OWASP Top 10",
+      icon: "🛡️",
+      what: "Web application security risks",
+    },
+    { name: "NIST 800-53", icon: "🏛️", what: "Federal security controls" },
+    { name: "ISO 27001", icon: "📋", what: "Information security standard" },
+    { name: "PCI-DSS", icon: "💳", what: "Payment card security" },
+    { name: "HIPAA", icon: "🏥", what: "Healthcare data protection" },
+    { name: "SOC 2", icon: "🔒", what: "Service organization controls" },
+    { name: "GDPR", icon: "🇪🇺", what: "EU data privacy regulation" },
+    { name: "CIS Controls", icon: "🔐", what: "Critical security controls" },
+    { name: "MITRE ATT&CK", icon: "⚔️", what: "Adversary tactics framework" },
   ];
 
   // Fix suggestion data for modal
@@ -901,15 +903,15 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             <div className="flex items-center justify-center gap-6 mb-10 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <CheckBadgeIcon className="w-5 h-5 text-green-500" />
-                <span>SOC 2 Certified</span>
+                <span>10 Security Scanners</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckBadgeIcon className="w-5 h-5 text-green-500" />
-                <span>GDPR Compliant</span>
+                <span>9 Compliance Frameworks</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckBadgeIcon className="w-5 h-5 text-green-500" />
-                <span>256-bit Encryption</span>
+                <span>Dual AI Analysis</span>
               </div>
             </div>
 
@@ -981,16 +983,16 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
       <section className="py-16 border-b border-gray-800/50 bg-gray-900/20">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-center text-gray-500 text-sm uppercase tracking-widest mb-10">
-            Enterprise-Grade Security Standards
+            Compliance Frameworks We Support
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
             {[
-              { name: "SOC 2 Type II", icon: "🛡️", desc: "Compliant" },
-              { name: "ISO 27001", icon: "📋", desc: "Certified" },
-              { name: "GDPR", icon: "🇪🇺", desc: "Compliant" },
-              { name: "HIPAA", icon: "🏥", desc: "Ready" },
-              { name: "PCI DSS", icon: "💳", desc: "Level 1" },
-              { name: "OWASP", icon: "🔒", desc: "Top 10" },
+              { name: "OWASP Top 10", icon: "🛡️", desc: "Mapping" },
+              { name: "NIST 800-53", icon: "🏛️", desc: "Controls" },
+              { name: "ISO 27001", icon: "📋", desc: "Framework" },
+              { name: "PCI-DSS", icon: "💳", desc: "Checks" },
+              { name: "HIPAA", icon: "🏥", desc: "Rules" },
+              { name: "SOC 2", icon: "🔒", desc: "Controls" },
             ].map((standard, i) => (
               <div
                 key={i}
@@ -1386,24 +1388,31 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             ))}
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredScanners.map((scanner, index) => (
               <div
                 key={index}
                 className="group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-violet-500/30 hover:bg-gray-800/50 transition-all hover:transform hover:-translate-y-1"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center text-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center text-3xl">
                     {scanner.icon}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-white">{scanner.name}</h4>
-                    <span className="text-xs text-violet-400 font-medium">
+                    <h4 className="font-bold text-white text-lg">
+                      {scanner.name}
+                    </h4>
+                    <span className="text-xs text-violet-400 font-medium px-2 py-0.5 bg-violet-500/10 rounded-full">
                       {scanner.category}
                     </span>
                   </div>
                 </div>
-                <p className="text-sm text-gray-400">{scanner.description}</p>
+                <p className="text-sm text-gray-300 font-medium mb-2">
+                  {scanner.description}
+                </p>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {scanner.what}
+                </p>
               </div>
             ))}
           </div>
@@ -1426,57 +1435,78 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
               <ServerStackIcon className="w-4 h-4 text-blue-400" />
               <span className="text-sm text-blue-400">
-                Seamless Integration
+                Git Platform Integration
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Works With Your <span className="text-blue-400">Stack</span>
+              Connect Your <span className="text-blue-400">Repositories</span>
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Native integrations with your favorite tools. Deploy in minutes.
+              Direct integration with major Git platforms. Connect your repos
+              and start scanning.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
-              { name: "GitHub", icon: "🐙", category: "Version Control" },
-              { name: "GitLab", icon: "🦊", category: "Version Control" },
-              { name: "Bitbucket", icon: "🪣", category: "Version Control" },
-              { name: "Jenkins", icon: "🔧", category: "CI/CD" },
-              { name: "CircleCI", icon: "⭕", category: "CI/CD" },
-              { name: "Docker", icon: "🐳", category: "Container" },
-              { name: "Kubernetes", icon: "☸️", category: "Container" },
-              { name: "AWS", icon: "☁️", category: "Cloud" },
-              { name: "Azure", icon: "🔷", category: "Cloud" },
-              { name: "GCP", icon: "🌐", category: "Cloud" },
-              { name: "Slack", icon: "💬", category: "Notifications" },
-              { name: "Jira", icon: "📋", category: "Issue Tracking" },
+              {
+                name: "GitHub",
+                icon: "🐙",
+                category: "Git Platform",
+                desc: "Connect public or private repos via GitHub API. OAuth authentication supported.",
+              },
+              {
+                name: "GitLab",
+                icon: "🦊",
+                category: "Git Platform",
+                desc: "Integrate with GitLab.com or self-hosted instances. Full repository access.",
+              },
+              {
+                name: "Bitbucket",
+                icon: "🪣",
+                category: "Git Platform",
+                desc: "Support for Bitbucket Cloud repositories. Team and personal accounts.",
+              },
             ].map((integration, i) => (
               <div
                 key={i}
-                className="group p-4 rounded-xl bg-gray-800/30 border border-gray-800/50 hover:border-blue-500/30 hover:bg-gray-800/50 transition-all text-center"
+                className="group p-6 rounded-2xl bg-gray-800/30 border border-gray-800/50 hover:border-blue-500/30 hover:bg-gray-800/50 transition-all text-center"
               >
-                <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
                   {integration.icon}
                 </div>
-                <div className="font-medium text-white text-sm">
+                <div className="font-bold text-white text-lg mb-1">
                   {integration.name}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-blue-400 font-medium mb-3">
                   {integration.category}
                 </div>
+                <p className="text-sm text-gray-400">{integration.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <button
-              onClick={() => navigate("/register")}
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
-            >
-              View all 50+ integrations
-              <ArrowRightIcon className="w-4 h-4" />
-            </button>
+          <div className="text-center mt-12 p-6 rounded-2xl bg-gray-800/20 border border-gray-700/30 max-w-2xl mx-auto">
+            <h4 className="text-lg font-semibold text-white mb-2">
+              Additional Capabilities
+            </h4>
+            <div className="flex flex-wrap justify-center gap-3">
+              {[
+                { name: "Webhooks", desc: "CI/CD triggers" },
+                { name: "REST API", desc: "Custom integration" },
+                { name: "Email Alerts", desc: "Notifications" },
+              ].map((cap, i) => (
+                <div
+                  key={i}
+                  className="px-4 py-2 rounded-lg bg-gray-800/50 border border-gray-700/30"
+                >
+                  <span className="text-white font-medium text-sm">
+                    {cap.name}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-2">{cap.desc}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

@@ -52,9 +52,9 @@ const AboutPage = () => {
   ];
 
   const stats = [
-    { value: "99.7%", label: "Detection Accuracy", icon: CpuChipIcon },
-    { value: "12+", label: "Security Scanners", icon: ShieldCheckIcon },
-    { value: "<100ms", label: "Average Scan Time", icon: BoltIcon },
+    { value: "AI", label: "Dual AI Providers", icon: CpuChipIcon },
+    { value: "10", label: "Security Scanners", icon: ShieldCheckIcon },
+    { value: "9", label: "Compliance Frameworks", icon: BoltIcon },
     { value: "256-bit", label: "Encryption Standard", icon: LockClosedIcon },
   ];
 
@@ -69,19 +69,19 @@ const AboutPage = () => {
       year: "2024",
       title: "Platform Launch",
       description:
-        "Released our AI-powered security scanning platform with support for 12+ security scanners.",
+        "Released our AI-powered security scanning platform with support for 10 security scanners and 9 compliance frameworks.",
     },
     {
       year: "2025",
       title: "Enterprise Ready",
       description:
-        "Achieved SOC 2 Type II certification and launched enterprise features including SSO and advanced compliance.",
+        "Launched enterprise features including advanced compliance mapping, webhook integrations, and role-based access control.",
     },
     {
       year: "Future",
       title: "Continuous Innovation",
       description:
-        "Expanding AI capabilities, adding new scanners, and building the future of application security.",
+        "Expanding AI capabilities, adding new scanners like Redis caching and Elasticsearch indexing.",
     },
   ];
 
