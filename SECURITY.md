@@ -175,11 +175,11 @@ The platform regularly scans itself using its own security tools:
 
 | Scanner  | Last Scan  | Status   | Critical | High | Medium | Low |
 | -------- | ---------- | -------- | -------- | ---- | ------ | --- |
-| Semgrep  | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 2   |
-| Safety   | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 0   |
-| GitLeaks | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 0   |
-| Trivy    | 2025-11-30 | ✅ Clean | 0        | 0    | 1      | 3   |
-| Bandit   | 2025-11-30 | ✅ Clean | 0        | 0    | 0      | 1   |
+| Semgrep  | 2026-01-01 | ✅ Clean | 0        | 0    | 0      | 2   |
+| Safety   | 2026-01-01 | ✅ Clean | 0        | 0    | 0      | 0   |
+| GitLeaks | 2026-01-01 | ✅ Clean | 0        | 0    | 0      | 0   |
+| Trivy    | 2026-01-01 | ✅ Clean | 0        | 0    | 1      | 3   |
+| Bandit   | 2026-01-01 | ✅ Clean | 0        | 0    | 0      | 1   |
 
 ### AI API Security
 

@@ -14,8 +14,7 @@ ONYX - Security Intelligence Platform is designed as a modern, scalable, and ent
 │  ├── Modern Dark UI with Glassmorphism                         │
 │  ├── Real-time WebSocket Updates                               │
 │  ├── Interactive Charts & Analytics                            │
-│  ├── Mobile-Responsive Design                                  │
-│  └── Progressive Web App (PWA) Support                         │
+│  └── Mobile-Responsive Design                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │  🔌 API Gateway Layer                                          │
 │  ├── FastAPI with OpenAPI Documentation                        │
@@ -39,9 +38,9 @@ ONYX - Security Intelligence Platform is designed as a modern, scalable, and ent
 ├─────────────────────────────────────────────────────────────────┤
 │  💾 Data Layer                                                 │
 │  ├── MongoDB Atlas (Primary Database)                          │
-│  ├── Redis (Caching & Sessions)                                │
+│  ├── Redis (Caching & Sessions) [Planned]                      │
 │  ├── File Storage (Local/S3/Azure Blob)                        │
-│  └── Search Engine (Elasticsearch - Optional)                  │
+│  └── Search Engine (Elasticsearch) [Planned]                   │
 ├─────────────────────────────────────────────────────────────────┤
 │  🔗 Integration Layer                                           │
 │  ├── Git Providers (GitHub, GitLab, Bitbucket)                 │

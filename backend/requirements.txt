@@ -115,3 +115,12 @@ pyotp>=2.9.0
 
 # User Agent Parsing
 user-agents>=2.2.0
+
+# ============================================================================
+# Testing Dependencies
+# ============================================================================
+# Run tests with: pytest tests/ -v
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+httpx>=0.25.0  # For async testing

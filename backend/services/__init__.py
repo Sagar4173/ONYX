@@ -11,8 +11,7 @@ Organized Structure:
 │   ├── vulnerability/ # Vulnerability lifecycle management
 │   ├── pentest/       # Penetration testing automation
 │   ├── workflow/      # Enhanced scanning workflows
-│   ├── utils/         # SBOM, comparison utilities
-│   └── legacy/        # Deprecated modules (backward compat)
+│   └── utils/         # SBOM, comparison utilities
 ├── compliance/        # Compliance & Governance
 ├── security/          # Security Services (Threat Intel, SOAR, ML)
 ├── ai/                # AI & Machine Learning

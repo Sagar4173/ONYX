@@ -127,7 +127,7 @@ class Settings(BaseSettings):
     trivy_cache_dir: str = Field(default="/tmp/trivy-cache", env="TRIVY_CACHE_DIR")
     trivy_db_update_interval: int = Field(default=24, env="TRIVY_DB_UPDATE_INTERVAL")  # hours
     
-    # Redis
+    # Redis (Planned - not yet implemented, reserved for future caching)
     redis_url: str = Field(default="redis://redis:6379", env="REDIS_URL")
     redis_db: int = Field(default=0, env="REDIS_DB")
     

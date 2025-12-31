@@ -4,9 +4,6 @@ Security Scanning Services
 
 A modular, well-organized security scanning framework.
 
-⚠️ IMPORTANT: Legacy modules in services/scanning/legacy/ are DEPRECATED
-and will be removed in a future version. Do not use them for new code.
-
 PACKAGE STRUCTURE:
 ==================
 
@@ -18,8 +15,7 @@ PACKAGE STRUCTURE:
     ├── vulnerability/  # Vulnerability lifecycle management
     ├── pentest/        # Penetration testing automation
     ├── workflow/       # Enhanced scanning workflows
-    ├── utils/          # SBOM, comparison utilities
-    └── legacy/         # ⚠️ DEPRECATED - DO NOT USE (backward compat only)
+    └── utils/          # SBOM, comparison utilities
 
 RECOMMENDED USAGE:
 ==================
@@ -44,11 +40,6 @@ RECOMMENDED USAGE:
     
     # Vulnerability management
     from services.scanning.vulnerability import VulnerabilityManager
-
-MIGRATION GUIDE:
-================
-If you're using legacy imports, please migrate to the recommended imports above.
-Legacy modules will be removed in version 2.0.0.
 """
 
 # ============================================================================
