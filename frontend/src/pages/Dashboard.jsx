@@ -485,12 +485,12 @@ const Dashboard = ({ notifications = [] }) => {
     },
     {
       label: "Security Score",
-      value: `${Math.round(stats?.avgSecurityScore || 85)}%`,
+      value: stats?.avgSecurityScore != null ? `${Math.round(stats.avgSecurityScore)}%` : "N/A",
       trend: stats?.scoreTrend,
       trendPositive: true,
       icon: SparklesIcon,
       gradient: "from-emerald-500 to-green-500",
-      subtitle: "Overall health",
+      subtitle: stats?.avgSecurityScore != null ? "Overall health" : "Run first scan",
     },
   ];
 
@@ -558,10 +558,12 @@ const Dashboard = ({ notifications = [] }) => {
         }
       />
 
-      {/* Stats Grid */}
+      {/* Stats Grid — Staggered entrance animation */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
         {statsCards.map((stat, index) => (
-          <StatCard key={stat.label} stat={stat} index={index} />
+          <div key={stat.label} className={`animate-stagger-${index + 1}`}>
+            <StatCard stat={stat} index={index} />
+          </div>
         ))}
       </div>
 
@@ -576,12 +578,14 @@ const Dashboard = ({ notifications = [] }) => {
 
           <div className="flex flex-col items-center py-4">
             <SecurityScoreChart
-              score={Math.round(stats?.avgSecurityScore || 85)}
+              score={stats?.avgSecurityScore != null ? Math.round(stats.avgSecurityScore) : 0}
             />
             <p className="text-sm text-gray-400 mt-4 text-center">
-              {(stats?.avgSecurityScore || 85) >= 80
+              {stats?.avgSecurityScore == null
+                ? "Run your first scan to see your score"
+                : stats.avgSecurityScore >= 80
                 ? "Your security posture is healthy"
-                : (stats?.avgSecurityScore || 85) >= 60
+                : stats.avgSecurityScore >= 60
                 ? "Some issues need attention"
                 : "Critical issues detected"}
             </p>

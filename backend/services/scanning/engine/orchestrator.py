@@ -241,24 +241,31 @@ class ScanOrchestrator:
         self, 
         scanners: List[BaseScanner]
     ) -> List[BaseScanner]:
-        """Check which scanners are available."""
+        """Check which scanners are available (concurrently)."""
         available = []
         
-        availability_checks = [
-            (scanner, scanner.is_available()) 
-            for scanner in scanners
-        ]
-        
-        for scanner, check in availability_checks:
+        async def _check_one(scanner: BaseScanner) -> Optional[BaseScanner]:
             try:
-                is_available = await check
+                is_available = await scanner.is_available()
                 if is_available:
-                    available.append(scanner)
                     logger.debug(f"Scanner {scanner.SCANNER_NAME} is available")
+                    return scanner
                 else:
                     logger.warning(f"Scanner {scanner.SCANNER_NAME} is not available")
+                    return None
             except Exception as e:
                 logger.warning(f"Scanner {scanner.SCANNER_NAME} availability check failed: {e}")
+                return None
+        
+        # Run all availability checks concurrently
+        results = await asyncio.gather(
+            *[_check_one(scanner) for scanner in scanners],
+            return_exceptions=True
+        )
+        
+        for result in results:
+            if isinstance(result, BaseScanner):
+                available.append(result)
         
         return available
     
@@ -269,27 +276,37 @@ class ScanOrchestrator:
         scan_id: str,
         options: Dict[str, Any]
     ) -> List[Finding]:
-        """Run multiple scanners in parallel."""
-        all_findings = []
+        """Run multiple scanners in parallel using asyncio.gather."""
         
-        # Create scan tasks
-        tasks = []
-        for scanner in scanners:
-            task = self._run_scanner_with_timeout(
-                scanner, target, scan_id, options
-            )
-            tasks.append((scanner.SCANNER_NAME, task))
-        
-        # Run all tasks
-        for scanner_name, task in tasks:
+        async def _run_one(scanner: BaseScanner) -> tuple:
+            """Run a single scanner and return (name, findings_or_error)."""
             try:
-                findings = await task
-                all_findings.extend(findings)
-                logger.info(f"{scanner_name}: Found {len(findings)} findings")
+                findings = await self._run_scanner_with_timeout(
+                    scanner, target, scan_id, options
+                )
+                logger.info(f"{scanner.SCANNER_NAME}: Found {len(findings)} findings")
+                return (scanner.SCANNER_NAME, findings)
             except ScanTimeoutError:
-                logger.warning(f"{scanner_name}: Scan timed out")
+                logger.warning(f"{scanner.SCANNER_NAME}: Scan timed out")
+                return (scanner.SCANNER_NAME, [])
             except Exception as e:
-                logger.error(f"{scanner_name}: Scan failed - {e}")
+                logger.error(f"{scanner.SCANNER_NAME}: Scan failed - {e}")
+                return (scanner.SCANNER_NAME, [])
+        
+        # Run ALL scanners concurrently with asyncio.gather
+        results = await asyncio.gather(
+            *[_run_one(scanner) for scanner in scanners],
+            return_exceptions=True
+        )
+        
+        # Collect all findings from successful scans
+        all_findings = []
+        for result in results:
+            if isinstance(result, tuple):
+                _, findings = result
+                all_findings.extend(findings)
+            elif isinstance(result, Exception):
+                logger.error(f"Unexpected scanner error: {result}")
         
         return all_findings
     

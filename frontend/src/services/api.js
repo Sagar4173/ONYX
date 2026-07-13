@@ -10,9 +10,6 @@ const API_BASE_URL = import.meta.env.DEV
   ? "http://127.0.0.1:8000/api" // Direct connection in development with /api prefix
   : import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
-// Check if we're in demo mode (no backend available)
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true" || false;
-
 // WebSocket URL - Connect directly to backend in development
 const WS_BASE_URL = import.meta.env.DEV
   ? "ws://127.0.0.1:8000" // Direct connection in development

@@ -146,11 +146,11 @@ export const PageHeader = ({
   );
 };
 
-// Page Container Component - Wraps page content with consistent styling
+// Page Container Component - Wraps page content with consistent styling and entrance animation
 export const PageContainer = ({ children, className = "" }) => {
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8 ${className}`}
+      className={`min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8 page-enter ${className}`}
     >
       {children}
     </div>
@@ -188,47 +188,95 @@ export const SectionHeader = ({ title, description, action }) => {
   );
 };
 
-// Empty State Component
+// Empty State Component — Enhanced with gradient icon and entrance animation
 export const EmptyState = ({ icon: Icon, title, description, action }) => {
   return (
-    <div className="text-center py-12 lg:py-16">
+    <div className="text-center py-12 lg:py-16 animate-fade-in-up">
       {Icon && (
-        <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
-          <Icon className="h-12 w-12 text-gray-400" />
+        <div className="inline-flex p-5 rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-700/40 border border-gray-700/30 mb-5 shadow-lg shadow-black/20">
+          <Icon className="h-12 w-12 text-gray-300" />
         </div>
       )}
-      <h3 className="text-lg font-medium text-white mb-2">{title}</h3>
-      <p className="text-gray-400 max-w-sm mx-auto mb-6">{description}</p>
+      <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      <p className="text-gray-400 max-w-sm mx-auto mb-6 leading-relaxed">{description}</p>
       {action}
     </div>
   );
 };
 
-// Loading State Component
-export const LoadingState = ({ message = "Loading..." }) => {
+// Skeleton Card Component — Shimmer loading placeholder
+export const SkeletonCard = ({ className = "", lines = 3 }) => {
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
-        <p className="text-gray-400">{message}</p>
+    <div className={`skeleton-card p-5 lg:p-6 ${className}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="skeleton w-10 h-10 rounded-xl" />
+        <div className="skeleton w-16 h-6 rounded-lg" />
+      </div>
+      <div className="skeleton w-24 h-8 rounded-lg mb-2" />
+      <div className="skeleton w-32 h-4 rounded mb-1" />
+      {lines > 2 && <div className="skeleton w-20 h-3 rounded mt-2" />}
+    </div>
+  );
+};
+
+// Loading State Component — Branded skeleton shimmer
+export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
+  return (
+    <div className="animate-fade-in-up">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {Array.from({ length: cards }).map((_, i) => (
+          <SkeletonCard key={i} className={`animate-stagger-${i + 1}`} />
+        ))}
+      </div>
+      <div className="flex items-center justify-center py-6 gap-3">
+        <div className="relative">
+          <div className="w-8 h-8 rounded-full border-2 border-gray-700 border-t-blue-500 animate-spin" />
+          <div className="absolute inset-0 w-8 h-8 rounded-full border-2 border-transparent border-b-purple-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+        </div>
+        <p className="text-gray-400 text-sm">{message}</p>
       </div>
     </div>
   );
 };
 
-// Error State Component
+// Live Indicator Component — Real-time status display
+export const LiveIndicator = ({ status = "connected", label }) => {
+  const config = {
+    connected: { color: "bg-emerald-500", shadow: "shadow-emerald-500/50", text: "text-emerald-400", label: label || "Live" },
+    scanning: { color: "bg-amber-500", shadow: "shadow-amber-500/50", text: "text-amber-400", label: label || "Scanning" },
+    disconnected: { color: "bg-red-500", shadow: "shadow-red-500/50", text: "text-red-400", label: label || "Offline" },
+    idle: { color: "bg-gray-500", shadow: "shadow-gray-500/50", text: "text-gray-400", label: label || "Idle" },
+  };
+  const c = config[status] || config.idle;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`relative flex h-2.5 w-2.5`}>
+        {status === "connected" && (
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${c.color} opacity-75`} />
+        )}
+        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${c.color} shadow-lg ${c.shadow}`} />
+      </span>
+      <span className={`text-xs font-medium ${c.text} uppercase tracking-wider`}>{c.label}</span>
+    </div>
+  );
+};
+
+// Error State Component — Enhanced with gradient background
 export const ErrorState = ({ title = "Error", message, onRetry }) => {
   return (
-    <div className="text-center py-12">
-      <div className="inline-flex p-4 rounded-2xl bg-red-500/10 mb-4">
+    <div className="text-center py-12 animate-fade-in-up">
+      <div className="inline-flex p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-900/10 border border-red-500/20 mb-5">
         <ShieldCheckIcon className="h-12 w-12 text-red-400" />
       </div>
-      <h3 className="text-lg font-medium text-white mb-2">{title}</h3>
-      <p className="text-gray-400 max-w-sm mx-auto mb-6">{message}</p>
+      <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      <p className="text-gray-400 max-w-sm mx-auto mb-6 leading-relaxed">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
+          className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 
+                     text-white rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25
+                     hover:-translate-y-0.5 font-medium"
         >
           Try Again
         </button>
@@ -244,7 +292,9 @@ export default {
   GlassCard,
   SectionHeader,
   EmptyState,
+  SkeletonCard,
   LoadingState,
+  LiveIndicator,
   ErrorState,
   pageConfig,
 };

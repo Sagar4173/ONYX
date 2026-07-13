@@ -142,7 +142,7 @@ const LandingPage = () => {
     scans: 0,
     vulnerabilities: 0,
     developers: 0,
-    uptime: 99.9,
+    uptime: null,
   });
   const [isVisible, setIsVisible] = useState({});
   const heroRef = useRef(null);
@@ -199,16 +199,15 @@ const LandingPage = () => {
             scans: data.total_scans || 0,
             vulnerabilities: data.total_vulnerabilities || 0,
             developers: data.total_users || 0,
-            uptime: data.uptime_percentage || 99.9,
+            uptime: data.uptime_percentage ?? null,
           });
         } else {
-          // Fallback: Calculate from actual database queries
-          // This shows 0 if no data instead of fake numbers
+          // Fallback: Show 0 if no data instead of fake numbers
           setCounters({
             scans: 0,
             vulnerabilities: 0,
             developers: 0,
-            uptime: 99.9,
+            uptime: null,
           });
         }
       } catch (error) {
@@ -218,7 +217,7 @@ const LandingPage = () => {
           scans: 0,
           vulnerabilities: 0,
           developers: 0,
-          uptime: 99.9,
+          uptime: null,
         });
       }
     };
@@ -350,7 +349,7 @@ const LandingPage = () => {
       value: counters.developers.toLocaleString() + "+",
       icon: UserGroupIcon,
     },
-    { label: "Platform Uptime", value: counters.uptime + "%", icon: ClockIcon },
+    { label: "Platform Uptime", value: counters.uptime != null ? counters.uptime + "%" : "—", icon: ClockIcon },
   ];
 
   const scanners = [

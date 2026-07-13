@@ -54,7 +54,7 @@ export const dashboardAPI = {
         scoresArray.length > 0
           ? scoresArray.reduce((sum, score) => sum + score, 0) /
             scoresArray.length
-          : 85; // Default to 85 if no data
+          : null; // No scan data available yet
 
       // Calculate real trends based on actual data
       // Get reports from last 7 days and compare with previous 7 days

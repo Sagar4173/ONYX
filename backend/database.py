@@ -35,7 +35,10 @@ class DatabaseManager:
                 
             # Replace placeholder with actual password if needed
             if '<db_password>' in mongodb_uri:
-                db_password = os.getenv('MONGO_PASSWORD', 'your-password')
+                db_password = os.getenv('MONGO_PASSWORD')
+                if not db_password:
+                    logger.error("MONGO_PASSWORD environment variable is required when MONGODB_URI contains <db_password> placeholder")
+                    return False
                 mongodb_uri = mongodb_uri.replace('<db_password>', db_password)
             
             # Create client with timeout settings
@@ -260,12 +263,28 @@ class DatabaseManager:
             
             severity_distribution = {item['_id']: item['count'] for item in severity_data}
             
+            # Calculate real security score based on findings severity distribution
+            total_findings = sum(severity_distribution.values()) if severity_distribution else 0
+            if total_findings > 0 and completed_scans > 0:
+                # Weighted penalty: critical=-20, high=-10, medium=-3, low=-1 per finding, normalized per scan
+                critical_count = severity_distribution.get('critical', 0)
+                high_count = severity_distribution.get('high', 0)
+                medium_count = severity_distribution.get('medium', 0)
+                low_count = severity_distribution.get('low', 0)
+                
+                penalty = (critical_count * 20 + high_count * 10 + medium_count * 3 + low_count * 1)
+                avg_penalty_per_scan = penalty / completed_scans
+                # Score starts at 100, deducted by average penalty, floored at 0
+                average_security_score = round(max(0.0, min(100.0, 100.0 - avg_penalty_per_scan)), 1)
+            else:
+                average_security_score = None  # No data to calculate from
+            
             return {
                 "total_scans": total_scans,
                 "completed_scans": completed_scans,
                 "severity_distribution": severity_distribution,
-                "projects_scanned": total_scans,  # Simplified
-                "average_security_score": 85.0   # Calculated based on findings
+                "projects_scanned": total_scans,
+                "average_security_score": average_security_score
             }
             
         except Exception as e:

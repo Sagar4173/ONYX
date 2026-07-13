@@ -22,6 +22,7 @@ from dotenv import load_dotenv
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+import shutil
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -465,9 +466,13 @@ async def health_check():
     ]
     
     for scanner_name, _ in scanner_checks:
-        # For now, mark as available (actual check would verify binary exists)
+        # Verify scanner is both enabled AND actually installed on the system
         if settings.__dict__.get(f"enable_{scanner_name}", True):
-            available_scanners.append(scanner_name)
+            scanner_path = getattr(settings, f"{scanner_name}_path", scanner_name)
+            if shutil.which(scanner_path):
+                available_scanners.append(scanner_name)
+            else:
+                warnings.append(f"Scanner '{scanner_name}' is enabled but not found in PATH")
     
     health_data["scanners"]["available"] = available_scanners
     health_data["scanners"]["active"] = len(available_scanners) if health_data["database"]["connected"] else 0
@@ -500,7 +505,7 @@ async def get_public_stats():
                 "total_scans": 0,
                 "total_vulnerabilities": 0,
                 "total_users": 0,
-                "uptime_percentage": 99.9
+                "uptime_percentage": None
             }
         
         # Get real counts from database
@@ -517,7 +522,7 @@ async def get_public_stats():
             "total_scans": total_scans,
             "total_vulnerabilities": total_vulnerabilities,
             "total_users": total_users,
-            "uptime_percentage": 99.9  # Could be calculated from health monitoring
+            "uptime_percentage": None  # Requires external monitoring (e.g., UptimeRobot, Betterstack)
         }
         
     except Exception as e:
@@ -526,7 +531,7 @@ async def get_public_stats():
             "total_scans": 0,
             "total_vulnerabilities": 0,
             "total_users": 0,
-            "uptime_percentage": 99.9
+            "uptime_percentage": None
         }
 
 

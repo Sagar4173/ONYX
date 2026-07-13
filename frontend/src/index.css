@@ -40,8 +40,20 @@ body {
 #root {
   min-height: 100vh;
   width: 100%;
-  background: radial-gradient(ellipse at top, #1e3a8a 0%, #0a0e1a 70%),
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(30, 58, 138, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(88, 28, 135, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 60%),
     linear-gradient(135deg, #0a0e1a 0%, #111827 50%, #0a0e1a 100%);
+  background-size: 200% 200%, 200% 200%, 100% 100%, 100% 100%;
+  animation: mesh-drift 20s ease-in-out infinite;
+}
+
+@keyframes mesh-drift {
+  0%, 100% { background-position: 0% 0%, 100% 100%, 50% 50%, 0% 0%; }
+  25% { background-position: 100% 0%, 0% 100%, 50% 50%, 0% 0%; }
+  50% { background-position: 100% 100%, 0% 0%, 50% 50%, 0% 0%; }
+  75% { background-position: 0% 100%, 100% 0%, 50% 50%, 0% 0%; }
 }
 
 /* Enhanced Custom scrollbar */
@@ -204,47 +216,42 @@ body {
   }
 }
 
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8),
-      0 0 30px rgba(59, 130, 246, 0.6);
-  }
+/* Consolidated animation classes — no duplicates */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -468px 0;
-  }
-  100% {
-    background-position: 468px 0;
-  }
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
 }
 
-@keyframes glow {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out;
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.animate-shimmer {
+  animation: shimmer-slide 2s infinite;
+  background: linear-gradient(to right, #374151 4%, #4b5563 25%, #374151 36%);
+  background-size: 1000px 100%;
 }
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Stagger entrance animations for cards */
+.animate-stagger-1 { animation: fadeInUp 0.5s ease-out 0.05s both; }
+.animate-stagger-2 { animation: fadeInUp 0.5s ease-out 0.1s both; }
+.animate-stagger-3 { animation: fadeInUp 0.5s ease-out 0.15s both; }
+.animate-stagger-4 { animation: fadeInUp 0.5s ease-out 0.2s both; }
+.animate-stagger-5 { animation: fadeInUp 0.5s ease-out 0.25s both; }
+.animate-stagger-6 { animation: fadeInUp 0.5s ease-out 0.3s both; }
+.animate-stagger-7 { animation: fadeInUp 0.5s ease-out 0.35s both; }
+.animate-stagger-8 { animation: fadeInUp 0.5s ease-out 0.4s both; }
 
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out;
@@ -325,29 +332,7 @@ body {
   }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
 
-.animate-bounce-subtle {
-  animation: bounce-subtle 2s ease-in-out infinite;
-}
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 2s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  animation: shimmer-slide 2s infinite;
-}
-
-.animate-float {
-  animation: float-gentle 4s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
 
 /* Glass morphism utilities */
 .glass-card {
@@ -389,6 +374,114 @@ body {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(75, 85, 99, 0.2);
+}
+
+/* Live pulse indicators */
+.live-pulse {
+  position: relative;
+}
+
+.live-pulse::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  animation: live-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.scanning-pulse::after {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Sidebar active nav glow */
+.nav-active-glow {
+  position: relative;
+}
+
+.nav-active-glow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+  animation: glow-bar 2s ease-in-out infinite;
+}
+
+@keyframes glow-bar {
+  0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(59, 130, 246, 0.7); }
+}
+
+/* Skeleton loader for cards */
+.skeleton-card {
+  background: rgba(31, 41, 55, 0.4);
+  border: 1px solid rgba(75, 85, 99, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  animation: skeleton-sweep 1.8s ease-in-out infinite;
+}
+
+@keyframes skeleton-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Page transition */
+.page-enter {
+  animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
 }
 
 /* Enhanced modern UI utilities */

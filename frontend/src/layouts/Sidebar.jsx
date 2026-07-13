@@ -124,10 +124,10 @@ const NavItem = ({ item, collapsed, onClick }) => {
       className="group relative block"
       title={collapsed ? item.name : undefined}
     >
-      {/* Active indicator */}
+      {/* Active indicator with animated glow */}
       {isActive && (
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full 
+          className="nav-active-glow absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full 
                        bg-gradient-to-b from-blue-500 to-purple-600 shadow-lg shadow-blue-500/50"
         />
       )}
