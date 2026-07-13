@@ -1,7 +1,7 @@
 /**
  * Progress - Progress bar and circular progress indicators
  */
-import React from "react";
+
 import { motion } from "framer-motion";
 
 const Progress = ({

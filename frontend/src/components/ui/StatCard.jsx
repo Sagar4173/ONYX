@@ -1,7 +1,7 @@
 /**
  * StatCard - Advanced statistics card with animations and trends
  */
-import React from "react";
+
 import { motion } from "framer-motion";
 import {
   ArrowTrendingUpIcon,

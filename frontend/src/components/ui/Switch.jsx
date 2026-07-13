@@ -1,7 +1,7 @@
 /**
  * Switch - Toggle switch component with smooth animations
  */
-import React from "react";
+
 import { motion } from "framer-motion";
 
 const Switch = ({

@@ -1,7 +1,7 @@
 /**
  * FloatingActionButton - Floating action button with menu
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 

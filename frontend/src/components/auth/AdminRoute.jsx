@@ -2,7 +2,6 @@
  * Admin Route Guard Component
  * Protects admin-only routes by checking user role
  */
-import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { ShieldExclamationIcon } from "@heroicons/react/24/outline";

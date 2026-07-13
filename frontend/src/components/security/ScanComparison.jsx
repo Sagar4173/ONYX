@@ -3,7 +3,7 @@
  * Compare two security scans to show fixed, new, and unchanged vulnerabilities
  * Features: delta analysis, remediation tracking, regression detection
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircle,

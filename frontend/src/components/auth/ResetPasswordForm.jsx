@@ -1,15 +1,14 @@
 /**
  * Enhanced Reset Password Form Component
  */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   LockClosedIcon,
   EyeIcon,
   EyeSlashIcon,
   ArrowPathIcon,
   ArrowRightIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
+  } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
@@ -17,8 +16,7 @@ import toast from "react-hot-toast";
 export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     password: "",
-    confirm_password: "",
-  });
+    confirm_password: ""});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,8 +25,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
     uppercase: false,
     lowercase: false,
     number: false,
-    special: false,
-  });
+    special: false});
   const { resetPassword } = useAuth();
 
   // Validate password in real-time
@@ -39,8 +36,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
       uppercase: /[A-Z]/.test(password),
       lowercase: /[a-z]/.test(password),
       number: /\d/.test(password),
-      special: /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password),
-    });
+      special: /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)});
   }, [formData.password]);
 
   const handleSubmit = async (e) => {
@@ -132,8 +128,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                 uppercase: "Uppercase",
                 lowercase: "Lowercase",
                 number: "Number",
-                special: "Special char",
-              }).map(([key, label]) => (
+                special: "Special char"}).map(([key, label]) => (
                 <div key={key} className="flex items-center gap-2">
                   <div
                     className={`h-2 w-2 rounded-full transition-colors ${
@@ -166,8 +161,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    confirm_password: e.target.value,
-                  }))
+                    confirm_password: e.target.value}))
                 }
                 className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all group-hover:border-gray-500"
                 placeholder="Confirm new password"

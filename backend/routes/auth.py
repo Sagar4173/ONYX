@@ -742,22 +742,23 @@ async def test_email_configuration(
             }
         
         # Send test email
+        timestamp = utc_now().isoformat()
         success = await email_service.send_email(
             to_email=current_user.email,
-            subject="ðŸ§ª Test Email - ONYX Platform",
-            html_body="""
+            subject="Test Email - ONYX Platform",
+            html_body=f"""
             <html>
             <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2 style="color: #4F46E5;">âœ… Email Configuration Test</h2>
+                <h2 style="color: #4F46E5;">Email Configuration Test</h2>
                 <p>Congratulations! Your email configuration is working correctly.</p>
                 <p>This test email was sent from the ONYX Platform.</p>
                 <hr style="margin: 20px 0;">
                 <p style="color: #666; font-size: 12px;">
-                    Test performed at: {utc_now().isoformat()}
+                    Test performed at: {timestamp}
                 </p>
             </body>
             </html>
-            """.format(datetime=datetime)
+            """
         )
         
         if success:

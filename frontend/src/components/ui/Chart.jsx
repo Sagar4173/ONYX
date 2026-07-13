@@ -2,7 +2,7 @@
  * Chart - Lightweight chart components without external dependencies
  * Supports: Line, Bar, Pie, Donut, Area charts
  */
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 
 /**

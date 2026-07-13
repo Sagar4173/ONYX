@@ -1,7 +1,7 @@
 /**
  * Tabs - Accessible tabbed interface with animations
  */
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
 const Tabs = ({

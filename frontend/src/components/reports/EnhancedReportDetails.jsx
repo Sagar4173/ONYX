@@ -2,7 +2,7 @@
  * Enhanced Report Details Component - Comprehensive security report viewer
  * Unified Security Analysis & Compliance Report
  */
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { generatePDF } from "../../utils/pdfGenerator";

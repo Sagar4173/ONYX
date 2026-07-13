@@ -2,7 +2,7 @@
  * Analytics Page - Security Analytics Dashboard
  * Displays security trends, vulnerability metrics, and scan insights
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ChartBarIcon,
@@ -22,7 +22,6 @@ import {
   FolderIcon,
   CalendarDaysIcon,
   CpuChipIcon,
-  FireIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import {

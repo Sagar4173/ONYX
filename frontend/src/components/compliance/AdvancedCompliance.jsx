@@ -2,25 +2,18 @@
  * AdvancedCompliance Component - Multi-Framework Compliance Dashboard
  * Comprehensive compliance assessments for SOX, HIPAA, ISO 27001, PCI DSS, GDPR, SOC2, NIST, CIS, OWASP
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShieldCheckIcon,
-  ChartBarIcon,
-  DocumentTextIcon,
-  CheckCircleIcon,
   XCircleIcon,
-  ExclamationTriangleIcon,
-  ClockIcon,
-  ArrowPathIcon,
   ArrowDownTrayIcon,
   PlusIcon,
   EyeIcon,
-  BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
-import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+import { PageContainer, PageHeader} from "../../layouts";
 
 const AdvancedCompliance = () => {
   const queryClient = useQueryClient();
@@ -29,8 +22,7 @@ const AdvancedCompliance = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [formData, setFormData] = useState({
     project_id: "",
-    frameworks: [],
-  });
+    frameworks: []});
 
   // Compliance frameworks
   const frameworks = [
@@ -40,72 +32,63 @@ const AdvancedCompliance = () => {
       fullName: "Sarbanes-Oxley Act",
       description: "Financial reporting and internal controls",
       color: "from-blue-500 to-cyan-500",
-      icon: "💼",
-    },
+      icon: "💼"},
     {
       id: "hipaa",
       name: "HIPAA",
       fullName: "Health Insurance Portability and Accountability Act",
       description: "Healthcare data privacy and security",
       color: "from-green-500 to-emerald-500",
-      icon: "🏥",
-    },
+      icon: "🏥"},
     {
       id: "iso27001",
       name: "ISO 27001",
       fullName: "ISO/IEC 27001",
       description: "Information security management",
       color: "from-purple-500 to-pink-500",
-      icon: "🔒",
-    },
+      icon: "🔒"},
     {
       id: "pci_dss",
       name: "PCI DSS",
       fullName: "Payment Card Industry Data Security Standard",
       description: "Payment card data protection",
       color: "from-orange-500 to-red-500",
-      icon: "💳",
-    },
+      icon: "💳"},
     {
       id: "gdpr",
       name: "GDPR",
       fullName: "General Data Protection Regulation",
       description: "EU data protection and privacy",
       color: "from-blue-500 to-indigo-500",
-      icon: "🇪🇺",
-    },
+      icon: "🇪🇺"},
     {
       id: "soc2",
       name: "SOC 2",
       fullName: "Service Organization Control 2",
       description: "Service provider security controls",
       color: "from-teal-500 to-cyan-500",
-      icon: "🛡️",
-    },
+      icon: "🛡️"},
     {
       id: "nist",
       name: "NIST",
       fullName: "NIST Cybersecurity Framework",
       description: "Risk-based cybersecurity guidance",
       color: "from-indigo-500 to-purple-500",
-      icon: "🔐",
-    },
+      icon: "🔐"},
     {
       id: "cis",
       name: "CIS",
       fullName: "CIS Controls",
       description: "Cybersecurity best practices",
       color: "from-yellow-500 to-orange-500",
-      icon: "⚡",
-    },
+      icon: "⚡"},
     {
       id: "owasp",
       name: "OWASP",
       fullName: "OWASP Top 10",
       description: "Web application security risks",
       color: "from-red-500 to-pink-500",
-      icon: "🌐",
-    },
+      icon: "🌐"},
   ];
 
   // Fetch assessments
@@ -113,15 +96,12 @@ const AdvancedCompliance = () => {
     queryKey: ["complianceAssessments", selectedFramework],
     queryFn: () =>
       enterpriseAPI.getComplianceAssessments({
-        framework: selectedFramework !== "all" ? selectedFramework : undefined,
-      }),
-  });
+        framework: selectedFramework !== "all" ? selectedFramework : undefined})});
 
   // Fetch framework summary
   const { data: summaryData } = useQuery({
     queryKey: ["complianceFrameworkSummary"],
-    queryFn: () => enterpriseAPI.getComplianceFrameworkSummary(),
-  });
+    queryFn: () => enterpriseAPI.getComplianceFrameworkSummary()});
 
   // Create assessment mutation
   const createAssessmentMutation = useMutation({
@@ -137,8 +117,7 @@ const AdvancedCompliance = () => {
       toast.error(
         error.response?.data?.detail || "Failed to create assessment"
       );
-    },
-  });
+    }});
 
   // Export assessment mutation
   const exportAssessmentMutation = useMutation({
@@ -146,8 +125,7 @@ const AdvancedCompliance = () => {
     onSuccess: (data, variables) => {
       // Create download
       const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
+        type: "application/json"});
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -160,14 +138,12 @@ const AdvancedCompliance = () => {
     },
     onError: (error) => {
       toast.error("Failed to export report");
-    },
-  });
+    }});
 
   const resetForm = () => {
     setFormData({
       project_id: "",
-      frameworks: [],
-    });
+      frameworks: []});
   };
 
   const handleSubmit = (e) => {
@@ -361,8 +337,7 @@ const AdvancedCompliance = () => {
                       <button
                         onClick={() =>
                           exportAssessmentMutation.mutate({
-                            assessmentId: assessment.id,
-                          })
+                            assessmentId: assessment.id})
                         }
                         className="p-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 transition-all"
                       >
@@ -629,8 +604,7 @@ const AdvancedCompliance = () => {
                               : [...formData.frameworks, framework.id];
                             setFormData({
                               ...formData,
-                              frameworks: newFrameworks,
-                            });
+                              frameworks: newFrameworks});
                           }}
                           className={`p-4 border rounded-xl text-left transition-all ${
                             formData.frameworks.includes(framework.id)

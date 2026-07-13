@@ -2,7 +2,7 @@
  * Header Component - Enterprise Glass Design
  * Matches the project's glass morphism and gradient design language
  */
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   MagnifyingGlassIcon,

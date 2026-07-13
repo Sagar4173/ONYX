@@ -1,7 +1,7 @@
 /**
  * AnimatedCard - Card with hover animations and effects
  */
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 
 const AnimatedCard = ({

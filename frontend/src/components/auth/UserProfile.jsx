@@ -1,10 +1,9 @@
-import React, {
+import {
   useState,
   useEffect,
   useMemo,
   useCallback,
-  useRef,
-} from "react";
+  useRef} from "react";
 import Cropper from "react-easy-crop";
 import {
   UserCircleIcon,
@@ -24,7 +23,6 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
-  UserGroupIcon,
   CalendarIcon,
   SparklesIcon,
   LockClosedIcon,
@@ -44,12 +42,10 @@ import {
   TrophyIcon,
   FireIcon,
   CommandLineIcon,
-  ChartBarIcon,
   QrCodeIcon,
   TrashIcon,
   PhotoIcon,
-  ArrowsPointingOutIcon,
-} from "@heroicons/react/24/outline";
+  ArrowsPointingOutIcon} from "@heroicons/react/24/outline";
 import { CheckIcon, HeartIcon } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
@@ -65,8 +61,7 @@ export const UserProfile = ({ onClose }) => {
     updateProfile,
     logout,
     resendVerificationEmail,
-    refreshUserProfile,
-  } = useAuth();
+    refreshUserProfile} = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -95,8 +90,7 @@ export const UserProfile = ({ onClose }) => {
     push: true,
     security: true,
     updates: false,
-    marketing: false,
-  });
+    marketing: false});
   const [savingNotifications, setSavingNotifications] = useState(false);
 
   // Two-factor auth state
@@ -119,20 +113,17 @@ export const UserProfile = ({ onClose }) => {
     organization: user?.organization || "",
     department: user?.department || "",
     phone: user?.phone || "",
-    timezone: user?.timezone || "UTC",
-  });
+    timezone: user?.timezone || "UTC"});
 
   // Password change form data
   const [passwordData, setPasswordData] = useState({
     current_password: "",
     new_password: "",
-    confirm_password: "",
-  });
+    confirm_password: ""});
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
-    confirm: false,
-  });
+    confirm: false});
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
 
@@ -184,8 +175,7 @@ export const UserProfile = ({ onClose }) => {
         organization: user.organization || "",
         department: user.department || "",
         phone: user.phone || "",
-        timezone: user.timezone || "UTC",
-      });
+        timezone: user.timezone || "UTC"});
       // Update 2FA status from user data if available
       if (typeof user.two_factor_enabled === "boolean") {
         setTwoFactorEnabled(user.two_factor_enabled);
@@ -204,8 +194,7 @@ export const UserProfile = ({ onClose }) => {
           push: prefs.push ?? true,
           security: prefs.security ?? true,
           updates: prefs.updates ?? false,
-          marketing: prefs.marketing ?? false,
-        });
+          marketing: prefs.marketing ?? false});
       } catch (error) {
         // Silently handle notification preferences fetch errors
         console.debug("Could not fetch notification preferences:", error);
@@ -251,8 +240,7 @@ export const UserProfile = ({ onClose }) => {
             lastActive: session.is_current
               ? "Now"
               : formatRelativeTime(session.last_active),
-            createdAt: session.created_at,
-          }))
+            createdAt: session.created_at}))
         );
       } catch (error) {
         setActiveSessions([]);
@@ -300,16 +288,14 @@ export const UserProfile = ({ onClose }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
-    }));
+      [name]: value}));
   };
 
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;
     setPasswordData((prev) => ({
       ...prev,
-      [name]: value,
-    }));
+      [name]: value}));
   };
 
   const handleSaveProfile = async () => {
@@ -330,8 +316,7 @@ export const UserProfile = ({ onClose }) => {
       organization: user?.organization || "",
       department: user?.department || "",
       phone: user?.phone || "",
-      timezone: user?.timezone || "UTC",
-    });
+      timezone: user?.timezone || "UTC"});
     setIsEditing(false);
   };
 
@@ -352,14 +337,12 @@ export const UserProfile = ({ onClose }) => {
     try {
       await authAPI.changePassword({
         current_password: passwordData.current_password,
-        new_password: passwordData.new_password,
-      });
+        new_password: passwordData.new_password});
       toast.success("Password changed successfully!");
       setPasswordData({
         current_password: "",
         new_password: "",
-        confirm_password: "",
-      });
+        confirm_password: ""});
     } catch (error) {
       // Check if it's a password validation error (422)
       const errorMsg = getApiErrorMessage(error, "Failed to change password");
@@ -633,8 +616,7 @@ export const UserProfile = ({ onClose }) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
-      day: "numeric",
-    });
+      day: "numeric"});
   };
 
   const formatDateTime = (dateString) => {
@@ -648,8 +630,7 @@ export const UserProfile = ({ onClose }) => {
       month: "short",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit",
-    });
+      minute: "2-digit"});
   };
 
   const timezones = [
@@ -720,25 +701,21 @@ export const UserProfile = ({ onClose }) => {
       return {
         gradient: "from-emerald-500 to-green-500",
         text: "text-emerald-400",
-        bg: "bg-emerald-500",
-      };
+        bg: "bg-emerald-500"};
     if (score >= 60)
       return {
         gradient: "from-yellow-500 to-amber-500",
         text: "text-yellow-400",
-        bg: "bg-yellow-500",
-      };
+        bg: "bg-yellow-500"};
     if (score >= 40)
       return {
         gradient: "from-orange-500 to-red-500",
         text: "text-orange-400",
-        bg: "bg-orange-500",
-      };
+        bg: "bg-orange-500"};
     return {
       gradient: "from-red-500 to-rose-500",
       text: "text-red-400",
-      bg: "bg-red-500",
-    };
+      bg: "bg-red-500"};
   };
 
   // Copy to clipboard
@@ -793,8 +770,7 @@ export const UserProfile = ({ onClose }) => {
               left: `${20 + i * 15}%`,
               top: `${10 + i * 12}%`,
               animationDelay: `${i * 0.5}s`,
-              animationDuration: `${4 + i}s`,
-            }}
+              animationDuration: `${4 + i}s`}}
           />
         ))}
       </div>
@@ -1073,8 +1049,7 @@ export const UserProfile = ({ onClose }) => {
                     gradient: "from-indigo-500/10 to-purple-500/10",
                     border: "border-indigo-500/20",
                     iconBg: "bg-indigo-500/20",
-                    iconColor: "text-indigo-400",
-                  },
+                    iconColor: "text-indigo-400"},
                   {
                     label: "Account Role",
                     value: user?.role || "User",
@@ -1082,8 +1057,7 @@ export const UserProfile = ({ onClose }) => {
                     gradient: "from-emerald-500/10 to-teal-500/10",
                     border: "border-emerald-500/20",
                     iconBg: "bg-emerald-500/20",
-                    iconColor: "text-emerald-400",
-                  },
+                    iconColor: "text-emerald-400"},
                   {
                     label: user?.is_email_verified ? "Verified" : "Unverified",
                     value: user?.is_email_verified ? "✓" : "○",
@@ -1099,8 +1073,7 @@ export const UserProfile = ({ onClose }) => {
                       : "bg-amber-500/20",
                     iconColor: user?.is_email_verified
                       ? "text-green-400"
-                      : "text-amber-400",
-                  },
+                      : "text-amber-400"},
                 ].map((stat, i) => (
                   <div
                     key={i}
@@ -1980,8 +1953,7 @@ export const UserProfile = ({ onClose }) => {
                         onClick={() =>
                           setShowPasswords((prev) => ({
                             ...prev,
-                            current: !prev.current,
-                          }))
+                            current: !prev.current}))
                         }
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
                       >
@@ -2015,8 +1987,7 @@ export const UserProfile = ({ onClose }) => {
                         onClick={() =>
                           setShowPasswords((prev) => ({
                             ...prev,
-                            new: !prev.new,
-                          }))
+                            new: !prev.new}))
                         }
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
                       >
@@ -2061,26 +2032,21 @@ export const UserProfile = ({ onClose }) => {
                             {[
                               {
                                 label: "8+",
-                                active: passwordData.new_password.length >= 8,
-                              },
+                                active: passwordData.new_password.length >= 8},
                               {
                                 label: "a-z",
-                                active: /[a-z]/.test(passwordData.new_password),
-                              },
+                                active: /[a-z]/.test(passwordData.new_password)},
                               {
                                 label: "A-Z",
-                                active: /[A-Z]/.test(passwordData.new_password),
-                              },
+                                active: /[A-Z]/.test(passwordData.new_password)},
                               {
                                 label: "0-9",
-                                active: /[0-9]/.test(passwordData.new_password),
-                              },
+                                active: /[0-9]/.test(passwordData.new_password)},
                               {
                                 label: "@#$",
                                 active: /[^a-zA-Z0-9]/.test(
                                   passwordData.new_password
-                                ),
-                              },
+                                )},
                             ].map((req, i) => (
                               <span
                                 key={i}
@@ -2130,8 +2096,7 @@ export const UserProfile = ({ onClose }) => {
                         onClick={() =>
                           setShowPasswords((prev) => ({
                             ...prev,
-                            confirm: !prev.confirm,
-                          }))
+                            confirm: !prev.confirm}))
                         }
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
                       >
@@ -2271,16 +2236,14 @@ export const UserProfile = ({ onClose }) => {
                         "Receive important updates and alerts via email",
                       icon: EnvelopeIcon,
                       gradient: "from-blue-500/20 to-cyan-500/20",
-                      iconColor: "text-blue-400",
-                    },
+                      iconColor: "text-blue-400"},
                     {
                       key: "push",
                       title: "Push Notifications",
                       description: "Get real-time alerts on your device",
                       icon: DevicePhoneMobileIcon,
                       gradient: "from-purple-500/20 to-pink-500/20",
-                      iconColor: "text-purple-400",
-                    },
+                      iconColor: "text-purple-400"},
                     {
                       key: "security",
                       title: "Security Alerts",
@@ -2289,8 +2252,7 @@ export const UserProfile = ({ onClose }) => {
                       icon: ShieldExclamationIcon,
                       gradient: "from-red-500/20 to-orange-500/20",
                       iconColor: "text-red-400",
-                      recommended: true,
-                    },
+                      recommended: true},
                     {
                       key: "updates",
                       title: "Product Updates",
@@ -2298,8 +2260,7 @@ export const UserProfile = ({ onClose }) => {
                         "New features, improvements, and platform updates",
                       icon: SparklesIcon,
                       gradient: "from-emerald-500/20 to-teal-500/20",
-                      iconColor: "text-emerald-400",
-                    },
+                      iconColor: "text-emerald-400"},
                     {
                       key: "marketing",
                       title: "Marketing & Promotions",
@@ -2307,8 +2268,7 @@ export const UserProfile = ({ onClose }) => {
                         "Special offers, tips, and educational content",
                       icon: HeartIcon,
                       gradient: "from-pink-500/20 to-rose-500/20",
-                      iconColor: "text-pink-400",
-                    },
+                      iconColor: "text-pink-400"},
                   ].map((item) => (
                     <div
                       key={item.key}
@@ -2374,8 +2334,7 @@ export const UserProfile = ({ onClose }) => {
                         push: true,
                         security: true,
                         updates: true,
-                        marketing: true,
-                      };
+                        marketing: true};
                       setNotifications(allOn);
                       try {
                         await authAPI.updateNotificationPreferences(allOn);
@@ -2397,8 +2356,7 @@ export const UserProfile = ({ onClose }) => {
                         push: false,
                         security: true,
                         updates: false,
-                        marketing: false,
-                      };
+                        marketing: false};
                       setNotifications(minimal);
                       try {
                         await authAPI.updateNotificationPreferences(minimal);
@@ -2461,9 +2419,7 @@ export const UserProfile = ({ onClose }) => {
                   onCropComplete={onCropComplete}
                   style={{
                     containerStyle: {
-                      backgroundColor: "#030712",
-                    },
-                  }}
+                      backgroundColor: "#030712"}}}
                 />
               ) : (
                 <div className="flex flex-col items-center gap-5 text-center p-6">

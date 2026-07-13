@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -22,19 +22,17 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [alreadyVerified, setAlreadyVerified] = useState(false);
-  const { verifyEmail: verifyEmailContext } = useAuth();
-
   useEffect(() => {
     if (token) {
       handleVerifyEmail(token);
     }
-  }, [token]);
+  }, [token, handleVerifyEmail]);
 
   const handleVerifyEmail = async (verificationToken) => {
     setIsVerifying(true);
     try {
       // Call the API directly without going through context to avoid auth issues
-      const response = await authAPI.verifyEmail(verificationToken);
+      await authAPI.verifyEmail(verificationToken);
       setVerificationStatus("success");
       // Don't show toast here - the success component will handle the message
       onSuccess && onSuccess();

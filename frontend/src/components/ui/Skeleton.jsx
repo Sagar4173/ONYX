@@ -2,7 +2,7 @@
  * Skeleton - Loading placeholder with shimmer animation
  * Usage: <Skeleton variant="text" width="200px" />
  */
-import React from "react";
+
 
 const Skeleton = ({
   variant = "rectangular",

@@ -2,13 +2,12 @@
  * NotFound Page - 404 Error Page
  * Professional error handling for unmatched routes
  */
-import React from "react";
+
 import { Link } from "react-router-dom";
 import {
   HomeIcon,
   ExclamationTriangleIcon,
   ArrowLeftIcon,
-  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { PageContainer } from "../layouts";
 

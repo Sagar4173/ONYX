@@ -1,13 +1,12 @@
 /**
  * Enhanced Forgot Password Form Component
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   EnvelopeIcon,
   ArrowPathIcon,
   ArrowRightIcon,
-  KeyIcon,
-} from "@heroicons/react/24/outline";
+  } from "@heroicons/react/24/outline";
 import { KeyIcon as KeySolid } from "@heroicons/react/24/solid";
 import { useAuth } from "./AuthContext";
 

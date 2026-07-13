@@ -2,11 +2,9 @@
  * ONYX Security Intelligence Platform - Main Application Entry
  * Clean, modular architecture with separated concerns
  */
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   BrowserRouter as Router,
-  Routes,
-  Route,
   Navigate,
   useLocation,
 } from "react-router-dom";
@@ -17,7 +15,7 @@ import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 // Core Components
 import { AuthProvider, useAuth, AuthRoutingHandler } from "./components/auth";
 import { MainLayout } from "./layouts";
-import { LandingPage } from "./components/marketing";
+
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
 // Create QueryClient with enhanced settings
@@ -80,11 +78,6 @@ function AppContent() {
     "/about",
     "/docs",
   ];
-  const isPublicRoute = publicRoutes.some(
-    (route) =>
-      location.pathname === route || location.pathname.startsWith(route)
-  );
-
   // If authenticated and on auth route (login/register), redirect to dashboard
   if (isAuthenticated && isAuthRoute) {
     return <Navigate to="/dashboard" replace />;

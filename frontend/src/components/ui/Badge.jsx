@@ -1,7 +1,7 @@
 /**
  * Badge - Status and label badges with variants
  */
-import React from "react";
+
 
 const Badge = ({
   children,

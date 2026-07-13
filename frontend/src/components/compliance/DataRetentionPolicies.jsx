@@ -2,7 +2,7 @@
  * DataRetentionPolicies Component - Enterprise Data Lifecycle Management
  * CRUD interface for retention policies with compliance support
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ClockIcon,
@@ -16,11 +16,10 @@ import {
   DocumentTextIcon,
   FolderIcon,
   ShieldCheckIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+  ArrowPathIcon} from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
-import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+import { PageContainer, PageHeader} from "../../layouts";
 
 const DataRetentionPolicies = () => {
   const queryClient = useQueryClient();
@@ -31,8 +30,7 @@ const DataRetentionPolicies = () => {
     retention_days: 365,
     action: "archive",
     enabled: true,
-    compliance_requirement: "",
-  });
+    compliance_requirement: ""});
 
   // Policy types
   const policyTypes = [
@@ -43,13 +41,11 @@ const DataRetentionPolicies = () => {
     {
       value: "vulnerability_data",
       label: "Vulnerability Data",
-      icon: ExclamationTriangleIcon,
-    },
+      icon: ExclamationTriangleIcon},
     {
       value: "compliance_records",
       label: "Compliance Records",
-      icon: CheckCircleIcon,
-    },
+      icon: CheckCircleIcon},
     { value: "backup_data", label: "Backup Data", icon: ArchiveBoxIcon },
   ];
 
@@ -59,33 +55,28 @@ const DataRetentionPolicies = () => {
       value: "delete",
       label: "Delete",
       color: "text-red-400",
-      description: "Permanently delete data",
-    },
+      description: "Permanently delete data"},
     {
       value: "archive",
       label: "Archive",
       color: "text-blue-400",
-      description: "Move to archive storage",
-    },
+      description: "Move to archive storage"},
     {
       value: "compress",
       label: "Compress",
       color: "text-green-400",
-      description: "Compress and store",
-    },
+      description: "Compress and store"},
     {
       value: "anonymize",
       label: "Anonymize",
       color: "text-yellow-400",
-      description: "Remove PII and retain",
-    },
+      description: "Remove PII and retain"},
   ];
 
   // Fetch policies
   const { data: policiesData, isLoading } = useQuery({
     queryKey: ["retentionPolicies"],
-    queryFn: () => enterpriseAPI.getRetentionPolicies(),
-  });
+    queryFn: () => enterpriseAPI.getRetentionPolicies()});
 
   // Create policy mutation
   const createPolicyMutation = useMutation({
@@ -98,8 +89,7 @@ const DataRetentionPolicies = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to create policy");
-    },
-  });
+    }});
 
   // Update policy mutation
   const updatePolicyMutation = useMutation({
@@ -112,8 +102,7 @@ const DataRetentionPolicies = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to update policy");
-    },
-  });
+    }});
 
   // Delete policy mutation
   const deletePolicyMutation = useMutation({
@@ -124,8 +113,7 @@ const DataRetentionPolicies = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to delete policy");
-    },
-  });
+    }});
 
   // Execute policy mutation
   const executePolicyMutation = useMutation({
@@ -136,8 +124,7 @@ const DataRetentionPolicies = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.detail || "Failed to execute policy");
-    },
-  });
+    }});
 
   const resetForm = () => {
     setFormData({
@@ -145,8 +132,7 @@ const DataRetentionPolicies = () => {
       retention_days: 365,
       action: "archive",
       enabled: true,
-      compliance_requirement: "",
-    });
+      compliance_requirement: ""});
   };
 
   const handleSubmit = (e) => {
@@ -165,8 +151,7 @@ const DataRetentionPolicies = () => {
       retention_days: policy.retention_days,
       action: policy.action,
       enabled: policy.enabled,
-      compliance_requirement: policy.compliance_requirement || "",
-    });
+      compliance_requirement: policy.compliance_requirement || ""});
     setShowCreateModal(true);
   };
 
@@ -365,8 +350,7 @@ const DataRetentionPolicies = () => {
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          policy_type: e.target.value,
-                        })
+                          policy_type: e.target.value})
                       }
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
                       required
@@ -394,8 +378,7 @@ const DataRetentionPolicies = () => {
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          retention_days: parseInt(e.target.value),
-                        })
+                          retention_days: parseInt(e.target.value)})
                       }
                       min="1"
                       max="3650"
@@ -449,8 +432,7 @@ const DataRetentionPolicies = () => {
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          compliance_requirement: e.target.value,
-                        })
+                          compliance_requirement: e.target.value})
                       }
                       placeholder="e.g., SOX, HIPAA, GDPR"
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -472,8 +454,7 @@ const DataRetentionPolicies = () => {
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            enabled: e.target.checked,
-                          })
+                            enabled: e.target.checked})
                         }
                         className="sr-only peer"
                       />

@@ -2,7 +2,7 @@
  * Modal - Accessible modal dialog with animations
  * Usage: <Modal isOpen={true} onClose={() => {}} title="Modal Title">Content</Modal>
  */
-import React, { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
 

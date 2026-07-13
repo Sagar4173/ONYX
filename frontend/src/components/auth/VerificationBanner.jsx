@@ -2,7 +2,7 @@
  * Email Verification Banner
  * Shows a persistent banner for unverified users prompting them to verify their email
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ExclamationTriangleIcon,
   EnvelopeIcon,

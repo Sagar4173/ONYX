@@ -3,7 +3,7 @@
  * Display and manage Software Bill of Materials
  * Features: SPDX/CycloneDX support, vulnerability enrichment, export options
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Package,

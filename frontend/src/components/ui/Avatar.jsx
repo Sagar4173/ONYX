@@ -1,7 +1,7 @@
 /**
  * Avatar - User avatar with fallback and status indicator
  */
-import React, { useState } from "react";
+import { useState } from "react";
 
 const Avatar = ({
   src,

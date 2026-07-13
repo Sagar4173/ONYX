@@ -2,7 +2,7 @@
  * Tooltip - Accessible hover tooltip with smooth animations
  * Usage: <Tooltip content="Hello World"><Button>Hover me</Button></Tooltip>
  */
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const Tooltip = ({
   children,

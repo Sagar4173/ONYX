@@ -2,7 +2,7 @@
  * Project Management Components for ONYX Platform
  * Handles project creation, editing, and management
  */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   PlusIcon,
   MagnifyingGlassIcon,

@@ -2,7 +2,7 @@
  * Enhanced Register Form Component
  * Modern UI with real-time password validation
  */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   EyeIcon,
   EyeSlashIcon,

@@ -2,7 +2,7 @@
  * Project Details Component for ONYX Platform
  * Comprehensive project overview with security metrics and scan history
  */
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {

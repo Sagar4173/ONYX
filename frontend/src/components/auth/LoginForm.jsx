@@ -3,7 +3,7 @@
  * Modern UI with animations and glassmorphism
  * Supports Two-Factor Authentication flow
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   EyeIcon,
   EyeSlashIcon,

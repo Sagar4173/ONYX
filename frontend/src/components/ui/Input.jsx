@@ -1,7 +1,7 @@
 /**
  * Input - Enhanced input component with variants, validation, and animations
  */
-import React, { forwardRef, useState } from "react";
+import { forwardRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ExclamationCircleIcon,

@@ -2,7 +2,7 @@
  * Main Layout Component
  * Wraps authenticated pages with sidebar, header, footer and main content area
  */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Routes, Route, Navigate, useParams } from "react-router-dom";
 
 // Redirect component for /compliance/:reportId to /report/:reportId

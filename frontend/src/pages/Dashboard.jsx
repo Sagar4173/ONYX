@@ -29,7 +29,7 @@ import {
   SectionHeader,
   LoadingState,
 } from "../layouts";
-import { reportsAPI, projectsAPI } from "../services/api";
+import { reportsAPI } from "../services/api";
 import { dashboardAPI } from "../services/dashboardService";
 
 /**

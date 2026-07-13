@@ -3,7 +3,7 @@
  * Displays security posture trends, metrics, and analytics
  * Features: severity trends, fix velocity, period comparison, projections
  */
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,

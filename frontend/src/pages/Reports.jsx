@@ -2,21 +2,18 @@
  * Reports Page - View all security scan reports
  * Shows a comprehensive list of all completed scans with filtering and sorting
  */
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   DocumentTextIcon,
-  FunnelIcon,
   MagnifyingGlassIcon,
   ArrowPathIcon,
-  ExclamationTriangleIcon,
   ShieldCheckIcon,
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
   ChevronRightIcon,
-  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import {
   PageContainer,

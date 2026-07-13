@@ -2,7 +2,7 @@
  * Authentication Context Provider
  * Manages authentication state across the application
  */
-import React, {
+import {
   useState,
   useEffect,
   createContext,
@@ -48,9 +48,9 @@ export const AuthProvider = ({ children }) => {
     }
 
     setIsLoading(false);
-  }, []);
+  }, [logout, verifyToken]);
 
-  const verifyToken = async (token) => {
+  const verifyToken = async () => {
     try {
       const userData = await authAPI.getProfile();
       setUser(userData);
@@ -334,22 +334,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyEmail = async (token) => {
-    try {
-      const response = await authAPI.verifyEmail(token);
-      // Only refresh user profile if user is authenticated
-      if (isAuthenticated && localStorage.getItem("access_token")) {
-        try {
-          await refreshUserProfile();
-        } catch (profileError) {
-          // Ignore profile refresh errors - verification still succeeded
-        }
+    const response = await authAPI.verifyEmail(token);
+    // Only refresh user profile if user is authenticated
+    if (isAuthenticated && localStorage.getItem("access_token")) {
+      try {
+        await refreshUserProfile();
+      } catch (profileError) {
+        // Ignore profile refresh errors - verification still succeeded
       }
-      return response;
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.detail || "Failed to verify email.";
-      throw error;
     }
+    return response;
   };
 
   const value = {
