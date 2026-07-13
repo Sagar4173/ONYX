@@ -26,7 +26,7 @@ from services.compliance.advanced_compliance_service import (
     ComplianceFramework,
     ComplianceStatus,
 )
-from models.user import User
+from models.user import User, UserRole
 from services.auth.auth_service import AuthService
 from database import db_manager
 
@@ -92,6 +92,7 @@ class ComplianceReportRequest(BaseModel):
 
 @router.get("/audit-logs/query")
 async def query_audit_logs(
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     event_types: Optional[str] = Query(None),
@@ -139,6 +140,7 @@ async def query_audit_logs(
 @router.get("/audit-logs/user/{user_id}")
 async def get_user_activity(
     user_id: str,
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     days: int = Query(30, ge=1, le=365),
     limit: int = Query(100, ge=1, le=1000),
     db=Depends(get_database),
@@ -161,6 +163,7 @@ async def get_user_activity(
 async def get_resource_history(
     resource_type: str,
     resource_id: str,
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     limit: int = Query(100, ge=1, le=1000),
     db=Depends(get_database),
 ):
@@ -182,6 +185,7 @@ async def get_resource_history(
 
 @router.post("/audit-logs/compliance-report")
 async def generate_compliance_audit_report(
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     start_date: str = Body(...),
     end_date: str = Body(...),
     report_type: str = Body(default="full"),
@@ -207,6 +211,7 @@ async def generate_compliance_audit_report(
 
 @router.get("/audit-logs/export")
 async def export_audit_logs(
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     start_date: str = Query(...),
     end_date: str = Query(...),
     format: str = Query(default="json"),
@@ -233,6 +238,7 @@ async def export_audit_logs(
 @router.get("/audit-logs/verify/{event_id}")
 async def verify_audit_log_integrity(
     event_id: str,
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     db=Depends(get_database),
 ):
     """Verify integrity of an audit log entry"""
@@ -251,6 +257,7 @@ async def verify_audit_log_integrity(
 
 @router.get("/audit-logs")
 async def get_audit_logs(
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
     event_types: Optional[str] = Query(None),
@@ -325,6 +332,7 @@ async def get_audit_logs(
 
 @router.get("/audit-logs/users")
 async def get_audit_users(
+    current_user: User = Depends(auth_service.require_role(UserRole.SECURITY_MANAGER)),
     db=Depends(get_database),
 ):
     """Get list of users who have audit log entries"""
@@ -352,6 +360,7 @@ async def get_audit_users(
 
 @router.get("/retention-policies")
 async def get_retention_policies(
+    current_user: User = Depends(get_current_user),
     db=Depends(get_database),
 ):
     """Get all retention policies - frontend compatible endpoint"""
@@ -392,6 +401,7 @@ async def get_retention_policies(
 @router.post("/retention/policies")
 async def create_retention_policy(
     policy: RetentionPolicyCreate,
+    current_user: User = Depends(auth_service.require_role(UserRole.ADMIN)),
     db=Depends(get_database),
 ):
     """Create a new data retention policy"""
@@ -418,6 +428,7 @@ async def create_retention_policy(
 @router.post("/retention/policies/{policy_id}/execute")
 async def execute_retention_policy(
     policy_id: str,
+    current_user: User = Depends(auth_service.require_role(UserRole.ADMIN)),
     db=Depends(get_database),
 ):
     """Execute a specific retention policy"""
@@ -436,6 +447,7 @@ async def execute_retention_policy(
 
 @router.post("/retention/policies/execute-all")
 async def execute_all_retention_policies(
+    current_user: User = Depends(auth_service.require_role(UserRole.ADMIN)),
     db=Depends(get_database),
 ):
     """Execute all enabled retention policies"""
@@ -454,6 +466,7 @@ async def execute_all_retention_policies(
 
 @router.get("/retention/statistics")
 async def get_retention_statistics(
+    current_user: User = Depends(get_current_user),
     db=Depends(get_database),
 ):
     """Get statistics about data retention and storage usage"""
@@ -472,6 +485,7 @@ async def get_retention_statistics(
 
 @router.post("/retention/initialize-defaults")
 async def initialize_default_retention_policies(
+    current_user: User = Depends(auth_service.require_role(UserRole.ADMIN)),
     db=Depends(get_database),
 ):
     """Initialize default retention policies"""
