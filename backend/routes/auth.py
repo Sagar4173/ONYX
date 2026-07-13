@@ -1,4 +1,4 @@
-﻿"""
+"""
 Authentication Routes for ONYX Security Intelligence Platform
 Handles user registration, login, logout, password management
 """

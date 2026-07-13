@@ -1,9 +1,0 @@
-﻿python : C:\Users\sagar\AppData\Local\Programs\Python\Python313\python.exe: 
-can't open file 'F:\\Project\\ONYX\\app.py': [Errno 2] No such file or directory
-At line:1 char:1
-+ python app.py 2>&1 | Out-File -FilePath output.txt -Encoding utf8; Ge ...
-+ ~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (C:\Users\sagar\...le or directory: 
-   String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 

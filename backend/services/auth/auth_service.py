@@ -225,7 +225,7 @@ class AuthService:
         refresh_expires_at = utc_now() + timedelta(days=self.refresh_token_expire)
         
         session = UserSession(
-            user_id=user.id,
+            user_id=str(user.id),
             access_token=access_token,
             refresh_token=refresh_token,
             expires_at=expires_at,
