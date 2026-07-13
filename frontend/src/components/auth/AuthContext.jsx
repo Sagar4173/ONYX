@@ -29,8 +29,26 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_data");
+    setUser(null);
+    setIsAuthenticated(false);
+    toast.success("Logged out successfully");
+  }, []);
+
   // Check if user is authenticated on app load
   useEffect(() => {
+    const verifyToken = async () => {
+      try {
+        const userData = await authAPI.getProfile();
+        setUser(userData);
+      } catch (error) {
+        logout();
+      }
+    };
+
     const token = localStorage.getItem("access_token");
     const userData = localStorage.getItem("user_data");
 
@@ -48,16 +66,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     setIsLoading(false);
-  }, [logout, verifyToken]);
-
-  const verifyToken = async () => {
-    try {
-      const userData = await authAPI.getProfile();
-      setUser(userData);
-    } catch (error) {
-      logout();
-    }
-  };
+  }, [logout]);
 
   const login = async (credentials) => {
     try {
@@ -261,15 +270,6 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-
-  const logout = useCallback(() => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_data");
-    setUser(null);
-    setIsAuthenticated(false);
-    toast.success("Logged out successfully");
-  }, []);
 
   const refreshUserProfile = async () => {
     const userData = await authAPI.getProfile();

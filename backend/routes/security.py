@@ -65,7 +65,7 @@ class RuleFromTemplateRequest(BaseModel):
 
 
 @router.get("/rules", response_model=List[Dict[str, Any]])
-async def get_rules(status: Optional[RuleStatus] = None):
+async def get_rules(current_user: User = Depends(get_current_user), status: Optional[RuleStatus] = None):
     """Get all custom rules"""
     try:
         rules = await rule_engine.get_all_rules(status)
@@ -76,7 +76,7 @@ async def get_rules(status: Optional[RuleStatus] = None):
 
 
 @router.get("/rules/{rule_id}")
-async def get_rule(rule_id: str):
+async def get_rule(rule_id: str, current_user: User = Depends(get_current_user)):
     """Get a specific rule by ID"""
     try:
         rule = await rule_engine.load_rule(rule_id)
@@ -91,7 +91,7 @@ async def get_rule(rule_id: str):
 
 
 @router.post("/rules")
-async def create_rule(request: RuleCreateRequest):
+async def create_rule(request: RuleCreateRequest, current_user: User = Depends(get_current_user)):
     """Create a new custom rule"""
     try:
         # Create rule from data
@@ -120,7 +120,7 @@ async def create_rule(request: RuleCreateRequest):
 
 
 @router.post("/rules/validate")
-async def validate_rule(rule_data: Dict[str, Any], test_repo_path: Optional[str] = None):
+async def validate_rule(rule_data: Dict[str, Any], current_user: User = Depends(get_current_user), test_repo_path: Optional[str] = None):
     """Validate a custom rule"""
     try:
         rule = CustomRule(**rule_data)
@@ -132,7 +132,7 @@ async def validate_rule(rule_data: Dict[str, Any], test_repo_path: Optional[str]
 
 
 @router.get("/rule-templates", response_model=List[Dict[str, Any]])
-async def get_rule_templates():
+async def get_rule_templates(current_user: User = Depends(get_current_user)):
     """Get all rule templates"""
     try:
         templates = await rule_engine.get_all_templates()
@@ -143,7 +143,7 @@ async def get_rule_templates():
 
 
 @router.post("/rules/from-template")
-async def create_rule_from_template(request: RuleFromTemplateRequest):
+async def create_rule_from_template(request: RuleFromTemplateRequest, current_user: User = Depends(get_current_user)):
     """Create a rule from a template"""
     try:
         rule = await rule_engine.create_rule_from_template(
@@ -167,11 +167,17 @@ async def create_rule_from_template(request: RuleFromTemplateRequest):
 
 
 @router.post("/rules/upload")
-async def upload_rules(file: UploadFile = File(...)):
+async def upload_rules(file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
     """Upload rules from YAML/JSON file"""
     try:
+        filename = file.filename or "unknown.yaml"
+        ext = filename.rsplit('.', 1)[-1].lower()
+        allowed_extensions = {"yaml", "yml", "json"}
+        if ext not in allowed_extensions:
+            raise HTTPException(status_code=400, detail=f"Unsupported file extension: .{ext}. Allowed: {', '.join(sorted(allowed_extensions))}")
+
         # Save uploaded file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file.filename.split('.')[-1]}") as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp_file:
             content = await file.read()
             tmp_file.write(content)
             tmp_file_path = tmp_file.name
@@ -182,7 +188,7 @@ async def upload_rules(file: UploadFile = File(...)):
             import json
             
             with open(tmp_file_path, 'r') as f:
-                if file.filename.endswith('.yaml') or file.filename.endswith('.yml'):
+                if ext in ("yaml", "yml"):
                     rules_data = yaml.safe_load(f)
                 else:
                     rules_data = json.load(f)
@@ -231,7 +237,7 @@ class BaselineCreateRequest(BaseModel):
 
 
 @router.post("/baselines")
-async def create_baseline(request: BaselineCreateRequest, created_by: str = "api"):
+async def create_baseline(request: BaselineCreateRequest, current_user: User = Depends(get_current_user), created_by: str = "api"):
     """Create a new baseline from a scan report"""
     try:
         # Get scan report
@@ -261,6 +267,7 @@ async def create_baseline(request: BaselineCreateRequest, created_by: str = "api
 @router.get("/baselines")
 async def get_baselines(
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: Optional[str] = None,
     limit: int = Query(10, ge=1, le=100)
 ):
@@ -279,6 +286,7 @@ async def get_baselines(
 @router.post("/drift-analysis")
 async def analyze_drift(
     scan_report_id: str,
+    current_user: User = Depends(get_current_user),
     baseline_id: Optional[str] = None,
     repository_url: Optional[str] = None,
     branch: Optional[str] = None
@@ -313,6 +321,7 @@ async def analyze_drift(
 @router.get("/drift-history")
 async def get_drift_history(
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: Optional[str] = None,
     days: int = Query(30, ge=1, le=365)
 ):
@@ -331,6 +340,7 @@ async def get_drift_history(
 @router.get("/regression-alerts")
 async def get_regression_alerts(
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: Optional[str] = None,
     days: int = Query(7, ge=1, le=30)
 ):
@@ -350,6 +360,7 @@ async def get_regression_alerts(
 async def get_security_trends(
     repository_url: str,
     branch: str,
+    current_user: User = Depends(get_current_user),
     days: int = Query(90, ge=7, le=365)
 ):
     """Get security trends for a repository"""
@@ -368,6 +379,7 @@ async def get_security_trends(
 
 @router.get("/policies")
 async def get_policies(
+    current_user: User = Depends(get_current_user),
     repository_url: Optional[str] = None,
     branch: str = "main",
     environment: str = "development"
@@ -395,6 +407,7 @@ async def get_policies(
 async def evaluate_policies(
     scan_report_id: str,
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: str = "main",
     commit_hash: str = "HEAD",
     environment: str = "development"
@@ -427,6 +440,7 @@ async def evaluate_policies(
 @router.get("/policy-violations")
 async def get_policy_violations(
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: Optional[str] = None,
     days: int = Query(30, ge=1, le=365),
     status: str = Query("open", regex="^(open|resolved|all)$")
@@ -465,6 +479,7 @@ async def get_policy_violations(
 @router.get("/policy-compliance-report")
 async def get_policy_compliance_report(
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: str = "main",
     days: int = Query(30, ge=1, le=365)
 ):
@@ -481,7 +496,7 @@ async def get_policy_compliance_report(
 
 
 @router.post("/policies/update-from-git")
-async def update_policies_from_git(background_tasks: BackgroundTasks):
+async def update_policies_from_git(background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
     """Update policies from Git repository"""
     try:
         background_tasks.add_task(policy_service.update_policy_from_git)
@@ -498,6 +513,7 @@ async def update_policies_from_git(background_tasks: BackgroundTasks):
 async def full_security_analysis(
     scan_report_id: str,
     repository_url: str,
+    current_user: User = Depends(get_current_user),
     branch: str = "main",
     commit_hash: str = "HEAD",
     environment: str = "development",
