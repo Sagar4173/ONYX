@@ -336,22 +336,24 @@ class ProjectService:
         # Get recent scan reports
         recent_reports = await ScanReport.find(
             ScanReport.project_name == project.name
-        ).sort(-ScanReport.scan_start_time).limit(10).to_list()
+        ).sort(-ScanReport.started_at).limit(10).to_list()
         
         # Calculate trends
         vulnerability_trend = []
         score_trend = []
         
         for report in reversed(recent_reports):
-            severity_dist = report.severity_distribution or {}
+            severity_dist = report.findings_by_severity or {}
             total_vulns = sum(severity_dist.values())
             vulnerability_trend.append({
-                "date": report.scan_start_time,
+                "date": report.started_at,
                 "count": total_vulns
             })
+            # Calculate a score from findings - use project-level security_score if available
+            score = project.stats.security_score if project.stats.security_score > 0 else 0
             score_trend.append({
-                "date": report.scan_start_time,
-                "score": report.security_score or 0
+                "date": report.started_at,
+                "score": score
             })
         
         return {
