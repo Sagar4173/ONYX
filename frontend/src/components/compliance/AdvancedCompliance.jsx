@@ -12,7 +12,7 @@ import {
   EyeIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { enterpriseAPI } from "../../services/api";
+import { enterpriseAPI, projectsAPI } from "../../services/api";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const AdvancedCompliance = () => {
@@ -98,6 +98,12 @@ const AdvancedCompliance = () => {
       enterpriseAPI.getComplianceAssessments({
         framework: selectedFramework !== "all" ? selectedFramework : undefined})});
 
+  // Fetch projects for dropdown
+  const { data: projectsData } = useQuery({
+    queryKey: ["projectsList"],
+    queryFn: () => projectsAPI.getProjects({ limit: 100 }),
+  });
+
   // Fetch framework summary
   const { data: summaryData } = useQuery({
     queryKey: ["complianceFrameworkSummary"],
@@ -166,7 +172,9 @@ const AdvancedCompliance = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
   };
 
   const getFrameworkInfo = (frameworkId) => {
@@ -567,21 +575,37 @@ const AdvancedCompliance = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Project ID */}
+                  {/* Project Selection */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Project ID *
+                      Select Project *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.project_id}
                       onChange={(e) =>
                         setFormData({ ...formData, project_id: e.target.value })
                       }
-                      placeholder="Enter project identifier"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
                       required
-                    />
+                    >
+                      <option value="" disabled className="bg-slate-800 text-gray-400">
+                        Choose a project...
+                      </option>
+                      {(projectsData?.projects || []).map((project) => (
+                        <option
+                          key={project.id || project._id}
+                          value={project.id || project._id}
+                          className="bg-slate-800 text-white"
+                        >
+                          {project.name}{project.repository?.url ? ` — ${project.repository.url}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {(!projectsData?.projects || projectsData.projects.length === 0) && (
+                      <p className="mt-2 text-xs text-yellow-400">
+                        No projects found. Create a project first to run compliance assessments.
+                      </p>
+                    )}
                   </div>
 
                   {/* Frameworks */}

@@ -484,20 +484,23 @@ const ProjectDetails = () => {
       )
     : null;
 
-  // Check if there's an active scan from scan history
+  // Check if there's an active scan from scan history (exclude our current activeScan to avoid stale state)
   const runningScans =
     scanHistory?.reports?.filter(
-      (r) => r.status === "running" || r.status === "pending"
+      (r) =>
+        (r.status === "running" || r.status === "pending") &&
+        r.scan_id !== activeScan?.scan_id
     ) || [];
 
   // Determine if scan is actively running (not completed/failed/cancelled)
+  // scanCompleted takes priority - once completed, the button must switch
   const isScanActive =
-    (activeScan &&
-      !scanCompleted &&
+    !scanCompleted &&
+    ((activeScan &&
       activeScan.status !== "completed" &&
       activeScan.status !== "failed" &&
       activeScan.status !== "cancelled") ||
-    runningScans.length > 0;
+    runningScans.length > 0);
 
   return (
     <PageContainer>

@@ -621,10 +621,10 @@ async def get_compliance_assessments(
 ):
     """Get all compliance assessments with filters"""
     try:
-        # Build query
-        query = {}
+        # Build query - only show aggregated multi-framework assessments (created via POST)
+        query = {"frameworks": {"$exists": True}}
         if framework:
-            query["framework"] = framework
+            query["frameworks"] = framework
         if status:
             query["status"] = status
         
@@ -632,16 +632,27 @@ async def get_compliance_assessments(
         try:
             assessments_collection = db["compliance_assessments"]
             total = await assessments_collection.count_documents(query)
-            cursor = assessments_collection.find(query).sort("assessed_at", -1).skip(skip).limit(limit)
+            cursor = assessments_collection.find(query).sort("created_at", -1).skip(skip).limit(limit)
             assessments = await cursor.to_list(length=limit)
             
-            # Convert ObjectId to string
+            # Convert ObjectId to string and normalize date fields
             for assessment in assessments:
                 if "_id" in assessment:
                     assessment["id"] = str(assessment["_id"])
                     del assessment["_id"]
-                if "assessed_at" in assessment and hasattr(assessment["assessed_at"], "isoformat"):
-                    assessment["assessed_at"] = assessment["assessed_at"].isoformat()
+                
+                # Normalize dates - ensure assessment_date is always a string
+                for date_field in ["assessed_at", "created_at", "assessment_date"]:
+                    if date_field in assessment and hasattr(assessment[date_field], "isoformat"):
+                        assessment[date_field] = assessment[date_field].isoformat()
+                
+                # Ensure assessment_date always exists for frontend
+                if not assessment.get("assessment_date"):
+                    assessment["assessment_date"] = (
+                        assessment.get("assessed_at") or
+                        assessment.get("created_at") or
+                        datetime.now(timezone.utc).isoformat()
+                    )
             
             return {
                 "success": True,
