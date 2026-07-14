@@ -121,6 +121,14 @@ class AuthService:
     
     async def authenticate_user(self, username_or_email: str, password: str) -> Optional[User]:
         """Authenticate user by username/email and password"""
+        # Check if Beanie ODM is initialized (prevents CollectionWasNotInitialized crash)
+        from database import beanie_initialized
+        if not beanie_initialized:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database is not available. Please try again in a few moments."
+            )
+        
         # Find user by username or email
         user = await User.find_one({
             "$or": [

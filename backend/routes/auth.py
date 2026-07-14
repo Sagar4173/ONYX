@@ -23,10 +23,11 @@ from services.auth.auth_service import auth_service
 from services.notifications.service import email_service
 from config import settings
 from utils.datetime_utils import utc_now
+from database import require_beanie
 
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(require_beanie)])
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

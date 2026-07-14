@@ -78,7 +78,9 @@ async def lifespan(app: FastAPI):
     
     # Startup
     logger.info("🚀 Starting ONYX Security Intelligence Platform...")
-    await init_database()
+    db_result = await init_database()
+    if not db_result:
+        logger.error("⚠️ Database/Beanie initialization failed - auth endpoints will return 503")
     
     # Initialize all services via centralized registry (replaces duplicate initializations)
     try:

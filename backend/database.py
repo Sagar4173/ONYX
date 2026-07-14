@@ -18,6 +18,19 @@ from models.project import Project
 
 logger = logging.getLogger(__name__)
 
+# Track whether Beanie ODM has been initialized
+beanie_initialized = False
+
+async def require_beanie():
+    """FastAPI dependency that ensures Beanie ODM is initialized.
+    Returns 503 if the database connection/Beanie init failed."""
+    if not beanie_initialized:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail="Database is not available. Please try again in a few moments."
+        )
+
 class DatabaseManager:
     def __init__(self):
         self.client: Optional[AsyncIOMotorClient] = None
@@ -416,13 +429,21 @@ async def init_database():
         )
         
         beanie_connected = True
+        global beanie_initialized
+        beanie_initialized = True
         logger.info("✅ Beanie ODM initialized successfully (using shared connection)")
         
     except Exception as e:
-        logger.error(f"❌ Failed to initialize Beanie ODM: {e}")
+        import traceback
+        logger.error(f"❌ Failed to initialize Beanie ODM: {type(e).__name__}: {e}")
+        logger.error(f"❌ Beanie init traceback: {traceback.format_exc()}")
         beanie_connected = False
     
-    return manager_connected and beanie_connected
+    result = manager_connected and beanie_connected
+    if not result:
+        logger.error(f"❌ Database init incomplete - manager_connected={manager_connected}, beanie_connected={beanie_connected}")
+        logger.error("❌ Auth features (login/register) will NOT work until database is available")
+    return result
 
 async def close_database():
     """Close database connection"""
