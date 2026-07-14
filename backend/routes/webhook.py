@@ -27,6 +27,7 @@ from services.notifications.websocket_manager import ws_manager
 from services.scanning.scanners import RealSecurityScanner
 from services.infrastructure.project_service import ProjectService
 from services.auth.auth_service import AuthService
+from services.service_registry import ServiceRegistry
 from utils.repo_clone import repo_cloner
 from config import settings
 
@@ -577,8 +578,10 @@ async def process_real_scan(
         try:
             if detailed_findings:
                 logger.info(f"🔍 Starting CVE correlation for scan {scan_id}")
-                from services.security.threat_intelligence import ThreatIntelligenceEngine
-                threat_intel = ThreatIntelligenceEngine()
+                threat_intel = ServiceRegistry.get_threat_intelligence()
+                
+                if not threat_intel:
+                    logger.warning("Threat intelligence engine not available, skipping CVE enrichment")
                 
                 # Extract CVE IDs and dependency names from findings
                 cve_ids_found = set()
@@ -599,7 +602,7 @@ async def process_real_scan(
                 # Query threat intelligence for CVE details
                 enriched_count = 0
                 for cve_id in cve_ids_found:
-                    cve_data = await threat_intel.get_cve_data(cve_id)
+                    cve_data = await threat_intel.get_cve_data(cve_id) if threat_intel else None
                     if cve_data:
                         enrichment = {
                             "cve_id": cve_id,

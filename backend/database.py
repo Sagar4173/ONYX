@@ -41,12 +41,27 @@ class DatabaseManager:
                     return False
                 mongodb_uri = mongodb_uri.replace('<db_password>', db_password)
             
+            # Normalize TLS parameters: tlsInsecure is not a valid PyMongo URI option
+            # Replace with the correct tlsAllowInvalidCertificates parameter
+            mongodb_uri = mongodb_uri.replace('tlsInsecure=true', 'tlsAllowInvalidCertificates=true')
+            
+            # Log connection attempt (mask password)
+            safe_uri = mongodb_uri
+            if ':' in safe_uri and '@' in safe_uri:
+                # Mask password in URI for logging
+                parts = safe_uri.split('@')
+                creds = parts[0].split(':')
+                if len(creds) > 1:
+                    creds[1] = '***'
+                    safe_uri = ':'.join(creds) + '@' + parts[1]
+            logger.info(f"Connecting to MongoDB: {safe_uri}")
+            
             # Create client with timeout settings
             self.client = AsyncIOMotorClient(
                 mongodb_uri,
-                serverSelectionTimeoutMS=5000,  # 5 second timeout
-                connectTimeoutMS=10000,         # 10 second timeout
-                maxPoolSize=10,                 # Maximum 10 connections
+                serverSelectionTimeoutMS=15000,  # 15 second timeout (Atlas cold start)
+                connectTimeoutMS=20000,          # 20 second connect timeout
+                maxPoolSize=10,
                 retryWrites=True
             )
             
@@ -69,7 +84,8 @@ class DatabaseManager:
             self.connected = False
             return False
         except Exception as e:
-            logger.error(f"❌ MongoDB connection error: {e} - database will not be available")
+            logger.error(f"❌ MongoDB connection error: {type(e).__name__}: {e}")
+            logger.error(f"❌ Database will not be available - login and Beanie features disabled")
             self.connected = False
             return False
     

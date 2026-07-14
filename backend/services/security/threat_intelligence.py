@@ -224,7 +224,11 @@ class ThreatIntelligenceEngine:
             raise
     
     async def start(self):
-        """Start threat intelligence engine"""
+        """Start threat intelligence engine (idempotent)"""
+        if getattr(self, '_started', False):
+            logger.debug("Threat intelligence engine already started, skipping")
+            return
+        
         try:
             self.session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=30),
@@ -235,6 +239,7 @@ class ThreatIntelligenceEngine:
             asyncio.create_task(self._threat_feed_updater())
             asyncio.create_task(self._alert_monitor())
             
+            self._started = True
             logger.info("Threat intelligence engine started")
             
         except Exception as e:

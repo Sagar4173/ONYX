@@ -20,7 +20,7 @@ from dataclasses import dataclass, asdict
 from utils.datetime_utils import utc_now
 
 # Import threat intelligence from same package (safe)
-from .threat_intelligence import ThreatIntelligenceEngine, ThreatAlert, CVEData
+from .threat_intelligence import ThreatAlert, CVEData
 
 # Lazy imports to avoid circular dependencies
 if TYPE_CHECKING:
@@ -62,9 +62,10 @@ class SecurityOrchestrationEngine:
         from services.scanning.vulnerability import VulnerabilityManager
         from services.analytics.metrics_kpi_engine import MetricsKPIEngine
         from services.scanning.engine import ScanOrchestrator
+        from services.service_registry import ServiceRegistry
         
-        # Initialize component engines
-        self.threat_intelligence = ThreatIntelligenceEngine()
+        # Initialize component engines (use singleton from registry)
+        self.threat_intelligence = ServiceRegistry.get_threat_intelligence()
         self.vulnerability_management = VulnerabilityManager()
         self.metrics_kpi = MetricsKPIEngine()
         self.scanner_engine = ScanOrchestrator()
