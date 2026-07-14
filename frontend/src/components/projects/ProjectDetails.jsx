@@ -160,7 +160,7 @@ const ProjectDetails = () => {
                 });
               }
             } else if (status.status === "cancelled") {
-              toast.info("Scan was cancelled.");
+              toast("Scan was cancelled.", { icon: "ℹ️" });
             } else {
               toast.error(status.error_message || "Scan failed.");
             }
@@ -246,7 +246,7 @@ const ProjectDetails = () => {
   const stopScanMutation = useMutation({
     mutationFn: (scanId) => reportsAPI.stopScan(scanId),
     onSuccess: () => {
-      toast.info("Scan stopped.");
+      toast("Scan stopped.", { icon: "ℹ️" });
       setActiveScan(null);
       setScanProgress(0);
       setIsPolling(false);

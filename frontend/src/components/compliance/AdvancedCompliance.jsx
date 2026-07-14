@@ -644,7 +644,7 @@ const AdvancedCompliance = () => {
                     <button
                       type="submit"
                       disabled={
-                        createAssessmentMutation.isLoading ||
+                        createAssessmentMutation.isPending ||
                         formData.frameworks.length === 0
                       }
                       className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-semibold shadow-lg transition-all disabled:opacity-50"

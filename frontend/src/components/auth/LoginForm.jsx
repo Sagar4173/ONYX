@@ -49,7 +49,7 @@ export const LoginForm = ({
       if (result?.requires_2fa) {
         setRequires2FA(true);
         setTwoFAEmail(result.user_email || "your email");
-        toast.info("Please enter your 2FA code from your authenticator app");
+        toast("Please enter your 2FA code from your authenticator app", { icon: "ℹ️" });
         setIsLoading(false);
         return;
       }

@@ -214,7 +214,8 @@ class NotificationService:
                                 duration=duration,
                                 files_scanned=files_scanned,
                                 report_id=scan_id,
-                                attachments=attachments
+                                attachments=attachments,
+                                detailed_findings=detailed_findings
                             )
                             logger.info(f"📧 Scan completion email sent to {email}")
                         except Exception as email_error:

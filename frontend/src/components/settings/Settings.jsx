@@ -816,7 +816,7 @@ const Settings = () => {
                     <Toggle
                       enabled={false}
                       onChange={() =>
-                        toast.info("Maintenance mode requires admin privileges")
+                        toast("Maintenance mode requires admin privileges", { icon: "ℹ️" })
                       }
                       disabled={user?.role !== "admin"}
                     />

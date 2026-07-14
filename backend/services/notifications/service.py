@@ -373,13 +373,68 @@ class EmailService:
         duration: str = "N/A",
         files_scanned: int = 0,
         report_id: str = None,
-        attachments: Optional[List[Dict[str, Any]]] = None
+        attachments: Optional[List[Dict[str, Any]]] = None,
+        detailed_findings: Optional[List[Dict[str, Any]]] = None
     ) -> bool:
         """Send scan completion notification email with optional report attachment"""
         try:
             report_url = f"{settings.frontend_url}/report/{report_id}" if report_id else f"{settings.frontend_url}/dashboard"
+            total_findings = critical_count + high_count + medium_count + low_count
             
-            template = self.jinja_env.get_template('scan_completed')
+            # Calculate risk score (0-100, higher = more secure)
+            risk_score = max(0, 100 - (critical_count * 25 + high_count * 15 + medium_count * 5 + low_count * 1))
+            
+            # Determine score styling based on risk level
+            if risk_score >= 80:
+                score_bg_start = "rgba(34, 197, 94, 0.15)"
+                score_bg_end = "rgba(16, 185, 129, 0.15)"
+                score_border = "rgba(34, 197, 94, 0.3)"
+                score_color = "#4ade80"
+                score_label_color = "#86efac"
+            elif risk_score >= 60:
+                score_bg_start = "rgba(234, 179, 8, 0.15)"
+                score_bg_end = "rgba(245, 158, 11, 0.15)"
+                score_border = "rgba(234, 179, 8, 0.3)"
+                score_color = "#fbbf24"
+                score_label_color = "#fcd34d"
+            else:
+                score_bg_start = "rgba(239, 68, 68, 0.15)"
+                score_bg_end = "rgba(220, 38, 38, 0.15)"
+                score_border = "rgba(239, 68, 68, 0.3)"
+                score_color = "#f87171"
+                score_label_color = "#fca5a5"
+            
+            # Generate top findings HTML from detailed_findings
+            top_findings_html = ""
+            if detailed_findings:
+                sev_colors = {"critical": "#ef4444", "high": "#f97316", "medium": "#eab308", "low": "#22c55e", "info": "#3b82f6"}
+                # Show top 5 critical/high findings
+                priority_findings = sorted(
+                    detailed_findings,
+                    key=lambda f: {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}.get(
+                        f.get("severity", "info").lower(), 5
+                    )
+                )[:5]
+                
+                for f in priority_findings:
+                    sev = f.get("severity", "medium").lower()
+                    sc = sev_colors.get(sev, "#94a3b8")
+                    title = f.get("title", "Unknown Finding")[:80]
+                    desc = f.get("description", "")[:150]
+                    file_path = f.get("file_path", "")
+                    
+                    top_findings_html += f'''
+                    <div style="padding: 14px 16px; margin-bottom: 10px; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid {sc};">
+                        <div style="margin-bottom: 6px;">
+                            <span style="color: #e2e8f0; font-size: 14px; font-weight: 600;">{title}</span>
+                            <span style="background: {sc}; color: white; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-left: 8px; display: inline-block;">{sev.upper()}</span>
+                        </div>
+                        {"<p style='color: #94a3b8; font-size: 12px; margin: 0 0 4px 0; line-height: 1.4;'>" + desc + "</p>" if desc else ""}
+                        {"<p style='color: #64748b; font-size: 11px; margin: 0; font-family: monospace;'>" + file_path + "</p>" if file_path else ""}
+                    </div>'''
+            
+            # Use the premium scan report email template
+            template = self.jinja_env.get_template('scan_report_email')
             html_body = template.render(
                 project_name=project_name,
                 scan_type=scan_type,
@@ -387,10 +442,19 @@ class EmailService:
                 high_count=high_count,
                 medium_count=medium_count,
                 low_count=low_count,
+                total_findings=total_findings,
                 duration=duration,
-                files_scanned=files_scanned,
+                risk_score=risk_score,
+                score_bg_start=score_bg_start,
+                score_bg_end=score_bg_end,
+                score_border=score_border,
+                score_color=score_color,
+                score_label_color=score_label_color,
                 completed_at=datetime.now().strftime("%B %d, %Y at %I:%M %p"),
-                report_url=report_url
+                report_url=report_url,
+                top_findings_html=top_findings_html,
+                has_critical=critical_count > 0,
+                has_attachment=attachments is not None and len(attachments) > 0
             )
             
             # Determine urgency based on findings
@@ -398,8 +462,10 @@ class EmailService:
                 subject = f"🚨 CRITICAL: Scan Complete - {critical_count} critical issues in {project_name}"
             elif high_count > 0:
                 subject = f"⚠️ Scan Complete - {high_count} high severity issues in {project_name}"
+            elif total_findings > 0:
+                subject = f"✅ Scan Complete - {total_findings} findings in {project_name}"
             else:
-                subject = f"✅ Scan Complete - {project_name}"
+                subject = f"🎉 Scan Complete - No issues found in {project_name}"
             
             return await self.send_email(
                 to_email=email,

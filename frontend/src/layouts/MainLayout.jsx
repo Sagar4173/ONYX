@@ -155,7 +155,7 @@ export const MainLayout = () => {
       ) {
         toast.error(`🚨 ${message}`, { duration: 8000 });
       } else if (alertType === "new_login") {
-        toast.info(`🔐 ${message}`, { duration: 5000 });
+        toast(`🔐 ${message}`, { duration: 5000 });
       } else {
         toast(message, { icon: "⚠️" });
       }

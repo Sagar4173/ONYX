@@ -394,3 +394,146 @@ def get_scan_report_attachment_template() -> str:
         ''',
         footer_text="Detailed security scan report attached."
     )
+
+
+def get_scan_report_email_template() -> str:
+    """
+    Premium client-facing scan report email template.
+    Used when sending scan completion notifications with full report context.
+    """
+    return get_base_template(
+        title="Security Scan Report",
+        header_gradient=GRADIENTS["purple_blue"],
+        header_icon="🛡️",
+        header_subtitle="Security Scan Report",
+        content='''
+        <!-- Executive Summary Banner -->
+        <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%); padding: 24px; border-radius: 16px; margin-bottom: 28px; border: 1px solid rgba(139, 92, 246, 0.25);">
+            <h2 style="color: #f1f5f9; font-size: 22px; margin: 0 0 8px 0; font-weight: 700;">
+                📊 Executive Summary
+            </h2>
+            <p style="color: #c4b5fd; font-size: 14px; margin: 0; line-height: 1.6;">
+                Security scan completed for <strong style="color: #f1f5f9;">{{ project_name }}</strong>
+            </p>
+        </div>
+
+        <!-- Risk Score Section -->
+        <div style="text-align: center; margin: 28px 0;">
+            <div style="display: inline-block; background: linear-gradient(135deg, {{ score_bg_start }} 0%, {{ score_bg_end }} 100%); border-radius: 20px; padding: 24px 48px; border: 1px solid {{ score_border }};">
+                <div style="font-size: 48px; font-weight: 800; color: {{ score_color }}; letter-spacing: -2px;">
+                    {{ risk_score }}
+                </div>
+                <div style="font-size: 13px; color: {{ score_label_color }}; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; font-weight: 600;">
+                    Security Score
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Summary -->
+        <div style="margin: 28px 0; padding: 24px; background: rgba(255,255,255,0.04); border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+            <h3 style="color: #e2e8f0; font-size: 16px; margin: 0 0 16px 0; font-weight: 600;">📋 Scan Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="color: #64748b; padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.06);">Project</td>
+                    <td style="color: #e2e8f0; padding: 10px 0; font-size: 14px; text-align: right; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.06);">{{ project_name }}</td>
+                </tr>
+                <tr>
+                    <td style="color: #64748b; padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.06);">Scan Type</td>
+                    <td style="color: #e2e8f0; padding: 10px 0; font-size: 14px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.06);">{{ scan_type }}</td>
+                </tr>
+                <tr>
+                    <td style="color: #64748b; padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.06);">Duration</td>
+                    <td style="color: #e2e8f0; padding: 10px 0; font-size: 14px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.06);">{{ duration }}</td>
+                </tr>
+                <tr>
+                    <td style="color: #64748b; padding: 10px 0; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.06);">Total Findings</td>
+                    <td style="color: #e2e8f0; padding: 10px 0; font-size: 14px; text-align: right; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06);">{{ total_findings }}</td>
+                </tr>
+                <tr>
+                    <td style="color: #64748b; padding: 10px 0; font-size: 14px;">Completed</td>
+                    <td style="color: #e2e8f0; padding: 10px 0; font-size: 14px; text-align: right;">{{ completed_at }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Severity Breakdown -->
+        <div style="margin: 28px 0;">
+            <h3 style="color: #e2e8f0; font-size: 16px; margin: 0 0 16px 0; font-weight: 600;">🎯 Severity Breakdown</h3>
+            <div style="display: table; width: 100%;">
+                <div style="display: table-row;">
+                    <div style="display: table-cell; width: 25%; padding: 6px;">
+                        <div style="background: rgba(239, 68, 68, 0.12); padding: 20px 12px; border-radius: 14px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.25);">
+                            <div style="font-size: 30px; font-weight: 700; color: #f87171;">{{ critical_count }}</div>
+                            <div style="font-size: 11px; color: #fca5a5; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 600;">Critical</div>
+                        </div>
+                    </div>
+                    <div style="display: table-cell; width: 25%; padding: 6px;">
+                        <div style="background: rgba(249, 115, 22, 0.12); padding: 20px 12px; border-radius: 14px; text-align: center; border: 1px solid rgba(249, 115, 22, 0.25);">
+                            <div style="font-size: 30px; font-weight: 700; color: #fb923c;">{{ high_count }}</div>
+                            <div style="font-size: 11px; color: #fdba74; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 600;">High</div>
+                        </div>
+                    </div>
+                    <div style="display: table-cell; width: 25%; padding: 6px;">
+                        <div style="background: rgba(234, 179, 8, 0.12); padding: 20px 12px; border-radius: 14px; text-align: center; border: 1px solid rgba(234, 179, 8, 0.25);">
+                            <div style="font-size: 30px; font-weight: 700; color: #fbbf24;">{{ medium_count }}</div>
+                            <div style="font-size: 11px; color: #fcd34d; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 600;">Medium</div>
+                        </div>
+                    </div>
+                    <div style="display: table-cell; width: 25%; padding: 6px;">
+                        <div style="background: rgba(34, 197, 94, 0.12); padding: 20px 12px; border-radius: 14px; text-align: center; border: 1px solid rgba(34, 197, 94, 0.25);">
+                            <div style="font-size: 30px; font-weight: 700; color: #4ade80;">{{ low_count }}</div>
+                            <div style="font-size: 11px; color: #86efac; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 600;">Low</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Findings Preview -->
+        {% if top_findings_html %}
+        <div style="margin: 28px 0;">
+            <h3 style="color: #e2e8f0; font-size: 16px; margin: 0 0 16px 0; font-weight: 600;">⚠️ Priority Findings</h3>
+            {{ top_findings_html }}
+        </div>
+        {% endif %}
+
+        <!-- Recommendation Banner -->
+        {% if has_critical %}
+        <div style="margin: 28px 0; padding: 20px; background: rgba(239, 68, 68, 0.1); border-radius: 14px; border: 1px solid rgba(239, 68, 68, 0.25); border-left: 4px solid #ef4444;">
+            <h3 style="color: #fca5a5; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">🚨 Immediate Action Required</h3>
+            <p style="color: #fda4af; margin: 0; font-size: 13px; line-height: 1.6;">
+                {{ critical_count }} critical vulnerabilities require immediate attention. Please review the full report and prioritize remediation.
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- View Full Report Button -->
+        <div style="text-align: center; margin: 36px 0;">
+            <a href="{{ report_url }}" 
+               style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); 
+                      color: #ffffff; 
+                      padding: 16px 48px; 
+                      text-decoration: none; 
+                      border-radius: 14px; 
+                      display: inline-block;
+                      font-weight: 700;
+                      font-size: 15px;
+                      letter-spacing: 0.3px;
+                      box-shadow: 0 10px 40px -5px rgba(99, 102, 241, 0.4);">
+                View Full Report →
+            </a>
+        </div>
+
+        <!-- Report Note -->
+        <div style="text-align: center; margin: 20px 0; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px;">
+            <p style="color: #64748b; font-size: 12px; margin: 0; line-height: 1.5;">
+                {% if has_attachment %}
+                📎 A detailed HTML report is attached to this email for your records.
+                {% endif %}
+                This report was generated by ONYX Security Intelligence Platform.
+            </p>
+        </div>
+        ''',
+        footer_text="You received this because scan notifications are enabled for your project."
+    )
+
