@@ -3,6 +3,7 @@ Authentication Routes for ONYX Security Intelligence Platform
 Handles user registration, login, logout, password management
 """
 import asyncio
+import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
@@ -24,6 +25,7 @@ from config import settings
 from utils.datetime_utils import utc_now
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -120,6 +122,7 @@ async def login(login_data: LoginRequest, request: Request):
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Login failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login failed due to internal error"

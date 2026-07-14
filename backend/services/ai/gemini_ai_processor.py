@@ -752,7 +752,7 @@ SECURE_CODE:
 # Factory function to create the appropriate AI processor
 def create_ai_processor():
     """Create AI processor based on configuration"""
-    provider = settings.ai_provider.lower() if settings.ai_provider else "openai"
+    provider = settings.ai_provider.lower() if settings.ai_provider else "gemini"
     
     logger.info(f"Creating AI processor with provider: {provider}")
     

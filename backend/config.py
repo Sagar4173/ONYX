@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     account_lockout_duration_minutes: int = Field(default=30, env="ACCOUNT_LOCKOUT_DURATION_MINUTES")
     
     # AI Configuration
-    ai_provider: str = Field(default="openai", env="AI_PROVIDER")  # openai or gemini
+    ai_provider: str = Field(default="gemini", env="AI_PROVIDER")  # openai or gemini
     
     # OpenAI
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
@@ -162,16 +162,13 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> list[str]:
         """Convert CORS_ORIGINS string to list"""
-        if not self.cors_origins:
-            # In development, allow localhost origins. In production, this should be explicitly set.
-            import os
-            if os.getenv("ENVIRONMENT", "development").lower() == "production":
-                # Production: Only allow specific origins (should be configured via CORS_ORIGINS env var)
-                return ["https://onyx-platform.vercel.app"]
-            return ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
-        # Split by comma and clean up whitespace
-        origins = [origin.strip() for origin in self.cors_origins.split(",")]
-        return [origin for origin in origins if origin]  # Remove empty strings
+        if self.cors_origins and self.cors_origins.strip():
+            origins = [origin.strip() for origin in self.cors_origins.split(",")]
+            return [origin for origin in origins if origin]
+        if self.environment.lower() == "production":
+            origins = ["https://onyx-platform.vercel.app"]
+            return origins
+        return ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
     
     def validate_ai_config(self) -> tuple[bool, str]:
         """
