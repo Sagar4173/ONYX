@@ -142,7 +142,7 @@ class EmailService:
         try:
             # Use Brevo API if configured (works on Render/cloud platforms)
             if self.use_brevo:
-                return await self._send_brevo_email(to_email, subject, html_body, text_body)
+                return await self._send_brevo_email(to_email, subject, html_body, text_body, attachments)
             
             # Otherwise use SMTP
             # Create message
@@ -179,7 +179,8 @@ class EmailService:
         to_email: str,
         subject: str,
         html_body: str,
-        text_body: Optional[str] = None
+        text_body: Optional[str] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
     ) -> bool:
         """Send email via Brevo API (HTTP-based, works on cloud platforms, no domain verification)"""
         try:
@@ -193,6 +194,30 @@ class EmailService:
                 if not text_body:
                     text_body = subject
             
+            payload = {
+                "sender": {
+                    "name": self.email_from_name,
+                    "email": self.email_from
+                },
+                "to": [{"email": to_email}],
+                "subject": subject,
+                "htmlContent": html_body,
+                "textContent": text_body
+            }
+            
+            # Add attachments if provided (Base64 encoded)
+            if attachments:
+                import base64
+                payload["attachment"] = []
+                for att in attachments:
+                    content = att.get("content", b"")
+                    if isinstance(content, str):
+                        content = content.encode("utf-8")
+                    payload["attachment"].append({
+                        "name": att.get("filename", "attachment"),
+                        "content": base64.b64encode(content).decode("utf-8")
+                    })
+            
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     "https://api.brevo.com/v3/smtp/email",
@@ -201,16 +226,7 @@ class EmailService:
                         "Content-Type": "application/json",
                         "Accept": "application/json"
                     },
-                    json={
-                        "sender": {
-                            "name": self.email_from_name,
-                            "email": self.email_from
-                        },
-                        "to": [{"email": to_email}],
-                        "subject": subject,
-                        "htmlContent": html_body,
-                        "textContent": text_body
-                    },
+                    json=payload,
                     timeout=30.0
                 )
                 
@@ -356,9 +372,10 @@ class EmailService:
         low_count: int = 0,
         duration: str = "N/A",
         files_scanned: int = 0,
-        report_id: str = None
+        report_id: str = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
     ) -> bool:
-        """Send scan completion notification email"""
+        """Send scan completion notification email with optional report attachment"""
         try:
             report_url = f"{settings.frontend_url}/report/{report_id}" if report_id else f"{settings.frontend_url}/dashboard"
             
@@ -387,7 +404,8 @@ class EmailService:
             return await self.send_email(
                 to_email=email,
                 subject=subject,
-                html_body=html_body
+                html_body=html_body,
+                attachments=attachments
             )
             
         except Exception as e:

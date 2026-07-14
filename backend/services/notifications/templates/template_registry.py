@@ -18,7 +18,8 @@ from .security_templates import (
     get_scan_completed_template,
     get_security_alert_template,
     get_new_vulnerability_template,
-    get_weekly_digest_template
+    get_weekly_digest_template,
+    get_scan_report_attachment_template
 )
 
 
@@ -45,7 +46,8 @@ class EmailTemplateLoader(BaseLoader):
             'scan_completed': get_scan_completed_template(),
             'security_alert': get_security_alert_template(),
             'new_vulnerability': get_new_vulnerability_template(),
-            'weekly_digest': get_weekly_digest_template()
+            'weekly_digest': get_weekly_digest_template(),
+            'scan_report_attachment': get_scan_report_attachment_template()
         }
     
     def get_source(self, environment, template):

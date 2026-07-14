@@ -768,7 +768,7 @@ class AuthService:
     async def send_verification_email(self, email: str, verification_token: str):
         """Send email verification link"""
         try:
-            from services.notifications.email_service import email_service
+            from services.notifications.service import email_service
             success = await email_service.send_verification_email(email, verification_token)
             
             if success:
@@ -783,7 +783,7 @@ class AuthService:
     async def send_password_reset_email(self, email: str, reset_token: str):
         """Send password reset link"""
         try:
-            from services.notifications.email_service import email_service
+            from services.notifications.service import email_service
             success = await email_service.send_password_reset_email(email, reset_token)
             
             if success:
@@ -798,7 +798,7 @@ class AuthService:
     async def send_welcome_email(self, email: str, user_name: str):
         """Send welcome email to new users"""
         try:
-            from services.notifications.email_service import email_service
+            from services.notifications.service import email_service
             success = await email_service.send_welcome_email(email, user_name)
             
             if success:

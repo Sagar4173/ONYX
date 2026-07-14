@@ -685,6 +685,29 @@ async def process_real_scan(
                         'critical'
                     )
         
+        # Send email notification to scan initiator
+        try:
+            from services.notifications.notification_service import NotificationService
+            notification_svc = NotificationService()
+            report_for_user = await ScanReport.find_one(ScanReport.scan_id == scan_id)
+            if report_for_user and report_for_user.user_id:
+                await notification_svc.send_scan_completed(
+                    project_name=project_name,
+                    scan_id=scan_id,
+                    user_id=report_for_user.user_id,
+                    findings_count=total_findings,
+                    critical_count=findings_by_severity.get('critical', 0),
+                    high_count=findings_by_severity.get('high', 0),
+                    medium_count=findings_by_severity.get('medium', 0),
+                    low_count=findings_by_severity.get('low', 0),
+                    scan_type="Security",
+                    duration=f"{scan_duration}s",
+                    files_scanned=total_findings,
+                    detailed_findings=detailed_findings
+                )
+        except Exception as notify_err:
+            logger.warning(f"Failed to send scan notification: {notify_err}")
+        
         logger.info(f"✅ Real scan {scan_id} completed successfully with {total_findings} findings")
         logger.info(f"   - Critical: {findings_by_severity.get('critical', 0)}")
         logger.info(f"   - High: {findings_by_severity.get('high', 0)}")

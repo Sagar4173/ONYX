@@ -359,3 +359,38 @@ def get_weekly_digest_template() -> str:
         ''',
         footer_text="You're receiving this weekly digest based on your notification preferences."
     )
+
+
+def get_scan_report_attachment_template() -> str:
+    """Full scan report template for email attachment, using same styling as base"""
+    return get_base_template(
+        title="Security Scan Report",
+        header_gradient=GRADIENTS["blue"],
+        header_icon="📋",
+        header_subtitle="Detailed Security Scan Report",
+        content='''
+        <h2 style="color: #f1f5f9; font-size: 24px; margin: 0 0 16px 0; font-weight: 600;">
+            Scan Report: {{ project_name }}
+        </h2>
+        
+        <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
+            Generated on {{ generated_at }} — {{ total_findings }} finding(s) across {{ scanner_count }} scanner(s).
+        </p>
+        
+        {{ severity_section }}
+        
+        {% if findings_section %}
+        <div style="margin: 24px 0;">
+            <h3 style="color: #e2e8f0; font-size: 18px; margin: 0 0 16px 0; font-weight: 600;">🔍 Findings</h3>
+            {{ findings_section }}
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin: 32px 0; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 16px;">
+            <p style="color: #64748b; font-size: 13px; margin: 0;">
+                This report was generated automatically by ONYX Security Intelligence Platform.
+            </p>
+        </div>
+        ''',
+        footer_text="Detailed security scan report attached."
+    )
