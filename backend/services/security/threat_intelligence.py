@@ -674,15 +674,25 @@ class ThreatIntelligenceEngine:
             logger.error(f"Failed to update KEV status for {cve_id}: {e}")
     
     async def _create_kev_alert(self, vuln: Dict[str, Any]):
-        """Create alert for new CISA KEV entry"""
+        """Create alert for new CISA KEV entry (skips duplicates)"""
         try:
             cve_id = vuln.get("cveID", "")
             vendor_project = vuln.get("vendorProject", "")
             product = vuln.get("product", "")
             vulnerability_name = vuln.get("vulnerabilityName", "")
             
+            alert_id = f"kev_{cve_id}_{hashlib.md5(cve_id.encode()).hexdigest()[:8]}"
+            
+            # Skip if alert already exists (dedup across feed cycles)
+            with sqlite3.connect(self.threat_db_path) as conn:
+                cursor = conn.execute(
+                    "SELECT 1 FROM threat_alerts WHERE alert_id = ?", (alert_id,)
+                )
+                if cursor.fetchone():
+                    return
+            
             alert = ThreatAlert(
-                alert_id=f"kev_{cve_id}_{hashlib.md5(cve_id.encode()).hexdigest()[:8]}",
+                alert_id=alert_id,
                 threat_type=ThreatType.CVE,
                 severity=ThreatSeverity.HIGH,
                 title=f"CISA KEV Alert: {cve_id}",
