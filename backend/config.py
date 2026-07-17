@@ -73,10 +73,10 @@ class Settings(BaseSettings):
     email_from_name: str = Field(default="ONYX Platform", env="EMAIL_FROM_NAME")
     
     # Email Provider Presets (for easy configuration)
-    # Options: gmail, outlook, sendgrid, brevo (for Render/cloud platforms)
+    # Options: gmail, outlook, sendgrid, brevo
     email_provider: Optional[str] = Field(default=None, env="EMAIL_PROVIDER")
     
-    # Brevo (Sendinblue) API Key (for HTTP-based email on cloud platforms like Render)
+    # Brevo (Sendinblue) API Key (for HTTP-based email on cloud platforms)
     # Free: 300 emails/day, no domain verification required
     brevo_api_key: Optional[str] = Field(default=None, env="BREVO_API_KEY")
     
@@ -166,8 +166,7 @@ class Settings(BaseSettings):
             origins = [origin.strip() for origin in self.cors_origins.split(",")]
             return [origin for origin in origins if origin]
         if self.environment.lower() == "production":
-            origins = ["https://onyx-platform.vercel.app"]
-            return origins
+            return []  # Configure CORS_ORIGINS or ALLOWED_ORIGINS env var for production
         return ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
     
     def validate_ai_config(self) -> tuple[bool, str]:

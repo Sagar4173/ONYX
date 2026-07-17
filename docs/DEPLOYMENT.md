@@ -8,10 +8,10 @@ ONYX - Security Intelligence Platform supports multiple deployment options to fi
 
 After deployment, your services will be available at:
 
-- **Frontend**: Your Vercel URL (e.g., `https://your-app.vercel.app`)
-- **Backend**: Your Render URL (e.g., `https://your-backend.onrender.com`)
-- **API Docs**: `https://your-backend.onrender.com/docs`
-- **Health Check**: `https://your-backend.onrender.com/health`
+- **Frontend**: Your AWS frontend URL (e.g., `https://your-app.your-domain.com`)
+- **Backend**: Your AWS backend URL (e.g., `https://api.your-domain.com`)
+- **API Docs**: `https://api.your-domain.com/docs`
+- **Health Check**: `https://api.your-domain.com/health`
 
 ---
 

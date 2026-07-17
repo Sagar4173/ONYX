@@ -130,7 +130,7 @@ backend/
 - [ ] **Scan speed optimization** - Target: faster than Snyk
 - [ ] **Real-time performance** - WebSocket already beats their polling
 - [ ] **Zero-downtime deploys** - Better reliability than competitors
-- [ ] Render optimization
+- [ ] AWS infrastructure optimization
 - [ ] MongoDB performance
 - [ ] Monitoring setup
 
@@ -138,11 +138,8 @@ backend/
 
 ```
 backend/
-├── render.yaml
-├── RENDER_DEPLOY.md
 ├── requirements.txt
 frontend/
-├── vercel.json
 ├── vite.config.js
 docs/
 ├── DEPLOYMENT.md
@@ -375,20 +372,15 @@ npm test
 
 ### If Production is Down
 
-1. Check Render dashboard for backend status
-2. Check Vercel dashboard for frontend status
-3. Check MongoDB Atlas for database issues
-4. Notify team immediately
-5. Document incident in GitHub Issues
+1. Check AWS console for backend/frontend status
+2. Check MongoDB Atlas for database issues
+3. Notify team immediately
+4. Document incident in GitHub Issues
 
 ### Rollback Process
 
 ```bash
-# Backend (Render)
-# Go to Render Dashboard > Manual Deploy > Select previous commit
-
-# Frontend (Vercel)
-# Go to Vercel Dashboard > Deployments > Redeploy previous
+# Use your CI/CD pipeline or AWS console to redeploy the previous version
 ```
 
 ---

@@ -38,11 +38,11 @@
 
 ## 🚀 Live Deployment
 
-| Environment | URL                                                                                        | Status  |
-| ----------- | ------------------------------------------------------------------------------------------ | ------- |
-| Frontend    | [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)                       | ✅ Live |
-| Backend     | [https://onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)           | ✅ Live |
-| API Docs    | [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs) | ✅ Live |
+| Environment | Platform     | Status  |
+| ----------- | ------------ | ------- |
+| Frontend    | AWS          | ✅ Live |
+| Backend     | AWS          | ✅ Live |
+| Database    | MongoDB Atlas| ✅ Live |
 
 ---
 
@@ -175,8 +175,8 @@
 
 | Component        | Technology    |
 | ---------------- | ------------- |
-| Frontend Hosting | Vercel        |
-| Backend Hosting  | Render        |
+| Frontend Hosting | AWS           |
+| Backend Hosting  | AWS           |
 | Database         | MongoDB Atlas |
 | Version Control  | GitHub        |
 

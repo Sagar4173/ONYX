@@ -1,15 +1,8 @@
 # 🚀 Installation & Deployment Guide
 
-## 🌐 Live Demo
+## 🌐 Deployment
 
-**Try ONYX Platform without installation:**
-
-- 🌐 **Frontend Demo**: [https://onyx-platform.vercel.app](https://onyx-platform.vercel.app)
-- 🔌 **Backend API**: [https://onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)
-- 📚 **API Documentation**: [https://onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs)
-- 🏥 **System Health**: [https://onyx-backend-dt4o.onrender.com/health](https://onyx-backend-dt4o.onrender.com/health)
-
-> **Note**: Demo environment has limited resources. For full functionality, deploy your own instance using the guides below.
+This project is deployed on **AWS**. For deployment instructions, see the [Deployment Guide](DEPLOYMENT.md).
 
 ## Overview
 

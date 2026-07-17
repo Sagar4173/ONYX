@@ -12,13 +12,9 @@
 
 ---
 
-## 🚀 Live Demo
+## 🚀 Deployment
 
-| Service            | URL                                                                                |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| 🌐 **Frontend**    | [onyx-platform.vercel.app](https://onyx-platform.vercel.app)                       |
-| 🔌 **Backend API** | [onyx-backend-dt4o.onrender.com](https://onyx-backend-dt4o.onrender.com)           |
-| 📚 **API Docs**    | [onyx-backend-dt4o.onrender.com/docs](https://onyx-backend-dt4o.onrender.com/docs) |
+This project is deployed on **AWS**. See [Deployment Guide](docs/DEPLOYMENT.md) for details.
 
 ---
 
@@ -91,7 +87,7 @@
 | **Backend**  | FastAPI, Python 3.11                |
 | **Database** | MongoDB Atlas                       |
 | **AI**       | OpenAI GPT-4, Google Gemini         |
-| **Hosting**  | Vercel (Frontend), Render (Backend) |
+| **Hosting**  | AWS                                 |
 
 ---
 
