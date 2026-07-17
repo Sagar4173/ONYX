@@ -1,1 +1,1 @@
-Rushikesh
+Rushi

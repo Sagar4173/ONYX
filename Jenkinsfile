@@ -6,7 +6,7 @@ pipeline {
     // =========================================================================
     // Jenkins + App on SAME EC2 server
     // Repo: https://github.com/rushiphalke247/ONYX.git (public)
-    // Trigger: Push to 'main' branch → auto-deploy
+    // Trigger: Push to 'master' branch → auto-deploy
     // =========================================================================
 
     environment {
@@ -44,8 +44,8 @@ pipeline {
                     cp -f frontend/.env frontend/.env.backup 2>/dev/null || true
 
                     # Pull latest code
-                    git fetch origin main
-                    git reset --hard origin/main
+                    git fetch origin master
+                    git reset --hard origin/master
 
                     # Restore .env files after pull
                     cp -f backend/.env.backup backend/.env 2>/dev/null || true
