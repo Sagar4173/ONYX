@@ -14,7 +14,7 @@ pipeline {
         BACKEND_DIR    = '/home/ec2-user/ONYX/backend'
         FRONTEND_DIR   = '/home/ec2-user/ONYX/frontend'
         VENV_DIR       = '/home/ec2-user/ONYX/backend/venv'
-        GIT_REPO       = 'https://github.com/rushiphalke247/ONYX.git'
+        GIT_REPO       = 'https://github.com/Sagar4173/ONYX.git'
     }
 
     options {
