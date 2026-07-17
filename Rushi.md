@@ -1,1 +1,1 @@
-Rushikesh mc
+Rushikesh
