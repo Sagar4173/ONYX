@@ -4,6 +4,10 @@
  */
 import React from "react";
 import {
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+} from "@heroicons/react/24/outline";
+import {
   getButtonClasses,
   getBadgeClasses,
   getCardClasses,
@@ -409,9 +413,9 @@ export const Modal = ({
   footer,
   size = "md",
 }) => {
-  if (!isOpen) return null;
-
   const titleId = React.useId();
+
+  if (!isOpen) return null;
 
   const sizeClasses = {
     sm: "max-w-sm",
@@ -485,13 +489,52 @@ export const EmptyState = ({
 // STAT CARD COMPONENT
 // =============================================================================
 
+export const AnimatedCounter = ({ value, duration = 1000 }) => {
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const numValue = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(numValue)) {
+      setCount(value);
+      return;
+    }
+
+    let start = 0;
+    const end = numValue;
+    const increment = end / (duration / 16);
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return typeof value === "string" && String(value).includes("%")
+    ? `${count}%`
+    : count;
+};
+
 export const StatCard = ({
   title,
   value,
   change,
-  changeType = "neutral", // 'increase', 'decrease', 'neutral'
+  changeType = "neutral",
   icon,
   className = "",
+  trend,
+  trendPositive = true,
+  subtitle,
+  gradient,
+  animated = false,
+  animatedDuration = 1000,
+  onClick,
 }) => {
   const changeColors = {
     increase: "text-green-400",
@@ -499,12 +542,71 @@ export const StatCard = ({
     neutral: "text-gray-400",
   };
 
+  const TrendIcon =
+    trend >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
+  const trendColor = trendPositive
+    ? trend >= 0 ? "text-emerald-400" : "text-red-400"
+    : trend >= 0 ? "text-red-400" : "text-emerald-400";
+
+  if (gradient) {
+    return (
+      <div
+        onClick={onClick}
+        className={`group relative bg-gray-800/30 rounded-2xl p-5 lg:p-6 border border-gray-700/30 
+          hover:border-gray-600/50 transition-all duration-500 hover:scale-[1.02] 
+          hover:shadow-xl hover:shadow-black/20 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      >
+        <div
+          className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 
+            group-hover:opacity-[0.08] transition-all duration-500`}
+        />
+        <div
+          className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r ${gradient} opacity-0 
+            group-hover:opacity-20 blur-xl transition-all duration-500`}
+        />
+
+        <div className="relative">
+          <div className="flex items-center justify-between mb-4">
+            <div
+              className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg 
+                group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}
+            >
+              {icon}
+            </div>
+            {trend !== undefined && trend !== null && (
+              <div
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${
+                  trend >= 0 ? "bg-emerald-500/10" : "bg-red-500/10"
+                }`}
+              >
+                <TrendIcon className={`h-4 w-4 ${trendColor}`} />
+                <span className={`text-xs font-semibold ${trendColor}`}>
+                  {Math.abs(trend)}%
+                </span>
+              </div>
+            )}
+          </div>
+
+          <h3 className="text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">
+            {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
+          </h3>
+          <p className="text-sm text-gray-400 font-medium">{title}</p>
+          {subtitle && (
+            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Card className={className}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-white mt-1">{value}</p>
+          <p className="text-2xl font-bold text-white mt-1">
+            {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
+          </p>
           {change !== undefined && (
             <p className={`text-sm mt-1 ${changeColors[changeType]}`}>
               {changeType === "increase" && "↑"}

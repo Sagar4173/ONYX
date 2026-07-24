@@ -43,12 +43,6 @@ export const colors = {
   },
 
   // Semantic colors
-  primary: {
-    light: "#dbeafe",
-    main: "#3b82f6",
-    dark: "#1d4ed8",
-    bg: "rgba(59, 130, 246, 0.1)",
-  },
   success: {
     light: "#dcfce7",
     main: "#22c55e",

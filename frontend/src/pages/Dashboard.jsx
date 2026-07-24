@@ -2,7 +2,7 @@
  * Dashboard Page - Enhanced Enterprise Version
  * Real-time security overview with live data, charts, and actionable insights
  */
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -15,13 +15,12 @@ import {
   FolderIcon,
   DocumentChartBarIcon,
   ClockIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
   PlayIcon,
   ArrowRightIcon,
   ChartBarIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import { StatCard, AnimatedCounter } from "../styles/components";
 import {
   PageContainer,
   PageHeader,
@@ -31,122 +30,6 @@ import {
 } from "../layouts";
 import { reportsAPI } from "../services/api";
 import { dashboardAPI } from "../services/dashboardService";
-
-/**
- * Animated Counter Component
- */
-const AnimatedCounter = ({ value, duration = 1000 }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const numValue = typeof value === "string" ? parseFloat(value) : value;
-    if (isNaN(numValue)) {
-      setCount(value);
-      return;
-    }
-
-    let start = 0;
-    const end = numValue;
-    const increment = end / (duration / 16);
-
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-
-    return () => clearInterval(timer);
-  }, [value, duration]);
-
-  return (
-    <>
-      {typeof value === "string" && value.includes("%") ? `${count}%` : count}
-    </>
-  );
-};
-
-/**
- * Enhanced Stat Card with animations
- */
-const StatCard = ({ stat, index, onClick }) => {
-  const TrendIcon =
-    stat.trend >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
-  const trendColor = stat.trendPositive
-    ? stat.trend >= 0
-      ? "text-emerald-400"
-      : "text-red-400"
-    : stat.trend >= 0
-    ? "text-red-400"
-    : "text-emerald-400";
-
-  return (
-    <div
-      onClick={onClick}
-      className={`group relative bg-gray-800/30 rounded-2xl p-5 lg:p-6 border border-gray-700/30 
-                hover:border-gray-600/50 transition-all duration-500 hover:scale-[1.02] 
-                hover:shadow-xl hover:shadow-black/20 ${
-                  onClick ? "cursor-pointer" : ""
-                }`}
-      style={{ animationDelay: `${index * 0.1}s` }}
-    >
-      {/* Gradient overlay on hover */}
-      <div
-        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${stat.gradient} opacity-0 
-                      group-hover:opacity-[0.08] transition-all duration-500`}
-      />
-
-      {/* Glow effect */}
-      <div
-        className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r ${stat.gradient} opacity-0 
-                      group-hover:opacity-20 blur-xl transition-all duration-500`}
-      />
-
-      <div className="relative">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div
-            className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg 
-                         group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}
-          >
-            <stat.icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
-          </div>
-          {stat.trend !== undefined && stat.trend !== null && (
-            <div
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg 
-                           ${
-                             stat.trend >= 0
-                               ? "bg-emerald-500/10"
-                               : "bg-red-500/10"
-                           }`}
-            >
-              <TrendIcon className={`h-4 w-4 ${trendColor}`} />
-              <span className={`text-xs font-semibold ${trendColor}`}>
-                {Math.abs(stat.trend)}%
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Value */}
-        <h3 className="text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">
-          <AnimatedCounter value={stat.value} />
-        </h3>
-
-        {/* Label */}
-        <p className="text-sm text-gray-400 font-medium">{stat.label}</p>
-
-        {/* Subtitle */}
-        {stat.subtitle && (
-          <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>
-        )}
-      </div>
-    </div>
-  );
-};
 
 /**
  * Security Score Ring Chart
@@ -558,11 +441,20 @@ const Dashboard = ({ notifications = [] }) => {
         }
       />
 
-      {/* Stats Grid — Staggered entrance animation */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
         {statsCards.map((stat, index) => (
-          <div key={stat.label} className={`animate-stagger-${index + 1}`}>
-            <StatCard stat={stat} index={index} />
+          <div key={stat.label} style={{ animationDelay: `${index * 0.1}s` }}>
+            <StatCard
+              title={stat.label}
+              value={stat.value}
+              trend={stat.trend}
+              trendPositive={stat.trendPositive}
+              subtitle={stat.subtitle}
+              gradient={stat.gradient}
+              icon={<stat.icon className="h-5 w-5 text-white" />}
+              animated
+            />
           </div>
         ))}
       </div>
