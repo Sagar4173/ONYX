@@ -373,7 +373,7 @@ export const AuthModal = ({
 
             {/* Platform Highlight */}
             {currentView === "register" && (
-              <div className="mt-8 p-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-cyan-500/20">
+              <div className="mt-8 p-4 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-cyan-500/20">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 flex items-center justify-center text-white">

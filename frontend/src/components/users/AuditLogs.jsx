@@ -306,7 +306,7 @@ const AuditLogs = () => {
                       ),
                     })
                   }
-                  className="w-full px-4 py-2 bg-gray-800 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   size="5"
                 >
                   {usersData?.users?.map((user) => (
@@ -332,7 +332,7 @@ const AuditLogs = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, start_date: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <label className="block text-sm font-medium text-gray-300 mb-2 mt-2">
                   End Date
@@ -343,7 +343,7 @@ const AuditLogs = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, end_date: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
@@ -357,7 +357,7 @@ const AuditLogs = () => {
                   onChange={(e) =>
                     setFilters({ ...filters, severity: e.target.value })
                   }
-                  className="w-full px-4 py-2 bg-gray-800 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   <option value="" className="bg-gray-800 text-white">
                     All Severities
@@ -394,7 +394,7 @@ const AuditLogs = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-white/10">
+                  <tr className="border-b border-gray-700/50">
                     <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
                       Timestamp
                     </th>
@@ -421,7 +421,7 @@ const AuditLogs = () => {
                 <tbody>
                   {auditData?.logs?.map((log) => (
                     <React.Fragment key={log.id}>
-                      <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <tr className="border-b border-gray-700/30 hover:bg-gray-800/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2 text-sm text-gray-300">
                             <ClockIcon className="w-4 h-4 text-gray-500" />
@@ -472,7 +472,7 @@ const AuditLogs = () => {
                         </td>
                       </tr>
                       {expandedLog === log.id && (
-                        <tr className="bg-white/5">
+                        <tr className="bg-gray-800/30">
                           <td colSpan="7" className="px-6 py-4">
                             <div className="space-y-3">
                               <div className="grid grid-cols-2 gap-4">
@@ -526,7 +526,7 @@ const AuditLogs = () => {
 
           {/* Pagination */}
           {auditData?.total > limit && (
-            <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-700/50 flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 Showing {(page - 1) * limit + 1} to{" "}
                 {Math.min(page * limit, auditData.total)} of {auditData.total}{" "}
@@ -536,14 +536,14 @@ const AuditLogs = () => {
                 <button
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 rounded-lg text-white transition-all"
+                  className="px-4 py-2 bg-gray-800/30 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700/50 rounded-lg text-white transition-all"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPage(page + 1)}
                   disabled={page * limit >= auditData.total}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 rounded-lg text-white transition-all"
+                  className="px-4 py-2 bg-gray-800/30 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700/50 rounded-lg text-white transition-all"
                 >
                   Next
                 </button>

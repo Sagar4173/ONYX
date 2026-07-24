@@ -777,7 +777,7 @@ export const UserProfile = ({ onClose }) => {
 
       {/* Modal */}
       <div
-        className={`relative w-full max-w-3xl max-h-[92vh] overflow-hidden bg-gradient-to-br from-gray-900/95 via-gray-900/98 to-gray-800/95 rounded-3xl shadow-2xl shadow-purple-500/10 border border-white/10 transition-all duration-500 ${
+        className={`relative w-full max-w-3xl max-h-[92vh] overflow-hidden bg-gradient-to-br from-gray-900/95 via-gray-900/98 to-gray-800/95 rounded-3xl shadow-2xl shadow-purple-500/10 border border-gray-700/50 transition-all duration-500 ${
           isClosing
             ? "scale-95 opacity-0 translate-y-4"
             : "scale-100 opacity-100 translate-y-0"
@@ -796,7 +796,7 @@ export const UserProfile = ({ onClose }) => {
         </div>
 
         {/* Header */}
-        <div className="relative border-b border-white/10 bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-sm">
+        <div className="relative border-b border-gray-700/50 bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-sm">
           <div className="p-6 pb-4">
             <div className="flex items-start justify-between">
               {/* Profile Header with enhanced avatar */}
@@ -868,7 +868,7 @@ export const UserProfile = ({ onClose }) => {
                     </p>
                     <button
                       onClick={() => copyToClipboard(user?.username)}
-                      className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-1 hover:bg-gray-700/50 rounded-lg transition-colors"
                       title="Copy username"
                     >
                       <DocumentDuplicateIcon
@@ -910,7 +910,7 @@ export const UserProfile = ({ onClose }) => {
             </div>
 
             {/* Enhanced Tabs with sliding indicator */}
-            <div className="flex gap-1 mt-6 p-1.5 bg-gray-800/60 rounded-2xl backdrop-blur-sm border border-white/5">
+            <div className="flex gap-1 mt-6 p-1.5 bg-gray-800/60 rounded-2xl backdrop-blur-sm border border-gray-700/50">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
@@ -918,7 +918,7 @@ export const UserProfile = ({ onClose }) => {
                   className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
                     activeTab === tab.key
                       ? "text-white"
-                      : "text-gray-400 hover:text-gray-300 hover:bg-white/5"
+                      : "text-gray-400 hover:text-gray-300 hover:bg-gray-700/50"
                   }`}
                 >
                   {activeTab === tab.key && (
@@ -948,7 +948,7 @@ export const UserProfile = ({ onClose }) => {
             <div className="space-y-5 animate-fadeIn">
               {/* Security Score Card - New Feature */}
               <div
-                className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-white/5 group hover:border-indigo-500/20 transition-all duration-500"
+                className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-gray-700/50 group hover:border-indigo-500/20 transition-all duration-500"
                 onMouseEnter={() => setHoveredCard("security")}
                 onMouseLeave={() => setHoveredCard(null)}
               >
@@ -1513,7 +1513,7 @@ export const UserProfile = ({ onClose }) => {
           {activeTab === "security" && (
             <div className="space-y-5 animate-fadeIn">
               {/* Security Overview Card */}
-              <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-white/5">
+              <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5" />
                 <div className="relative flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -1635,7 +1635,7 @@ export const UserProfile = ({ onClose }) => {
                           Scan this QR code with your authenticator app (Google
                           Authenticator, Authy, etc.)
                         </p>
-                        <div className="inline-block p-4 bg-white rounded-xl">
+                        <div className="inline-block p-4 bg-gray-800 rounded-xl">
                           <img
                             src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
                               twoFactorSetupData.qr_code_url
@@ -2183,7 +2183,7 @@ export const UserProfile = ({ onClose }) => {
           {activeTab === "notifications" && (
             <div className="space-y-5 animate-fadeIn">
               {/* Notification Header */}
-              <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-white/5">
+              <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-rose-500/5" />
                 <div className="relative flex items-center gap-4">
                   <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">

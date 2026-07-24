@@ -13,7 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI, projectsAPI } from "../../services/api";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, EmptyState, Modal } from "../../styles/components";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const AdvancedCompliance = () => {
@@ -270,7 +270,7 @@ const AdvancedCompliance = () => {
                           {summary.average_score?.toFixed(1)}%
                         </span>
                       </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
+                      <div className="w-full bg-gray-700/50 rounded-full h-2">
                         <div
                           className={`bg-gradient-to-r ${getScoreGradient(
                             summary.average_score
@@ -288,7 +288,7 @@ const AdvancedCompliance = () => {
 
         {/* Assessments List */}
         <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-white/10">
+          <div className="p-6 border-b border-gray-700/50">
             <h2 className="text-xl font-semibold text-white">
               Compliance Assessments
             </h2>
@@ -421,264 +421,165 @@ const AdvancedCompliance = () => {
 
         {/* Assessment Details Modal */}
         {selectedAssessment && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    Assessment Details
-                  </h2>
-                  <button
-                    onClick={() => setSelectedAssessment(null)}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <XCircleIcon className="w-6 h-6 text-gray-400" />
-                  </button>
-                </div>
-
-                {/* Assessment Info */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-800/30 rounded-xl p-4">
-                    <p className="text-sm text-gray-400 mb-1">Project ID</p>
-                    <p className="text-lg font-semibold text-white">
-                      {selectedAssessment.project_id}
-                    </p>
-                  </div>
-                  <div className="bg-gray-800/30 rounded-xl p-4">
-                    <p className="text-sm text-gray-400 mb-1">Status</p>
-                    <p className="text-lg font-semibold text-white capitalize">
-                      {selectedAssessment.status}
-                    </p>
-                  </div>
-                  <div className="bg-gray-800/30 rounded-xl p-4">
-                    <p className="text-sm text-gray-400 mb-1">Overall Score</p>
-                    <p
-                      className={`text-2xl font-bold ${
-                        selectedAssessment.overall_score >= 70
-                          ? "text-green-400"
-                          : "text-yellow-400"
-                      }`}
-                    >
-                      {selectedAssessment.overall_score?.toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="bg-gray-800/30 rounded-xl p-4">
-                    <p className="text-sm text-gray-400 mb-1">
-                      Assessment Date
-                    </p>
-                    <p className="text-sm font-medium text-white">
-                      {formatDate(selectedAssessment.assessment_date)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Framework Results Details */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">
-                    Framework Results
-                  </h3>
-                  {selectedAssessment.framework_results?.map((result) => {
-                    const frameworkInfo = getFrameworkInfo(result.framework);
-                    return (
-                      <div
-                        key={result.framework}
-                        className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4"
-                      >
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">
-                              {frameworkInfo?.icon}
-                            </span>
-                            <div>
-                              <h4 className="font-semibold text-white">
-                                {frameworkInfo?.name}
-                              </h4>
-                              <p className="text-sm text-gray-400">
-                                {frameworkInfo?.fullName}
-                              </p>
-                            </div>
-                          </div>
-                          <div
-                            className={`px-4 py-2 rounded-lg ${getScoreColor(
-                              result.score
-                            )}`}
-                          >
-                            <p className="text-2xl font-bold">
-                              {result.score?.toFixed(0)}%
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-green-400">
-                              {result.passed_controls}
-                            </p>
-                            <p className="text-xs text-gray-400">Passed</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-red-400">
-                              {result.failed_controls}
-                            </p>
-                            <p className="text-xs text-gray-400">Failed</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-2xl font-bold text-gray-400">
-                              {result.total_controls}
-                            </p>
-                            <p className="text-xs text-gray-400">Total</p>
-                          </div>
-                        </div>
-
-                        {result.recommendations?.length > 0 && (
-                          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-                            <p className="text-sm font-medium text-yellow-400 mb-2">
-                              Recommendations
-                            </p>
-                            <ul className="text-sm text-gray-300 space-y-1">
-                              {result.recommendations
-                                .slice(0, 3)
-                                .map((rec, idx) => (
-                                  <li key={idx}>• {rec}</li>
-                                ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+          <Modal size="xl" isOpen={!!selectedAssessment} onClose={() => setSelectedAssessment(null)} title="Assessment Details">
+            {/* Assessment Info */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-800/30 rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">Project ID</p>
+                <p className="text-lg font-semibold text-white">
+                  {selectedAssessment.project_id}
+                </p>
+              </div>
+              <div className="bg-gray-800/30 rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">Status</p>
+                <p className="text-lg font-semibold text-white capitalize">
+                  {selectedAssessment.status}
+                </p>
+              </div>
+              <div className="bg-gray-800/30 rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">Overall Score</p>
+                <p className={`text-2xl font-bold ${selectedAssessment.overall_score >= 70 ? "text-green-400" : "text-yellow-400"}`}>
+                  {selectedAssessment.overall_score?.toFixed(1)}%
+                </p>
+              </div>
+              <div className="bg-gray-800/30 rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">Assessment Date</p>
+                <p className="text-sm font-medium text-white">
+                  {formatDate(selectedAssessment.assessment_date)}
+                </p>
               </div>
             </div>
-          </div>
+
+            {/* Framework Results Details */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">Framework Results</h3>
+              {selectedAssessment.framework_results?.map((result) => {
+                const frameworkInfo = getFrameworkInfo(result.framework);
+                return (
+                  <div key={result.framework} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{frameworkInfo?.icon}</span>
+                        <div>
+                          <h4 className="font-semibold text-white">{frameworkInfo?.name}</h4>
+                          <p className="text-sm text-gray-400">{frameworkInfo?.fullName}</p>
+                        </div>
+                      </div>
+                      <div className={`px-4 py-2 rounded-lg ${getScoreColor(result.score)}`}>
+                        <p className="text-2xl font-bold">{result.score?.toFixed(0)}%</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-green-400">{result.passed_controls}</p>
+                        <p className="text-xs text-gray-400">Passed</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-red-400">{result.failed_controls}</p>
+                        <p className="text-xs text-gray-400">Failed</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold text-gray-400">{result.total_controls}</p>
+                        <p className="text-xs text-gray-400">Total</p>
+                      </div>
+                    </div>
+
+                    {result.recommendations?.length > 0 && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                        <p className="text-sm font-medium text-yellow-400 mb-2">Recommendations</p>
+                        <ul className="text-sm text-gray-300 space-y-1">
+                          {result.recommendations.slice(0, 3).map((rec, idx) => (
+                            <li key={idx}>• {rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Modal>
         )}
 
         {/* Create Assessment Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    Create Compliance Assessment
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setShowCreateModal(false);
-                      resetForm();
-                    }}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <XCircleIcon className="w-6 h-6 text-gray-400" />
-                  </button>
-                </div>
+          <Modal
+            size="lg"
+            isOpen={showCreateModal}
+            onClose={() => { setShowCreateModal(false); resetForm(); }}
+            title="Create Compliance Assessment"
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => { setShowCreateModal(false); resetForm(); }}>Cancel</Button>
+                <Button type="submit" form="assessment-form" gradient isLoading={createAssessmentMutation.isPending} disabled={formData.frameworks.length === 0}>
+                  Start Assessment
+                </Button>
+              </>
+            }
+          >
+            <form id="assessment-form" onSubmit={handleSubmit} className="space-y-6">
+              {/* Project Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Select Project *
+                </label>
+                <select
+                  value={formData.project_id}
+                  onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none cursor-pointer"
+                  required
+                >
+                  <option value="" disabled className="bg-gray-800 text-gray-400">
+                    Choose a project...
+                  </option>
+                  {(projectsData?.projects || []).map((project) => (
+                    <option key={project.id || project._id} value={project.id || project._id} className="bg-gray-800 text-white">
+                      {project.name}{project.repository?.url ? ` — ${project.repository.url}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {(!projectsData?.projects || projectsData.projects.length === 0) && (
+                  <p className="mt-2 text-xs text-yellow-400">
+                    No projects found. Create a project first to run compliance assessments.
+                  </p>
+                )}
+              </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Project Selection */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Select Project *
-                    </label>
-                    <select
-                      value={formData.project_id}
-                      onChange={(e) =>
-                        setFormData({ ...formData, project_id: e.target.value })
-                      }
-                      className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none cursor-pointer"
-                      required
-                    >
-                      <option value="" disabled className="bg-slate-800 text-gray-400">
-                        Choose a project...
-                      </option>
-                      {(projectsData?.projects || []).map((project) => (
-                        <option
-                          key={project.id || project._id}
-                          value={project.id || project._id}
-                          className="bg-slate-800 text-white"
-                        >
-                          {project.name}{project.repository?.url ? ` — ${project.repository.url}` : ""}
-                        </option>
-                      ))}
-                    </select>
-                    {(!projectsData?.projects || projectsData.projects.length === 0) && (
-                      <p className="mt-2 text-xs text-yellow-400">
-                        No projects found. Create a project first to run compliance assessments.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Frameworks */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Select Frameworks *
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {frameworks.map((framework) => (
-                        <button
-                          key={framework.id}
-                          type="button"
-                          onClick={() => {
-                            const newFrameworks = formData.frameworks.includes(
-                              framework.id
-                            )
-                              ? formData.frameworks.filter(
-                                  (f) => f !== framework.id
-                                )
-                              : [...formData.frameworks, framework.id];
-                            setFormData({
-                              ...formData,
-                              frameworks: newFrameworks});
-                          }}
-                          className={`p-4 border rounded-xl text-left transition-all ${
-                            formData.frameworks.includes(framework.id)
-                              ? `bg-gradient-to-r ${framework.color} border-transparent`
-                              : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xl">{framework.icon}</span>
-                            <span className="font-medium text-white">
-                              {framework.name}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-300 opacity-80">
-                            {framework.description}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                    <p className="mt-2 text-sm text-gray-400">
-                      Select at least one framework for assessment
-                    </p>
-                  </div>
-
-                  {/* Form Actions */}
-                  <div className="flex gap-3 pt-4">
+              {/* Frameworks */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  Select Frameworks *
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {frameworks.map((framework) => (
                     <button
+                      key={framework.id}
                       type="button"
                       onClick={() => {
-                        setShowCreateModal(false);
-                        resetForm();
+                        const newFrameworks = formData.frameworks.includes(framework.id)
+                          ? formData.frameworks.filter((f) => f !== framework.id)
+                          : [...formData.frameworks, framework.id];
+                        setFormData({ ...formData, frameworks: newFrameworks });
                       }}
-                      className="flex-1 px-6 py-3 bg-gray-800/30 hover:bg-gray-700/50 border border-gray-700/50 rounded-xl text-white font-medium transition-all"
+                      className={`p-4 border rounded-xl text-left transition-all ${
+                        formData.frameworks.includes(framework.id)
+                          ? `bg-gradient-to-r ${framework.color} border-transparent`
+                          : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
+                      }`}
                     >
-                      Cancel
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xl">{framework.icon}</span>
+                        <span className="font-medium text-white">{framework.name}</span>
+                      </div>
+                      <p className="text-xs text-gray-300 opacity-80">{framework.description}</p>
                     </button>
-                    <button
-                      type="submit"
-                      disabled={
-                        createAssessmentMutation.isPending ||
-                        formData.frameworks.length === 0
-                      }
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-semibold shadow-lg transition-all disabled:opacity-50"
-                    >
-                      Start Assessment
-                    </button>
-                  </div>
-                </form>
+                  ))}
+                </div>
+                <p className="mt-2 text-sm text-gray-400">Select at least one framework for assessment</p>
               </div>
-            </div>
-          </div>
+            </form>
+          </Modal>
         )}
       </div>
     </PageContainer>

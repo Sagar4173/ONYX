@@ -19,7 +19,7 @@ import {
   ArrowPathIcon} from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, EmptyState, Modal } from "../../styles/components";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const DataRetentionPolicies = () => {
@@ -289,7 +289,7 @@ const DataRetentionPolicies = () => {
                 </div>
 
                 {/* Policy Actions */}
-                <div className="flex gap-2 pt-4 border-t border-white/10">
+                <div className="flex gap-2 pt-4 border-t border-gray-700/50">
                   <button
                     onClick={() => handleExecute(policy.id)}
                     disabled={executePolicyMutation.isLoading}
@@ -319,176 +319,98 @@ const DataRetentionPolicies = () => {
 
         {/* Create/Edit Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">
-                    {editingPolicy ? "Edit" : "Create"} Retention Policy
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setShowCreateModal(false);
-                      setEditingPolicy(null);
-                      resetForm();
-                    }}
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <XCircleIcon className="w-6 h-6 text-gray-400" />
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Policy Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Policy Type *
-                    </label>
-                    <select
-                      value={formData.policy_type}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          policy_type: e.target.value})
-                      }
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
-                      required
-                    >
-                      {policyTypes.map((type) => (
-                        <option
-                          key={type.value}
-                          value={type.value}
-                          className="bg-gray-800 text-white"
-                        >
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Retention Days */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Retention Period (Days) *
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.retention_days}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          retention_days: parseInt(e.target.value)})
-                      }
-                      min="1"
-                      max="3650"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <p className="mt-2 text-sm text-gray-400">
-                      Common periods: 30 days, 90 days, 1 year (365), 7 years
-                      (2555)
-                    </p>
-                  </div>
-
-                  {/* Action */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Retention Action *
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {retentionActions.map((action) => (
-                        <button
-                          key={action.value}
-                          type="button"
-                          onClick={() =>
-                            setFormData({ ...formData, action: action.value })
-                          }
-                          className={`p-4 border rounded-xl text-left transition-all ${
-                            formData.action === action.value
-                              ? "bg-blue-500/20 border-blue-500/50"
-                              : "bg-white/5 border-white/10 hover:bg-white/10"
-                          }`}
-                        >
-                          <p className={`font-medium ${action.color}`}>
-                            {action.label}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {action.description}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Compliance Requirement */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Compliance Requirement (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.compliance_requirement}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          compliance_requirement: e.target.value})
-                      }
-                      placeholder="e.g., SOX, HIPAA, GDPR"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Enabled Toggle */}
-                  <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl">
-                    <div>
-                      <p className="font-medium text-white">Enable Policy</p>
-                      <p className="text-sm text-gray-400">
-                        Activate this retention policy immediately
-                      </p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.enabled}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            enabled: e.target.checked})
-                        }
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                    </label>
-                  </div>
-
-                  {/* Form Actions */}
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowCreateModal(false);
-                        setEditingPolicy(null);
-                        resetForm();
-                      }}
-                      className="flex-1 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={
-                        createPolicyMutation.isLoading ||
-                        updatePolicyMutation.isLoading
-                      }
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-xl text-white font-semibold shadow-lg transition-all disabled:opacity-50"
-                    >
-                      {editingPolicy ? "Update" : "Create"} Policy
-                    </button>
-                  </div>
-                </form>
+          <Modal
+            isOpen={showCreateModal}
+            onClose={() => { setShowCreateModal(false); setEditingPolicy(null); resetForm(); }}
+            title={`${editingPolicy ? "Edit" : "Create"} Retention Policy`}
+            size="lg"
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => { setShowCreateModal(false); setEditingPolicy(null); resetForm(); }}>Cancel</Button>
+                <Button type="submit" form="retention-form" gradient isLoading={createPolicyMutation.isLoading || updatePolicyMutation.isLoading}>
+                  {editingPolicy ? "Update" : "Create"} Policy
+                </Button>
+              </>
+            }
+          >
+            <form id="retention-form" onSubmit={handleSubmit} className="space-y-6">
+              {/* Policy Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Policy Type *</label>
+                <select
+                  value={formData.policy_type}
+                  onChange={(e) => setFormData({ ...formData, policy_type: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-800 [&>option]:text-white"
+                  required
+                >
+                  {policyTypes.map((type) => (
+                    <option key={type.value} value={type.value} className="bg-gray-800 text-white">{type.label}</option>
+                  ))}
+                </select>
               </div>
-            </div>
-          </div>
+
+              {/* Retention Days */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Retention Period (Days) *</label>
+                <input
+                  type="number"
+                  value={formData.retention_days}
+                  onChange={(e) => setFormData({ ...formData, retention_days: parseInt(e.target.value) })}
+                  min="1"
+                  max="3650"
+                  className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  required
+                />
+                <p className="mt-2 text-sm text-gray-400">Common periods: 30 days, 90 days, 1 year (365), 7 years (2555)</p>
+              </div>
+
+              {/* Action */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Retention Action *</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {retentionActions.map((action) => (
+                    <button
+                      key={action.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, action: action.value })}
+                      className={`p-4 border rounded-xl text-left transition-all ${
+                        formData.action === action.value
+                          ? "bg-blue-500/20 border-blue-500/50"
+                          : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
+                      }`}
+                    >
+                      <p className={`font-medium ${action.color}`}>{action.label}</p>
+                      <p className="text-xs text-gray-400 mt-1">{action.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Compliance Requirement */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Compliance Requirement (Optional)</label>
+                <input
+                  type="text"
+                  value={formData.compliance_requirement}
+                  onChange={(e) => setFormData({ ...formData, compliance_requirement: e.target.value })}
+                  placeholder="e.g., SOX, HIPAA, GDPR"
+                  className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                />
+              </div>
+
+              {/* Enabled Toggle */}
+              <div className="flex items-center justify-between p-4 bg-gray-800/30 border border-gray-700/50 rounded-xl">
+                <div>
+                  <p className="font-medium text-white">Enable Policy</p>
+                  <p className="text-sm text-gray-400">Activate this retention policy immediately</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" checked={formData.enabled} onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                </label>
+              </div>
+            </form>
+          </Modal>
         )}
       </div>
     </PageContainer>
