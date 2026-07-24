@@ -1,21 +1,24 @@
 """
 Email Service for ONYX Security Intelligence Platform
-Handles email sending with support for multiple providers:
-- SMTP (Gmail, Outlook, Yahoo, SendGrid)
-- Brevo API (HTTP-based, works on Render/cloud platforms, no domain verification needed)
-Refactored for modularity and maintainability
+Handles email sending via SMTP with deliverability best practices:
+- Proper email headers (Message-ID, Date, List-Unsubscribe)
+- Multipart alternative (HTML + plain text)
+- DKIM/SPF aligned From address
+- Secure TLS connections
 """
 import asyncio
 import logging
 import smtplib
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
+from email.utils import formatdate, formataddr, make_msgid
 from typing import List, Optional, Dict, Any
 import ssl
+import re
 import aiosmtplib
-import httpx
 from datetime import datetime
 
 from config import settings
@@ -26,13 +29,11 @@ logger = logging.getLogger(__name__)
 
 
 class EmailService:
-    """Production-ready email service with SMTP and Brevo API support"""
+    """Production-ready email service using SMTP with anti-spam best practices"""
     
     def __init__(self):
         """Initialize email service with configured templates"""
         self.jinja_env = get_jinja_environment()
-        self.use_brevo = False
-        self.brevo_api_key = None
         self._configure_provider()
     
     def _configure_provider(self):
@@ -41,19 +42,6 @@ class EmailService:
             logger.info("Email service disabled")
             return
         
-        # Check if Brevo is configured (preferred for cloud platforms like Render)
-        # Brevo: 300 emails/day free, no domain verification required
-        if settings.brevo_api_key or (settings.email_provider and settings.email_provider.lower() == 'brevo'):
-            self.use_brevo = True
-            self.brevo_api_key = settings.brevo_api_key
-            self.email_from = settings.email_from
-            self.email_from_name = settings.email_from_name
-            if not self.email_from:
-                logger.error("EMAIL_FROM is required for Brevo")
-            else:
-                logger.info("✅ Configured email with Brevo API (HTTP-based, no domain verification)")
-            return
-            
         # Provider-specific SMTP configurations
         if settings.email_provider:
             provider_configs = {
@@ -140,21 +128,32 @@ class EmailService:
             return True
         
         try:
-            # Use Brevo API if configured (works on Render/cloud platforms)
-            if self.use_brevo:
-                return await self._send_brevo_email(to_email, subject, html_body, text_body, attachments)
+            # Strip HTML for plain text version if not provided
+            if not text_body:
+                text_body = re.sub(r'<[^>]+>', '', html_body)
+                text_body = re.sub(r'\s+', ' ', text_body).strip()
+                if not text_body:
+                    text_body = subject
             
-            # Otherwise use SMTP
-            # Create message
+            # Build message with proper headers for deliverability
             message = MIMEMultipart('alternative')
             message['Subject'] = subject
-            message['From'] = f"{self.email_from_name} <{self.email_from}>"
+            message['From'] = formataddr((self.email_from_name, self.email_from))
             message['To'] = to_email
+            message['Message-ID'] = make_msgid(domain=self.email_from.split('@')[-1] if '@' in self.email_from else 'onyx.local')
+            message['Date'] = formatdate(localtime=True)
+            message['Precedence'] = 'bulk'
+            message['X-Mailer'] = 'ONYX Platform'
+            message['Auto-Submitted'] = 'auto-generated'
+            
+            # List-Unsubscribe helps with Gmail spam classification
+            unsubscribe_url = f"{settings.frontend_url}/profile?tab=notifications"
+            message['List-Unsubscribe'] = f'<{unsubscribe_url}>'
+            message['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
             
             # Add text and HTML parts
-            if text_body:
-                text_part = MIMEText(text_body, 'plain', 'utf-8')
-                message.attach(text_part)
+            text_part = MIMEText(text_body, 'plain', 'utf-8')
+            message.attach(text_part)
             
             html_part = MIMEText(html_body, 'html', 'utf-8')
             message.attach(html_part)
@@ -174,82 +173,12 @@ class EmailService:
             logger.error(f"❌ Failed to send email to {to_email}: {str(e)}")
             return False
     
-    async def _send_brevo_email(
-        self,
-        to_email: str,
-        subject: str,
-        html_body: str,
-        text_body: Optional[str] = None,
-        attachments: Optional[List[Dict[str, Any]]] = None
-    ) -> bool:
-        """Send email via Brevo API (HTTP-based, works on cloud platforms, no domain verification)"""
-        try:
-            # Brevo requires textContent to not be empty - generate from HTML if not provided
-            if not text_body:
-                # Simple HTML to text conversion - strip tags
-                import re
-                text_body = re.sub(r'<[^>]+>', '', html_body)
-                text_body = re.sub(r'\s+', ' ', text_body).strip()
-                # Ensure it's not empty
-                if not text_body:
-                    text_body = subject
-            
-            payload = {
-                "sender": {
-                    "name": self.email_from_name,
-                    "email": self.email_from
-                },
-                "to": [{"email": to_email}],
-                "subject": subject,
-                "htmlContent": html_body,
-                "textContent": text_body
-            }
-            
-            # Add attachments if provided (Base64 encoded)
-            if attachments:
-                import base64
-                payload["attachment"] = []
-                for att in attachments:
-                    content = att.get("content", b"")
-                    if isinstance(content, str):
-                        content = content.encode("utf-8")
-                    payload["attachment"].append({
-                        "name": att.get("filename", "attachment"),
-                        "content": base64.b64encode(content).decode("utf-8")
-                    })
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.brevo.com/v3/smtp/email",
-                    headers={
-                        "api-key": self.brevo_api_key,
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    json=payload,
-                    timeout=30.0
-                )
-                
-                if response.status_code in [200, 201]:
-                    logger.info(f"✅ Email sent via Brevo to: {to_email}")
-                    return True
-                else:
-                    logger.error(f"❌ Brevo API error: {response.status_code} - {response.text}")
-                    return False
-                    
-        except Exception as e:
-            logger.error(f"❌ Brevo email error: {str(e)}")
-            return False
-    
     async def _send_smtp_email(self, message: MIMEMultipart, to_email: str):
-        """Send email via SMTP"""
+        """Send email via SMTP with secure TLS connection"""
         try:
-            # Use SSL context for security
             context = ssl.create_default_context()
             
-            # Configure SMTP client based on settings
             if self.smtp_use_ssl:
-                # Direct SSL connection (port 465)
                 smtp_client = aiosmtplib.SMTP(
                     hostname=self.smtp_server,
                     port=self.smtp_port,
@@ -257,7 +186,6 @@ class EmailService:
                     tls_context=context
                 )
             else:
-                # Regular connection with STARTTLS (port 587)
                 smtp_client = aiosmtplib.SMTP(
                     hostname=self.smtp_server,
                     port=self.smtp_port,
@@ -267,6 +195,9 @@ class EmailService:
                 )
             
             await smtp_client.connect()
+            
+            # Say HELO/EHLO explicitly for better deliverability
+            await smtp_client.ehlo()
             
             if self.smtp_username and self.smtp_password:
                 await smtp_client.login(self.smtp_username, self.smtp_password)

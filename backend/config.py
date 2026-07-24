@@ -73,12 +73,8 @@ class Settings(BaseSettings):
     email_from_name: str = Field(default="ONYX Platform", env="EMAIL_FROM_NAME")
     
     # Email Provider Presets (for easy configuration)
-    # Options: gmail, outlook, sendgrid, brevo
+    # Options: gmail, outlook, sendgrid, custom
     email_provider: Optional[str] = Field(default=None, env="EMAIL_PROVIDER")
-    
-    # Brevo (Sendinblue) API Key (for HTTP-based email on cloud platforms)
-    # Free: 300 emails/day, no domain verification required
-    brevo_api_key: Optional[str] = Field(default=None, env="BREVO_API_KEY")
     
     slack_channel: str = Field(default="#dev-alerts", env="SLACK_CHANNEL")
     
@@ -238,8 +234,8 @@ def validate_settings_on_startup():
     
     # Check email configuration
     if settings.email_enabled:
-        if not settings.smtp_server and not settings.brevo_api_key:
-            logger.warning("⚠️ EMAIL_ENABLED=true but no email provider configured")
+        if not settings.smtp_server:
+            logger.warning("⚠️ EMAIL_ENABLED=true but SMTP_SERVER not configured")
     
     return is_valid
 
