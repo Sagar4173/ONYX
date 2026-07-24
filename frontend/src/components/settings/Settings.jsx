@@ -732,14 +732,15 @@ const Settings = () => {
                             )}
                           </button>
                         </div>
-                        <button
+                        <Button
                           onClick={() =>
                             toast.success("New API key generated!")
                           }
-                          className="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all text-sm"
+                          variant="warning"
+                          size="sm"
                         >
                           Regenerate
-                        </button>
+                        </Button>
                       </div>
                       <p className="text-xs text-yellow-400">
                         Keep your API key secure. Don't share it or expose it in
@@ -827,16 +828,16 @@ const Settings = () => {
                     title="Export Data"
                     description="Download your security scan data and reports"
                   >
-                    <button
+                    <Button
                       onClick={() =>
                         toast.success(
                           "Data export initiated! You'll receive an email when ready."
                         )
                       }
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+                      variant="success"
                     >
                       Export Data
-                    </button>
+                    </Button>
                   </SettingCard>
                 </div>
               )}
