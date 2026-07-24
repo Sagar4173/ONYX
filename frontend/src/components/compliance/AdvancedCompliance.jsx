@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI, projectsAPI } from "../../services/api";
+import { Button, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const AdvancedCompliance = () => {
@@ -299,13 +300,11 @@ const AdvancedCompliance = () => {
               <p className="text-gray-400">Loading assessments...</p>
             </div>
           ) : assessmentsData?.assessments?.length === 0 ? (
-            <div className="p-12 text-center">
-              <ShieldCheckIcon className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No assessments found</p>
-              <p className="text-gray-500 text-sm mt-2">
-                Create your first compliance assessment
-              </p>
-            </div>
+            <EmptyState
+              icon={<ShieldCheckIcon className="h-12 w-12" />}
+              title="No assessments found"
+              description="Create your first compliance assessment"
+            />
           ) : (
             <div className="divide-y divide-white/5">
               {assessmentsData?.assessments?.map((assessment) => (

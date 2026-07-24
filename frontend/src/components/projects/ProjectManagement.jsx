@@ -30,6 +30,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../auth";
 import { projectsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import { Button, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader } from "../../layouts";
 
 // Project Card Component
@@ -1042,53 +1043,26 @@ export const ProjectManagement = () => {
       {/* Empty State */}
       {projectsData?.projects?.length === 0 && (
         <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800/50 p-8 lg:p-12 text-center">
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 inline-block mb-6">
-            <UsersIcon className="h-12 w-12 lg:h-16 lg:w-16 text-blue-400" />
-          </div>
-          <h3 className="text-xl lg:text-2xl font-bold text-white mb-3">
-            {filters.search ||
-            filters.status ||
-            filters.category ||
-            filters.priority
-              ? "No Projects Match Your Filters"
-              : "No Projects Yet"}
-          </h3>
-          <p className="text-gray-400 mb-8 max-w-md mx-auto">
-            {filters.search ||
-            filters.status ||
-            filters.category ||
-            filters.priority
-              ? "Try adjusting your search criteria or clearing the filters to see all projects."
-              : "Get started by creating your first security scanning project. Connect your repository and start monitoring for vulnerabilities."}
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            {(filters.search ||
-              filters.status ||
-              filters.category ||
-              filters.priority) && (
-              <button
-                onClick={() =>
-                  setFilters({
-                    search: "",
-                    status: "",
-                    category: "",
-                    priority: "",
-                  })
-                }
-                className="px-6 py-3 bg-gray-700/50 text-white font-medium rounded-xl hover:bg-gray-700 transition-all flex items-center gap-2"
-              >
-                <XMarkIcon className="h-5 w-5" />
-                Clear Filters
-              </button>
-            )}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all flex items-center gap-2 shadow-lg"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Create First Project
-            </button>
-          </div>
+          <EmptyState
+            icon={<UsersIcon className="h-12 w-12 text-blue-400" />}
+            title={filters.search || filters.status || filters.category || filters.priority ? "No Projects Match Your Filters" : "No Projects Yet"}
+            description={filters.search || filters.status || filters.category || filters.priority ? "Try adjusting your search criteria or clearing the filters to see all projects." : "Get started by creating your first security scanning project."}
+            action={
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                {(filters.search || filters.status || filters.category || filters.priority) && (
+                  <Button variant="ghost" onClick={() => setFilters({ search: "", status: "", category: "", priority: "" })}>
+                    <XMarkIcon className="h-5 w-5" />
+                    Clear Filters
+                  </Button>
+                )}
+                <Button gradient onClick={() => setShowCreateModal(true)}>
+                  <PlusIcon className="h-5 w-5" />
+                  Create First Project
+                </Button>
+              </div>
+            }
+            className="!pb-0"
+          />
         </div>
       )}
 

@@ -32,6 +32,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { projectsAPI, reportsAPI, utils } from "../../services/api";
+import { Button, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader } from "../../layouts";
 
 const ProjectDetails = () => {
@@ -1424,22 +1425,12 @@ const ProjectDetails = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-16">
-                    <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">
-                      No Scans Yet
-                    </h3>
-                    <p className="text-gray-400 mb-6">
-                      Start your first security scan to see results here.
-                    </p>
-                    <button
-                      onClick={handleStartScan}
-                      disabled={startScanMutation.isPending}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all"
-                    >
-                      Start First Scan
-                    </button>
-                  </div>
+                  <EmptyState
+                    icon={<ChartBarIcon className="h-12 w-12" />}
+                    title="No Scans Yet"
+                    description="Start your first security scan to see results here."
+                    action={<Button variant="primary" onClick={handleStartScan} disabled={startScanMutation.isPending} isLoading={startScanMutation.isPending}>Start First Scan</Button>}
+                  />
                 )}
               </div>
             )}

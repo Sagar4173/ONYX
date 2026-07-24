@@ -23,6 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI, utils } from "../../services/api";
+import { Button, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 const AuditLogs = () => {
@@ -384,13 +385,11 @@ const AuditLogs = () => {
               <p className="text-gray-400">Loading audit logs...</p>
             </div>
           ) : auditData?.logs?.length === 0 ? (
-            <div className="p-12 text-center">
-              <ShieldCheckIcon className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No audit logs found</p>
-              <p className="text-gray-500 text-sm mt-2">
-                Try adjusting your filters
-              </p>
-            </div>
+            <EmptyState
+              icon={<ShieldCheckIcon className="h-12 w-12" />}
+              title="No audit logs found"
+              description="Try adjusting your filters"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

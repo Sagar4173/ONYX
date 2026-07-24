@@ -18,6 +18,7 @@ import {
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
+import { Button, EmptyState } from "../../styles/components";
 import toast from "react-hot-toast";
 import { reportsAPI, utils } from "../../services/api";
 
@@ -527,23 +528,11 @@ const ProjectList = () => {
               ))}
             </div>
           ) : reports.length === 0 ? (
-            <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-8 lg:p-12 text-center">
-              <div className="max-w-sm mx-auto">
-                <div className="mx-auto h-14 w-14 lg:h-20 lg:w-20 text-gray-600 mb-4 lg:mb-6">
-                  <DocumentIcon className="h-full w-full" />
-                </div>
-                <h3 className="text-lg lg:text-xl font-semibold text-white mb-2">
-                  No security scans found
-                </h3>
-                <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6">
-                  {searchTerm ||
-                  statusFilter !== "all" ||
-                  severityFilter !== "all"
-                    ? "No scans match your current filters. Try adjusting your search criteria."
-                    : "Get started by running your first security scan on a repository."}
-                </p>
-              </div>
-            </div>
+            <EmptyState
+              icon={<DocumentIcon className="h-12 w-12" />}
+              title="No security scans found"
+              description={searchTerm || statusFilter !== "all" || severityFilter !== "all" ? "No scans match your current filters. Try adjusting your search criteria." : "Get started by running your first security scan on a repository."}
+            />
           ) : (
             reports.map((report) => (
               <div

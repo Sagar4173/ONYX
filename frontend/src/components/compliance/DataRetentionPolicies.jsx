@@ -19,6 +19,7 @@ import {
   ArrowPathIcon} from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
+import { Button, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const DataRetentionPolicies = () => {
@@ -210,14 +211,12 @@ const DataRetentionPolicies = () => {
               <p className="text-gray-400">Loading retention policies...</p>
             </div>
           ) : policiesData?.policies?.length === 0 ? (
-            <div className="col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 text-center">
-              <ArchiveBoxIcon className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg mb-2">
-                No retention policies found
-              </p>
-              <p className="text-gray-500 text-sm">
-                Create your first policy to get started
-              </p>
+            <div className="col-span-2">
+              <EmptyState
+                icon={<ArchiveBoxIcon className="h-12 w-12" />}
+                title="No retention policies found"
+                description="Create your first policy to get started"
+              />
             </div>
           ) : (
             policiesData?.policies?.map((policy) => (
