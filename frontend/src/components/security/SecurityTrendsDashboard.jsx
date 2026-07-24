@@ -6,22 +6,21 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  AlertTriangle,
-  Shield,
-  Target,
-  Clock,
-  CheckCircle,
-  XCircle,
-  ArrowUp,
-  ArrowDown,
-  Activity,
-  Calendar,
-  BarChart3,
-  RefreshCw,
-} from "lucide-react";
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  MinusIcon,
+  ExclamationTriangleIcon,
+  ShieldCheckIcon,
+  ViewfinderCircleIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ChartBarSquareIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 
 // Import centralized styles
 import { Card, Badge, Spinner, statusStyles } from "@styles";
@@ -34,9 +33,9 @@ const API_BASE_URL = import.meta.env.DEV
 // Trend direction indicator - using centralized status styles
 const TrendIndicator = ({ direction, value }) => {
   const icons = {
-    improving: <TrendingUp className="w-4 h-4 text-green-500" />,
-    stable: <Minus className="w-4 h-4 text-yellow-500" />,
-    degrading: <TrendingDown className="w-4 h-4 text-red-500" />,
+    improving: <ArrowTrendingUpIcon className="w-4 h-4 text-green-500" />,
+    stable: <MinusIcon className="w-4 h-4 text-yellow-500" />,
+    degrading: <ArrowTrendingDownIcon className="w-4 h-4 text-red-500" />,
   };
 
   const colors = {
@@ -122,9 +121,9 @@ const MetricCard = ({ title, value, change, icon: Icon, trend, subtitle }) => (
               }`}
             >
               {change >= 0 ? (
-                <ArrowUp className="w-3 h-3 inline" />
+                <ArrowUpIcon className="w-3 h-3 inline" />
               ) : (
-                <ArrowDown className="w-3 h-3 inline" />
+                <ArrowDownIcon className="w-3 h-3 inline" />
               )}
               {Math.abs(change)}%
             </span>
@@ -291,7 +290,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
       </div>
     );
   }
@@ -299,7 +298,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <AlertTriangle className="w-5 h-5 inline mr-2" />
+        <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
         Error loading trends data: {error.message}
       </div>
     );
@@ -333,7 +332,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             onClick={() => refetch()}
             className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
           >
-            <RefreshCw className="w-5 h-5" />
+            <ArrowPathIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -389,14 +388,14 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           title="Open Findings"
           value={current.open_findings || 0}
           subtitle={`${current.fixed_7d || 0} fixed this week`}
-          icon={AlertTriangle}
+          icon={ExclamationTriangleIcon}
         />
 
         <MetricCard
           title="Fix Rate"
           value={`${((trends.fix_rate || 0) * 100).toFixed(0)}%`}
           subtitle="Fixed vs New ratio"
-          icon={Target}
+          icon={ViewfinderCircleIcon}
           trend={
             trends.fix_rate > 1
               ? { direction: "improving" }
@@ -470,7 +469,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-blue-500" />
+                <ClockIcon className="w-5 h-5 text-blue-500" />
                 <span className="text-gray-700">Mean Time to Remediate</span>
               </div>
               <span className="font-semibold">
@@ -482,7 +481,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
+                <CheckCircleIcon className="w-5 h-5 text-green-500" />
                 <span className="text-gray-700">Compliance Rate</span>
               </div>
               <span className="font-semibold">
@@ -492,7 +491,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-purple-500" />
+                <ShieldCheckIcon className="w-5 h-5 text-purple-500" />
                 <span className="text-gray-700">Coverage</span>
               </div>
               <span className="font-semibold">
@@ -502,7 +501,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <Target className="w-5 h-5 text-indigo-500" />
+                <ViewfinderCircleIcon className="w-5 h-5 text-indigo-500" />
                 <span className="text-gray-700">Projected Score (30d)</span>
               </div>
               <span className="font-semibold text-indigo-600">
@@ -513,7 +512,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             {trends.time_to_target && (
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-green-500" />
+                  <CalendarIcon className="w-5 h-5 text-green-500" />
                   <span className="text-gray-700">
                     Days to Target Score (90)
                   </span>
@@ -591,7 +590,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
                     key={index}
                     className="text-sm text-gray-600 flex items-start gap-2"
                   >
-                    <Activity className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <ChartBarSquareIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                     {insight}
                   </li>
                 ))}
@@ -611,7 +610,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
                 key={index}
                 className="text-sm text-blue-700 flex items-center gap-2"
               >
-                <BarChart3 className="w-4 h-4" />
+                <ChartBarIcon className="w-4 h-4" />
                 {change}
               </li>
             ))}

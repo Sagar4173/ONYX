@@ -6,24 +6,22 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  ArrowRight,
-  ArrowUpDown,
-  RefreshCw,
-  FileText,
-  GitBranch,
-  Clock,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Filter,
-  ChevronDown,
-  ChevronRight,
-  Download,
-  ExternalLink,
-} from "lucide-react";
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
+  ArrowRightIcon,
+  ArrowsUpDownIcon,
+  ArrowPathIcon,
+  DocumentTextIcon,
+  ArrowRightLeftIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  MinusIcon,
+  FunnelIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ArrowDownTrayIcon,
+} from "@heroicons/react/24/outline";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
@@ -56,23 +54,23 @@ const ChangeTypeBadge = ({ type }) => {
   const config = {
     fixed: {
       color: "bg-green-100 text-green-800",
-      icon: CheckCircle,
+      icon: CheckCircleIcon,
       label: "Fixed",
     },
-    new: { color: "bg-red-100 text-red-800", icon: XCircle, label: "New" },
+    new: { color: "bg-red-100 text-red-800", icon: XCircleIcon, label: "New" },
     reintroduced: {
       color: "bg-purple-100 text-purple-800",
-      icon: RefreshCw,
+      icon: ArrowPathIcon,
       label: "Reintroduced",
     },
     modified: {
       color: "bg-yellow-100 text-yellow-800",
-      icon: ArrowUpDown,
+      icon: ArrowsUpDownIcon,
       label: "Modified",
     },
     unchanged: {
       color: "bg-gray-100 text-gray-600",
-      icon: Minus,
+      icon: MinusIcon,
       label: "Unchanged",
     },
   };
@@ -101,9 +99,9 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {expanded ? (
-            <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronDownIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
           )}
           <ChangeTypeBadge type={changeType} />
           <SeverityBadge severity={finding.severity} />
@@ -324,7 +322,7 @@ const ScanComparison = ({
           disabled={!selectedBaseScan || !selectedCompareScan}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          <RefreshCw className="w-4 h-4" />
+            <ArrowPathIcon className="w-4 h-4" />
           Compare
         </button>
       </div>
@@ -351,7 +349,7 @@ const ScanComparison = ({
             </select>
           </div>
 
-          <ArrowRight className="w-6 h-6 text-gray-400 flex-shrink-0 mt-6" />
+          <ArrowRightIcon className="w-6 h-6 text-gray-400 flex-shrink-0 mt-6" />
 
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -376,13 +374,13 @@ const ScanComparison = ({
 
       {isLoading && (
         <div className="flex items-center justify-center h-64">
-          <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
         </div>
       )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          <AlertTriangle className="w-5 h-5 inline mr-2" />
+          <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
           Error comparing scans: {error.message}
         </div>
       )}
@@ -394,28 +392,28 @@ const ScanComparison = ({
             <SummaryCard
               label="Fixed"
               value={summary.fixed || 0}
-              icon={CheckCircle}
+              icon={CheckCircleIcon}
               color="green"
               description="Vulnerabilities remediated"
             />
             <SummaryCard
               label="New"
               value={summary.new || 0}
-              icon={XCircle}
+              icon={XCircleIcon}
               color="red"
               description="Newly introduced"
             />
             <SummaryCard
               label="Reintroduced"
               value={summary.reintroduced || 0}
-              icon={RefreshCw}
+              icon={ArrowPathIcon}
               color="purple"
               description="Previously fixed, now back"
             />
             <SummaryCard
               label="Modified"
               value={summary.modified || 0}
-              icon={ArrowUpDown}
+              icon={ArrowsUpDownIcon}
               color="yellow"
               description="Severity changed"
             />
@@ -426,14 +424,14 @@ const ScanComparison = ({
                   ? `+${summary.net_change}`
                   : summary.net_change
               }
-              icon={summary.net_change <= 0 ? TrendingDown : TrendingUp}
+              icon={summary.net_change <= 0 ? ArrowTrendingDownIcon : ArrowTrendingUpIcon}
               color={summary.net_change <= 0 ? "green" : "red"}
               description="New - Fixed"
             />
             <SummaryCard
               label="Improvement"
               value={summary.improvement_score?.toFixed(1) || 0}
-              icon={summary.improvement_score >= 0 ? TrendingUp : TrendingDown}
+              icon={summary.improvement_score >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon}
               color={summary.improvement_score >= 0 ? "blue" : "red"}
               description="Weighted score"
             />
@@ -443,7 +441,7 @@ const ScanComparison = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
               <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+                <DocumentTextIcon className="w-4 h-4" />
                 Base Scan
               </h4>
               <div className="space-y-2 text-sm">
@@ -458,7 +456,7 @@ const ScanComparison = ({
                 <div className="flex justify-between">
                   <span className="text-gray-500">Branch:</span>
                   <span className="flex items-center gap-1">
-                    <GitBranch className="w-3 h-3" />
+                    <ArrowRightLeftIcon className="w-3 h-3" />
                     {data.base_scan?.branch || "N/A"}
                   </span>
                 </div>
@@ -473,7 +471,7 @@ const ScanComparison = ({
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
               <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+                <DocumentTextIcon className="w-4 h-4" />
                 Compare Scan
               </h4>
               <div className="space-y-2 text-sm">
@@ -488,7 +486,7 @@ const ScanComparison = ({
                 <div className="flex justify-between">
                   <span className="text-gray-500">Branch:</span>
                   <span className="flex items-center gap-1">
-                    <GitBranch className="w-3 h-3" />
+                    <ArrowRightLeftIcon className="w-3 h-3" />
                     {data.compare_scan?.branch || "N/A"}
                   </span>
                 </div>
@@ -530,7 +528,7 @@ const ScanComparison = ({
                   <ul className="text-sm text-blue-700 space-y-1">
                     {data.analysis.recommendations.map((r, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <ArrowRight className="w-3 h-3 mt-1 flex-shrink-0" />
+                        <ArrowRightIcon className="w-3 h-3 mt-1 flex-shrink-0" />
                         {r}
                       </li>
                     ))}
@@ -583,7 +581,7 @@ const ScanComparison = ({
               ))}
 
               <div className="ml-auto flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
+                <FunnelIcon className="w-4 h-4 text-gray-400" />
                 <select
                   value={severityFilter}
                   onChange={(e) => setSeverityFilter(e.target.value)}
@@ -620,7 +618,7 @@ const ScanComparison = ({
           {/* Export Button */}
           <div className="flex justify-end">
             <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-              <Download className="w-4 h-4" />
+              <ArrowDownTrayIcon className="w-4 h-4" />
               Export Comparison Report
             </button>
           </div>
@@ -629,7 +627,7 @@ const ScanComparison = ({
 
       {!data.summary && !isLoading && !error && (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <ArrowUpDown className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <ArrowsUpDownIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">Select two scans to compare</p>
         </div>
       )}

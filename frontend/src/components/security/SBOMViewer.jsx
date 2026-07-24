@@ -6,23 +6,22 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
-  Package,
-  FileJson,
-  FileText,
-  Download,
-  AlertTriangle,
-  CheckCircle,
-  Shield,
-  Search,
-  Filter,
-  RefreshCw,
-  ExternalLink,
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  Info,
-  Lock,
-} from "lucide-react";
+  CubeIcon,
+  CodeBracketIcon,
+  DocumentTextIcon,
+  ArrowDownTrayIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ShieldCheckIcon,
+  MagnifyingGlassIcon,
+  ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ClipboardIcon,
+  InformationCircleIcon,
+  LockClosedIcon,
+} from "@heroicons/react/24/outline";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
@@ -58,7 +57,7 @@ const VulnIndicator = ({ count, severity }) => {
   if (!count || count === 0) {
     return (
       <span className="text-green-600 text-sm flex items-center gap-1">
-        <CheckCircle className="w-4 h-4" />
+        <CheckCircleIcon className="w-4 h-4" />
         No known vulns
       </span>
     );
@@ -77,7 +76,7 @@ const VulnIndicator = ({ count, severity }) => {
         colors[severity] || colors.medium
       }`}
     >
-      <AlertTriangle className="w-3 h-3" />
+      <ExclamationTriangleIcon className="w-3 h-3" />
       {count} {severity || "vulnerability"}
     </span>
   );
@@ -95,11 +94,11 @@ const PackageRow = ({ pkg, onViewVulns }) => {
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {expanded ? (
-            <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronDownIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
           )}
-          <Package className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          <CubeIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
           <span className="font-medium text-gray-900">{pkg.name}</span>
           <span className="text-gray-500 text-sm">@{pkg.version}</span>
         </div>
@@ -159,7 +158,7 @@ const PackageRow = ({ pkg, onViewVulns }) => {
                     className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200"
                   >
                     <div className="flex items-center gap-2">
-                      <AlertTriangle
+                      <ExclamationTriangleIcon
                         className={`w-4 h-4 ${
                           vuln.severity === "critical"
                             ? "text-red-500"
@@ -180,7 +179,7 @@ const PackageRow = ({ pkg, onViewVulns }) => {
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-700"
                       >
-                        <ExternalLink className="w-4 h-4" />
+                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                       </a>
                     </div>
                   </div>
@@ -199,7 +198,7 @@ const PackageRow = ({ pkg, onViewVulns }) => {
                   rel="noopener noreferrer"
                   className="text-sm text-blue-600 hover:underline flex items-center gap-1"
                 >
-                  {ref.type} <ExternalLink className="w-3 h-3" />
+                  {ref.type} <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </a>
               ))}
             </div>
@@ -332,20 +331,20 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                 onClick={() => setShowRaw(!showRaw)}
                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
               >
-                <FileJson className="w-4 h-4 inline mr-1" />
+                <CodeBracketIcon className="w-4 h-4 inline mr-1" />
                 {showRaw ? "View Parsed" : "View Raw"}
               </button>
               <button
                 onClick={copyToClipboard}
                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
               >
-                <Copy className="w-4 h-4" />
+                <ClipboardIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDownload("json")}
                 className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
               >
-                <Download className="w-4 h-4 inline mr-1" />
+                <ArrowDownTrayIcon className="w-4 h-4 inline mr-1" />
                 Download
               </button>
             </>
@@ -388,9 +387,9 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
             >
               {generateMutation.isPending ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin" />
               ) : (
-                <FileText className="w-4 h-4" />
+                <DocumentTextIcon className="w-4 h-4" />
               )}
               Generate
             </button>
@@ -418,7 +417,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                     {fmt.description}
                   </p>
                 </div>
-                <Lock className="w-4 h-4 text-gray-400" />
+                <LockClosedIcon className="w-4 h-4 text-gray-400" />
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {fmt.compliance?.map((c, i) => (
@@ -437,7 +436,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
 
       {generateMutation.isError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          <AlertTriangle className="w-5 h-5 inline mr-2" />
+          <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
           Error generating SBOM: {generateMutation.error?.message}
         </div>
       )}
@@ -454,7 +453,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                     {totalPackages}
                   </p>
                 </div>
-                <Package className="w-8 h-8 text-blue-500 opacity-50" />
+                <CubeIcon className="w-8 h-8 text-blue-500 opacity-50" />
               </div>
             </div>
 
@@ -470,7 +469,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                     {vulnPackages}
                   </p>
                 </div>
-                <AlertTriangle
+                <ExclamationTriangleIcon
                   className={`w-8 h-8 opacity-50 ${
                     vulnPackages > 0 ? "text-red-500" : "text-green-500"
                   }`}
@@ -486,7 +485,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                     {licenses.length}
                   </p>
                 </div>
-                <Shield className="w-8 h-8 text-purple-500 opacity-50" />
+                <ShieldCheckIcon className="w-8 h-8 text-purple-500 opacity-50" />
               </div>
             </div>
 
@@ -498,7 +497,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                     {format}
                   </p>
                 </div>
-                <FileJson className="w-8 h-8 text-indigo-500 opacity-50" />
+                <CodeBracketIcon className="w-8 h-8 text-indigo-500 opacity-50" />
               </div>
             </div>
           </div>
@@ -515,7 +514,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               {/* Search and Filter */}
               <div className="flex items-center gap-4">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search packages..."
@@ -532,7 +531,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                       : "border border-gray-200 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  <AlertTriangle className="w-4 h-4" />
+                  <ExclamationTriangleIcon className="w-4 h-4" />
                   Vulnerable Only
                 </button>
               </div>
@@ -572,7 +571,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
           {/* SBOM Metadata */}
           <div className="bg-gray-50 rounded-xl p-4 text-sm">
             <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Info className="w-4 h-4" />
+              <InformationCircleIcon className="w-4 h-4" />
               SBOM Metadata
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-gray-600">
@@ -613,7 +612,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
 
       {!currentSBOM && !generateMutation.isPending && (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <DocumentTextIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">No SBOM generated yet</p>
           {repositoryPath && (
             <p className="text-sm text-gray-400 mt-2">
