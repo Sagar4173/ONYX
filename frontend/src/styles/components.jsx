@@ -71,6 +71,10 @@ export const IconButton = ({
     lg: "p-2.5",
   };
 
+  if (!label) {
+    console.warn("IconButton requires a `label` prop for accessibility");
+  }
+
   return (
     <button
       className={`${getButtonClasses(variant, size, true)} ${
@@ -407,6 +411,8 @@ export const Modal = ({
 }) => {
   if (!isOpen) return null;
 
+  const titleId = React.useId();
+
   const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-lg",
@@ -419,11 +425,14 @@ export const Modal = ({
     <div className={modalStyles.overlay} onClick={onClose}>
       <div
         className={`${modalStyles.container} ${sizeClasses[size]}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className={modalStyles.header}>
-            <h2 className={modalStyles.title}>{title}</h2>
+            <h2 id={titleId} className={modalStyles.title}>{title}</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors"
@@ -532,7 +541,13 @@ export const ProgressBar = ({
 
   return (
     <div className={`${className}`}>
-      <div className={container}>
+      <div
+        className={container}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
+      >
         <div
           className={`${bar} ${animated ? "animate-pulse" : ""}`}
           style={dynamicStyles.progressWidth(percentage)}
@@ -702,10 +717,13 @@ export const Code = ({ children, inline = false, className = "" }) => {
 export const Tabs = ({ tabs, activeTab, onChange, className = "" }) => {
   return (
     <div className={`border-b border-gray-700 ${className}`}>
-      <nav className="flex gap-1">
+      <nav className="flex gap-1" role="tablist" aria-orientation="horizontal">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={
               activeTab === tab.id ? navStyles.tabActive : navStyles.tab
@@ -754,6 +772,7 @@ export const FormError = ({ children, className = "" }) => (
 
 export const Tooltip = ({ content, children, position = "top" }) => {
   const [isVisible, setIsVisible] = React.useState(false);
+  const tooltipId = React.useId();
 
   const positions = {
     top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
@@ -767,10 +786,13 @@ export const Tooltip = ({ content, children, position = "top" }) => {
       className="relative inline-block"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
+      aria-describedby={isVisible ? tooltipId : undefined}
     >
       {children}
       {isVisible && (
         <div
+          id={tooltipId}
+          role="tooltip"
           className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow-lg border border-gray-700 whitespace-nowrap ${positions[position]}`}
         >
           {content}
