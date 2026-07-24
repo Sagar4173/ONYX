@@ -25,7 +25,23 @@ import {
 } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { useAuth } from "../auth";
+import { StatCard } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+
+const userColorToGradient = {
+  blue: "from-blue-500 to-cyan-500",
+  green: "from-green-500 to-emerald-500",
+  yellow: "from-yellow-500 to-amber-500",
+  red: "from-red-500 to-rose-500",
+  orange: "from-orange-500 to-amber-500",
+};
+const userColorToBgGradient = {
+  blue: "from-blue-500/10 to-cyan-500/10",
+  green: "from-green-500/10 to-emerald-500/10",
+  yellow: "from-yellow-500/10 to-amber-500/10",
+  red: "from-red-500/10 to-rose-500/10",
+  orange: "from-orange-500/10 to-amber-500/10",
+};
 
 const UserManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -245,23 +261,6 @@ const UserManagement = () => {
         return <UserCircleIcon className="w-4 h-4" />;
     }
   };
-
-  const StatCard = ({ title, value, icon: Icon, color = "blue", subtitle }) => (
-    <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6 hover:border-gray-700/50 transition-all duration-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-400 text-sm font-medium">{title}</p>
-          <p className={`text-2xl font-bold mt-1 text-${color}-400`}>{value}</p>
-          {subtitle && <p className="text-gray-500 text-xs mt-1">{subtitle}</p>}
-        </div>
-        <div
-          className={`p-3 rounded-lg bg-${color}-500/10 border border-${color}-500/20`}
-        >
-          <Icon className={`w-6 h-6 text-${color}-400`} />
-        </div>
-      </div>
-    </div>
-  );
 
   const UserModal = ({ user, isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState("profile");
@@ -724,26 +723,30 @@ const UserManagement = () => {
                 <StatCard
                   title="Total Users"
                   value={statistics.total_users}
-                  icon={UsersIcon}
-                  color="blue"
+                  icon={<UsersIcon className="h-5 w-5 text-white" />}
+                  gradient={userColorToGradient.blue}
+                  bgGradient={userColorToBgGradient.blue}
                 />
                 <StatCard
                   title="Active Users"
                   value={statistics.active_users}
-                  icon={CheckCircleIcon}
-                  color="green"
+                  icon={<CheckCircleIcon className="h-5 w-5 text-white" />}
+                  gradient={userColorToGradient.green}
+                  bgGradient={userColorToBgGradient.green}
                 />
                 <StatCard
                   title="Pending Users"
                   value={statistics.pending_users}
-                  icon={ClockIcon}
-                  color="yellow"
+                  icon={<ClockIcon className="h-5 w-5 text-white" />}
+                  gradient={userColorToGradient.yellow}
+                  bgGradient={userColorToBgGradient.yellow}
                 />
                 <StatCard
                   title="Suspended Users"
                   value={statistics.suspended_users}
-                  icon={ExclamationTriangleIcon}
-                  color="red"
+                  icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
+                  gradient={userColorToGradient.red}
+                  bgGradient={userColorToBgGradient.red}
                 />
               </div>
             )}
@@ -783,24 +786,27 @@ const UserManagement = () => {
                       securityOverview.security_metrics
                         ?.users_with_failed_logins || 0
                     }
-                    icon={ExclamationTriangleIcon}
-                    color="red"
+                    icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
+                    gradient={userColorToGradient.red}
+                    bgGradient={userColorToBgGradient.red}
                   />
                   <StatCard
                     title="Locked Accounts"
                     value={
                       securityOverview.security_metrics?.locked_accounts || 0
                     }
-                    icon={LockClosedIcon}
-                    color="orange"
+                    icon={<LockClosedIcon className="h-5 w-5 text-white" />}
+                    gradient={userColorToGradient.orange}
+                    bgGradient={userColorToBgGradient.orange}
                   />
                   <StatCard
                     title="Unverified Emails"
                     value={
                       securityOverview.security_metrics?.unverified_emails || 0
                     }
-                    icon={ExclamationTriangleIcon}
-                    color="yellow"
+                    icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
+                    gradient={userColorToGradient.yellow}
+                    bgGradient={userColorToBgGradient.yellow}
                   />
                 </div>
 
