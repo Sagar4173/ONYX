@@ -30,7 +30,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../auth";
 import { projectsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, EmptyState, Modal } from "../../styles/components";
 import { PageContainer, PageHeader } from "../../layouts";
 
 // Project Card Component
@@ -390,321 +390,192 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl" />
-
-            <div className="relative p-8">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
-                    <PlusIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Create New Project
-                    </h2>
-                    <p className="text-gray-400">
-                      Set up a new security scanning project
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Basic Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">
-                    Basic Information
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">
-                        Project Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        placeholder="My Awesome Project"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">
-                        Category
-                      </label>
-                      <select
-                        value={formData.category}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            category: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
-                      >
-                        {templates?.categories.map((category) => (
-                          <option
-                            key={category.value}
-                            value={category.value}
-                            className="bg-gray-800 text-white"
-                          >
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Description
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
-                      }
-                      placeholder="Describe your project..."
-                      rows={3}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Priority
-                    </label>
-                    <select
-                      value={formData.priority}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          priority: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
-                    >
-                      {templates?.priorities.map((priority) => (
-                        <option
-                          key={priority.value}
-                          value={priority.value}
-                          className="bg-gray-800 text-white"
-                        >
-                          {priority.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Repository Configuration */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">
-                    Repository Configuration
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">
-                        Repository URL *
-                      </label>
-                      <input
-                        type="url"
-                        value={formData.repository.url}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            repository: {
-                              ...prev.repository,
-                              url: e.target.value,
-                            },
-                          }))
-                        }
-                        placeholder="https://github.com/user/repo"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">
-                        Default Branch
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.repository.branch}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            repository: {
-                              ...prev.repository,
-                              branch: e.target.value,
-                            },
-                          }))
-                        }
-                        placeholder="main"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Access Token (for private repositories)
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.repository.access_token}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          repository: {
-                            ...prev.repository,
-                            access_token: e.target.value,
-                          },
-                        }))
-                      }
-                      placeholder="ghp_xxxxxxxxxxxx"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                    />
-                  </div>
-                </div>
-
-                {/* Security Scanners */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">
-                    Security Scanners
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {templates?.scan_types.map((scanner) => (
-                      <button
-                        key={scanner.value}
-                        type="button"
-                        onClick={() => toggleScanner(scanner.value)}
-                        className={`p-4 rounded-xl border-2 transition-all text-left ${
-                          formData.scan_config.enabled_scanners.includes(
-                            scanner.value
-                          )
-                            ? "border-blue-500/70 bg-blue-500/20"
-                            : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-white">
-                            {scanner.label}
-                          </span>
-                          {formData.scan_config.enabled_scanners.includes(
-                            scanner.value
-                          ) && (
-                            <CheckCircleIcon className="h-5 w-5 text-blue-400" />
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-400">
-                          {scanner.description}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tags */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">Tags</h3>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={(e) =>
-                        e.key === "Enter" && (e.preventDefault(), addTag())
-                      }
-                      placeholder="Add tags..."
-                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={addTag}
-                      className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {formData.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {formData.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
-                        >
-                          <span>{tag}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeTag(tag)}
-                            className="text-gray-400 hover:text-white"
-                          >
-                            <XMarkIcon className="h-4 w-4" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Submit */}
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-6 py-3 text-gray-300 hover:text-white transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || createMutation.isPending}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all"
-                  >
-                    {isSubmitting || createMutation.isPending
-                      ? "Creating..."
-                      : "Create Project"}
-                  </button>
-                </div>
-              </form>
-            </div>
+    <Modal size="xl" isOpen={isOpen} onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+            <PlusIcon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Create New Project</h2>
+            <p className="text-gray-400">Set up a new security scanning project</p>
           </div>
         </div>
+        <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+          <XMarkIcon className="h-6 w-6" />
+        </button>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Basic Information */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">Project Name *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="My Awesome Project"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">Category</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+              >
+                {templates?.categories.map((category) => (
+                  <option key={category.value} value={category.value} className="bg-gray-800 text-white">
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe your project..."
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Priority</label>
+            <select
+              value={formData.priority}
+              onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))}
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+            >
+              {templates?.priorities.map((priority) => (
+                <option key={priority.value} value={priority.value} className="bg-gray-800 text-white">
+                  {priority.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Repository Configuration */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Repository Configuration</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">Repository URL *</label>
+              <input
+                type="url"
+                value={formData.repository.url}
+                onChange={(e) => setFormData((prev) => ({ ...prev, repository: { ...prev.repository, url: e.target.value } }))}
+                placeholder="https://github.com/user/repo"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">Default Branch</label>
+              <input
+                type="text"
+                value={formData.repository.branch}
+                onChange={(e) => setFormData((prev) => ({ ...prev, repository: { ...prev.repository, branch: e.target.value } }))}
+                placeholder="main"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Access Token (for private repositories)</label>
+            <input
+              type="password"
+              value={formData.repository.access_token}
+              onChange={(e) => setFormData((prev) => ({ ...prev, repository: { ...prev.repository, access_token: e.target.value } }))}
+              placeholder="ghp_xxxxxxxxxxxx"
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Security Scanners */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Security Scanners</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {templates?.scan_types.map((scanner) => (
+              <button
+                key={scanner.value}
+                type="button"
+                onClick={() => toggleScanner(scanner.value)}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  formData.scan_config.enabled_scanners.includes(scanner.value)
+                    ? "border-blue-500/70 bg-blue-500/20"
+                    : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-white">{scanner.label}</span>
+                  {formData.scan_config.enabled_scanners.includes(scanner.value) && (
+                    <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                  )}
+                </div>
+                <p className="text-sm text-gray-400">{scanner.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tags */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Tags</h3>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+              placeholder="Add tags..."
+              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            />
+            <Button type="button" onClick={addTag}>Add</Button>
+          </div>
+
+          {formData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag) => (
+                <span key={tag} className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2">
+                  <span>{tag}</span>
+                  <button type="button" onClick={() => removeTag(tag)} className="text-gray-400 hover:text-white">
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Submit */}
+        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" gradient isLoading={isSubmitting || createMutation.isPending}>
+            {isSubmitting || createMutation.isPending ? "Creating..." : "Create Project"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 
@@ -1097,42 +968,32 @@ export const ProjectManagement = () => {
 
       {/* Delete Confirmation Modal */}
       {deletingProject && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setDeletingProject(null)}
-          />
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl p-6 w-full max-w-md">
-              <div className="text-center">
-                <ExclamationTriangleIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Delete Project
-                </h3>
-                <p className="text-gray-400 mb-6">
-                  Are you sure you want to delete "{deletingProject.name}"? This
-                  action cannot be undone and will remove all associated scan
-                  data.
-                </p>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => setDeletingProject(null)}
-                    className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmDeleteProject}
-                    disabled={deleteProjectMutation.isPending}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-all"
-                  >
-                    {deleteProjectMutation.isPending ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              </div>
-            </div>
+        <Modal
+          isOpen={!!deletingProject}
+          onClose={() => setDeletingProject(null)}
+          title="Delete Project"
+          size="sm"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setDeletingProject(null)}>Cancel</Button>
+              <Button
+                variant="danger"
+                isLoading={deleteProjectMutation.isPending}
+                onClick={confirmDeleteProject}
+              >
+                {deleteProjectMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </>
+          }
+        >
+          <div className="text-center py-2">
+            <ExclamationTriangleIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
+            <p className="text-gray-400">
+              Are you sure you want to delete "{deletingProject.name}"? This
+              action cannot be undone and will remove all associated scan data.
+            </p>
           </div>
-        </div>
+        </Modal>
       )}
     </PageContainer>
   );
@@ -1259,247 +1120,145 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl" />
-
-            <div className="relative p-8">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
-                    <PencilIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Edit Project
-                    </h2>
-                    <p className="text-gray-400">
-                      Update your project configuration
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Basic Information */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">
-                    Basic Information
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">
-                        Project Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">
-                        Category
-                      </label>
-                      <select
-                        value={formData.category}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            category: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
-                      >
-                        {templates?.categories?.map((category) => (
-                          <option
-                            key={category.value}
-                            value={category.value}
-                            className="bg-gray-800 text-white"
-                          >
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Description
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
-                      }
-                      placeholder="Describe your project..."
-                      rows={3}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Priority
-                    </label>
-                    <select
-                      value={formData.priority}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          priority: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
-                    >
-                      {templates?.priorities?.map((priority) => (
-                        <option
-                          key={priority.value}
-                          value={priority.value}
-                          className="bg-gray-800 text-white"
-                        >
-                          {priority.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Security Scanners */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">
-                    Security Scanners
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {templates?.scan_types?.map((scanner) => (
-                      <button
-                        key={scanner.value}
-                        type="button"
-                        onClick={() => toggleScanner(scanner.value)}
-                        className={`p-4 rounded-xl border-2 transition-all text-left ${
-                          formData.scan_config.enabled_scanners.includes(
-                            scanner.value
-                          )
-                            ? "border-blue-500/70 bg-blue-500/20"
-                            : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-white">
-                            {scanner.label}
-                          </span>
-                          {formData.scan_config.enabled_scanners.includes(
-                            scanner.value
-                          ) && (
-                            <CheckCircleIcon className="h-5 w-5 text-blue-400" />
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-400">
-                          {scanner.description}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tags */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-white">Tags</h3>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={(e) =>
-                        e.key === "Enter" && (e.preventDefault(), addTag())
-                      }
-                      placeholder="Add tags..."
-                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={addTag}
-                      className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {formData.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {formData.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
-                        >
-                          <span>{tag}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeTag(tag)}
-                            className="text-gray-400 hover:text-white"
-                          >
-                            <XMarkIcon className="h-4 w-4" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Submit */}
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-6 py-3 text-gray-300 hover:text-white transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || updateMutation.isPending}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all"
-                  >
-                    {isSubmitting || updateMutation.isPending
-                      ? "Updating..."
-                      : "Update Project"}
-                  </button>
-                </div>
-              </form>
-            </div>
+    <Modal size="xl" isOpen={isOpen} onClose={onClose}>
+      <div className="flex items-start justify-between mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+            <PencilIcon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Edit Project</h2>
+            <p className="text-gray-400">Update your project configuration</p>
           </div>
         </div>
+        <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+          <XMarkIcon className="h-6 w-6" />
+        </button>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">Project Name *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">Category</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+              >
+                {templates?.categories?.map((category) => (
+                  <option key={category.value} value={category.value} className="bg-gray-800 text-white">
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe your project..."
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">Priority</label>
+            <select
+              value={formData.priority}
+              onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))}
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+            >
+              {templates?.priorities?.map((priority) => (
+                <option key={priority.value} value={priority.value} className="bg-gray-800 text-white">
+                  {priority.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Security Scanners</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {templates?.scan_types?.map((scanner) => (
+              <button
+                key={scanner.value}
+                type="button"
+                onClick={() => toggleScanner(scanner.value)}
+                className={`p-4 rounded-xl border-2 transition-all text-left ${
+                  formData.scan_config.enabled_scanners.includes(scanner.value)
+                    ? "border-blue-500/70 bg-blue-500/20"
+                    : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-white">{scanner.label}</span>
+                  {formData.scan_config.enabled_scanners.includes(scanner.value) && (
+                    <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                  )}
+                </div>
+                <p className="text-sm text-gray-400">{scanner.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold text-white">Tags</h3>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+              placeholder="Add tags..."
+              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+            />
+            <Button type="button" onClick={addTag}>Add</Button>
+          </div>
+
+          {formData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag) => (
+                <span key={tag} className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2">
+                  <span>{tag}</span>
+                  <button type="button" onClick={() => removeTag(tag)} className="text-gray-400 hover:text-white">
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" gradient isLoading={isSubmitting || updateMutation.isPending}>
+            {isSubmitting || updateMutation.isPending ? "Updating..." : "Update Project"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 };
 

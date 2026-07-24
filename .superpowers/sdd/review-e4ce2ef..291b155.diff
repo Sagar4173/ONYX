@@ -1,0 +1,10 @@
+﻿# Review package: e4ce2ef..291b155
+
+## Commits
+291b155 refactor: verify and tighten design tokens in theme.js
+
+## Files changed
+ frontend/src/styles/theme.js | 6 ++++++  1 file changed, 6 insertions(+)
+
+## Diff
+diff --git a/frontend/src/styles/theme.js b/frontend/src/styles/theme.js index 7bcc275..99ed911 100644 --- a/frontend/src/styles/theme.js +++ b/frontend/src/styles/theme.js @@ -36,20 +36,26 @@ export const colors = {      // Text colors    text: {      primary: "#f9fafb",      secondary: "#d1d5db",      muted: "#9ca3af",      accent: "#60a5fa",    },      // Semantic colors +  primary: { +    light: "#dbeafe", +    main: "#3b82f6", +    dark: "#1d4ed8", +    bg: "rgba(59, 130, 246, 0.1)", +  },    success: {      light: "#dcfce7",      main: "#22c55e",      dark: "#15803d",      bg: "rgba(34, 197, 94, 0.1)",    },    warning: {      light: "#fef3c7",      main: "#f59e0b",      dark: "#b45309",

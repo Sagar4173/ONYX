@@ -220,30 +220,30 @@ const UserManagement = () => {
   const getRoleColor = (role) => {
     switch (role) {
       case "admin":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-900/30 text-red-400 border-red-700/50";
       case "security_manager":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "bg-orange-900/30 text-orange-400 border-orange-700/50";
       case "developer":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-900/30 text-blue-400 border-blue-700/50";
       case "viewer":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-900/30 text-green-400 border-green-700/50";
       case "inactive":
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
       case "suspended":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-900/30 text-red-400 border-red-700/50";
       case "pending_verification":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-900/30 text-yellow-400 border-yellow-700/50";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
     }
   };
 

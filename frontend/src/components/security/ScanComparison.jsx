@@ -31,11 +31,11 @@ const API_BASE_URL = import.meta.env.DEV
 // Severity badge component
 const SeverityBadge = ({ severity }) => {
   const colors = {
-    critical: "bg-red-100 text-red-800 border-red-200",
-    high: "bg-orange-100 text-orange-800 border-orange-200",
-    medium: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    low: "bg-blue-100 text-blue-800 border-blue-200",
-    info: "bg-gray-100 text-gray-800 border-gray-200",
+    critical: "bg-red-900/30 text-red-400 border-red-700/50",
+    high: "bg-orange-900/30 text-orange-400 border-orange-700/50",
+    medium: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
+    low: "bg-blue-900/30 text-blue-400 border-blue-700/50",
+    info: "bg-gray-700/30 text-gray-300 border-gray-700/50",
   };
 
   return (
@@ -53,23 +53,23 @@ const SeverityBadge = ({ severity }) => {
 const ChangeTypeBadge = ({ type }) => {
   const config = {
     fixed: {
-      color: "bg-green-100 text-green-800",
+      color: "bg-green-900/30 text-green-400",
       icon: CheckCircleIcon,
       label: "Fixed",
     },
-    new: { color: "bg-red-100 text-red-800", icon: XCircleIcon, label: "New" },
+    new: { color: "bg-red-900/30 text-red-400", icon: XCircleIcon, label: "New" },
     reintroduced: {
-      color: "bg-purple-100 text-purple-800",
+      color: "bg-purple-900/30 text-purple-400",
       icon: ArrowPathIcon,
       label: "Reintroduced",
     },
     modified: {
-      color: "bg-yellow-100 text-yellow-800",
+      color: "bg-yellow-900/30 text-yellow-400",
       icon: ArrowsUpDownIcon,
       label: "Modified",
     },
     unchanged: {
-      color: "bg-gray-100 text-gray-600",
+      color: "bg-gray-700/30 text-gray-400",
       icon: MinusIcon,
       label: "Unchanged",
     },
@@ -92,9 +92,9 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-gray-700/50 last:border-0">
       <div
-        className="flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer"
+        className="flex items-center justify-between p-3 hover:bg-gray-800/30 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -105,17 +105,17 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
           )}
           <ChangeTypeBadge type={changeType} />
           <SeverityBadge severity={finding.severity} />
-          <span className="font-medium text-gray-900 truncate">
+          <span className="font-medium text-white truncate">
             {finding.title}
           </span>
         </div>
-        <div className="flex items-center gap-3 text-sm text-gray-500">
+        <div className="flex items-center gap-3 text-sm text-gray-400">
           <span className="hidden md:inline">{finding.scanner}</span>
           <span className="hidden lg:inline truncate max-w-[200px]">
             {finding.file_path}
           </span>
           {severityChange && (
-            <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">
+            <span className="text-xs text-yellow-400 bg-yellow-900/30 px-2 py-0.5 rounded">
               {severityChange.from} → {severityChange.to}
             </span>
           )}
@@ -123,22 +123,22 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
       </div>
 
       {expanded && (
-        <div className="px-10 pb-3 space-y-2 bg-gray-50">
+        <div className="px-10 pb-3 space-y-2 bg-gray-800/30">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-gray-500">Rule ID:</span>
-              <span className="ml-2 font-mono text-gray-700">
+              <span className="text-gray-400">Rule ID:</span>
+              <span className="ml-2 font-mono text-gray-200">
                 {finding.rule_id}
               </span>
             </div>
             <div>
-              <span className="text-gray-500">Line:</span>
+              <span className="text-gray-400">Line:</span>
               <span className="ml-2">{finding.line}</span>
             </div>
           </div>
           <div className="text-sm">
-            <span className="text-gray-500">File:</span>
-            <span className="ml-2 font-mono text-gray-700">
+            <span className="text-gray-400">File:</span>
+            <span className="ml-2 font-mono text-gray-200">
               {finding.file_path}
             </span>
           </div>
@@ -151,12 +151,12 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
 // Summary card component
 const SummaryCard = ({ label, value, icon: Icon, color, description }) => {
   const colorClasses = {
-    green: "bg-green-50 text-green-700 border-green-200",
-    red: "bg-red-50 text-red-700 border-red-200",
-    purple: "bg-purple-50 text-purple-700 border-purple-200",
-    yellow: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    gray: "bg-gray-50 text-gray-700 border-gray-200",
-    blue: "bg-blue-50 text-blue-700 border-blue-200",
+    green: "bg-green-900/30 text-green-400 border-green-700/50",
+    red: "bg-red-900/30 text-red-400 border-red-700/50",
+    purple: "bg-purple-900/30 text-purple-400 border-purple-700/50",
+    yellow: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
+    gray: "bg-gray-800/30 text-gray-400 border-gray-700/50",
+    blue: "bg-blue-900/30 text-blue-400 border-blue-700/50",
   };
 
   return (
@@ -312,8 +312,8 @@ const ScanComparison = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Scan Comparison</h2>
-          <p className="text-gray-500">
+          <h2 className="text-2xl font-bold text-white">Scan Comparison</h2>
+          <p className="text-gray-400">
             Compare security scans to track remediation progress
           </p>
         </div>
@@ -328,16 +328,16 @@ const ScanComparison = ({
       </div>
 
       {/* Scan Selector */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
         <div className="flex items-center gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               Base Scan (Older)
             </label>
             <select
               value={selectedBaseScan || ""}
               onChange={(e) => setSelectedBaseScan(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-white"
             >
               <option value="">Select base scan...</option>
               {scansData?.scans?.map((scan) => (
@@ -352,13 +352,13 @@ const ScanComparison = ({
           <ArrowRightIcon className="w-6 h-6 text-gray-400 flex-shrink-0 mt-6" />
 
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-200 mb-2">
               Compare Scan (Newer)
             </label>
             <select
               value={selectedCompareScan || ""}
               onChange={(e) => setSelectedCompareScan(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-white"
             >
               <option value="">Select compare scan...</option>
               {scansData?.scans?.map((scan) => (
@@ -379,7 +379,7 @@ const ScanComparison = ({
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400">
           <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
           Error comparing scans: {error.message}
         </div>
@@ -439,14 +439,14 @@ const ScanComparison = ({
 
           {/* Scan Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+              <h4 className="font-medium text-gray-200 mb-3 flex items-center gap-2">
                 <DocumentTextIcon className="w-4 h-4" />
                 Base Scan
               </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Date:</span>
+                  <span className="text-gray-400">Date:</span>
                   <span>
                     {data.base_scan?.timestamp
                       ? new Date(data.base_scan.timestamp).toLocaleString()
@@ -454,14 +454,14 @@ const ScanComparison = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Branch:</span>
+                  <span className="text-gray-400">Branch:</span>
                   <span className="flex items-center gap-1">
                     <ArrowRightLeftIcon className="w-3 h-3" />
                     {data.base_scan?.branch || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Findings:</span>
+                  <span className="text-gray-400">Findings:</span>
                   <span className="font-medium">
                     {data.base_scan?.total_findings || 0}
                   </span>
@@ -469,14 +469,14 @@ const ScanComparison = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+              <h4 className="font-medium text-gray-200 mb-3 flex items-center gap-2">
                 <DocumentTextIcon className="w-4 h-4" />
                 Compare Scan
               </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Date:</span>
+                  <span className="text-gray-400">Date:</span>
                   <span>
                     {data.compare_scan?.timestamp
                       ? new Date(data.compare_scan.timestamp).toLocaleString()
@@ -484,14 +484,14 @@ const ScanComparison = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Branch:</span>
+                  <span className="text-gray-400">Branch:</span>
                   <span className="flex items-center gap-1">
                     <ArrowRightLeftIcon className="w-3 h-3" />
                     {data.compare_scan?.branch || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Findings:</span>
+                  <span className="text-gray-400">Findings:</span>
                   <span className="font-medium">
                     {data.compare_scan?.total_findings || 0}
                   </span>
@@ -502,17 +502,17 @@ const ScanComparison = ({
 
           {/* Analysis Insights */}
           {data.analysis && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 className="font-medium text-blue-800 mb-2">
+            <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-4">
+              <h4 className="font-medium text-blue-300 mb-2">
                 {data.analysis.summary}
               </h4>
 
               {data.analysis.highlights?.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-sm text-blue-700 font-medium mb-1">
+                  <p className="text-sm text-blue-300 font-medium mb-1">
                     Highlights:
                   </p>
-                  <ul className="text-sm text-blue-700 space-y-1">
+                  <ul className="text-sm text-blue-300 space-y-1">
                     {data.analysis.highlights.map((h, i) => (
                       <li key={i}>{h}</li>
                     ))}
@@ -522,10 +522,10 @@ const ScanComparison = ({
 
               {data.analysis.recommendations?.length > 0 && (
                 <div>
-                  <p className="text-sm text-blue-700 font-medium mb-1">
+                  <p className="text-sm text-blue-300 font-medium mb-1">
                     Recommendations:
                   </p>
-                  <ul className="text-sm text-blue-700 space-y-1">
+                  <ul className="text-sm text-blue-300 space-y-1">
                     {data.analysis.recommendations.map((r, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <ArrowRightIcon className="w-3 h-3 mt-1 flex-shrink-0" />
@@ -539,9 +539,9 @@ const ScanComparison = ({
           )}
 
           {/* Findings List */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl">
             {/* Tabs */}
-            <div className="flex items-center gap-2 p-4 border-b border-gray-100 overflow-x-auto">
+            <div className="flex items-center gap-2 p-4 border-b border-gray-700/50 overflow-x-auto">
               {[
                 {
                   key: "all",
@@ -569,12 +569,12 @@ const ScanComparison = ({
                   onClick={() => setActiveTab(tab.key)}
                   className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap ${
                     activeTab === tab.key
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
+                      ? "bg-blue-900/30 text-blue-400"
+                      : "text-gray-400 hover:bg-gray-800/30"
                   }`}
                 >
                   {tab.label}
-                  <span className="ml-2 px-2 py-0.5 text-xs bg-white rounded-full">
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-gray-700/50 rounded-full">
                     {tab.count}
                   </span>
                 </button>
@@ -585,7 +585,7 @@ const ScanComparison = ({
                 <select
                   value={severityFilter}
                   onChange={(e) => setSeverityFilter(e.target.value)}
-                  className="text-sm border border-gray-200 rounded-lg px-2 py-1"
+                  className="text-sm border border-gray-700/50 rounded-lg px-2 py-1 bg-gray-800 text-white"
                 >
                   <option value="all">All Severities</option>
                   <option value="critical">Critical</option>
@@ -599,7 +599,7 @@ const ScanComparison = ({
             {/* Findings */}
             <div className="max-h-[500px] overflow-y-auto">
               {filteredFindings.length === 0 ? (
-                <div className="text-center text-gray-500 py-12">
+                <div className="text-center text-gray-400 py-12">
                   No findings match the current filters
                 </div>
               ) : (
@@ -617,7 +617,7 @@ const ScanComparison = ({
 
           {/* Export Button */}
           <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-700/50 rounded-lg hover:bg-gray-800/30">
               <ArrowDownTrayIcon className="w-4 h-4" />
               Export Comparison Report
             </button>
@@ -626,9 +626,9 @@ const ScanComparison = ({
       )}
 
       {!data.summary && !isLoading && !error && (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <ArrowsUpDownIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Select two scans to compare</p>
+        <div className="text-center py-12 bg-gray-800/30 rounded-xl">
+          <ArrowsUpDownIcon className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-400">Select two scans to compare</p>
         </div>
       )}
     </div>

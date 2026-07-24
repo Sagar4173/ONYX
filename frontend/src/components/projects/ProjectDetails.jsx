@@ -32,7 +32,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { projectsAPI, reportsAPI, utils } from "../../services/api";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, EmptyState, Modal } from "../../styles/components";
 import { PageContainer, PageHeader } from "../../layouts";
 
 const ProjectDetails = () => {
@@ -1462,573 +1462,338 @@ const ProjectDetails = () => {
 
         {/* Enhanced Edit Project Modal - Matching Create Modal */}
         {showEditModal && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setShowEditModal(false)}
-            />
-            <div className="flex min-h-full items-center justify-center p-4">
-              <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl" />
+          <Modal size="xl" isOpen={showEditModal} onClose={() => setShowEditModal(false)}>
+            <div className="flex items-start justify-between mb-8">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                  <PencilIcon className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Edit Project</h2>
+                  <p className="text-gray-400">Update your project configuration</p>
+                </div>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
 
-                  <div className="relative p-8">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-8">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
-                          <PencilIcon className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl font-bold text-white">
-                            Edit Project
-                          </h2>
-                          <p className="text-gray-400">
-                            Update your project configuration
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setShowEditModal(false)}
-                        className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
-                      >
-                        <XMarkIcon className="h-6 w-6" />
-                      </button>
-                    </div>
+            <form onSubmit={handleUpdateProject} className="space-y-8">
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <InformationCircleIcon className="h-5 w-5 text-blue-400" />
+                  <span>Basic Information</span>
+                </h3>
 
-                    <form onSubmit={handleUpdateProject} className="space-y-8">
-                      {/* Basic Information */}
-                      <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                          <InformationCircleIcon className="h-5 w-5 text-blue-400" />
-                          <span>Basic Information</span>
-                        </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      Project Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                      placeholder="My Awesome Project"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      required
+                    />
+                  </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                              Project Name{" "}
-                              <span className="text-red-400">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={editForm.name}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  name: e.target.value,
-                                }))
-                              }
-                              placeholder="My Awesome Project"
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                              required
-                            />
-                          </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">Category</label>
+                    <select
+                      value={editForm.category}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    >
+                      <option value="web_application">🌐 Web Application</option>
+                      <option value="api_service">🔌 API Service</option>
+                      <option value="mobile_app">📱 Mobile App</option>
+                      <option value="microservice">🔷 Microservice</option>
+                      <option value="library">📚 Library</option>
+                      <option value="infrastructure">🏗️ Infrastructure</option>
+                      <option value="other">📦 Other</option>
+                    </select>
+                  </div>
+                </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                              Category
-                            </label>
-                            <select
-                              value={editForm.category}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  category: e.target.value,
-                                }))
-                              }
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                            >
-                              <option value="web_application">
-                                🌐 Web Application
-                              </option>
-                              <option value="api_service">
-                                🔌 API Service
-                              </option>
-                              <option value="mobile_app">📱 Mobile App</option>
-                              <option value="microservice">
-                                🔷 Microservice
-                              </option>
-                              <option value="library">📚 Library</option>
-                              <option value="infrastructure">
-                                🏗️ Infrastructure
-                              </option>
-                              <option value="other">📦 Other</option>
-                            </select>
-                          </div>
-                        </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe your project..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+                  />
+                </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-3">
-                            Description
-                          </label>
-                          <textarea
-                            value={editForm.description}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                description: e.target.value,
-                              }))
-                            }
-                            placeholder="Describe your project..."
-                            rows={3}
-                            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                              Priority
-                            </label>
-                            <select
-                              value={editForm.priority}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  priority: e.target.value,
-                                }))
-                              }
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                            >
-                              <option value="low">🟢 Low</option>
-                              <option value="medium">🟡 Medium</option>
-                              <option value="high">🟠 High</option>
-                              <option value="critical">🔴 Critical</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                              Status
-                            </label>
-                            <select
-                              value={editForm.status}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  status: e.target.value,
-                                }))
-                              }
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                            >
-                              <option value="active">✅ Active</option>
-                              <option value="inactive">⏸️ Inactive</option>
-                              <option value="archived">📁 Archived</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Repository Configuration */}
-                      <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                          <CodeBracketIcon className="h-5 w-5 text-purple-400" />
-                          <span>Repository Configuration</span>
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                              Repository URL
-                            </label>
-                            <input
-                              type="url"
-                              value={editForm.repository.url}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  repository: {
-                                    ...prev.repository,
-                                    url: e.target.value,
-                                  },
-                                }))
-                              }
-                              placeholder="https://github.com/user/repo"
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-3">
-                              Default Branch
-                            </label>
-                            <input
-                              type="text"
-                              value={editForm.repository.branch}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  repository: {
-                                    ...prev.repository,
-                                    branch: e.target.value,
-                                  },
-                                }))
-                              }
-                              placeholder="main"
-                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-3">
-                            Access Token (for private repositories)
-                          </label>
-                          <input
-                            type="password"
-                            value={editForm.repository.access_token}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                repository: {
-                                  ...prev.repository,
-                                  access_token: e.target.value,
-                                },
-                              }))
-                            }
-                            placeholder="ghp_xxxxxxxxxxxx"
-                            className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                          />
-                          <p className="text-xs text-gray-500 mt-2">
-                            Leave empty to keep current token
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Security Scanners */}
-                      <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                          <ShieldCheckIcon className="h-5 w-5 text-green-400" />
-                          <span>Security Scanners</span>
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {[
-                            {
-                              value: "sast",
-                              label: "SAST",
-                              description:
-                                "Static Application Security Testing",
-                            },
-                            {
-                              value: "secrets",
-                              label: "Secrets",
-                              description: "Secret & credential detection",
-                            },
-                            {
-                              value: "dependency",
-                              label: "Dependencies",
-                              description: "Dependency vulnerability scanning",
-                            },
-                            {
-                              value: "container",
-                              label: "Container",
-                              description: "Container image security scanning",
-                            },
-                            {
-                              value: "iac",
-                              label: "IaC",
-                              description: "Infrastructure as Code scanning",
-                            },
-                            {
-                              value: "dast",
-                              label: "DAST",
-                              description:
-                                "Dynamic Application Security Testing",
-                            },
-                          ].map((scanner) => (
-                            <button
-                              key={scanner.value}
-                              type="button"
-                              onClick={() => toggleScanner(scanner.value)}
-                              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                                editForm.scan_config.enabled_scanners.includes(
-                                  scanner.value
-                                )
-                                  ? "border-blue-500/70 bg-blue-500/20"
-                                  : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium text-white">
-                                  {scanner.label}
-                                </span>
-                                {editForm.scan_config.enabled_scanners.includes(
-                                  scanner.value
-                                ) && (
-                                  <CheckCircleIcon className="h-5 w-5 text-blue-400" />
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-400">
-                                {scanner.description}
-                              </p>
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* Scan Configuration Options */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                          <label className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 cursor-pointer hover:bg-gray-800/50 transition-all">
-                            <input
-                              type="checkbox"
-                              checked={editForm.scan_config.auto_scan_on_push}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  scan_config: {
-                                    ...prev.scan_config,
-                                    auto_scan_on_push: e.target.checked,
-                                  },
-                                }))
-                              }
-                              className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500/50"
-                            />
-                            <div>
-                              <p className="text-white font-medium">
-                                Auto-scan on Push
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Automatically scan when code is pushed
-                              </p>
-                            </div>
-                          </label>
-
-                          <label className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 cursor-pointer hover:bg-gray-800/50 transition-all">
-                            <input
-                              type="checkbox"
-                              checked={editForm.scan_config.fail_on_critical}
-                              onChange={(e) =>
-                                setEditForm((prev) => ({
-                                  ...prev,
-                                  scan_config: {
-                                    ...prev.scan_config,
-                                    fail_on_critical: e.target.checked,
-                                  },
-                                }))
-                              }
-                              className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500/50"
-                            />
-                            <div>
-                              <p className="text-white font-medium">
-                                Fail on Critical
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                Mark scan as failed if critical issues found
-                              </p>
-                            </div>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-3">
-                            Scan Timeout (minutes)
-                          </label>
-                          <input
-                            type="number"
-                            min="5"
-                            max="180"
-                            value={editForm.scan_config.scan_timeout_minutes}
-                            onChange={(e) =>
-                              setEditForm((prev) => ({
-                                ...prev,
-                                scan_config: {
-                                  ...prev.scan_config,
-                                  scan_timeout_minutes:
-                                    parseInt(e.target.value) || 60,
-                                },
-                              }))
-                            }
-                            className="w-full md:w-48 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="space-y-6">
-                        <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                          <TagIcon className="h-5 w-5 text-yellow-400" />
-                          <span>Tags</span>
-                        </h3>
-
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="text"
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyPress={(e) =>
-                              e.key === "Enter" &&
-                              (e.preventDefault(), addTag())
-                            }
-                            placeholder="Add tags..."
-                            className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
-                          />
-                          <button
-                            type="button"
-                            onClick={addTag}
-                            className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
-                          >
-                            Add
-                          </button>
-                        </div>
-
-                        {editForm.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {editForm.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
-                              >
-                                <span>{tag}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => removeTag(tag)}
-                                  className="text-gray-400 hover:text-white"
-                                >
-                                  <XMarkIcon className="h-4 w-4" />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Submit */}
-                      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
-                        <button
-                          type="button"
-                          onClick={() => setShowEditModal(false)}
-                          className="px-6 py-3 text-gray-300 hover:text-white transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={updateProjectMutation.isPending}
-                          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all flex items-center space-x-2"
-                        >
-                          {updateProjectMutation.isPending ? (
-                            <>
-                              <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                              <span>Saving...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircleIcon className="h-5 w-5" />
-                              <span>Save Changes</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">Priority</label>
+                    <select
+                      value={editForm.priority}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, priority: e.target.value }))}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    >
+                      <option value="low">🟢 Low</option>
+                      <option value="medium">🟡 Medium</option>
+                      <option value="high">🟠 High</option>
+                      <option value="critical">🔴 Critical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">Status</label>
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    >
+                      <option value="active">✅ Active</option>
+                      <option value="inactive">⏸️ Inactive</option>
+                      <option value="archived">📁 Archived</option>
+                    </select>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+
+              {/* Repository Configuration */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <CodeBracketIcon className="h-5 w-5 text-purple-400" />
+                  <span>Repository Configuration</span>
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">Repository URL</label>
+                    <input
+                      type="url"
+                      value={editForm.repository.url}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, repository: { ...prev.repository, url: e.target.value } }))}
+                      placeholder="https://github.com/user/repo"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">Default Branch</label>
+                    <input
+                      type="text"
+                      value={editForm.repository.branch}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, repository: { ...prev.repository, branch: e.target.value } }))}
+                      placeholder="main"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Access Token (for private repositories)</label>
+                  <input
+                    type="password"
+                    value={editForm.repository.access_token}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, repository: { ...prev.repository, access_token: e.target.value } }))}
+                    placeholder="ghp_xxxxxxxxxxxx"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Leave empty to keep current token</p>
+                </div>
+              </div>
+
+              {/* Security Scanners */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <ShieldCheckIcon className="h-5 w-5 text-green-400" />
+                  <span>Security Scanners</span>
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { value: "sast", label: "SAST", description: "Static Application Security Testing" },
+                    { value: "secrets", label: "Secrets", description: "Secret & credential detection" },
+                    { value: "dependency", label: "Dependencies", description: "Dependency vulnerability scanning" },
+                    { value: "container", label: "Container", description: "Container image security scanning" },
+                    { value: "iac", label: "IaC", description: "Infrastructure as Code scanning" },
+                    { value: "dast", label: "DAST", description: "Dynamic Application Security Testing" },
+                  ].map((scanner) => (
+                    <button
+                      key={scanner.value}
+                      type="button"
+                      onClick={() => toggleScanner(scanner.value)}
+                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                        editForm.scan_config.enabled_scanners.includes(scanner.value)
+                          ? "border-blue-500/70 bg-blue-500/20"
+                          : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-white">{scanner.label}</span>
+                        {editForm.scan_config.enabled_scanners.includes(scanner.value) && (
+                          <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-400">{scanner.description}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                  <label className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 cursor-pointer hover:bg-gray-800/50 transition-all">
+                    <input
+                      type="checkbox"
+                      checked={editForm.scan_config.auto_scan_on_push}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, scan_config: { ...prev.scan_config, auto_scan_on_push: e.target.checked } }))}
+                      className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500/50"
+                    />
+                    <div>
+                      <p className="text-white font-medium">Auto-scan on Push</p>
+                      <p className="text-xs text-gray-400">Automatically scan when code is pushed</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl border border-gray-700/50 cursor-pointer hover:bg-gray-800/50 transition-all">
+                    <input
+                      type="checkbox"
+                      checked={editForm.scan_config.fail_on_critical}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, scan_config: { ...prev.scan_config, fail_on_critical: e.target.checked } }))}
+                      className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500/50"
+                    />
+                    <div>
+                      <p className="text-white font-medium">Fail on Critical</p>
+                      <p className="text-xs text-gray-400">Mark scan as failed if critical issues found</p>
+                    </div>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Scan Timeout (minutes)</label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="180"
+                    value={editForm.scan_config.scan_timeout_minutes}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, scan_config: { ...prev.scan_config, scan_timeout_minutes: parseInt(e.target.value) || 60 } }))}
+                    className="w-full md:w-48 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                  <TagIcon className="h-5 w-5 text-yellow-400" />
+                  <span>Tags</span>
+                </h3>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                    placeholder="Add tags..."
+                    className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                  />
+                  <Button type="button" onClick={addTag}>Add</Button>
+                </div>
+
+                {editForm.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {editForm.tags.map((tag) => (
+                      <span key={tag} className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2">
+                        <span>{tag}</span>
+                        <button type="button" onClick={() => removeTag(tag)} className="text-gray-400 hover:text-white">
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit */}
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
+                <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                <Button type="submit" gradient isLoading={updateProjectMutation.isPending}>
+                  {updateProjectMutation.isPending ? (
+                    <>Saving...</>
+                  ) : (
+                    <>Save Changes</>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Modal>
         )}
 
         {/* Enhanced Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => {
-                setShowDeleteModal(false);
-                setDeleteConfirmText("");
-              }}
-            />
-            <div className="flex min-h-full items-center justify-center p-4">
-              <div className="relative bg-gray-900/95 backdrop-blur-xl rounded-3xl border border-red-900/30 shadow-2xl p-6 w-full max-w-md">
-                <div className="text-center">
-                  {/* Warning Icon with Animation */}
-                  <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                    <ExclamationTriangleIcon className="h-10 w-10 text-red-400" />
-                  </div>
+          <Modal
+            isOpen={showDeleteModal}
+            onClose={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+            title="Delete Project Permanently"
+            size="sm"
+          >
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                <ExclamationTriangleIcon className="h-10 w-10 text-red-400" />
+              </div>
 
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Delete Project Permanently
-                  </h3>
-                  <p className="text-gray-400 mb-4">
-                    You are about to permanently delete{" "}
-                    <span className="text-red-400 font-semibold">
-                      "{project.name}"
-                    </span>
-                    .
-                  </p>
+              <p className="text-gray-400 mb-4">
+                You are about to permanently delete{" "}
+                <span className="text-red-400 font-semibold">"{project.name}"</span>.
+              </p>
 
-                  {/* Warning Box */}
-                  <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-4 mb-6 text-left">
-                    <p className="text-red-300 text-sm font-medium mb-2">
-                      ⚠️ This action will permanently delete:
-                    </p>
-                    <ul className="text-red-200/80 text-sm space-y-1.5 ml-4">
-                      <li>• The project and all its configuration</li>
-                      <li>
-                        • All scan reports and vulnerability findings (
-                        {stats.total_scans || 0} scans)
-                      </li>
-                      <li>• All webhook events and history</li>
-                      <li>• All team member associations</li>
-                    </ul>
-                    <p className="text-red-400 text-sm font-bold mt-3 text-center">
-                      🚫 This action cannot be undone!
-                    </p>
-                  </div>
+              <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-4 mb-6 text-left">
+                <p className="text-red-300 text-sm font-medium mb-2">
+                  ⚠️ This action will permanently delete:
+                </p>
+                <ul className="text-red-200/80 text-sm space-y-1.5 ml-4">
+                  <li>• The project and all its configuration</li>
+                  <li>• All scan reports and vulnerability findings ({stats.total_scans || 0} scans)</li>
+                  <li>• All webhook events and history</li>
+                  <li>• All team member associations</li>
+                </ul>
+                <p className="text-red-400 text-sm font-bold mt-3 text-center">
+                  🚫 This action cannot be undone!
+                </p>
+              </div>
 
-                  {/* Confirmation Input */}
-                  <div className="mb-6">
-                    <label className="block text-sm text-gray-400 mb-2">
-                      Type{" "}
-                      <span className="text-red-400 font-mono font-bold">
-                        DELETE
-                      </span>{" "}
-                      to confirm:
-                    </label>
-                    <input
-                      type="text"
-                      value={deleteConfirmText}
-                      onChange={(e) => setDeleteConfirmText(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-red-800/30 rounded-xl text-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50"
-                      placeholder="DELETE"
-                    />
-                  </div>
+              <div className="mb-6">
+                <label className="block text-sm text-gray-400 mb-2">
+                  Type <span className="text-red-400 font-mono font-bold">DELETE</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-800/50 border border-red-800/30 rounded-xl text-white text-center font-mono focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50"
+                  placeholder="DELETE"
+                />
+              </div>
 
-                  {/* Buttons */}
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => {
-                        setShowDeleteModal(false);
-                        setDeleteConfirmText("");
-                      }}
-                      className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-all font-medium"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleDeleteProject}
-                      disabled={
-                        deleteProjectMutation.isPending ||
-                        deleteConfirmText !== "DELETE"
-                      }
-                      className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center justify-center space-x-2"
-                    >
-                      {deleteProjectMutation.isPending ? (
-                        <>
-                          <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                          <span>Deleting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <TrashIcon className="h-5 w-5" />
-                          <span>Delete Forever</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
+              <div className="flex space-x-3">
+                <Button
+                  variant="ghost"
+                  onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  isLoading={deleteProjectMutation.isPending}
+                  disabled={deleteConfirmText !== "DELETE"}
+                  onClick={handleDeleteProject}
+                  className="flex-1"
+                >
+                  {deleteProjectMutation.isPending ? "Deleting..." : "Delete Forever"}
+                </Button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
       </div>
     </PageContainer>
