@@ -205,6 +205,15 @@ export const authAPI = {
     return response.data;
   },
 
+  // Reset password (used by AuthContext)
+  resetPassword: async (token, newPassword) => {
+    const response = await api.post("/auth/reset-password", {
+      token,
+      new_password: newPassword,
+    });
+    return response.data;
+  },
+
   // Verify email
   verifyEmail: async (token) => {
     const response = await api.post("/auth/verify-email", { token });

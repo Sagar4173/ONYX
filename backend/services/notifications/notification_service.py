@@ -124,73 +124,18 @@ class NotificationService:
             
             logger.info(f"✅ Scan completed notification: {notification_data}")
             
-            # Generate report attachment HTML
-            report_html = None
-            if detailed_findings:
-                try:
-                    from services.notifications.templates.security_templates import get_scan_report_attachment_template
-                    from jinja2 import Environment, BaseLoader
-                    from datetime import datetime
-                    
-                    tmpl_source = get_scan_report_attachment_template()
-                    loader = BaseLoader()
-                    env = Environment(loader=loader)
-                    # Manually parse and render since we have the source
-                    from jinja2 import Template
-                    tmpl = Template(tmpl_source)
-                    
-                    severity_rows = ""
-                    severity_order = [("critical", "Critical", "#ef4444"), ("high", "High", "#f97316"), ("medium", "Medium", "#eab308"), ("low", "Low", "#22c55e"), ("info", "Info", "#3b82f6")]
-                    sev_counts = {"critical": critical_count, "high": high_count, "medium": medium_count, "low": low_count, "info": 0}
-                    
-                    severity_rows = '<div style="display: table; width: 100%; margin: 24px 0;">'
-                    severity_rows += '<div style="display: table-row;">'
-                    for key, label, color in severity_order:
-                        count = sev_counts.get(key, 0)
-                        severity_rows += f'''
-                        <div style="display: table-cell; width: 20%; padding: 8px;">
-                            <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-                                <div style="font-size: 28px; font-weight: 700; color: {color};">{count}</div>
-                                <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">{label}</div>
-                            </div>
-                        </div>'''
-                    severity_rows += '</div></div>'
-                    
-                    total_scanners = len(set(f.get("scanner", "unknown") for f in detailed_findings)) if detailed_findings else 0
-                    
-                    findings_rows = ""
-                    for idx, f in enumerate(detailed_findings[:50]):
-                        sev = f.get("severity", "medium").lower()
-                        sev_colors = {"critical": "#ef4444", "high": "#f97316", "medium": "#eab308", "low": "#22c55e", "info": "#3b82f6"}
-                        sc = sev_colors.get(sev, "#94a3b8")
-                        findings_rows += f'''
-                        <div style="padding: 16px; margin-bottom: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid {sc};">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span style="color: #e2e8f0; font-size: 14px; font-weight: 600;">{f.get("title", "Unknown")}</span>
-                                <span style="background: {sc}; color: white; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600;">{sev.upper()}</span>
-                            </div>
-                            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 8px 0; line-height: 1.5;">{f.get("description", "")[:200]}</p>
-                            <div style="font-size: 12px; color: #64748b;">
-                                <span>Scanner: {f.get("scanner", "N/A")}</span>
-                                {' | <span>File: ' + f.get("file_path", "") + '</span>' if f.get("file_path") else ''}
-                            </div>
-                        </div>'''
-                    
-                    if len(detailed_findings) > 50:
-                        findings_rows += f'''<div style="text-align: center; padding: 16px; color: #64748b; font-size: 13px;">
-                            ... and {len(detailed_findings) - 50} more findings
-                        </div>'''
-                    
-                    report_html = tmpl.render(
-                        project_name=project_name,
-                        generated_at=datetime.now().strftime("%B %d, %Y at %I:%M %p UTC"),
-                        total_findings=findings_count,
-                        scanner_count=total_scanners,
-                        severity_section=severity_rows,
-                        findings_section=findings_rows
-                    )
-                except Exception as report_err:
-                    logger.warning(f"Failed to generate report attachment: {report_err}")
+            # Generate PDF report attachment (same PDF as the Download PDF button)
+            pdf_content = None
+            try:
+                from utils.pdf_generator import generate_report_pdf
+                pdf_bytes = await generate_report_pdf(scan_id)
+                if pdf_bytes:
+                    pdf_content = pdf_bytes
+                    logger.info(f"📄 PDF report generated for email attachment ({len(pdf_bytes)} bytes)")
+                else:
+                    logger.warning(f"PDF generation returned None for scan {scan_id}")
+            except Exception as pdf_err:
+                logger.warning(f"Failed to generate PDF report attachment: {pdf_err}")
             
             # Send email notification if enabled
             if NotificationChannel.EMAIL in self.enabled_channels:
@@ -201,8 +146,8 @@ class NotificationService:
                         try:
                             from services.notifications.service import email_service
                             attachments = None
-                            if report_html:
-                                attachments = [{"filename": f"scan_report_{scan_id[:8]}.html", "content": report_html.encode("utf-8"), "content_type": "text/html"}]
+                            if pdf_content:
+                                attachments = [{"filename": f"scan_report_{scan_id[:8]}.pdf", "content": pdf_content, "content_type": "application/pdf"}]
                             await email_service.send_scan_completed_email(
                                 email=email,
                                 project_name=project_name,
