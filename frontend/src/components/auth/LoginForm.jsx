@@ -18,6 +18,7 @@ import {
   DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
+import { Button, Input, FormGroup } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 
@@ -92,56 +93,48 @@ export const LoginForm = ({
               <ShieldCheckIcon className="w-4 h-4 text-violet-400" />
               Authentication Code
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={6}
-                value={formData.two_factor_code}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  setFormData((prev) => ({
-                    ...prev,
-                    two_factor_code: value,
-                  }));
-                }}
-                className="w-full px-4 py-4 text-center text-2xl tracking-[0.5em] font-mono bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
-                placeholder="000000"
-                autoFocus
-                required
-              />
-            </div>
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              value={formData.two_factor_code}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setFormData((prev) => ({
+                  ...prev,
+                  two_factor_code: value,
+                }));
+              }}
+              placeholder="000000"
+              autoFocus
+              required
+              className="text-center text-2xl tracking-[0.5em] font-mono"
+            />
             <p className="mt-2 text-xs text-gray-500 text-center">
               Or enter a backup code if you've lost access to your authenticator
             </p>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading || formData.two_factor_code.length < 6}
-            className="w-full px-4 py-3.5 bg-gradient-to-r from-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            gradient
+            leftIcon={<ShieldCheckIcon className="w-5 h-5" />}
+            isLoading={isLoading}
+            className="w-full"
           >
-            {isLoading ? (
-              <>
-                <ArrowPathIcon className="w-5 h-5 animate-spin" />
-                Verifying...
-              </>
-            ) : (
-              <>
-                <ShieldCheckIcon className="w-5 h-5" />
-                Verify & Sign In
-              </>
-            )}
-          </button>
+            Verify & Sign In
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={handleBack}
-            className="w-full px-4 py-3 text-gray-400 hover:text-white font-medium rounded-xl hover:bg-gray-700/30 transition-all"
+            className="w-full"
           >
             ← Back to login
-          </button>
+          </Button>
         </form>
 
         {/* Security Note */}
@@ -178,22 +171,19 @@ export const LoginForm = ({
             <EnvelopeIcon className="w-4 h-4 text-cyan-400" />
             Email or Username
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={formData.username_or_email}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  username_or_email: e.target.value,
-                }))
-              }
-              className="w-full px-4 py-3 pl-11 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all group-hover:border-gray-500"
-              placeholder="Enter your email or username"
-              required
-            />
-            <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-cyan-400 transition-colors" />
-          </div>
+          <Input
+            type="text"
+            value={formData.username_or_email}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                username_or_email: e.target.value,
+              }))
+            }
+            leadingIcon={<UserIcon className="w-5 h-5" />}
+            placeholder="Enter your email or username"
+            required
+          />
         </div>
 
         <div className="group">
@@ -202,21 +192,21 @@ export const LoginForm = ({
             Password
           </label>
           <div className="relative">
-            <input
+            <Input
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, password: e.target.value }))
               }
-              className="w-full px-4 py-3 pl-11 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all group-hover:border-gray-500"
+              leadingIcon={<KeyIcon className="w-5 h-5" />}
               placeholder="Enter your password"
               required
+              className="pr-12"
             />
-            <KeyIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-400 transition-colors" />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10"
             >
               {showPassword ? (
                 <EyeSlashIcon className="h-5 w-5" />
@@ -254,33 +244,27 @@ export const LoginForm = ({
           </button>
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-3.5 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          gradient
+          rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+          isLoading={isLoading}
+          className="w-full"
         >
-          {isLoading ? (
-            <>
-              <ArrowPathIcon className="w-5 h-5 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            <>
-              Sign In
-              <ArrowRightIcon className="w-5 h-5" />
-            </>
-          )}
-        </button>
+          Sign In
+        </Button>
       </form>
 
       <div className="mt-6 text-center">
         <span className="text-gray-400">Don't have an account? </span>
-        <button
+        <Button
+          variant="ghost"
           onClick={onSwitchToRegister}
-          className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
+          className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all !bg-none p-0"
         >
           Create account
-        </button>
+        </Button>
       </div>
 
       {/* Trust Badges */}

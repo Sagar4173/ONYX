@@ -10,6 +10,7 @@ import {
   ArrowRightIcon,
   } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
+import { Button, Input } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 
@@ -98,20 +99,20 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
               New Password
             </label>
             <div className="relative">
-              <input
+              <Input
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, password: e.target.value }))
                 }
-                className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all group-hover:border-gray-500"
                 placeholder="Enter new password"
                 required
+                className="pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10"
               >
                 {showPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
@@ -120,8 +121,6 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                 )}
               </button>
             </div>
-
-            {/* Password Requirements */}
             <div className="mt-3 grid grid-cols-2 gap-2">
               {Object.entries({
                 length: "8+ characters",
@@ -155,7 +154,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
               Confirm New Password
             </label>
             <div className="relative">
-              <input
+              <Input
                 type={showConfirmPassword ? "text" : "password"}
                 value={formData.confirm_password}
                 onChange={(e) =>
@@ -163,14 +162,14 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                     ...prev,
                     confirm_password: e.target.value}))
                 }
-                className="w-full px-4 py-3 pr-12 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all group-hover:border-gray-500"
                 placeholder="Confirm new password"
                 required
+                className="pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10"
               >
                 {showConfirmPassword ? (
                   <EyeSlashIcon className="h-5 w-5" />
@@ -187,32 +186,26 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
               )}
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-3.5 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            gradient
+            rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+            isLoading={isLoading}
+            className="w-full"
           >
-            {isLoading ? (
-              <>
-                <ArrowPathIcon className="w-5 h-5 animate-spin" />
-                Resetting Password...
-              </>
-            ) : (
-              <>
-                Reset Password
-                <ArrowRightIcon className="w-5 h-5" />
-              </>
-            )}
-          </button>
+            Reset Password
+          </Button>
         </form>
 
         <div className="mt-6 text-center">
-          <button
+          <Button
+            variant="ghost"
             onClick={onSwitchToLogin}
-            className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
+            className="!bg-none p-0 text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300"
           >
             ← Back to sign in
-          </button>
+          </Button>
         </div>
       </div>
     </div>

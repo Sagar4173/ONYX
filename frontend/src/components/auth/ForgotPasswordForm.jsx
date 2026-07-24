@@ -8,6 +8,7 @@ import {
   ArrowRightIcon,
   } from "@heroicons/react/24/outline";
 import { KeyIcon as KeySolid } from "@heroicons/react/24/solid";
+import { Button, Input } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 
 export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {
@@ -60,42 +61,35 @@ export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {
               <EnvelopeIcon className="w-4 h-4 text-cyan-400" />
               Email Address
             </label>
-            <input
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all group-hover:border-gray-500"
               placeholder="your@email.com"
               required
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-3.5 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            gradient
+            rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+            isLoading={isLoading}
+            className="w-full"
           >
-            {isLoading ? (
-              <>
-                <ArrowPathIcon className="w-5 h-5 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                Send Reset Link
-                <ArrowRightIcon className="w-5 h-5" />
-              </>
-            )}
-          </button>
+            Send Reset Link
+          </Button>
         </form>
 
         <div className="mt-6 text-center">
-          <button
+          <Button
+            variant="ghost"
             onClick={onSwitchToLogin}
-            className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
+            className="!bg-none p-0 text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300"
           >
             ← Back to sign in
-          </button>
+          </Button>
         </div>
       </div>
     </div>

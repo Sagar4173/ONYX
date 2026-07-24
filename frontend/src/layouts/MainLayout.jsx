@@ -203,7 +203,7 @@ export const MainLayout = () => {
         {/* Email Verification Banner for unverified users */}
         <VerificationBanner />
 
-        <main className="flex-1 relative overflow-auto">
+        <main id="main-content" className="flex-1 relative overflow-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route

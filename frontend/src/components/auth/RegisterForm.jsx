@@ -13,6 +13,7 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { UserCircleIcon as UserCircleSolid } from "@heroicons/react/24/solid";
+import { Button, Input } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 
@@ -95,29 +96,26 @@ export const RegisterForm = ({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Username and Full Name Row */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-gray-400 mb-1.5 block">
               Username
             </label>
-            <input
+            <Input
               type="text"
               value={formData.username}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, username: e.target.value }))
               }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
               placeholder="username"
               required
             />
           </div>
-
           <div>
             <label className="text-xs font-medium text-gray-400 mb-1.5 block">
               Full Name
             </label>
-            <input
+            <Input
               type="text"
               value={formData.full_name}
               onChange={(e) =>
@@ -126,50 +124,46 @@ export const RegisterForm = ({
                   full_name: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
               placeholder="John Doe"
               required
             />
           </div>
         </div>
 
-        {/* Email */}
         <div>
           <label className="text-xs font-medium text-gray-400 mb-1.5 block">
             Email
           </label>
-          <input
+          <Input
             type="email"
             value={formData.email}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, email: e.target.value }))
             }
-            className="w-full px-3 py-2.5 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
             placeholder="your@email.com"
             required
           />
         </div>
 
-        {/* Password */}
         <div>
           <label className="text-xs font-medium text-gray-400 mb-1.5 block">
             Password
           </label>
           <div className="relative">
-            <input
+            <Input
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, password: e.target.value }))
               }
-              className="w-full px-3 py-2.5 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
               placeholder="Strong password"
               required
+              className="pr-10"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors z-10"
             >
               {showPassword ? (
                 <EyeSlashIcon className="h-4 w-4" />
@@ -178,8 +172,6 @@ export const RegisterForm = ({
               )}
             </button>
           </div>
-
-          {/* Password Requirements */}
           <div className="mt-3 grid grid-cols-2 gap-2">
             {Object.entries({
               length: "8+ characters",
@@ -206,13 +198,12 @@ export const RegisterForm = ({
           </div>
         </div>
 
-        {/* Confirm Password */}
         <div>
           <label className="text-xs font-medium text-gray-400 mb-1.5 block">
             Confirm Password
           </label>
           <div className="relative">
-            <input
+            <Input
               type={showConfirmPassword ? "text" : "password"}
               value={formData.confirm_password}
               onChange={(e) =>
@@ -221,14 +212,14 @@ export const RegisterForm = ({
                   confirm_password: e.target.value,
                 }))
               }
-              className="w-full px-3 py-2.5 pr-10 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all"
               placeholder="Confirm password"
               required
+              className="pr-10"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors z-10"
             >
               {showConfirmPassword ? (
                 <EyeSlashIcon className="h-4 w-4" />
@@ -245,33 +236,27 @@ export const RegisterForm = ({
             )}
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+          gradient
+          rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+          isLoading={isLoading}
+          className="w-full"
         >
-          {isLoading ? (
-            <>
-              <ArrowPathIcon className="w-5 h-5 animate-spin" />
-              Creating Account...
-            </>
-          ) : (
-            <>
-              Create Account
-              <ArrowRightIcon className="w-5 h-5" />
-            </>
-          )}
-        </button>
+          Create Account
+        </Button>
       </form>
 
       <div className="mt-6 text-center">
         <span className="text-gray-400">Already have an account? </span>
-        <button
+        <Button
+          variant="ghost"
           onClick={onSwitchToLogin}
-          className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all"
+          className="!bg-none p-0 text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300"
         >
           Sign in
-        </button>
+        </Button>
       </div>
 
       {/* Trust Badges */}

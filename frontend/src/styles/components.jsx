@@ -35,12 +35,17 @@ export const Button = ({
   disabled = false,
   leftIcon,
   rightIcon,
+  gradient = false,
   className = "",
   ...props
 }) => {
+  const gradientClasses = gradient
+    ? "bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+    : getButtonClasses(variant, size);
+
   return (
     <button
-      className={`${getButtonClasses(variant, size)} ${className}`}
+      className={`${gradientClasses} ${className}`}
       disabled={disabled || isLoading}
       {...props}
     >
@@ -190,17 +195,33 @@ export const Input = ({
   variant = "default",
   size = "md",
   error,
+  label,
+  leadingIcon,
   className = "",
   ...props
 }) => {
   const inputVariant = error ? "error" : variant;
+  const inputId = React.useId();
 
   return (
     <div className="w-full">
-      <input
-        className={`${getInputClasses(inputVariant, size)} ${className}`}
-        {...props}
-      />
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-300 mb-2">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        {leadingIcon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            {leadingIcon}
+          </div>
+        )}
+        <input
+          id={inputId}
+          className={`${getInputClasses(inputVariant, size)} ${leadingIcon ? "pl-11" : ""} ${className}`}
+          {...props}
+        />
+      </div>
       {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
     </div>
   );

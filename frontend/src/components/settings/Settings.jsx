@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth";
+import { Button, Input } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 import { systemAPI } from "../../services/api";
 
@@ -327,14 +328,14 @@ const Settings = () => {
               </nav>
             </GlassCard>
 
-            {/* Save Button */}
-            <button
+            <Button
               onClick={handleSaveSettings}
               disabled={saveSettingsMutation.isPending}
-              className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 transition-all"
+              isLoading={saveSettingsMutation.isPending}
+              className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700"
             >
-              {saveSettingsMutation.isPending ? "Saving..." : "Save Settings"}
-            </button>
+              Save Settings
+            </Button>
           </div>
 
           {/* Content */}
