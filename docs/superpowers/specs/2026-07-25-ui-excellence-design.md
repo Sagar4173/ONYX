@@ -61,12 +61,28 @@ Elevate the ONYX Security Intelligence Platform from a functional dark-themed UI
 | `FindingCard` | `styles/components.jsx` | Security finding display card (severity, title, metadata) |
 | `StatusBadge` | `styles/components.jsx` | Status badge (active/inactive/suspended/pending) — generic version |
 
+### File Organization
+
+- **Simple presentational components** (DataTable, MetricCard, FindingCard, StatusBadge, PageTransition, ConfirmDialog) → added to `styles/components.jsx`
+- **Complex interactive components** (CommandPalette) → `components/common/CommandPalette.jsx`
+
 ### Consolidated Barrel Export
 
-Create a single import path from `components/common`:
+Update `components/common/index.js` to re-export everything from the design system plus new components, creating a single import path:
+
 ```js
-export { Button, Card, Badge, Input, Modal, Tabs, Select, Textarea, DataTable, ConfirmDialog, MetricCard, FindingCard, StatusBadge, Avatar, Tooltip, Spinner, Skeleton, ProgressBar, SeverityProgressBar, Code, Divider, AnimatedListItem, DonutChart, EmptyState, StatCard, PageTransition } from "../../styles/components";
+// Re-export all design system components
+export { Button, Card, Badge, Input, Modal, Tabs, Select, Textarea, Spinner, Skeleton, Avatar, Tooltip, ProgressBar, SeverityProgressBar, Code, Divider, AnimatedListItem, DonutChart, EmptyState, StatCard, SeverityBadge } from "../../styles/components";
+
+// New components
+export { DataTable, MetricCard, FindingCard, StatusBadge, ConfirmDialog, PageTransition } from "../../styles/components";
 export { CommandPalette } from "./CommandPalette";
+```
+
+Pages then import from a single location:
+```js
+import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+import { Button, Card, Badge, DataTable, CommandPalette } from "../../components/common";
 ```
 
 ### Convention

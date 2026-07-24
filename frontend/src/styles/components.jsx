@@ -1126,6 +1126,87 @@ export const DataTable = ({
   );
 };
 
+// =============================================================================
+// CONFIRM DIALOG COMPONENT
+// =============================================================================
+
+export const ConfirmDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = "Confirm",
+  message = "Are you sure?",
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  variant = "danger",
+  requireTypeToConfirm = false,
+  confirmText = "",
+}) => {
+  const [typedText, setTypedText] = React.useState("");
+  const titleId = React.useId();
+
+  if (!isOpen) return null;
+
+  const buttonColors = {
+    danger: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
+    warning: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500",
+    primary: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
+  };
+
+  const canConfirm = requireTypeToConfirm
+    ? typedText === confirmText
+    : true;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gray-900 border border-gray-700/50 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 id={titleId} className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <p className="text-gray-400 text-sm mb-4">{message}</p>
+
+        {requireTypeToConfirm && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-400 mb-2">
+              Type <span className="font-mono text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">{confirmText}</span> to confirm:
+            </p>
+            <input
+              type="text"
+              value={typedText}
+              onChange={(e) => setTypedText(e.target.value)}
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              autoFocus
+            />
+          </div>
+        )}
+
+        <div className="flex items-center justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={() => { onConfirm(); onClose(); }}
+            disabled={!canConfirm}
+            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all disabled:opacity-50 ${buttonColors[variant]}`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default {
   Button,
   IconButton,
@@ -1164,4 +1245,5 @@ export default {
   Avatar,
   Truncate,
   DataTable,
+  ConfirmDialog,
 };
