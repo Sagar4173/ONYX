@@ -241,7 +241,7 @@ const AdvancedCompliance = () => {
               return (
                 <div
                   key={framework.id}
-                  className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl"
+                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -287,7 +287,7 @@ const AdvancedCompliance = () => {
         )}
 
         {/* Assessments List */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
           <div className="p-6 border-b border-white/10">
             <h2 className="text-xl font-semibold text-white">
               Compliance Assessments
@@ -306,11 +306,11 @@ const AdvancedCompliance = () => {
               description="Create your first compliance assessment"
             />
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-gray-700/50">
               {assessmentsData?.assessments?.map((assessment) => (
                 <div
                   key={assessment.id}
-                  className="p-6 hover:bg-white/5 transition-colors"
+                  className="p-6 hover:bg-gray-800/30 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -360,7 +360,7 @@ const AdvancedCompliance = () => {
                       return (
                         <div
                           key={result.framework}
-                          className="bg-white/5 border border-white/10 rounded-xl p-4"
+                          className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4"
                         >
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xl">
@@ -438,19 +438,19 @@ const AdvancedCompliance = () => {
 
                 {/* Assessment Info */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-white/5 rounded-xl p-4">
+                  <div className="bg-gray-800/30 rounded-xl p-4">
                     <p className="text-sm text-gray-400 mb-1">Project ID</p>
                     <p className="text-lg font-semibold text-white">
                       {selectedAssessment.project_id}
                     </p>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4">
+                  <div className="bg-gray-800/30 rounded-xl p-4">
                     <p className="text-sm text-gray-400 mb-1">Status</p>
                     <p className="text-lg font-semibold text-white capitalize">
                       {selectedAssessment.status}
                     </p>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4">
+                  <div className="bg-gray-800/30 rounded-xl p-4">
                     <p className="text-sm text-gray-400 mb-1">Overall Score</p>
                     <p
                       className={`text-2xl font-bold ${
@@ -462,7 +462,7 @@ const AdvancedCompliance = () => {
                       {selectedAssessment.overall_score?.toFixed(1)}%
                     </p>
                   </div>
-                  <div className="bg-white/5 rounded-xl p-4">
+                  <div className="bg-gray-800/30 rounded-xl p-4">
                     <p className="text-sm text-gray-400 mb-1">
                       Assessment Date
                     </p>
@@ -482,7 +482,7 @@ const AdvancedCompliance = () => {
                     return (
                       <div
                         key={result.framework}
-                        className="bg-white/5 border border-white/10 rounded-xl p-4"
+                        className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
@@ -584,7 +584,7 @@ const AdvancedCompliance = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, project_id: e.target.value })
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none cursor-pointer"
                       required
                     >
                       <option value="" disabled className="bg-slate-800 text-gray-400">
@@ -632,7 +632,7 @@ const AdvancedCompliance = () => {
                           className={`p-4 border rounded-xl text-left transition-all ${
                             formData.frameworks.includes(framework.id)
                               ? `bg-gradient-to-r ${framework.color} border-transparent`
-                              : "bg-white/5 border-white/10 hover:bg-white/10"
+                              : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
@@ -660,7 +660,7 @@ const AdvancedCompliance = () => {
                         setShowCreateModal(false);
                         resetForm();
                       }}
-                      className="flex-1 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-all"
+                      className="flex-1 px-6 py-3 bg-gray-800/30 hover:bg-gray-700/50 border border-gray-700/50 rounded-xl text-white font-medium transition-all"
                     >
                       Cancel
                     </button>

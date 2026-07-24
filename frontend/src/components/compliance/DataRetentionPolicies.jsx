@@ -222,7 +222,7 @@ const DataRetentionPolicies = () => {
             policiesData?.policies?.map((policy) => (
               <div
                 key={policy.id}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all"
+                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all"
               >
                 {/* Policy Header */}
                 <div className="flex items-start justify-between mb-4">
