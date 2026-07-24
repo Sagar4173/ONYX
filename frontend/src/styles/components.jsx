@@ -532,6 +532,7 @@ export const StatCard = ({
   trendPositive = true,
   subtitle,
   gradient,
+  bgGradient,
   animated = false,
   animatedDuration = 1000,
   onClick,
@@ -549,51 +550,36 @@ export const StatCard = ({
     : trend >= 0 ? "text-red-400" : "text-emerald-400";
 
   if (gradient) {
+    const cardBg = bgGradient || "bg-gray-800/30";
     return (
       <div
         onClick={onClick}
-        className={`group relative bg-gray-800/30 rounded-2xl p-5 lg:p-6 border border-gray-700/30 
-          hover:border-gray-600/50 transition-all duration-500 hover:scale-[1.02] 
-          hover:shadow-xl hover:shadow-black/20 ${onClick ? "cursor-pointer" : ""} ${className}`}
+        className={`group relative ${cardBg} rounded-2xl p-5 border border-gray-800/50
+          hover:border-gray-700/50 transition-all ${onClick ? "cursor-pointer" : ""} ${className}`}
       >
-        <div
-          className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 
-            group-hover:opacity-[0.08] transition-all duration-500`}
-        />
-        <div
-          className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-r ${gradient} opacity-0 
-            group-hover:opacity-20 blur-xl transition-all duration-500`}
-        />
-
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
         <div className="relative">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div
-              className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg 
-                group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}
+              className={`p-2.5 rounded-xl bg-gradient-to-r ${gradient} shadow-lg`}
             >
               {icon}
             </div>
             {trend !== undefined && trend !== null && (
               <div
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${
-                  trend >= 0 ? "bg-emerald-500/10" : "bg-red-500/10"
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-sm font-medium ${
+                  trend >= 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
-                <TrendIcon className={`h-4 w-4 ${trendColor}`} />
-                <span className={`text-xs font-semibold ${trendColor}`}>
-                  {Math.abs(trend)}%
-                </span>
+                <TrendIcon className="h-4 w-4" />
+                {Math.abs(trend)}%
               </div>
             )}
           </div>
-
-          <h3 className="text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">
+          <h3 className="text-2xl font-bold text-white mb-1">
             {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
           </h3>
-          <p className="text-sm text-gray-400 font-medium">{title}</p>
-          {subtitle && (
-            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-          )}
+          <p className="text-gray-400 text-sm">{title}</p>
         </div>
       </div>
     );

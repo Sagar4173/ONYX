@@ -6,13 +6,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ChartBarIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
   ShieldCheckIcon,
   ExclamationTriangleIcon,
   ClockIcon,
   DocumentTextIcon,
-  BoltIcon,
   EyeIcon,
   CodeBracketIcon,
   ServerIcon,
@@ -24,6 +21,7 @@ import {
   CpuChipIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
+import { StatCard } from "../styles/components";
 import {
   PageContainer,
   PageHeader,
@@ -34,57 +32,6 @@ import {
 } from "../layouts";
 import { reportsAPI, projectsAPI } from "../services/api";
 import { Link } from "react-router-dom";
-
-// Stat Card Component
-const StatCard = ({
-  title,
-  value,
-  change,
-  changeType,
-  icon: Icon,
-  gradient,
-  bgGradient,
-}) => {
-  const isPositive = changeType === "positive" || change?.startsWith("+");
-  const isNegative = changeType === "negative" || change?.startsWith("-");
-
-  return (
-    <div className="relative group">
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-      <div
-        className={`relative p-5 rounded-2xl border border-gray-800/50 bg-gradient-to-br ${bgGradient} backdrop-blur-xl hover:border-gray-700/50 transition-all`}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <div
-            className={`p-2.5 rounded-xl bg-gradient-to-r ${gradient} shadow-lg`}
-          >
-            <Icon className="h-5 w-5 text-white" />
-          </div>
-          {change && (
-            <span
-              className={`text-sm font-medium flex items-center gap-1 ${
-                isPositive
-                  ? "text-green-400"
-                  : isNegative
-                  ? "text-red-400"
-                  : "text-gray-400"
-              }`}
-            >
-              {isPositive ? (
-                <ArrowTrendingUpIcon className="h-4 w-4" />
-              ) : isNegative ? (
-                <ArrowTrendingDownIcon className="h-4 w-4" />
-              ) : null}
-              {change}
-            </span>
-          )}
-        </div>
-        <h3 className="text-2xl font-bold text-white mb-1">{value}</h3>
-        <p className="text-gray-400 text-sm">{title}</p>
-      </div>
-    </div>
-  );
-};
 
 // Severity Distribution Chart (simplified bar chart)
 const SeverityDistribution = ({ data }) => {
@@ -733,7 +680,14 @@ const Analytics = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
         {stats.map((stat) => (
-          <StatCard key={stat.title} {...stat} />
+          <StatCard
+            key={stat.title}
+            title={stat.title}
+            value={stat.value}
+            icon={<stat.icon className="h-5 w-5 text-white" />}
+            gradient={stat.gradient}
+            bgGradient={stat.bgGradient}
+          />
         ))}
       </div>
 
