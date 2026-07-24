@@ -1207,6 +1207,147 @@ export const ConfirmDialog = ({
   );
 };
 
+// =============================================================================
+// METRIC CARD COMPONENT
+// =============================================================================
+
+export const MetricCard = ({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  trend,
+  direction = "up",
+  color = "blue",
+  className = "",
+}) => {
+  const colorMap = {
+    blue: "from-blue-500 to-cyan-500",
+    green: "from-emerald-500 to-green-500",
+    red: "from-red-500 to-rose-500",
+    yellow: "from-yellow-500 to-amber-500",
+    purple: "from-purple-500 to-violet-500",
+    indigo: "from-indigo-500 to-blue-500",
+  };
+
+  return (
+    <div className={`bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 ${className}`}>
+      <div className="flex items-center justify-between mb-3">
+        {Icon && (
+          <div className={`p-2.5 rounded-xl bg-gradient-to-r ${colorMap[color] || colorMap.blue} shadow-lg`}>
+            <Icon className="w-5 h-5 text-white" />
+          </div>
+        )}
+        {trend !== undefined && (
+          <span className={`text-sm font-medium ${direction === "up" ? "text-green-400" : "text-red-400"}`}>
+            {direction === "up" ? "↑" : "↓"} {Math.abs(trend)}%
+          </span>
+        )}
+      </div>
+      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-sm text-gray-400 mt-1">{title}</p>
+      {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+    </div>
+  );
+};
+
+// =============================================================================
+// STATUS BADGE COMPONENT
+// =============================================================================
+
+const statusBadgeVariants = {
+  active: "bg-green-900/30 text-green-400 border-green-700/50",
+  inactive: "bg-gray-700/30 text-gray-300 border-gray-700/50",
+  suspended: "bg-red-900/30 text-red-400 border-red-700/50",
+  pending: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
+  verified: "bg-green-900/30 text-green-400 border-green-700/50",
+  unverified: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
+  healthy: "bg-green-900/30 text-green-400 border-green-700/50",
+  warning: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
+  critical: "bg-red-900/30 text-red-400 border-red-700/50",
+};
+
+export const StatusBadge = ({ status = "inactive", label, className = "" }) => {
+  const variant = statusBadgeVariants[status] || statusBadgeVariants.inactive;
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${variant} ${className}`}>
+      {label || status}
+    </span>
+  );
+};
+
+// =============================================================================
+// FINDING CARD COMPONENT
+// =============================================================================
+
+export const FindingCard = ({
+  title,
+  severity = "info",
+  scanner,
+  filePath,
+  ruleId,
+  status = "open",
+  onClick,
+  className = "",
+}) => {
+  const severityGradients = {
+    critical: "from-red-500 to-rose-600",
+    high: "from-orange-500 to-red-500",
+    medium: "from-yellow-500 to-amber-500",
+    low: "from-blue-500 to-cyan-500",
+    info: "from-gray-500 to-gray-400",
+  };
+
+  const severityLabels = {
+    critical: "text-red-400 bg-red-900/30 border-red-700/50",
+    high: "text-orange-400 bg-orange-900/30 border-orange-700/50",
+    medium: "text-yellow-400 bg-yellow-900/30 border-yellow-700/50",
+    low: "text-blue-400 bg-blue-900/30 border-blue-700/50",
+    info: "text-gray-400 bg-gray-700/30 border-gray-700/50",
+  };
+
+  return (
+    <div
+      className={`bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 hover:border-gray-600/50 transition-all ${
+        onClick ? "cursor-pointer hover:-translate-y-0.5" : ""
+      } ${className}`}
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`w-1 h-10 rounded-full bg-gradient-to-b ${severityGradients[severity] || severityGradients.info} flex-shrink-0`} />
+          <div className="min-w-0">
+            <p className="font-medium text-white truncate">{title}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`px-1.5 py-0.5 text-xs font-medium rounded border ${severityLabels[severity] || severityLabels.info}`}>
+                {severity.toUpperCase()}
+              </span>
+              {scanner && <span className="text-xs text-gray-500">{scanner}</span>}
+            </div>
+          </div>
+        </div>
+        <StatusBadge status={status} />
+      </div>
+      {(filePath || ruleId) && (
+        <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center gap-4 text-xs text-gray-500">
+          {filePath && <span className="truncate">{filePath}</span>}
+          {ruleId && <span className="font-mono">{ruleId}</span>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// =============================================================================
+// PAGE TRANSITION COMPONENT
+// =============================================================================
+
+export const PageTransition = ({ children, className = "" }) => (
+  <div className={`page-enter ${className}`}>
+    {children}
+  </div>
+);
+
 export default {
   Button,
   IconButton,
@@ -1246,4 +1387,8 @@ export default {
   Truncate,
   DataTable,
   ConfirmDialog,
+  MetricCard,
+  StatusBadge,
+  FindingCard,
+  PageTransition,
 };
