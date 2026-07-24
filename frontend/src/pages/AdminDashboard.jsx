@@ -15,8 +15,6 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
   CogIcon,
   BoltIcon,
   GlobeAltIcon,
@@ -39,69 +37,27 @@ import {
   LockOpenIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
+import { StatCard } from "../styles/components";
 import { adminAPI } from "../services/api";
 import { useAuth } from "../components/auth";
 import toast from "react-hot-toast";
 
-// Stat Card Component
-const StatCard = ({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  trend,
-  trendUp,
-  color = "blue",
-}) => {
-  const colorClasses = {
-    blue: "from-blue-500/20 to-cyan-500/20 border-blue-500/30",
-    green: "from-green-500/20 to-emerald-500/20 border-green-500/30",
-    purple: "from-purple-500/20 to-violet-500/20 border-purple-500/30",
-    orange: "from-orange-500/20 to-amber-500/20 border-orange-500/30",
-    red: "from-red-500/20 to-rose-500/20 border-red-500/30",
-    cyan: "from-cyan-500/20 to-teal-500/20 border-cyan-500/30",
-  };
+const colorToGradient = {
+  blue: "from-blue-500 to-cyan-500",
+  green: "from-green-500 to-emerald-500",
+  purple: "from-purple-500 to-violet-500",
+  orange: "from-orange-500 to-amber-500",
+  red: "from-red-500 to-rose-500",
+  cyan: "from-cyan-500 to-teal-500",
+};
 
-  const iconColors = {
-    blue: "text-blue-400 bg-blue-500/20",
-    green: "text-green-400 bg-green-500/20",
-    purple: "text-purple-400 bg-purple-500/20",
-    orange: "text-orange-400 bg-orange-500/20",
-    red: "text-red-400 bg-red-500/20",
-    cyan: "text-cyan-400 bg-cyan-500/20",
-  };
-
-  return (
-    <div
-      className={`bg-gradient-to-br ${colorClasses[color]} border rounded-xl p-5 backdrop-blur-sm`}
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-400 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-white">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-xl ${iconColors[color]}`}>
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-      {trend !== undefined && (
-        <div className="mt-3 flex items-center gap-1">
-          {trendUp ? (
-            <ArrowTrendingUpIcon className="h-4 w-4 text-green-400" />
-          ) : (
-            <ArrowTrendingDownIcon className="h-4 w-4 text-red-400" />
-          )}
-          <span
-            className={`text-sm ${trendUp ? "text-green-400" : "text-red-400"}`}
-          >
-            {trend}%
-          </span>
-          <span className="text-xs text-gray-500">vs last period</span>
-        </div>
-      )}
-    </div>
-  );
+const colorToBgGradient = {
+  blue: "from-blue-500/20 to-cyan-500/20",
+  green: "from-green-500/20 to-emerald-500/20",
+  purple: "from-purple-500/20 to-violet-500/20",
+  orange: "from-orange-500/20 to-amber-500/20",
+  red: "from-red-500/20 to-rose-500/20",
+  cyan: "from-cyan-500/20 to-teal-500/20",
 };
 
 // Health Score Ring
@@ -601,22 +557,25 @@ const AdminDashboard = () => {
                 title="Total Users"
                 value={stats?.users?.total || 0}
                 subtitle={`${stats?.users?.active_24h || 0} active today`}
-                icon={UsersIcon}
-                color="blue"
+                icon={<UsersIcon className="h-5 w-5 text-white" />}
+                gradient={colorToGradient.blue}
+                bgGradient={colorToBgGradient.blue}
               />
               <StatCard
                 title="Total Projects"
                 value={stats?.projects?.total || 0}
                 subtitle={`Across all users`}
-                icon={FolderIcon}
-                color="purple"
+                icon={<FolderIcon className="h-5 w-5 text-white" />}
+                gradient={colorToGradient.purple}
+                bgGradient={colorToBgGradient.purple}
               />
               <StatCard
                 title="Total Scans"
                 value={stats?.scans?.total || 0}
                 subtitle={`${stats?.scans?.last_24h || 0} in last 24h`}
-                icon={ShieldCheckIcon}
-                color="cyan"
+                icon={<ShieldCheckIcon className="h-5 w-5 text-white" />}
+                gradient={colorToGradient.cyan}
+                bgGradient={colorToBgGradient.cyan}
               />
               <StatCard
                 title="Total Findings"
@@ -624,12 +583,9 @@ const AdminDashboard = () => {
                 subtitle={`${
                   stats?.scans?.findings_by_severity?.critical || 0
                 } critical`}
-                icon={ExclamationTriangleIcon}
-                color={
-                  stats?.scans?.findings_by_severity?.critical > 0
-                    ? "red"
-                    : "green"
-                }
+                icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
+                gradient={stats?.scans?.findings_by_severity?.critical > 0 ? colorToGradient.red : colorToGradient.green}
+                bgGradient={stats?.scans?.findings_by_severity?.critical > 0 ? colorToBgGradient.red : colorToBgGradient.green}
               />
             </div>
 
@@ -639,15 +595,17 @@ const AdminDashboard = () => {
                 title="New Users (7d)"
                 value={stats?.users?.new_7d || 0}
                 subtitle={`${stats?.users?.new_24h || 0} today`}
-                icon={UserPlusIcon}
-                color="green"
+                icon={<UserPlusIcon className="h-5 w-5 text-white" />}
+                gradient={colorToGradient.green}
+                bgGradient={colorToBgGradient.green}
               />
               <StatCard
                 title="Admin Users"
                 value={stats?.users?.admin_count || 0}
                 subtitle="System administrators"
-                icon={StarIcon}
-                color="orange"
+                icon={<StarIcon className="h-5 w-5 text-white" />}
+                gradient={colorToGradient.orange}
+                bgGradient={colorToBgGradient.orange}
               />
               <StatCard
                 title="Scan Success Rate"
@@ -655,8 +613,9 @@ const AdminDashboard = () => {
                 subtitle={`${
                   stats?.scans?.by_status?.completed || 0
                 } completed`}
-                icon={CheckCircleIcon}
-                color="green"
+                icon={<CheckCircleIcon className="h-5 w-5 text-white" />}
+                gradient={colorToGradient.green}
+                bgGradient={colorToBgGradient.green}
               />
             </div>
 
