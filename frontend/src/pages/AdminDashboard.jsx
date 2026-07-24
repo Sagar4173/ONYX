@@ -37,7 +37,7 @@ import {
   LockOpenIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
-import { StatCard } from "../styles/components";
+import { StatCard, Spinner } from "../styles/components";
 import { adminAPI } from "../services/api";
 import { useAuth } from "../components/auth";
 import toast from "react-hot-toast";
@@ -671,7 +671,7 @@ const AdminDashboard = () => {
                 <div className="space-y-1 max-h-80 overflow-y-auto">
                   {activityLoading ? (
                     <div className="flex items-center justify-center py-8">
-                      <ArrowPathIcon className="h-6 w-6 text-gray-400 animate-spin" />
+                      <Spinner size="lg" />
                     </div>
                   ) : (
                     activityData?.activities
@@ -777,7 +777,7 @@ const AdminDashboard = () => {
                   {usersLoading ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-8 text-center">
-                        <ArrowPathIcon className="h-6 w-6 text-gray-400 animate-spin mx-auto" />
+                        <Spinner size="lg" />
                       </td>
                     </tr>
                   ) : (
@@ -869,7 +869,7 @@ const AdminDashboard = () => {
                   {projectsLoading ? (
                     <tr>
                       <td colSpan={6} className="px-4 py-8 text-center">
-                        <ArrowPathIcon className="h-6 w-6 text-gray-400 animate-spin mx-auto" />
+                        <Spinner size="lg" />
                       </td>
                     </tr>
                   ) : (
@@ -922,7 +922,7 @@ const AdminDashboard = () => {
             <div className="space-y-1">
               {activityLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <ArrowPathIcon className="h-8 w-8 text-gray-400 animate-spin" />
+                  <Spinner size="lg" />
                 </div>
               ) : (
                 activityData?.activities?.map((activity, index) => (

@@ -21,14 +21,13 @@ import {
   CpuChipIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { StatCard } from "../styles/components";
+import { StatCard, EmptyState } from "../styles/components";
 import {
   PageContainer,
   PageHeader,
   GlassCard,
   SectionHeader,
   LoadingState,
-  EmptyState,
 } from "../layouts";
 import { reportsAPI, projectsAPI } from "../services/api";
 import { Link } from "react-router-dom";
@@ -701,6 +700,12 @@ const Analytics = () => {
           />
           {isLoading ? (
             <LoadingState message="Loading severity data..." />
+          ) : totalVulnerabilities === 0 ? (
+            <EmptyState
+              icon={<ExclamationTriangleIcon className="h-12 w-12" />}
+              title="No vulnerabilities found"
+              description="No security findings have been detected yet. Run a scan to see results."
+            />
           ) : (
             <SeverityDistribution data={calculatedVulnSummary} />
           )}
@@ -714,6 +719,12 @@ const Analytics = () => {
           />
           {isLoading ? (
             <LoadingState message="Loading scan data..." />
+          ) : Object.keys(calculatedScannerPerformance).length === 0 ? (
+            <EmptyState
+              icon={<ClockIcon className="h-12 w-12" />}
+              title="No scanner activity"
+              description="No scanner data available yet. Scanners will appear once scans are run."
+            />
           ) : (
             <ScanTypeDistribution data={calculatedScannerPerformance} />
           )}
