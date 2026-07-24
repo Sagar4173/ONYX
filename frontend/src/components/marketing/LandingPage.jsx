@@ -33,6 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon, CheckBadgeIcon } from "@heroicons/react/24/solid";
 import { OnyxLogo } from "../common";
+import { AnimatedCounter } from "../../styles/components";
 
 // Typing animation component
 const TypeWriter = ({ words, className }) => {
@@ -72,43 +73,7 @@ const TypeWriter = ({ words, className }) => {
   );
 };
 
-// Animated counter component
-const AnimatedCounter = ({ end, suffix = "" }) => {
-  const [count, setCount] = useState(0);
-  const countRef = useRef(null);
-  const hasAnimated = useRef(false);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          let start = 0;
-          const duration = 2000;
-          const startTime = Date.now();
-          const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easeOut = 1 - Math.pow(1 - progress, 4);
-            setCount(Math.floor(easeOut * end));
-            if (progress < 1) requestAnimationFrame(animate);
-          };
-          animate();
-        }
-      },
-      { threshold: 0.5 }
-    );
-    if (countRef.current) observer.observe(countRef.current);
-    return () => observer.disconnect();
-  }, [end]);
-
-  return (
-    <span ref={countRef}>
-      {count.toLocaleString()}
-      {suffix}
-    </span>
-  );
-};
 
 // Floating particles background
 const FloatingParticles = () => (
@@ -953,8 +918,9 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                   <div className="text-3xl md:text-4xl font-black text-white mb-1">
                     {counters[Object.keys(counters)[index]] > 0 ? (
                       <AnimatedCounter
-                        end={counters[Object.keys(counters)[index]]}
+                        value={counters[Object.keys(counters)[index]]}
                         suffix={stat.label.includes("Uptime") ? "%" : "+"}
+                        duration={2000}
                       />
                     ) : (
                       <span className="text-gray-600">--</span>

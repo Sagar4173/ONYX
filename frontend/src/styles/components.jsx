@@ -489,8 +489,11 @@ export const EmptyState = ({
 // STAT CARD COMPONENT
 // =============================================================================
 
-export const AnimatedCounter = ({ value, duration = 1000 }) => {
+export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
   const [count, setCount] = React.useState(0);
+  const countRef = React.useRef(null);
+  const hasAnimated = React.useRef(false);
+  const shouldAnimate = suffix !== "";
 
   React.useEffect(() => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
@@ -499,26 +502,48 @@ export const AnimatedCounter = ({ value, duration = 1000 }) => {
       return;
     }
 
-    let start = 0;
-    const end = numValue;
-    const increment = end / (duration / 16);
+    const animate = () => {
+      let start = 0;
+      const end = numValue;
+      const startTime = Date.now();
 
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
+      const frame = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        setCount(Math.floor(easeOut * end));
+        if (progress < 1) requestAnimationFrame(frame);
+      };
+      frame();
+    };
+
+    if (shouldAnimate) {
+      if (countRef.current) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting && !hasAnimated.current) {
+              hasAnimated.current = true;
+              animate();
+            }
+          },
+          { threshold: 0.5 }
+        );
+        observer.observe(countRef.current);
+        return () => observer.disconnect();
       }
-    }, 16);
+    } else {
+      animate();
+    }
+  }, [value, duration, shouldAnimate]);
 
-    return () => clearInterval(timer);
-  }, [value, duration]);
-
-  return typeof value === "string" && String(value).includes("%")
-    ? `${count}%`
-    : count;
+  return (
+    <span ref={countRef}>
+      {typeof value === "string" && String(value).includes("%")
+        ? `${count}%`
+        : count.toLocaleString()}
+      {suffix}
+    </span>
+  );
 };
 
 export const StatCard = ({
