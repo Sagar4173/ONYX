@@ -557,10 +557,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 className="w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border border-gray-700 hover:border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                 placeholder="Enter current password"
                 required
+                aria-required="true"
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
+                aria-label={showPasswords.current ? "Hide current password" : "Show current password"}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
               >
                 {showPasswords.current ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
@@ -582,10 +585,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 className="w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border border-gray-700 hover:border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                 placeholder="Enter new password"
                 required
+                aria-required="true"
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPasswords((prev) => ({ ...prev, new: !prev.new }))}
+                aria-label={showPasswords.new ? "Hide new password" : "Show new password"}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
               >
                 {showPasswords.new ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
@@ -653,10 +659,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 }`}
                 placeholder="Confirm new password"
                 required
+                aria-required="true"
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
+                aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
               >
                 {showPasswords.confirm ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}

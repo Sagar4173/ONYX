@@ -10,10 +10,11 @@ import {
   ArrowDownTrayIcon,
   PlusIcon,
   EyeIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI, projectsAPI } from "../../services/api";
-import { Button, EmptyState, Modal } from "../../styles/components";
+import { Button, Card, EmptyState, Modal } from "../../styles/components";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const AdvancedCompliance = () => {
@@ -93,7 +94,7 @@ const AdvancedCompliance = () => {
   ];
 
   // Fetch assessments
-  const { data: assessmentsData, isLoading } = useQuery({
+  const { data: assessmentsData, isLoading, isError, refetch } = useQuery({
     queryKey: ["complianceAssessments", selectedFramework],
     queryFn: () =>
       enterpriseAPI.getComplianceAssessments({
@@ -106,7 +107,7 @@ const AdvancedCompliance = () => {
   });
 
   // Fetch framework summary
-  const { data: summaryData } = useQuery({
+  const { data: summaryData, isError: summaryError } = useQuery({
     queryKey: ["complianceFrameworkSummary"],
     queryFn: () => enterpriseAPI.getComplianceFrameworkSummary()});
 
@@ -239,9 +240,10 @@ const AdvancedCompliance = () => {
                 (f) => f.framework === framework.id
               );
               return (
-                <div
+                <Card
                   key={framework.id}
-                  className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl"
+                  padding="lg"
+                  className="shadow-xl"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -280,7 +282,7 @@ const AdvancedCompliance = () => {
                       </div>
                     </div>
                   )}
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -294,7 +296,18 @@ const AdvancedCompliance = () => {
             </h2>
           </div>
 
-          {isLoading ? (
+          {isError ? (
+            <div className="p-12 text-center">
+              <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20 mb-4">
+                <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
+              </div>
+              <p className="text-gray-400 mb-4">Failed to load assessments</p>
+              <button type="button" onClick={() => refetch()}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                Try Again
+              </button>
+            </div>
+          ) : isLoading ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
               <p className="text-gray-400">Loading assessments...</p>
@@ -358,9 +371,9 @@ const AdvancedCompliance = () => {
                     {assessment.framework_results?.map((result) => {
                       const frameworkInfo = getFrameworkInfo(result.framework);
                       return (
-                        <div
+                        <Card
                           key={result.framework}
-                          className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4"
+                          className="bg-gray-800/30"
                         >
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xl">
@@ -409,7 +422,7 @@ const AdvancedCompliance = () => {
                               </svg>
                             </div>
                           </div>
-                        </div>
+                        </Card>
                       );
                     })}
                   </div>
@@ -456,7 +469,7 @@ const AdvancedCompliance = () => {
               {selectedAssessment.framework_results?.map((result) => {
                 const frameworkInfo = getFrameworkInfo(result.framework);
                 return (
-                  <div key={result.framework} className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4">
+                  <Card key={result.framework} className="bg-gray-800/30">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{frameworkInfo?.icon}</span>
@@ -495,7 +508,7 @@ const AdvancedCompliance = () => {
                         </ul>
                       </div>
                     )}
-                  </div>
+                  </Card>
                 );
               })}
             </div>

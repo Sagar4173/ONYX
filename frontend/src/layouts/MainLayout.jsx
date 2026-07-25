@@ -2,8 +2,10 @@
  * Main Layout Component
  * Wraps authenticated pages with sidebar, header, footer and main content area
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Outlet, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { PageTransition } from "../styles/components";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 // Redirect component for /compliance/:reportId to /report/:reportId
 const ComplianceRedirect = () => {
@@ -16,19 +18,23 @@ import Header from "./Header";
 import Footer from "./Footer";
 import { useAuth, VerificationBanner, AdminRoute } from "../components/auth";
 import { UserProfile } from "../components/auth/UserProfile";
+import { CommandPalette } from "../components/common";
 import { websocketService } from "../services/api";
 
-// Import Pages
-import Dashboard from "../pages/Dashboard";
-import { Analytics, Reports, NotFound, AdminDashboard } from "../pages";
-import { ProjectManagement, ProjectDetails } from "../components/projects";
-import { EnhancedReportDetails } from "../components/reports";
-import {
-  AdvancedCompliance,
-  DataRetentionPolicies,
-} from "../components/compliance";
-import { UserManagement, AuditLogs } from "../components/users";
-import { Settings } from "../components/settings";
+// Lazy-loaded page components
+const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Analytics = lazy(() => import("../pages/Analytics"));
+const Reports = lazy(() => import("../pages/Reports"));
+const NotFound = lazy(() => import("../pages/NotFound"));
+const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
+const ProjectManagement = lazy(() => import("../components/projects/ProjectManagement"));
+const ProjectDetails = lazy(() => import("../components/projects/ProjectDetails"));
+const EnhancedReportDetails = lazy(() => import("../components/reports/EnhancedReportDetails"));
+const AdvancedCompliance = lazy(() => import("../components/compliance/AdvancedCompliance"));
+const DataRetentionPolicies = lazy(() => import("../components/compliance/DataRetentionPolicies"));
+const UserManagement = lazy(() => import("../components/users/UserManagement"));
+const AuditLogs = lazy(() => import("../components/users/AuditLogs"));
+const Settings = lazy(() => import("../components/settings/Settings"));
 
 /**
  * Main Layout with Sidebar and Header
@@ -40,6 +46,19 @@ export const MainLayout = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+  // Global keyboard shortcut for command palette
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // WebSocket connection for real-time updates
   useEffect(() => {
@@ -198,67 +217,95 @@ export const MainLayout = () => {
           onClearNotifications={handleClearNotifications}
           onDismissNotification={handleDismissNotification}
           onProfileClick={() => setProfileModalOpen(true)}
+          onCommandPaletteOpen={() => setCommandPaletteOpen(true)}
         />
 
         {/* Email Verification Banner for unverified users */}
         <VerificationBanner />
 
         <main id="main-content" className="flex-1 relative overflow-auto">
+          <Suspense fallback={
+            <div className="animate-pulse space-y-6 p-6">
+              <div className="h-8 w-64 bg-gray-700 rounded-lg" />
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="h-28 bg-gray-700/50 rounded-xl" />
+                <div className="h-28 bg-gray-700/50 rounded-xl" />
+                <div className="h-28 bg-gray-700/50 rounded-xl" />
+                <div className="h-28 bg-gray-700/50 rounded-xl" />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="h-64 bg-gray-700/50 rounded-xl" />
+                <div className="h-64 bg-gray-700/50 rounded-xl" />
+                <div className="h-64 bg-gray-700/50 rounded-xl" />
+              </div>
+            </div>
+          }>
+          <PageTransition>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route
               path="/dashboard"
-              element={<Dashboard notifications={notifications} />}
+              element={<ErrorBoundary><Dashboard notifications={notifications} /></ErrorBoundary>}
             />
-            <Route path="/projects" element={<ProjectManagement />} />
-            <Route path="/project/:projectId" element={<ProjectDetails />} />
+            <Route path="/projects" element={<ErrorBoundary><ProjectManagement /></ErrorBoundary>} />
+            <Route path="/project/:projectId" element={<ErrorBoundary><ProjectDetails /></ErrorBoundary>} />
             <Route
               path="/users"
               element={
-                <AdminRoute>
-                  <UserManagement />
-                </AdminRoute>
+                <ErrorBoundary>
+                  <AdminRoute>
+                    <UserManagement />
+                  </AdminRoute>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/audit-logs"
               element={
-                <AdminRoute>
-                  <AuditLogs />
-                </AdminRoute>
+                <ErrorBoundary>
+                  <AdminRoute>
+                    <AuditLogs />
+                  </AdminRoute>
+                </ErrorBoundary>
               }
             />
             <Route
               path="/retention-policies"
               element={
-                <AdminRoute>
-                  <DataRetentionPolicies />
-                </AdminRoute>
+                <ErrorBoundary>
+                  <AdminRoute>
+                    <DataRetentionPolicies />
+                  </AdminRoute>
+                </ErrorBoundary>
               }
             />
-            <Route path="/compliance" element={<AdvancedCompliance />} />
-            <Route path="/reports" element={<Reports />} />
+            <Route path="/compliance" element={<ErrorBoundary><AdvancedCompliance /></ErrorBoundary>} />
+            <Route path="/reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
             <Route
               path="/report/:reportId"
-              element={<EnhancedReportDetails />}
+              element={<ErrorBoundary><EnhancedReportDetails /></ErrorBoundary>}
             />
             {/* Redirect /compliance/:reportId to unified /report/:reportId */}
             <Route
               path="/compliance/:reportId"
               element={<ComplianceRedirect />}
             />
-            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/analytics" element={<ErrorBoundary><Analytics /></ErrorBoundary>} />
             <Route
               path="/admin"
               element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
+                <ErrorBoundary>
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                </ErrorBoundary>
               }
             />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
+            <Route path="*" element={<ErrorBoundary><NotFound /></ErrorBoundary>} />
           </Routes>
+          </PageTransition>
+          </Suspense>
         </main>
 
         {/* Footer */}
@@ -269,6 +316,12 @@ export const MainLayout = () => {
       {profileModalOpen && (
         <UserProfile onClose={() => setProfileModalOpen(false)} />
       )}
+
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+      />
     </div>
   );
 };

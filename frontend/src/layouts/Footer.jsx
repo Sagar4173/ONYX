@@ -56,10 +56,11 @@ export default function Footer() {
               <Link
                 key={link.name}
                 to={link.href}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 
-                         hover:text-white hover:bg-gray-800/50 rounded-lg transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400
+                         hover:text-white hover:bg-gray-800/50 rounded-lg transition-all
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
-                <link.icon className="w-3.5 h-3.5" />
+                <link.icon className="w-3.5 h-3.5" aria-hidden="true" />
                 <span className="hidden md:inline">{link.name}</span>
               </Link>
             ))}

@@ -183,9 +183,12 @@ export const NotificationPreferences = () => {
                   </div>
                 </div>
                 <button
+                  role="switch"
+                  aria-checked={notifications[item.key]}
+                  aria-label={`${item.title}: ${notifications[item.key] ? "enabled" : "disabled"}`}
                   onClick={() => handleToggle(item.key)}
                   disabled={savingNotifications}
-                  className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 ${
+                  className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                     notifications[item.key]
                       ? "bg-gradient-to-r from-indigo-500 to-purple-500"
                       : "bg-gray-700"
@@ -212,7 +215,7 @@ export const NotificationPreferences = () => {
           <button
             onClick={() => setAll({ email: true, push: true, security: true, updates: true, marketing: true })}
             disabled={savingNotifications}
-            className="py-3 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 text-emerald-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="py-3 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 text-emerald-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <CheckCircleIcon className="h-5 w-5" />
             Enable All
@@ -220,7 +223,7 @@ export const NotificationPreferences = () => {
           <button
             onClick={() => setAll({ email: false, push: false, security: true, updates: false, marketing: false })}
             disabled={savingNotifications}
-            className="py-3 px-4 bg-gradient-to-r from-gray-700/50 to-gray-600/50 hover:from-gray-700 hover:to-gray-600 border border-gray-600/50 text-gray-300 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="py-3 px-4 bg-gradient-to-r from-gray-700/50 to-gray-600/50 hover:from-gray-700 hover:to-gray-600 border border-gray-600/50 text-gray-300 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <XMarkIcon className="h-5 w-5" />
             Minimal Only

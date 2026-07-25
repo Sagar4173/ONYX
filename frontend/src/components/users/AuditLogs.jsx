@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI, utils } from "../../services/api";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, Card, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 const AuditLogs = () => {
@@ -378,7 +378,7 @@ const AuditLogs = () => {
         </GlassCard>
 
         {/* Audit Logs Table */}
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
+        <Card padding="none" className="shadow-xl overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
@@ -550,7 +550,7 @@ const AuditLogs = () => {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </PageContainer>
   );

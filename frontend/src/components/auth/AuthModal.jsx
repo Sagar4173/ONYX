@@ -19,6 +19,21 @@ import { ResetPasswordForm } from "./ResetPasswordForm";
 import { RegistrationSuccess } from "./RegistrationSuccess";
 import { ForgotPasswordSuccess } from "./ForgotPasswordSuccess";
 
+const FEATURE_BG = {
+  cyan: "bg-cyan-500/20",
+  violet: "bg-violet-500/20",
+};
+
+const FEATURE_BORDER = {
+  cyan: "border-cyan-500/30",
+  violet: "border-violet-500/30",
+};
+
+const FEATURE_HOVER_BG = {
+  cyan: "group-hover:bg-cyan-500/30",
+  violet: "group-hover:bg-violet-500/30",
+};
+
 /**
  * AuthModal Component
  * Central authentication modal that manages all auth forms and view switching
@@ -327,7 +342,7 @@ export const AuthModal = ({
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div
-                    className={`p-3 bg-${feature.color}-500/20 rounded-xl border border-${feature.color}-500/30 group-hover:bg-${feature.color}-500/30 transition-colors`}
+                    className={`p-3 ${FEATURE_BG[feature.color] || "bg-cyan-500/20"} ${FEATURE_BORDER[feature.color] || "border-cyan-500/30"} ${FEATURE_HOVER_BG[feature.color] || "group-hover:bg-cyan-500/30"} rounded-xl border transition-colors`}
                   >
                     {feature.icon}
                   </div>

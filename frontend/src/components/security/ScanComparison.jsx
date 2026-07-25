@@ -23,6 +23,8 @@ import {
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 
+import { Card } from "@styles";
+
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
   ? "http://127.0.0.1:8000"
@@ -328,7 +330,7 @@ const ScanComparison = ({
       </div>
 
       {/* Scan Selector */}
-      <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+      <Card padding="lg">
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -370,7 +372,7 @@ const ScanComparison = ({
             </select>
           </div>
         </div>
-      </div>
+      </Card>
 
       {isLoading && (
         <div className="flex items-center justify-center h-64">
@@ -439,7 +441,7 @@ const ScanComparison = ({
 
           {/* Scan Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+            <Card>
               <h4 className="font-medium text-gray-200 mb-3 flex items-center gap-2">
                 <DocumentTextIcon className="w-4 h-4" />
                 Base Scan
@@ -467,9 +469,9 @@ const ScanComparison = ({
                   </span>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+            <Card>
               <h4 className="font-medium text-gray-200 mb-3 flex items-center gap-2">
                 <DocumentTextIcon className="w-4 h-4" />
                 Compare Scan
@@ -497,8 +499,7 @@ const ScanComparison = ({
                   </span>
                 </div>
               </div>
-            </div>
-          </div>
+            </Card>
 
           {/* Analysis Insights */}
           {data.analysis && (

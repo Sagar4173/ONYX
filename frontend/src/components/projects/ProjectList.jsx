@@ -18,7 +18,7 @@ import {
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, Card, EmptyState } from "../../styles/components";
 import toast from "react-hot-toast";
 import { reportsAPI, utils } from "../../services/api";
 
@@ -345,7 +345,7 @@ const ProjectList = () => {
         {/* Quick Stats */}
         {analytics && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:bg-gray-800/70 transition-all duration-300">
+            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-blue-500/20 border border-blue-500/30 flex-shrink-0">
                   <DocumentIcon className="h-5 w-5 lg:h-8 lg:w-8 text-blue-400" />
@@ -359,9 +359,9 @@ const ProjectList = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:bg-gray-800/70 transition-all duration-300">
+            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-red-500/20 border border-red-500/30 flex-shrink-0">
                   <ExclamationTriangleIcon className="h-5 w-5 lg:h-8 lg:w-8 text-red-400" />
@@ -375,9 +375,9 @@ const ProjectList = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:bg-gray-800/70 transition-all duration-300">
+            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-green-500/20 border border-green-500/30 flex-shrink-0">
                   <CheckCircleIcon className="h-5 w-5 lg:h-8 lg:w-8 text-green-400" />
@@ -391,9 +391,9 @@ const ProjectList = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:bg-gray-800/70 transition-all duration-300">
+            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-purple-500/20 border border-purple-500/30 flex-shrink-0">
                   <ClockIcon className="h-5 w-5 lg:h-8 lg:w-8 text-purple-400" />
@@ -407,12 +407,12 @@ const ProjectList = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Filters and Search */}
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 mb-4 lg:mb-6">
+        <Card className="lg:rounded-2xl mb-4 lg:mb-6" padding="lg">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-4">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
@@ -498,16 +498,17 @@ const ProjectList = () => {
               </button>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Reports List */}
         <div className="space-y-3 lg:space-y-4">
           {isLoading ? (
             <div className="space-y-3 lg:space-y-4">
               {[...Array(5)].map((_, index) => (
-                <div
+                <Card
                   key={index}
-                  className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 animate-pulse"
+                  className="bg-gray-800/30 lg:rounded-2xl animate-pulse"
+                  padding="lg"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -524,7 +525,7 @@ const ProjectList = () => {
                     <div className="h-5 lg:h-6 bg-gray-700 rounded w-14 lg:w-16"></div>
                     <div className="h-5 lg:h-6 bg-gray-700 rounded w-14 lg:w-16"></div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           ) : reports.length === 0 ? (
@@ -535,9 +536,10 @@ const ProjectList = () => {
             />
           ) : (
             reports.map((report) => (
-              <div
+              <Card
                 key={report.id}
-                className="group bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:bg-gray-800/70 hover:border-gray-600/50 transition-all duration-300"
+                className="group lg:rounded-2xl hover:bg-gray-800/70 hover:border-gray-600/50 transition-all duration-300"
+                padding="lg"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -599,7 +601,7 @@ const ProjectList = () => {
                     )}
                   </div>
                 </div>
-              </div>
+              </Card>
             ))
           )}
         </div>

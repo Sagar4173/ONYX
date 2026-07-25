@@ -109,6 +109,8 @@ export const RegisterForm = ({
               }
               placeholder="username"
               required
+              aria-required="true"
+              autoComplete="username"
             />
           </div>
           <div>
@@ -126,6 +128,8 @@ export const RegisterForm = ({
               }
               placeholder="John Doe"
               required
+              aria-required="true"
+              autoComplete="name"
             />
           </div>
         </div>
@@ -142,6 +146,8 @@ export const RegisterForm = ({
             }
             placeholder="your@email.com"
             required
+            aria-required="true"
+            autoComplete="email"
           />
         </div>
 
@@ -158,11 +164,14 @@ export const RegisterForm = ({
               }
               placeholder="Strong password"
               required
+              aria-required="true"
+              autoComplete="new-password"
               className="pr-10"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors z-10"
             >
               {showPassword ? (
@@ -214,11 +223,14 @@ export const RegisterForm = ({
               }
               placeholder="Confirm password"
               required
+              aria-required="true"
+              autoComplete="new-password"
               className="pr-10"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors z-10"
             >
               {showConfirmPassword ? (

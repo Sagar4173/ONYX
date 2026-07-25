@@ -108,7 +108,7 @@ const CircularProgress = ({ value, label, color = "blue", size = 120 }) => {
 
 // Metric card component
 const MetricCard = ({ title, value, change, icon: Icon, trend, subtitle }) => (
-  <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 hover:shadow-md transition-shadow">
+  <Card className="hover:shadow-md transition-shadow">
     <div className="flex items-start justify-between">
       <div>
         <p className="text-sm text-gray-400">{title}</p>
@@ -142,7 +142,7 @@ const MetricCard = ({ title, value, change, icon: Icon, trend, subtitle }) => (
         <TrendIndicator direction={trend.direction} value={trend.value} />
       </div>
     )}
-  </div>
+  </Card>
 );
 
 // Simple bar chart component
@@ -339,7 +339,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
       {/* Score Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 flex items-center justify-between">
+        <Card className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-400">Security Score</p>
             <p className="text-3xl font-bold text-white">
@@ -362,9 +362,9 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             }
             size={80}
           />
-        </div>
+        </Card>
 
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+        <Card>
           <p className="text-sm text-gray-400">Risk Score</p>
           <p className="text-3xl font-bold text-white">
             {current.risk_score?.toFixed(0) || 0}
@@ -382,7 +382,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               style={{ width: `${current.risk_score || 0}%` }}
             />
           </div>
-        </div>
+        </Card>
 
         <MetricCard
           title="Open Findings"
@@ -405,7 +405,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
       </div>
 
       {/* Severity Breakdown */}
-      <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+      <Card padding="lg">
         <h3 className="font-semibold text-white mb-4">
           Current Severity Breakdown
         </h3>
@@ -449,22 +449,22 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               </p>
               <p className="text-sm text-gray-400">{label}</p>
             </div>
-          ))}
+            ))}
         </div>
-      </div>
+      </Card>
 
       {/* Trend Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Weekly Trends */}
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+        <Card padding="lg">
           <h3 className="font-semibold text-white mb-4">
             Weekly Severity Trends
           </h3>
           <SeverityTrendChart data={charts.weekly} />
-        </div>
+        </Card>
 
         {/* Quick Stats */}
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+        <Card padding="lg">
           <h3 className="font-semibold text-white mb-4">Quick Stats</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
@@ -523,12 +523,12 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Period Comparison */}
       {comparison.current_period && (
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+        <Card padding="lg">
           <h3 className="font-semibold text-white mb-4">
             Period-over-Period Comparison
           </h3>
@@ -597,7 +597,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               </ul>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Notable Changes */}

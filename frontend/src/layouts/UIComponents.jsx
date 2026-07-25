@@ -90,7 +90,7 @@ export const Breadcrumb = ({ items = [] }) => {
       className="flex items-center space-x-2 text-sm mb-4"
       aria-label="Breadcrumb"
     >
-      <Link to="/" className="text-gray-400 hover:text-white transition-colors">
+      <Link to="/" className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded" aria-label="Home">
         <HomeIcon className="h-4 w-4" />
       </Link>
       {items.map((item, index) => (
@@ -102,6 +102,7 @@ export const Breadcrumb = ({ items = [] }) => {
                 ? "text-white font-medium"
                 : "text-gray-400"
             }
+            aria-current={index === items.length - 1 ? "page" : undefined}
           >
             {item}
           </span>
@@ -225,7 +226,7 @@ export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
     <div className="animate-fade-in-up">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {Array.from({ length: cards }).map((_, i) => (
-          <SkeletonCard key={i} className={`animate-stagger-${i + 1}`} />
+          <SkeletonCard key={i} style={{ animationDelay: `${i * 0.1}s` }} />
         ))}
       </div>
       <div className="flex items-center justify-center py-6 gap-3">
@@ -273,10 +274,12 @@ export const ErrorState = ({ title = "Error", message, onRetry }) => {
       <p className="text-gray-400 max-w-sm mx-auto mb-6 leading-relaxed">{message}</p>
       {onRetry && (
         <button
+          type="button"
           onClick={onRetry}
-          className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 
+          className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600
                      text-white rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25
-                     hover:-translate-y-0.5 font-medium"
+                     hover:-translate-y-0.5 font-medium
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         >
           Try Again
         </button>

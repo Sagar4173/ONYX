@@ -45,6 +45,7 @@ export const Button = ({
 
   return (
     <button
+      type="button"
       className={`${gradientClasses} ${className}`}
       disabled={disabled || isLoading}
       {...props}
@@ -150,7 +151,7 @@ export const CardFooter = ({ children, className = "" }) => (
 // BADGE COMPONENT
 // =============================================================================
 
-export const Badge = ({
+export const Badge = React.memo(({
   children,
   variant = "default",
   size = "sm",
@@ -165,10 +166,10 @@ export const Badge = ({
       {children}
     </span>
   );
-};
+});
 
 // Severity-specific badge
-export const SeverityBadge = ({ severity, className = "" }) => {
+export const SeverityBadge = React.memo(({ severity, className = "" }) => {
   const severityMap = {
     critical: "critical",
     high: "high",
@@ -185,7 +186,7 @@ export const SeverityBadge = ({ severity, className = "" }) => {
       {severity?.toUpperCase()}
     </Badge>
   );
-};
+});
 
 // =============================================================================
 // INPUT COMPONENT
@@ -426,6 +427,8 @@ export const StatusIndicator = ({
 // MODAL COMPONENT
 // =============================================================================
 
+const FOCUSABLE_MODAL = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export const Modal = ({
   isOpen,
   onClose,
@@ -435,6 +438,34 @@ export const Modal = ({
   size = "md",
 }) => {
   const titleId = React.useId();
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const prevFocus = document.activeElement;
+    const handleKey = (e) => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key !== "Tab") return;
+      const focusable = container.querySelectorAll(FOCUSABLE_MODAL);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      prevFocus?.focus();
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -449,6 +480,7 @@ export const Modal = ({
   return (
     <div className={modalStyles.overlay} onClick={onClose}>
       <div
+        ref={containerRef}
         className={`${modalStyles.container} ${sizeClasses[size]}`}
         role="dialog"
         aria-modal="true"
@@ -460,7 +492,8 @@ export const Modal = ({
             <h2 id={titleId} className={modalStyles.title}>{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              aria-label="Close dialog"
+              className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
             >
               ×
             </button>
@@ -567,7 +600,7 @@ export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
   );
 };
 
-export const StatCard = ({
+export const StatCard = React.memo(({
   title,
   value,
   change,
@@ -586,6 +619,8 @@ export const StatCard = ({
   const changeColors = {
     increase: "text-green-400",
     decrease: "text-red-400",
+    positive: "text-green-400",
+    negative: "text-red-400",
     neutral: "text-gray-400",
   };
 
@@ -655,7 +690,7 @@ export const StatCard = ({
       </div>
     </Card>
   );
-};
+});
 
 // =============================================================================
 // PROGRESS BAR COMPONENT
@@ -1211,7 +1246,7 @@ export const ConfirmDialog = ({
 // METRIC CARD COMPONENT
 // =============================================================================
 
-export const MetricCard = ({
+export const MetricCard = React.memo(({
   title,
   value,
   subtitle,
@@ -1249,7 +1284,7 @@ export const MetricCard = ({
       {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
     </div>
   );
-};
+});
 
 // =============================================================================
 // STATUS BADGE COMPONENT
@@ -1280,7 +1315,7 @@ export const StatusBadge = ({ status = "inactive", label, className = "" }) => {
 // FINDING CARD COMPONENT
 // =============================================================================
 
-export const FindingCard = ({
+export const FindingCard = React.memo(({
   title,
   severity = "info",
   scanner,
@@ -1336,7 +1371,7 @@ export const FindingCard = ({
       )}
     </div>
   );
-};
+});
 
 // =============================================================================
 // PAGE TRANSITION COMPONENT

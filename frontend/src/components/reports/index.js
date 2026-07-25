@@ -9,3 +9,9 @@
  * - Print-friendly view
  */
 export { default as EnhancedReportDetails } from "./EnhancedReportDetails";
+export { ReportCharts } from "./ReportCharts";
+export { AISection } from "./AISection";
+export { ExportDropdown, downloadReport, printReport } from "./ReportExport";
+export { ReportSummary } from "./ReportSummary";
+export { VulnerabilityList } from "./VulnerabilityList";
+export { ComplianceMapping } from "./ComplianceMapping";

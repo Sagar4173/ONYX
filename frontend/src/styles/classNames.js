@@ -10,7 +10,7 @@
 
 export const buttonStyles = {
   // Base button classes
-  base: "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed",
+  base: "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed",
 
   // Size variants
   sizes: {
@@ -83,7 +83,7 @@ export const cardStyles = {
   },
 
   hover:
-    "hover:bg-gray-700/50 hover:border-gray-600/50 transition-all duration-200",
+    "hover:bg-gray-700/50 hover:border-gray-600/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200",
 };
 
 export const getCardClasses = (

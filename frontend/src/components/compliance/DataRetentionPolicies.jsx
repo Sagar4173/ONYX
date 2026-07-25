@@ -19,7 +19,7 @@ import {
   ArrowPathIcon} from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
-import { Button, EmptyState, Modal } from "../../styles/components";
+import { Button, Card, EmptyState, Modal, ConfirmDialog } from "../../styles/components";
 import { PageContainer, PageHeader} from "../../layouts";
 
 const DataRetentionPolicies = () => {
@@ -75,7 +75,7 @@ const DataRetentionPolicies = () => {
   ];
 
   // Fetch policies
-  const { data: policiesData, isLoading } = useQuery({
+  const { data: policiesData, isLoading, isError, refetch } = useQuery({
     queryKey: ["retentionPolicies"],
     queryFn: () => enterpriseAPI.getRetentionPolicies()});
 
@@ -156,18 +156,22 @@ const DataRetentionPolicies = () => {
     setShowCreateModal(true);
   };
 
+  const [confirmDialog, setConfirmDialog] = useState(null);
+
   const handleDelete = (policyId) => {
-    if (
-      window.confirm("Are you sure you want to delete this retention policy?")
-    ) {
-      deletePolicyMutation.mutate(policyId);
-    }
+    setConfirmDialog({
+      title: "Delete Policy",
+      message: "Are you sure you want to delete this retention policy?",
+      onConfirm: () => deletePolicyMutation.mutate(policyId),
+    });
   };
 
   const handleExecute = (policyId) => {
-    if (window.confirm("Execute this retention policy now?")) {
-      executePolicyMutation.mutate(policyId);
-    }
+    setConfirmDialog({
+      title: "Execute Policy",
+      message: "Execute this retention policy now?",
+      onConfirm: () => executePolicyMutation.mutate(policyId),
+    });
   };
 
   const getActionColor = (action) => {
@@ -205,7 +209,18 @@ const DataRetentionPolicies = () => {
 
         {/* Policies Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {isLoading ? (
+          {isError ? (
+            <div className="col-span-2 p-12 text-center">
+              <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20 mb-4">
+                <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
+              </div>
+              <p className="text-gray-400 mb-4">Failed to load retention policies</p>
+              <button type="button" onClick={() => refetch()}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                Try Again
+              </button>
+            </div>
+          ) : isLoading ? (
             <div className="col-span-2 p-12 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-gray-400">Loading retention policies...</p>
@@ -220,9 +235,10 @@ const DataRetentionPolicies = () => {
             </div>
           ) : (
             policiesData?.policies?.map((policy) => (
-              <div
+              <Card
                 key={policy.id}
-                className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all"
+                padding="lg"
+                className="shadow-xl hover:shadow-2xl transition-all"
               >
                 {/* Policy Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -312,7 +328,7 @@ const DataRetentionPolicies = () => {
                     <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
+              </Card>
             ))
           )}
         </div>
@@ -411,6 +427,18 @@ const DataRetentionPolicies = () => {
               </div>
             </form>
           </Modal>
+        )}
+
+        {confirmDialog && (
+          <ConfirmDialog
+            isOpen={true}
+            onClose={() => setConfirmDialog(null)}
+            onConfirm={confirmDialog.onConfirm}
+            title={confirmDialog.title}
+            message={confirmDialog.message}
+            confirmLabel="Delete"
+            variant="danger"
+          />
         )}
       </div>
     </PageContainer>

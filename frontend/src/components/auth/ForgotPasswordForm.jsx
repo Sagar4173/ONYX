@@ -67,6 +67,8 @@ export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
+              aria-required="true"
+              autoComplete="email"
             />
           </div>
 

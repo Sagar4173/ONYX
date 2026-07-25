@@ -81,15 +81,17 @@ class ErrorBoundary extends React.Component {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
+                type="button"
                 onClick={this.handleRetry}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-violet-700 transition-all duration-200"
+                className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-violet-700 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
-                <ArrowPathIcon className="h-5 w-5 mr-2" />
+                <ArrowPathIcon className="h-5 w-5 mr-2" aria-hidden="true" />
                 Try Again
               </button>
               <button
+                type="button"
                 onClick={this.handleReload}
-                className="inline-flex items-center justify-center px-6 py-3 bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-600 transition-all duration-200"
+                className="inline-flex items-center justify-center px-6 py-3 bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-600 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 Reload Page
               </button>

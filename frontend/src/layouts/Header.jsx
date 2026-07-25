@@ -20,37 +20,19 @@ import { useAuth } from "../components/auth";
 /**
  * Search Component - Command Palette Style
  */
-const SearchBar = () => {
-  const [query, setQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+const SearchBar = ({ onOpen }) => {
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setIsOpen(true);
-        setTimeout(() => inputRef.current?.focus(), 100);
-      }
-      if (e.key === "Escape") {
-        setIsOpen(false);
-        setQuery("");
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   return (
     <>
       <button
-        onClick={() => {
-          setIsOpen(true);
-          setTimeout(() => inputRef.current?.focus(), 100);
-        }}
+        onClick={onOpen}
+        ref={inputRef}
+        aria-label="Open search"
         className="flex items-center gap-3 px-4 py-2.5 bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 
                    rounded-xl text-gray-400 hover:text-white hover:border-gray-600/50 hover:bg-gray-800/70
-                   transition-all duration-300 group min-w-[240px]"
+                   transition-all duration-300 group min-w-[240px]
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
         <MagnifyingGlassIcon className="w-5 h-5" />
         <span className="text-sm lg:text-base flex-1 text-left">
@@ -61,79 +43,6 @@ const SearchBar = () => {
           <span>K</span>
         </kbd>
       </button>
-
-      {/* Search Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4">
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="relative w-full max-w-2xl">
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl" />
-
-            <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center px-5 border-b border-gray-800/50">
-                <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search projects, reports, settings..."
-                  className="flex-1 px-4 py-5 bg-transparent text-white placeholder-gray-500 
-                           outline-none text-base"
-                />
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-2 text-gray-500 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-                >
-                  <XMarkIcon className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-6">
-                {query ? (
-                  <div className="text-center py-8">
-                    <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
-                      <MagnifyingGlassIcon className="w-8 h-8 text-gray-500" />
-                    </div>
-                    <p className="text-gray-400">No results for "{query}"</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quick Actions
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: "New Project", icon: "📁", path: "/projects" },
-                        { label: "View Reports", icon: "📊", path: "/reports" },
-                        { label: "Analytics", icon: "📈", path: "/analytics" },
-                        { label: "Settings", icon: "⚙️", path: "/settings" },
-                      ].map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 
-                                   border border-gray-700/30 hover:border-gray-600/50 transition-all group"
-                        >
-                          <span className="text-xl">{item.icon}</span>
-                          <span className="text-sm text-gray-300 group-hover:text-white">
-                            {item.label}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
@@ -161,10 +70,14 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
         className="relative p-2.5 text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-700/50 
-                   border border-gray-700/50 hover:border-gray-600/50 rounded-xl transition-all duration-300"
+                   border border-gray-700/50 hover:border-gray-600/50 rounded-xl transition-all duration-300
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
-        <BellIcon className="w-5 h-5" />
+        <BellIcon className="w-5 h-5" aria-hidden="true" />
         {unreadCount > 0 && (
           <span
             className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 
@@ -197,7 +110,7 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
               {notifications.length > 0 && (
                 <button
                   onClick={onClear}
-                  className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors"
+                  className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   Clear all
                 </button>
@@ -275,8 +188,12 @@ const UserMenu = ({ onProfileClick }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close user menu" : "Open user menu"}
+        aria-haspopup="true"
+        aria-expanded={isOpen}
         className="flex items-center gap-3 p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 
-                   border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300"
+                   border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
         {/* Avatar */}
         {user?.avatar_url ? (
@@ -360,8 +277,8 @@ const UserMenu = ({ onProfileClick }) => {
                   setIsOpen(false);
                   onProfileClick?.();
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 
-                         hover:text-white hover:bg-gray-800/50 rounded-xl transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300
+                         hover:text-white hover:bg-gray-800/50 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 <div className="p-2 rounded-lg bg-gray-800/50">
                   <UserIcon className="w-5 h-5" />
@@ -396,8 +313,8 @@ const UserMenu = ({ onProfileClick }) => {
             <div className="p-2 border-t border-gray-800/50">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 
-                         hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400
+                         hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               >
                 <div className="p-2 rounded-lg bg-red-500/10">
                   <ArrowRightOnRectangleIcon className="w-5 h-5" />
@@ -422,6 +339,7 @@ export default function Header({
   notifications = [],
   onClearNotifications,
   onProfileClick,
+  onCommandPaletteOpen,
 }) {
   return (
     <header className="sticky top-0 z-30">
@@ -443,7 +361,7 @@ export default function Header({
         {/* Right: Search + Notifications + User */}
         <div className="flex items-center gap-3">
           <div className="hidden md:block">
-            <SearchBar />
+            <SearchBar onOpen={onCommandPaletteOpen} />
           </div>
           <NotificationsDropdown
             notifications={notifications}

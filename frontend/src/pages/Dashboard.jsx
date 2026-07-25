@@ -27,6 +27,7 @@ import {
   GlassCard,
   SectionHeader,
   LoadingState,
+  EmptyState,
 } from "../layouts";
 import { reportsAPI } from "../services/api";
 import { dashboardAPI } from "../services/dashboardService";
@@ -526,15 +527,11 @@ const Dashboard = ({ notifications = [] }) => {
                 <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto" />
               </div>
             ) : recentReports.length === 0 ? (
-              <div className="text-center py-4">
-                <div className="p-2.5 rounded-xl bg-gray-800/50 inline-block mb-2">
-                  <DocumentChartBarIcon className="h-5 w-5 text-gray-500" />
-                </div>
-                <p className="text-sm text-gray-400">No scans yet</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Create a project to start scanning
-                </p>
-              </div>
+              <EmptyState
+                icon={DocumentChartBarIcon}
+                title="No scans yet"
+                description="Create a project to start scanning"
+              />
             ) : (
               recentReports
                 .slice(0, 4)
@@ -561,14 +558,12 @@ const Dashboard = ({ notifications = [] }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[200px] overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="col-span-full text-center py-8">
-              <div className="p-3 rounded-xl bg-gray-800/50 inline-block mb-3">
-                <BoltIcon className="h-6 w-6 text-gray-500" />
-              </div>
-              <p className="text-sm text-gray-400">No recent activity</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Updates will appear here in real-time
-              </p>
+            <div className="col-span-full">
+              <EmptyState
+                icon={BoltIcon}
+                title="No recent activity"
+                description="Updates will appear here in real-time"
+              />
             </div>
           ) : (
             notifications.slice(0, 6).map((notif) => (

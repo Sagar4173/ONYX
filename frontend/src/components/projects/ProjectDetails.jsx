@@ -32,7 +32,7 @@ import {
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { projectsAPI, reportsAPI, utils } from "../../services/api";
-import { Button, EmptyState, Modal } from "../../styles/components";
+import { Button, EmptyState, Modal, Card } from "../../styles/components";
 import { PageContainer, PageHeader } from "../../layouts";
 
 const ProjectDetails = () => {
@@ -988,7 +988,7 @@ const ProjectDetails = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:border-blue-500/30 transition-all">
+          <Card padding="lg" className="rounded-2xl hover:border-blue-500/30 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Scans</p>
@@ -1000,9 +1000,9 @@ const ProjectDetails = () => {
               </div>
               <ChartBarIcon className="h-8 w-8 text-blue-400" />
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:border-red-500/30 transition-all group">
+          <Card padding="lg" className="rounded-2xl hover:border-red-500/30 transition-all group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Vulnerabilities</p>
@@ -1024,9 +1024,9 @@ const ProjectDetails = () => {
               </div>
               <ExclamationTriangleIcon className="h-8 w-8 text-red-400 group-hover:scale-110 transition-transform" />
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:border-green-500/30 transition-all group">
+          <Card padding="lg" className="rounded-2xl hover:border-green-500/30 transition-all group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Security Score</p>
@@ -1060,9 +1060,9 @@ const ProjectDetails = () => {
               </div>
               <ShieldCheckIcon className="h-8 w-8 text-green-400 group-hover:scale-110 transition-transform" />
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 hover:border-purple-500/30 transition-all group">
+          <Card padding="lg" className="rounded-2xl hover:border-purple-500/30 transition-all group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Last Scan</p>
@@ -1085,11 +1085,11 @@ const ProjectDetails = () => {
               </div>
               <ClockIcon className="h-8 w-8 text-purple-400 group-hover:scale-110 transition-transform" />
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Tabs */}
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl mb-6">
+        <Card padding="none" className="rounded-2xl mb-6">
           <div className="flex border-b border-gray-700/50">
             {[
               {
@@ -1458,9 +1458,7 @@ const ProjectDetails = () => {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Enhanced Edit Project Modal - Matching Create Modal */}
+        </Card>
         {showEditModal && (
           <Modal size="xl" isOpen={showEditModal} onClose={() => setShowEditModal(false)}>
             <div className="flex items-start justify-between mb-8">

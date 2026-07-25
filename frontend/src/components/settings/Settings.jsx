@@ -279,11 +279,14 @@ const Settings = () => {
     </div>
   );
 
-  const Toggle = ({ enabled, onChange, disabled = false }) => (
+  const Toggle = ({ enabled, onChange, disabled = false, label }) => (
     <button
+      role="switch"
+      aria-checked={enabled}
+      aria-label={label}
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
         enabled ? "bg-blue-600" : "bg-gray-600"
       } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
     >
@@ -353,6 +356,7 @@ const Settings = () => {
                     description="Add an extra layer of security to your account"
                   >
                     <Toggle
+                      label="Two-Factor Authentication"
                       enabled={settings.security.two_factor_enabled}
                       onChange={(value) =>
                         handleSettingChange(
@@ -369,6 +373,7 @@ const Settings = () => {
                     description="Get notified when someone logs into your account"
                   >
                     <Toggle
+                      label="Login Notifications"
                       enabled={settings.security.login_notifications}
                       onChange={(value) =>
                         handleSettingChange(
@@ -444,6 +449,7 @@ const Settings = () => {
                           Require Uppercase
                         </span>
                         <Toggle
+                          label="Require Uppercase"
                           enabled={
                             settings.security.password_policy.require_uppercase
                           }
@@ -462,6 +468,7 @@ const Settings = () => {
                           Require Numbers
                         </span>
                         <Toggle
+                          label="Require Numbers"
                           enabled={
                             settings.security.password_policy.require_numbers
                           }
@@ -492,6 +499,7 @@ const Settings = () => {
                     description="Receive notifications via email"
                   >
                     <Toggle
+                      label="Email Notifications"
                       enabled={settings.notifications.email_enabled}
                       onChange={(value) =>
                         handleSettingChange(
@@ -508,6 +516,7 @@ const Settings = () => {
                     description="Get immediately notified of critical vulnerabilities"
                   >
                     <Toggle
+                      label="Critical Security Alerts"
                       enabled={settings.notifications.critical_alerts}
                       onChange={(value) =>
                         handleSettingChange(
@@ -524,6 +533,7 @@ const Settings = () => {
                     description="Get notified when security scans complete"
                   >
                     <Toggle
+                      label="Scan Completion"
                       enabled={settings.notifications.scan_completion}
                       onChange={(value) =>
                         handleSettingChange(
@@ -540,6 +550,7 @@ const Settings = () => {
                     description="Get notified when new vulnerabilities are detected"
                   >
                     <Toggle
+                      label="New Vulnerabilities"
                       enabled={settings.notifications.new_vulnerabilities}
                       onChange={(value) =>
                         handleSettingChange(
@@ -556,6 +567,7 @@ const Settings = () => {
                     description="Receive weekly security summary reports"
                   >
                     <Toggle
+                      label="Weekly Reports"
                       enabled={settings.notifications.weekly_reports}
                       onChange={(value) =>
                         handleSettingChange(
@@ -581,6 +593,7 @@ const Settings = () => {
                     description="Automatically run scans when code is pushed to repositories"
                   >
                     <Toggle
+                      label="Auto-scan on Push"
                       enabled={settings.scanning.auto_scan_on_push}
                       onChange={(value) =>
                         handleSettingChange(
@@ -673,6 +686,7 @@ const Settings = () => {
                               {scanner} Analysis
                             </span>
                             <Toggle
+                              label={`${scanner} Analysis`}
                               enabled={settings.scanning.enabled_scanners.includes(
                                 scanner
                               )}
@@ -816,6 +830,7 @@ const Settings = () => {
                     type="danger"
                   >
                     <Toggle
+                      label="Maintenance Mode"
                       enabled={false}
                       onChange={() =>
                         toast("Maintenance mode requires admin privileges", { icon: "ℹ️" })

@@ -690,7 +690,7 @@ const AdminDashboard = () => {
                 <FireIcon className="h-5 w-5 text-red-400" />
                 Findings by Severity (All Projects)
               </h3>
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 {["critical", "high", "medium", "low", "info"].map(
                   (severity) => {
                     const count =

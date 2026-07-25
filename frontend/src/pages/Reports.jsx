@@ -158,6 +158,7 @@ const Reports = () => {
   const {
     data: reportsData,
     isLoading,
+    isError,
     refetch,
   } = useQuery({
     queryKey: ["reports", { limit: 50 }],
@@ -202,9 +203,10 @@ const Reports = () => {
         actions={
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800 transition-all flex items-center gap-2"
+            aria-label="Refresh reports"
+            className="px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800 transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            <ArrowPathIcon className="h-4 w-4" />
+            <ArrowPathIcon className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Refresh</span>
           </button>
         }
@@ -264,7 +266,19 @@ const Reports = () => {
         </div>
 
         {/* Reports List */}
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-16">
+            <div className="inline-flex p-5 rounded-2xl bg-red-500/10 border border-red-500/20 mb-5">
+              <ExclamationTriangleIcon className="h-12 w-12 text-red-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">Failed to Load Reports</h3>
+            <p className="text-gray-400 max-w-sm mx-auto mb-6">Unable to fetch reports. Please try again.</p>
+            <button type="button" onClick={() => refetch()}
+              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+              Try Again
+            </button>
+          </div>
+        ) : isLoading ? (
           <LoadingState message="Loading reports..." />
         ) : filteredReports.length === 0 ? (
           <EmptyState

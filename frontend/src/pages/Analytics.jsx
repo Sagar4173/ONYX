@@ -408,6 +408,7 @@ const Analytics = () => {
   const {
     data: analytics,
     isLoading: analyticsLoading,
+    isError: analyticsError,
     refetch: refetchAnalytics,
   } = useQuery({
     queryKey: ["analytics", daysBack],
@@ -415,18 +416,19 @@ const Analytics = () => {
   });
 
   // Fetch project analytics
-  const { data: projectAnalytics, isLoading: projectLoading } = useQuery({
+  const { data: projectAnalytics, isLoading: projectLoading, isError: projectError } = useQuery({
     queryKey: ["projectAnalytics"],
     queryFn: () => projectsAPI.getAnalyticsOverview(),
   });
 
   // Fetch recent reports
-  const { data: reportsData, isLoading: reportsLoading } = useQuery({
+  const { data: reportsData, isLoading: reportsLoading, isError: reportsError } = useQuery({
     queryKey: ["reports", { limit: 50 }],
     queryFn: () => reportsAPI.getReports({ limit: 50 }),
   });
 
   const isLoading = analyticsLoading || reportsLoading || projectLoading;
+  const hasError = analyticsError || projectError || reportsError;
 
   // Extract data from API response (handle both formats)
   const scanSummary = analytics?.scan_summary || {};
@@ -580,7 +582,7 @@ const Analytics = () => {
   const stats = [
     {
       title: "Total Scans",
-      value: isLoading ? "..." : totalScans.toString(),
+      value: isLoading ? "—" : totalScans.toString(),
       change: totalScans > 0 ? `${successRate}% success` : null,
       changeType:
         successRate >= 80
@@ -594,7 +596,7 @@ const Analytics = () => {
     },
     {
       title: "Total Vulnerabilities",
-      value: isLoading ? "..." : totalVulnerabilities.toString(),
+      value: isLoading ? "—" : totalVulnerabilities.toString(),
       change:
         calculatedVulnSummary.critical > 0
           ? `${calculatedVulnSummary.critical} critical`
@@ -613,7 +615,7 @@ const Analytics = () => {
     },
     {
       title: "Avg Security Score",
-      value: isLoading ? "..." : `${Math.round(avgSecurityScore)}/100`,
+      value: isLoading ? "—" : `${Math.round(avgSecurityScore)}/100`,
       change:
         avgSecurityScore >= 80
           ? "Healthy"
@@ -632,7 +634,7 @@ const Analytics = () => {
     },
     {
       title: "Active Projects",
-      value: isLoading ? "..." : totalProjects.toString(),
+      value: isLoading ? "—" : totalProjects.toString(),
       change: projectAnalytics?.active_projects
         ? `${projectAnalytics.active_projects} active`
         : null,
@@ -642,6 +644,25 @@ const Analytics = () => {
       bgGradient: "from-purple-500/10 to-violet-500/10",
     },
   ];
+
+  if (hasError) {
+    return (
+      <PageContainer>
+        <PageHeader title="Analytics" description="Failed to load analytics data" icon={ChartBarIcon} breadcrumb={["Analytics"]} />
+        <div className="text-center py-16">
+          <div className="inline-flex p-5 rounded-2xl bg-red-500/10 border border-red-500/20 mb-5">
+            <ExclamationTriangleIcon className="h-12 w-12 text-red-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">Failed to Load Analytics</h3>
+          <p className="text-gray-400 max-w-sm mx-auto mb-6">Unable to fetch analytics data. Please try again.</p>
+          <button type="button" onClick={() => refetchAnalytics()}
+            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+            Try Again
+          </button>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -656,10 +677,11 @@ const Analytics = () => {
           <TimePeriodSelector value={daysBack} onChange={setDaysBack} />
           <button
             onClick={() => refetchAnalytics()}
-            className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all"
+            aria-label="Refresh analytics data"
+            className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             title="Refresh data"
           >
-            <ArrowPathIcon className="h-5 w-5" />
+            <ArrowPathIcon className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div>

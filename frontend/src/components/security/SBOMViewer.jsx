@@ -3,8 +3,9 @@
  * Display and manage Software Bill of Materials
  * Features: SPDX/CycloneDX support, vulnerability enrichment, export options
  */
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { FixedSizeList as List } from "react-window";
 import {
   CubeIcon,
   CodeBracketIcon,
@@ -22,6 +23,8 @@ import {
   InformationCircleIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
+
+import { Card } from "@styles";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
@@ -83,17 +86,15 @@ const VulnIndicator = ({ count, severity }) => {
 };
 
 // Package row component
-const PackageRow = ({ pkg, onViewVulns }) => {
-  const [expanded, setExpanded] = useState(false);
-
+const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
   return (
     <div className="border-b border-gray-700/50 last:border-0">
       <div
         className="flex items-center justify-between p-3 hover:bg-gray-800/30 cursor-pointer"
-        onClick={() => setExpanded(!expanded)}
+        onClick={onToggle}
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {expanded ? (
+          {isExpanded ? (
             <ChevronDownIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
           ) : (
             <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -111,7 +112,7 @@ const PackageRow = ({ pkg, onViewVulns }) => {
         </div>
       </div>
 
-      {expanded && (
+      {isExpanded && (
         <div className="px-10 pb-4 bg-gray-800/30 space-y-3">
           {pkg.description && (
             <p className="text-sm text-gray-400">{pkg.description}</p>
@@ -215,6 +216,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterVuln, setFilterVuln] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
+  const [expandedPkg, setExpandedPkg] = useState(null);
 
   // Generate SBOM mutation
   const generateMutation = useMutation({
@@ -354,7 +356,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
 
       {/* Generate Form */}
       {repositoryPath && (
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+        <Card padding="lg">
           <h3 className="font-medium text-white mb-4">Generate SBOM</h3>
           <div className="flex items-end gap-4">
             <div className="flex-1">
@@ -394,7 +396,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               Generate
             </button>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Format Info */}
@@ -445,7 +447,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
         <>
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Total Packages</p>
@@ -455,9 +457,9 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                 </div>
                 <CubeIcon className="w-8 h-8 text-blue-500 opacity-50" />
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Vulnerable</p>
@@ -475,9 +477,9 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                   }`}
                 />
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Unique Licenses</p>
@@ -487,9 +489,9 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                 </div>
                 <ShieldCheckIcon className="w-8 h-8 text-purple-500 opacity-50" />
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Format</p>
@@ -499,7 +501,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                 </div>
                 <CodeBracketIcon className="w-8 h-8 text-indigo-500 opacity-50" />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Raw View */}
@@ -551,7 +553,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                   </span>
                 </div>
 
-                <div className="max-h-[500px] overflow-y-auto">
+                <div style={{ height: 500 }}>
                   {filteredPackages.length === 0 ? (
                     <div className="text-center text-gray-400 py-12">
                       {searchTerm || filterVuln
@@ -559,9 +561,27 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                         : "No packages found"}
                     </div>
                   ) : (
-                    filteredPackages.map((pkg, index) => (
-                      <PackageRow key={index} pkg={pkg} />
-                    ))
+                    <List
+                      height={500}
+                      width="100%"
+                      itemCount={filteredPackages.length}
+                      itemSize={52}
+                      itemData={{
+                        packages: filteredPackages,
+                        expandedPkg,
+                        onToggle: (index) => setExpandedPkg(expandedPkg === index ? null : index),
+                      }}
+                    >
+                      {({ index, style, data }) => (
+                        <div style={{ ...style, overflow: "visible" }}>
+                          <PackageRow
+                            pkg={data.packages[index]}
+                            isExpanded={data.expandedPkg === index}
+                            onToggle={() => data.onToggle(index)}
+                          />
+                        </div>
+                      )}
+                    </List>
                   )}
                 </div>
               </div>

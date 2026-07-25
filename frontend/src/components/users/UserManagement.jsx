@@ -26,7 +26,7 @@ import {
 import api from "../../services/api";
 import { useAuth } from "../auth";
 import { StatCard } from "../../styles/components";
-import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+import { PageContainer, PageHeader, GlassCard, LoadingState, EmptyState, ErrorState } from "../../layouts";
 
 const userColorToGradient = {
   blue: "from-blue-500 to-cyan-500",
@@ -598,6 +598,21 @@ const UserManagement = () => {
             </GlassCard>
 
             {/* Users Table */}
+            {usersLoading ? (
+              <LoadingState message="Loading users..." cards={3} />
+            ) : usersError ? (
+              <ErrorState
+                title="Failed to Load Users"
+                message={usersError?.message || "An error occurred while fetching users."}
+                onRetry={() => queryClient.invalidateQueries(["users"])}
+              />
+            ) : usersData?.users?.length === 0 ? (
+              <EmptyState
+                icon={UsersIcon}
+                title="No Users Found"
+                description={searchQuery ? "No users match your search criteria." : "No users have been created yet."}
+              />
+            ) : (
             <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -713,6 +728,7 @@ const UserManagement = () => {
                 </table>
               </div>
             </div>
+          )}
           </div>
         )}
 

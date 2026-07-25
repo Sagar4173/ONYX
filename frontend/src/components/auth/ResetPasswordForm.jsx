@@ -107,11 +107,14 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                 }
                 placeholder="Enter new password"
                 required
+                aria-required="true"
+                autoComplete="new-password"
                 className="pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10"
               >
                 {showPassword ? (
@@ -164,11 +167,14 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                 }
                 placeholder="Confirm new password"
                 required
+                aria-required="true"
+                autoComplete="new-password"
                 className="pr-12"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10"
               >
                 {showConfirmPassword ? (

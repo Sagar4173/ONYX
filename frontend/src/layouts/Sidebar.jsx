@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   XMarkIcon,
+  Bars3Icon,
   ChevronLeftIcon,
   ChevronRightIcon,
   HomeIcon,
@@ -120,8 +121,9 @@ const NavItem = ({ item, collapsed, onClick }) => {
     <NavLink
       to={item.path}
       onClick={onClick}
-      className="group relative block"
+      className="group relative block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-xl"
       title={collapsed ? item.name : undefined}
+      aria-current={isActive ? "page" : undefined}
     >
       {/* Active indicator with animated glow */}
       {isActive && (
@@ -254,11 +256,14 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
         <div className="p-4 border-t border-gray-800/50">
           <button
             onClick={onToggle}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
             className={`
               w-full flex items-center gap-3 px-4 py-3 rounded-xl
               text-gray-400 hover:text-white bg-gray-800/30 hover:bg-gray-800/50
               border border-gray-700/30 hover:border-gray-600/50
               transition-all duration-300
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900
               ${collapsed ? "justify-center" : ""}
             `}
           >
@@ -318,13 +323,15 @@ const MobileSidebar = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800/50">
             <Logo collapsed={false} />
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white bg-gray-800/50 
-                       hover:bg-gray-700/50 rounded-xl transition-colors"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
+          <button
+            onClick={onClose}
+            aria-label="Close navigation menu"
+            className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
+                     hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+          >
+            <XMarkIcon className="w-5 h-5 lg:w-6 lg:h-6" />
+          </button>
           </div>
 
           {/* Navigation */}
@@ -371,22 +378,12 @@ const MobileSidebar = ({ isOpen, onClose }) => {
 export const MobileMenuButton = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50 
-             hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all"
+    aria-label="Open navigation menu"
+    className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
+             hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all
+             focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
   >
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M4 6h16M4 12h16M4 18h16"
-      />
-    </svg>
+    <Bars3Icon className="w-5 h-5" />
   </button>
 );
 

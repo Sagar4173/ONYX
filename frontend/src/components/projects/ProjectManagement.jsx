@@ -31,7 +31,7 @@ import { useAuth } from "../auth";
 import { projectsAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import { Button, EmptyState, Modal } from "../../styles/components";
-import { PageContainer, PageHeader } from "../../layouts";
+import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 // Project Card Component
 const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
@@ -171,11 +171,10 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
                 >
                   <TrashIcon className="h-4 w-4" />
                   <span>Delete Project</span>
-                </button>
-              </div>
-            )}
-          </div>
+</button>
         </div>
+      )}
+          </div>
 
         {/* Description */}
         {project.description && (
@@ -262,9 +261,10 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
               <span className="font-medium">
                 {project.vulnerability_count.low}
               </span>
-            </div>
           </div>
-        )}
+        </div>
+      )}
+          </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-700/50">
@@ -402,7 +402,7 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
             <p className="text-gray-400">Set up a new security scanning project</p>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+        <button onClick={onClose} aria-label="Close create project" className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
           <XMarkIcon className="h-6 w-6" />
         </button>
       </div>
@@ -422,6 +422,8 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                 placeholder="My Awesome Project"
                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 required
+                aria-required="true"
+                autoComplete="off"
               />
             </div>
 
@@ -482,6 +484,8 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                 placeholder="https://github.com/user/repo"
                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                 required
+                aria-required="true"
+                autoComplete="url"
               />
             </div>
 
@@ -754,7 +758,7 @@ export const ProjectManagement = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800/50 p-4 lg:p-6 mb-8">
+      <GlassCard className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <MagnifyingGlassIcon className="h-5 w-5 text-blue-400" />
@@ -896,7 +900,7 @@ export const ProjectManagement = () => {
             </div>
           )}
         </div>
-      </div>
+      </GlassCard>
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
@@ -913,7 +917,7 @@ export const ProjectManagement = () => {
 
       {/* Empty State */}
       {projectsData?.projects?.length === 0 && (
-        <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800/50 p-8 lg:p-12 text-center">
+        <GlassCard className="text-center">
           <EmptyState
             icon={<UsersIcon className="h-12 w-12 text-blue-400" />}
             title={filters.search || filters.status || filters.category || filters.priority ? "No Projects Match Your Filters" : "No Projects Yet"}
@@ -934,7 +938,7 @@ export const ProjectManagement = () => {
             }
             className="!pb-0"
           />
-        </div>
+        </GlassCard>
       )}
 
       {/* Pagination */}
@@ -1131,7 +1135,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
             <p className="text-gray-400">Update your project configuration</p>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+        <button onClick={onClose} aria-label="Close edit project" className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
           <XMarkIcon className="h-6 w-6" />
         </button>
       </div>
