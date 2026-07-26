@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   BoltIcon,
@@ -13,6 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthContext";
 import { OnyxLogo } from "../common";
+import { ParticleBackground } from "../../styles/components";
 import { LoginForm } from "./LoginForm";
 import { RegisterForm } from "./RegisterForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
@@ -258,17 +260,7 @@ export const AuthModal = ({ isOpen, onClose, initialView = "login", resetToken =
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-gray-950">
-      {/* Animated gradient orb (subtle) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/10 via-violet-500/10 to-transparent rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "8s" }}
-        />
-        <div
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-violet-500/10 via-cyan-500/10 to-transparent rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "12s", animationDelay: "2s" }}
-        />
-      </div>
+      <ParticleBackground />
 
       {/* Split Screen Layout */}
       <div className="flex h-full">
@@ -289,12 +281,20 @@ export const AuthModal = ({ isOpen, onClose, initialView = "login", resetToken =
             <div className="mb-12">
               <div className="flex items-center gap-4 mb-4">
                 <OnyxLogo variant="default" className="w-16 h-16" />
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent animate-gradient">
-                    {branding.title}
-                  </h1>
-                  <p className="text-cyan-200 text-sm">{branding.subtitle}</p>
-                </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentView}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent animate-gradient">
+                      {branding.title}
+                    </h1>
+                    <p className="text-cyan-200 text-sm">{branding.subtitle}</p>
+                  </motion.div>
+                </AnimatePresence>
               </div>
               <p className="text-xl text-gray-300 leading-relaxed">
                 {currentView === "login"
@@ -306,12 +306,23 @@ export const AuthModal = ({ isOpen, onClose, initialView = "login", resetToken =
             </div>
 
             {/* Dynamic Features Grid */}
-            <div className="space-y-6">
+            <motion.div
+              className="space-y-6"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.08 } },
+              }}
+            >
               {branding.features.map((feature, index) => (
-                <div
+                <motion.div
                   key={index}
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
                   className="flex items-start gap-4 group cursor-pointer transform transition-all duration-300 hover:translate-x-2"
-                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div
                     className={`p-3 ${FEATURE_BG[feature.color] || "bg-cyan-500/20"} ${FEATURE_BORDER[feature.color] || "border-cyan-500/30"} ${FEATURE_HOVER_BG[feature.color] || "group-hover:bg-cyan-500/30"} rounded-xl border transition-colors`}
@@ -322,9 +333,9 @@ export const AuthModal = ({ isOpen, onClose, initialView = "login", resetToken =
                     <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
                     <p className="text-gray-400 text-sm">{feature.description}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {/* Stats */}
             <div className="mt-12 grid grid-cols-3 gap-6">
@@ -407,7 +418,19 @@ export const AuthModal = ({ isOpen, onClose, initialView = "login", resetToken =
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-violet-500/5 to-cyan-500/5" />
 
                 {/* Content */}
-                <div className="relative">{renderCurrentView()}</div>
+                <div className="relative">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentView}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {renderCurrentView()}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
           </div>
