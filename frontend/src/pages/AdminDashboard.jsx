@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   UsersIcon,
@@ -31,7 +32,7 @@ import AdminStatusModal from "../components/admin/AdminStatusModal";
 const colorToGradient = {
   blue: "from-blue-500 to-cyan-500",
   green: "from-green-500 to-emerald-500",
-  purple: "from-purple-500 to-violet-500",
+  purple: "from-cyan-500 to-violet-500",
   orange: "from-orange-500 to-amber-500",
   red: "from-red-500 to-rose-500",
   cyan: "from-cyan-500 to-teal-500",
@@ -40,7 +41,7 @@ const colorToGradient = {
 const colorToBgGradient = {
   blue: "from-blue-500/20 to-cyan-500/20",
   green: "from-green-500/20 to-emerald-500/20",
-  purple: "from-purple-500/20 to-violet-500/20",
+  purple: "from-cyan-500/20 to-violet-500/20",
   orange: "from-orange-500/20 to-amber-500/20",
   red: "from-red-500/20 to-rose-500/20",
   cyan: "from-cyan-500/20 to-teal-500/20",
@@ -111,7 +112,11 @@ const AdminDashboard = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8"
+      >
         <div className="max-w-2xl mx-auto mt-20">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 text-center">
             <div className="w-20 h-20 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -125,7 +130,7 @@ const AdminDashboard = () => {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -136,18 +141,32 @@ const AdminDashboard = () => {
     { id: "activity", label: "Activity", icon: BoltIcon },
   ];
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.3 },
+    }),
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
+        <motion.div custom={0} variants={staggerVariants} className="mb-8">
           <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl shadow-lg shadow-red-500/25">
+            <div className="p-3 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-xl shadow-lg shadow-violet-500/25">
               <CommandLineIcon className="h-8 w-8 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                 System Administration
-                <span className="px-2 py-1 text-xs font-medium bg-red-500/20 text-red-400 rounded-full border border-red-500/30">
+                <span className="px-2 py-1 text-xs font-medium bg-violet-500/20 text-violet-400 rounded-full border border-violet-500/30">
                   Admin
                 </span>
               </h1>
@@ -156,30 +175,46 @@ const AdminDashboard = () => {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="mb-6">
-          <div className="flex gap-2 p-1 bg-gray-800/50 rounded-xl border border-gray-700/50 w-fit">
+        <motion.div custom={1} variants={staggerVariants} className="mb-6">
+          <div className="flex gap-2 p-1.5 bg-gray-800/50 rounded-xl border border-gray-700/50 w-fit">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-200 ${
                   activeTab === tab.id
-                    ? "bg-gradient-to-r from-red-500 to-orange-600 text-white shadow-lg"
+                    ? "text-white"
                     : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                 }`}
               >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="adminTab"
+                    className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-lg shadow-lg shadow-violet-500/25"
+                  />
+                )}
+                <span className="relative z-10">
+                  <tab.icon className="h-4 w-4 inline mr-1.5" />
+                  {tab.label}
+                </span>
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <AnimatePresence mode="wait">
+          {activeTab === "overview" && (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              className="space-y-6"
+            >
+              <motion.div custom={2} variants={staggerVariants}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
                 title="Total Users"
                 value={stats?.users?.total || 0}
@@ -221,8 +256,10 @@ const AdminDashboard = () => {
                 }
               />
             </div>
+              </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <motion.div custom={3} variants={staggerVariants}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <StatCard
                 title="New Users (7d)"
                 value={stats?.users?.new_7d || 0}
@@ -248,8 +285,10 @@ const AdminDashboard = () => {
                 bgGradient={colorToBgGradient.green}
               />
             </div>
+              </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <motion.div custom={4} variants={staggerVariants}>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                   <ServerIcon className="h-5 w-5 text-cyan-400" />
@@ -334,10 +373,20 @@ const AdminDashboard = () => {
                 })}
               </div>
             </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {activeTab === "users" && (
+        <AnimatePresence mode="wait">
+          {activeTab === "users" && (
+            <motion.div
+              key="users"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+            >
+              <div className="space-y-6">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-md">
@@ -412,10 +461,20 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-          </div>
-        )}
+            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {activeTab === "projects" && (
+        <AnimatePresence mode="wait">
+          {activeTab === "projects" && (
+            <motion.div
+              key="projects"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+            >
+              <div className="space-y-6">
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="relative flex-1 max-w-md">
@@ -489,10 +548,20 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-          </div>
-        )}
+            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {activeTab === "activity" && (
+        <AnimatePresence mode="wait">
+          {activeTab === "activity" && (
+            <motion.div
+              key="activity"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+            >
+              <div className="space-y-6">
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -518,8 +587,10 @@ const AdminDashboard = () => {
                 ))
               )}
             </div>
-          </div>
-        )}
+            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {editModal.type === "role" && editModal.user && (
           <AdminRoleModal
@@ -534,7 +605,7 @@ const AdminDashboard = () => {
           />
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
