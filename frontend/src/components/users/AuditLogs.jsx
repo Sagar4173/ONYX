@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDownTrayIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { motion } from "framer-motion";
+import { ArrowDownTrayIcon, ClockIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
 import { PageContainer, PageHeader } from "../../layouts";
+import ParticleBackground from "../projects/ParticleBackground";
 import AuditFilters from "./AuditFilters";
 import AuditTable from "./AuditTable";
 
@@ -20,6 +22,7 @@ const AuditLogs = () => {
   const [limit] = useState(50);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedLog, setExpandedLog] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const { data: auditData, isLoading } = useQuery({
     queryKey: ["auditLogs", filters, page, limit],
@@ -39,6 +42,7 @@ const AuditLogs = () => {
 
   const handleExport = async (format = "json") => {
     try {
+      setIsExporting(true);
       toast.loading("Exporting audit logs...");
       const data = await enterpriseAPI.exportAuditLogs({ ...filters, format });
 
@@ -59,47 +63,57 @@ const AuditLogs = () => {
     } catch {
       toast.dismiss();
       toast.error("Failed to export audit logs");
+    } finally {
+      setIsExporting(false);
     }
   };
 
   return (
-    <PageContainer>
-      <div className="max-w-7xl mx-auto">
-        <PageHeader
-          title="Audit Logs"
-          description="Comprehensive audit trail for compliance and security monitoring"
-          icon={ClockIcon}
-          breadcrumb={["Audit Logs"]}
-          actions={
-            <button
-              onClick={() => handleExport("json")}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 lg:w-5 lg:h-5" />
-              <span>Export</span>
-            </button>
-          }
-        />
+    <div className="relative min-h-screen">
+      <ParticleBackground />
+      <PageContainer>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <PageHeader
+            title="Audit Logs"
+            description="Comprehensive audit trail for compliance and security monitoring"
+            icon={ClockIcon}
+            breadcrumb={["Audit Logs"]}
+            actions={
+              <button
+                onClick={() => handleExport("json")}
+                disabled={isExporting}
+                className="inline-flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+              >
+                {isExporting ? (
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ArrowDownTrayIcon className="w-4 h-4" />
+                )}
+                <span>{isExporting ? "Exporting..." : "Export"}</span>
+              </button>
+            }
+          />
 
-        <AuditFilters
-          filters={filters}
-          setFilters={setFilters}
-          showFilters={showFilters}
-          setShowFilters={setShowFilters}
-          usersData={usersData}
-        />
+          <AuditFilters
+            filters={filters}
+            setFilters={setFilters}
+            showFilters={showFilters}
+            setShowFilters={setShowFilters}
+            usersData={usersData}
+          />
 
-        <AuditTable
-          auditData={auditData}
-          isLoading={isLoading}
-          expandedLog={expandedLog}
-          setExpandedLog={setExpandedLog}
-          limit={limit}
-          page={page}
-          setPage={setPage}
-        />
-      </div>
-    </PageContainer>
+          <AuditTable
+            auditData={auditData}
+            isLoading={isLoading}
+            expandedLog={expandedLog}
+            setExpandedLog={setExpandedLog}
+            limit={limit}
+            page={page}
+            setPage={setPage}
+          />
+        </div>
+      </PageContainer>
+    </div>
   );
 };
 

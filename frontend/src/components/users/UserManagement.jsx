@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import {
   UsersIcon,
   ShieldCheckIcon,
@@ -11,6 +12,7 @@ import {
 import api from "../../services/api";
 import { useAuth } from "../auth";
 import { PageContainer, PageHeader } from "../../layouts";
+import ParticleBackground from "../projects/ParticleBackground";
 import UserFilters from "./UserFilters";
 import UserTable from "./UserTable";
 import UserModal from "./UserModal";
@@ -24,6 +26,8 @@ const TABS = [
   { key: "security", label: "Security", icon: ShieldCheckIcon },
   { key: "settings", label: "Settings", icon: Cog6ToothIcon },
 ];
+
+const contentAnim = { hidden: { opacity: 0, x: 8 }, show: { opacity: 1, x: 0 } };
 
 const UserManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -41,11 +45,7 @@ const UserManagement = () => {
 
   const hasAdminAccess = user?.role === "admin" || user?.role === "security_manager";
 
-  const {
-    data: usersData,
-    isLoading: usersLoading,
-    error: usersError,
-  } = useQuery({
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ["users", searchQuery, filters],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -136,78 +136,103 @@ const UserManagement = () => {
   }
 
   return (
-    <PageContainer>
-      <div className="max-w-7xl mx-auto">
-        <PageHeader
-          title="User Management"
-          description="Manage users, roles, and security settings"
-          icon={UsersIcon}
-          breadcrumb={["Users"]}
-        />
+    <div className="relative min-h-screen">
+      <ParticleBackground />
+      <PageContainer>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <PageHeader
+            title="User Management"
+            description="Manage users, roles, and security settings"
+            icon={UsersIcon}
+            breadcrumb={["Users"]}
+          />
 
-        <div className="flex space-x-1 mb-6">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setSelectedTab(tab.key)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                selectedTab === tab.key
-                  ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
-                  : "text-gray-400 hover:text-white hover:bg-gray-800"
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {selectedTab === "users" && (
-          <div className="space-y-6">
-            <UserFilters
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              filters={filters}
-              setFilters={setFilters}
-              selectedUsers={selectedUsers}
-              setSelectedUsers={setSelectedUsers}
-            />
-
-            <UserTable
-              usersData={usersData}
-              usersLoading={usersLoading}
-              usersError={usersError}
-              selectedUsers={selectedUsers}
-              onSelectAll={handleSelectAll}
-              onSelectUser={handleUserSelect}
-              onViewUser={(user) => {
-                setSelectedUser(user);
-                setShowUserModal(true);
-              }}
-            />
+          <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-1 mb-6">
+            <nav className="flex space-x-1">
+              {TABS.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setSelectedTab(tab.key)}
+                    className={`relative flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                      selectedTab === tab.key
+                        ? "text-white"
+                        : "text-gray-400 hover:text-gray-300 hover:bg-gray-800/50"
+                    }`}
+                  >
+                    {selectedTab === tab.key && (
+                      <motion.div
+                        layoutId="user-tab"
+                        className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-500 rounded-xl"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center space-x-2">
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
-        )}
 
-        {selectedTab === "statistics" && (
-          <UserStatsTab statistics={statistics} statsLoading={statsLoading} />
-        )}
+          <motion.div
+            key={selectedTab}
+            variants={contentAnim}
+            initial="hidden"
+            animate="show"
+            transition={{ duration: 0.2 }}
+          >
+            {selectedTab === "users" && (
+              <div className="space-y-6">
+                <UserFilters
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  filters={filters}
+                  setFilters={setFilters}
+                  selectedUsers={selectedUsers}
+                  setSelectedUsers={setSelectedUsers}
+                />
+                <UserTable
+                  usersData={usersData}
+                  usersLoading={usersLoading}
+                  usersError={usersError}
+                  selectedUsers={selectedUsers}
+                  onSelectAll={handleSelectAll}
+                  onSelectUser={handleUserSelect}
+                  onViewUser={(user) => {
+                    setSelectedUser(user);
+                    setShowUserModal(true);
+                  }}
+                />
+              </div>
+            )}
+            {selectedTab === "statistics" && (
+              <UserStatsTab statistics={statistics} statsLoading={statsLoading} />
+            )}
+            {selectedTab === "security" && (
+              <UserSecurityTab
+                securityOverview={securityOverview}
+                securityLoading={securityLoading}
+              />
+            )}
+            {selectedTab === "settings" && <UserSettingsTab />}
+          </motion.div>
 
-        {selectedTab === "security" && (
-          <UserSecurityTab securityOverview={securityOverview} securityLoading={securityLoading} />
-        )}
-
-        {selectedTab === "settings" && <UserSettingsTab />}
-
-        <UserModal
-          user={selectedUser}
-          isOpen={showUserModal}
-          onClose={() => {
-            setShowUserModal(false);
-            setSelectedUser(null);
-          }}
-        />
-      </div>
-    </PageContainer>
+          <UserModal
+            user={selectedUser}
+            isOpen={showUserModal}
+            onClose={() => {
+              setShowUserModal(false);
+              setSelectedUser(null);
+            }}
+          />
+        </div>
+      </PageContainer>
+    </div>
   );
 };
 

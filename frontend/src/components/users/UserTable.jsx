@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   UsersIcon,
   UserCircleIcon,
@@ -7,6 +8,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { getRoleColor, getStatusColor, getStatusIcon } from "./userHelpers";
 import { LoadingState, EmptyState, ErrorState } from "../../layouts";
+
+const rowAnim = {
+  hidden: { opacity: 0, x: -10 },
+  show: { opacity: 1, x: 0 },
+};
 
 const UserTable = ({
   usersData,
@@ -37,7 +43,7 @@ const UserTable = ({
   }
 
   return (
-    <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
+    <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-800/50">
@@ -59,9 +65,17 @@ const UserTable = ({
               <th className="p-4 text-left text-gray-300 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <motion.tbody
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.03 } } }}
+          >
             {usersData.users.map((user) => (
-              <tr key={user.id} className="border-t border-gray-800/50 hover:bg-gray-800/30">
+              <motion.tr
+                key={user.id}
+                variants={rowAnim}
+                className="border-t border-gray-700/30 hover:bg-gray-800/30 transition-colors"
+              >
                 <td className="p-4">
                   <input
                     type="checkbox"
@@ -106,20 +120,27 @@ const UserTable = ({
                     <button
                       onClick={() => onViewUser(user)}
                       className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                      title="View user"
                     >
                       <EyeIcon className="w-4 h-4" />
                     </button>
-                    <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+                    <button
+                      className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                      title="Edit user"
+                    >
                       <PencilIcon className="w-4 h-4" />
                     </button>
-                    <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+                    <button
+                      className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                      title="Delete user"
+                    >
                       <TrashIcon className="w-4 h-4" />
                     </button>
                   </div>
                 </td>
-              </tr>
+              </motion.tr>
             ))}
-          </tbody>
+          </motion.tbody>
         </table>
       </div>
     </div>
