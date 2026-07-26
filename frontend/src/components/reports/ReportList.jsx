@@ -1,7 +1,14 @@
+import { motion } from "framer-motion";
 import { ChevronLeftIcon, ChevronRightIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 import { Button, Skeleton } from "../../styles/components";
 import { EmptyState } from "../../styles/components";
-import ReportCard from "./ReportCard";
+import ReportListItem from "./ReportListItem";
+import ReportGridCard from "./ReportGridCard";
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04 } },
+};
 
 const LoadingList = () => (
   <div className="space-y-3">
@@ -22,6 +29,22 @@ const LoadingList = () => (
   </div>
 );
 
+const LoadingGrid = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="bg-gray-800/30 border border-gray-800/50 rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="!w-16 !h-16 !rounded-full" />
+          <Skeleton className="!w-16 !h-6 !rounded-md" />
+        </div>
+        <Skeleton variant="title" className="!w-2/3 mb-2" />
+        <Skeleton variant="text" className="!w-1/2 mb-3" />
+        <Skeleton variant="text" className="!w-1/4" />
+      </div>
+    ))}
+  </div>
+);
+
 const ReportList = ({
   reports,
   pagination,
@@ -30,6 +53,7 @@ const ReportList = ({
   isLoading,
   error,
   onRetry,
+  viewMode = "list",
 }) => {
   if (error) {
     return (
@@ -46,7 +70,7 @@ const ReportList = ({
     );
   }
 
-  if (isLoading) return <LoadingList />;
+  if (isLoading) return viewMode === "grid" ? <LoadingGrid /> : <LoadingList />;
 
   if (!reports || reports.length === 0) {
     return (
@@ -60,11 +84,24 @@ const ReportList = ({
 
   return (
     <div>
-      <div className="space-y-3">
-        {reports.map((report) => (
-          <ReportCard key={report.id} report={report} />
-        ))}
-      </div>
+      {viewMode === "grid" ? (
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          {reports.map((report) => (
+            <ReportGridCard key={report.id} report={report} />
+          ))}
+        </motion.div>
+      ) : (
+        <motion.div className="space-y-3" variants={container} initial="hidden" animate="show">
+          {reports.map((report) => (
+            <ReportListItem key={report.id} report={report} />
+          ))}
+        </motion.div>
+      )}
 
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-800/50">
@@ -77,8 +114,7 @@ const ReportList = ({
             <select
               value={pagination.perPage}
               onChange={(e) => onPerPageChange?.(Number(e.target.value))}
-              className="px-2 py-1 bg-gray-800 border border-gray-700/50 rounded-lg text-xs text-gray-300
-                focus:outline-none focus:ring-1 focus:ring-cyan-500/50 [&>option]:bg-gray-800"
+              className="px-2 py-1 bg-gray-800 border border-gray-700/50 rounded-lg text-xs text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 [&>option]:bg-gray-800"
             >
               <option value={12}>12 / page</option>
               <option value={24}>24 / page</option>
@@ -90,7 +126,7 @@ const ReportList = ({
             <button
               onClick={() => onPageChange?.(pagination.page - 1)}
               disabled={pagination.page <= 1}
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-all"
+              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               <ChevronLeftIcon className="w-4 h-4" />
             </button>
@@ -105,7 +141,7 @@ const ReportList = ({
                   )}
                   <button
                     onClick={() => onPageChange?.(p)}
-                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                       p === pagination.page
                         ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
                         : "text-gray-400 hover:text-white hover:bg-gray-800"
@@ -118,7 +154,7 @@ const ReportList = ({
             <button
               onClick={() => onPageChange?.(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages}
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-all"
+              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               <ChevronRightIcon className="w-4 h-4" />
             </button>
