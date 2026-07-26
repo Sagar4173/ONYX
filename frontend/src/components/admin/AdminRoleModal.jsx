@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { adminAPI } from "../../services/api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,14 +23,22 @@ const AdminRoleModal = ({ user, onClose }) => {
   });
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+        onClick={onClose}
       >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="bg-gray-900 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-cyan-500/10"
+          onClick={(e) => e.stopPropagation()}
+        >
         <h3 className="text-lg font-semibold text-white mb-4">Change User Role</h3>
         <p className="text-gray-400 mb-4">
           Updating role for <span className="text-white font-medium">{user.username}</span>
@@ -43,7 +52,7 @@ const AdminRoleModal = ({ user, onClose }) => {
               className={`w-full p-3 rounded-lg border text-left transition-colors ${
                 user.role === role
                   ? "border-cyan-500 bg-cyan-500/20 text-white"
-                  : "border-gray-700 hover:border-gray-600 text-gray-400 hover:text-white"
+                  : "border-gray-700/50 hover:border-gray-600 text-gray-400 hover:text-white"
               }`}
             >
               <span className="capitalize">{role.replace("_", " ")}</span>
@@ -56,8 +65,9 @@ const AdminRoleModal = ({ user, onClose }) => {
         >
           Cancel
         </button>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

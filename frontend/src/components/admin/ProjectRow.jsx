@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { UsersIcon, EyeIcon, TrashIcon } from "@heroicons/react/24/outline";
 
@@ -6,8 +7,11 @@ const ProjectRow = ({ project, onDelete }) => {
   const [showActions, setShowActions] = useState(false);
 
   return (
-    <tr
-      className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+    <motion.tr
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+      className="border-b border-gray-800/50 transition-colors"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
@@ -62,7 +66,7 @@ const ProjectRow = ({ project, onDelete }) => {
           </button>
         </div>
       </td>
-    </tr>
+    </motion.tr>
   );
 };
 

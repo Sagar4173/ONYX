@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const HealthScoreRing = ({ score }) => {
   const radius = 60;
   const stroke = 8;
@@ -24,12 +26,14 @@ const HealthScoreRing = ({ score }) => {
           cx={radius}
           cy={radius}
         />
-        <circle
+        <motion.circle
           stroke={colors.stroke}
           fill="transparent"
           strokeWidth={stroke}
           strokeDasharray={`${circumference} ${circumference}`}
-          style={{ strokeDashoffset, transition: "stroke-dashoffset 0.5s ease-in-out" }}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           strokeLinecap="round"
           r={normalizedRadius}
           cx={radius}

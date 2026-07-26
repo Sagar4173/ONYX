@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   UserPlusIcon,
   KeyIcon,
@@ -24,7 +25,7 @@ const ActivityItem = ({ activity }) => {
     if (activity.type?.includes("completed")) return "text-green-400 bg-green-500/20";
     if (activity.type?.includes("failed")) return "text-red-400 bg-red-500/20";
     if (activity.type?.includes("user")) return "text-cyan-400 bg-cyan-500/20";
-    if (activity.type?.includes("project")) return "text-purple-400 bg-purple-500/20";
+    if (activity.type?.includes("project")) return "text-violet-400 bg-violet-500/20";
     return "text-gray-400 bg-gray-500/20";
   };
 
@@ -39,7 +40,11 @@ const ActivityItem = ({ activity }) => {
   };
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors">
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-800/50 transition-colors"
+    >
       <div className={`p-2 rounded-lg ${getColor()}`}>
         <Icon className="h-4 w-4" />
       </div>
@@ -50,7 +55,7 @@ const ActivityItem = ({ activity }) => {
       <span className="text-xs text-gray-500 whitespace-nowrap">
         {formatTime(activity.timestamp)}
       </span>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   FolderIcon,
   DocumentChartBarIcon,
@@ -10,7 +11,7 @@ import {
 
 const roleBadgeColors = {
   admin: "bg-red-500/20 text-red-400 border-red-500/30",
-  security_manager: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  security_manager: "bg-violet-500/20 text-violet-400 border-violet-500/30",
   developer: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
   viewer: "bg-gray-500/20 text-gray-400 border-gray-500/30",
 };
@@ -26,8 +27,11 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
   const [showActions, setShowActions] = useState(false);
 
   return (
-    <tr
-      className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+    <motion.tr
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+      className="border-b border-gray-800/50 transition-colors"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
@@ -102,7 +106,7 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
           </button>
         </div>
       </td>
-    </tr>
+    </motion.tr>
   );
 };
 
