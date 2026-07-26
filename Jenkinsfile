@@ -100,7 +100,7 @@ pipeline {
                 echo '🎨 Building frontend...'
                 sh '''
                     cd /home/ec2-user/ONYX/frontend
-                    npm install --silent
+                    npm install --legacy-peer-deps
                     npm run build
                     echo "✅ Frontend built successfully"
                 '''
