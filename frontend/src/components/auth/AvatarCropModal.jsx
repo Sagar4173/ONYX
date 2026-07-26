@@ -1,4 +1,5 @@
 import Cropper from "react-easy-crop";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   PhotoIcon,
   XMarkIcon,
@@ -26,16 +27,27 @@ export const AvatarCropModal = ({
   setZoom,
   handleAvatarSelect: _handleAvatarSelect,
 }) => {
-  if (!showAvatarModal) return null;
-
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-gray-900 border border-gray-700/50 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-scale-in">
-        <div className="px-6 py-4 border-b border-gray-700/50 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl">
-                <PhotoIcon className="h-5 w-5 text-indigo-400" />
+    <AnimatePresence>
+      {showAvatarModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-gray-900 border border-gray-700/50 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden"
+          >
+            <div className="px-6 py-4 border-b border-gray-700/50 bg-gradient-to-r from-cyan-500/10 to-violet-500/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl">
+                    <PhotoIcon className="h-5 w-5 text-cyan-400" />
               </div>
               <h3 className="text-lg font-bold text-white">Edit Avatar</h3>
             </div>
@@ -69,7 +81,7 @@ export const AvatarCropModal = ({
             />
           ) : (
             <div className="flex flex-col items-center gap-5 text-center p-6">
-              <div className="w-48 h-48 rounded-full bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center border-4 border-gray-600/50 overflow-hidden shadow-2xl shadow-black/50 ring-4 ring-indigo-500/20">
+              <div className="w-48 h-48 rounded-full bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center border-4 border-gray-600/50 overflow-hidden shadow-2xl shadow-black/50 ring-4 ring-cyan-500/20">
                 {avatarPreview || user?.avatar_url ? (
                   <img
                     src={avatarPreview || user?.avatar_url}
@@ -82,7 +94,7 @@ export const AvatarCropModal = ({
               </div>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-5 py-3 bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 hover:text-indigo-200 rounded-xl transition-all duration-300"
+                className="flex items-center gap-2 px-5 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 rounded-xl transition-all duration-300"
               >
                 <CameraIcon className="h-5 w-5" />
                 <span className="text-sm font-medium">Upload New Photo</span>
@@ -102,7 +114,7 @@ export const AvatarCropModal = ({
                 step={0.05}
                 value={zoom}
                 onChange={(e) => setZoom(Number(e.target.value))}
-                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
               />
               <span className="text-gray-400 text-sm font-mono w-12 text-right">
                 {Math.round(zoom * 100)}%
@@ -146,7 +158,7 @@ export const AvatarCropModal = ({
                 <button
                   onClick={handleSaveAvatar}
                   disabled={savingAvatar || !croppedAreaPixels}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-xl transition-all duration-300 text-sm font-medium shadow-lg shadow-indigo-500/30 disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-600 hover:to-violet-600 text-white rounded-xl transition-all duration-300 text-sm font-medium shadow-lg shadow-violet-500/30 disabled:opacity-50"
                 >
                   {savingAvatar ? (
                     <>
@@ -177,7 +189,9 @@ export const AvatarCropModal = ({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   BellIcon,
   EnvelopeIcon,
@@ -28,8 +29,8 @@ const categories = [
     title: "Push Notifications",
     description: "Get real-time alerts on your device",
     icon: DevicePhoneMobileIcon,
-    gradient: "from-purple-500/20 to-pink-500/20",
-    iconColor: "text-purple-400",
+    gradient: "from-violet-500/20 to-cyan-500/20",
+    iconColor: "text-violet-400",
   },
   {
     key: "security",
@@ -121,13 +122,28 @@ export const NotificationPreferences = () => {
     }
   };
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.3 },
+    }),
+  };
+
   return (
-    <div className="space-y-5 animate-fadeIn">
-      <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-rose-500/5" />
-        <div className="relative flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">
-            <BellIcon className="h-7 w-7 text-purple-400" />
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-5"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-cyan-500/5" />
+          <div className="relative flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl">
+              <BellIcon className="h-7 w-7 text-cyan-400" />
           </div>
           <div>
             <h3 className="text-white font-bold text-lg">Notification Preferences</h3>
@@ -139,13 +155,14 @@ export const NotificationPreferences = () => {
           </div>
           {savingNotifications && (
             <div className="ml-auto">
-              <ArrowPathIcon className="h-5 w-5 text-indigo-400 animate-spin" />
+              <ArrowPathIcon className="h-5 w-5 text-cyan-400 animate-spin" />
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-4">
+      <motion.div custom={1} variants={staggerVariants}>
+        <div className="space-y-4">
         {loadingNotifications ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -197,7 +214,7 @@ export const NotificationPreferences = () => {
                   disabled={savingNotifications}
                   className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                     notifications[item.key]
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500"
+                      ? "bg-gradient-to-r from-cyan-500 to-violet-500"
                       : "bg-gray-700"
                   }`}
                 >
@@ -212,8 +229,10 @@ export const NotificationPreferences = () => {
           ))
         )}
       </div>
+      </motion.div>
 
-      <div className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5">
+      <motion.div custom={2} variants={staggerVariants}>
+        <div className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5">
         <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
           <BoltIcon className="h-5 w-5 text-amber-400" />
           Quick Actions
@@ -247,6 +266,7 @@ export const NotificationPreferences = () => {
           </button>
         </div>
       </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
