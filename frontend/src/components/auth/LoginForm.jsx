@@ -4,6 +4,7 @@
  * Supports Two-Factor Authentication flow
  */
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -65,94 +66,116 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
   };
 
   // 2FA Code Entry Form
-  if (requires2FA) {
-    return (
-      <div className="p-8 md:p-10">
-        {/* 2FA Header */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-violet-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-4">
-            <DevicePhoneMobileIcon className="w-8 h-8 text-violet-400" />
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Two-Factor Authentication</h2>
-          <p className="text-gray-400 text-sm">
-            Enter the 6-digit code from your authenticator app for{" "}
-            <span className="text-cyan-400">{twoFAEmail}</span>
+  const twoFAView = (
+    <motion.div
+      key="2fa"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="p-8 md:p-10"
+    >
+      <div className="mb-8 text-center">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-violet-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-4">
+          <DevicePhoneMobileIcon className="w-8 h-8 text-violet-400" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Two-Factor Authentication</h2>
+        <p className="text-gray-400 text-sm">
+          Enter the 6-digit code from your authenticator app for{" "}
+          <span className="text-cyan-400">{twoFAEmail}</span>
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="group">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+            <ShieldCheckIcon className="w-4 h-4 text-violet-400" />
+            Authentication Code
+          </label>
+          <Input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={6}
+            value={formData.two_factor_code}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+              setFormData((prev) => ({
+                ...prev,
+                two_factor_code: value,
+              }));
+            }}
+            placeholder="000000"
+            autoFocus
+            required
+            className="text-center text-2xl tracking-[0.5em] font-mono"
+          />
+          <p className="mt-2 text-xs text-gray-500 text-center">
+            Or enter a backup code if you've lost access to your authenticator
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="group">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-              <ShieldCheckIcon className="w-4 h-4 text-violet-400" />
-              Authentication Code
-            </label>
-            <Input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              value={formData.two_factor_code}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "");
-                setFormData((prev) => ({
-                  ...prev,
-                  two_factor_code: value,
-                }));
-              }}
-              placeholder="000000"
-              autoFocus
-              required
-              className="text-center text-2xl tracking-[0.5em] font-mono"
-            />
-            <p className="mt-2 text-xs text-gray-500 text-center">
-              Or enter a backup code if you've lost access to your authenticator
+        <Button
+          type="submit"
+          disabled={isLoading || formData.two_factor_code.length < 6}
+          gradient
+          leftIcon={<ShieldCheckIcon className="w-5 h-5" />}
+          isLoading={isLoading}
+          className="w-full"
+        >
+          Verify & Sign In
+        </Button>
+
+        <Button type="button" variant="ghost" onClick={handleBack} className="w-full">
+          ← Back to login
+        </Button>
+      </form>
+
+      <div className="mt-6 p-4 bg-violet-500/10 border border-violet-500/20 rounded-xl">
+        <div className="flex items-start gap-3">
+          <ShieldCheckSolid className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-gray-300">
+            <p className="font-medium text-violet-300 mb-1">Your account is protected</p>
+            <p className="text-gray-400 text-xs">
+              Two-factor authentication adds an extra layer of security to your account by
+              requiring a code from your authenticator app.
             </p>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={isLoading || formData.two_factor_code.length < 6}
-            gradient
-            leftIcon={<ShieldCheckIcon className="w-5 h-5" />}
-            isLoading={isLoading}
-            className="w-full"
-          >
-            Verify & Sign In
-          </Button>
-
-          <Button type="button" variant="ghost" onClick={handleBack} className="w-full">
-            ← Back to login
-          </Button>
-        </form>
-
-        {/* Security Note */}
-        <div className="mt-6 p-4 bg-violet-500/10 border border-violet-500/20 rounded-xl">
-          <div className="flex items-start gap-3">
-            <ShieldCheckSolid className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-gray-300">
-              <p className="font-medium text-violet-300 mb-1">Your account is protected</p>
-              <p className="text-gray-400 text-xs">
-                Two-factor authentication adds an extra layer of security to your account by
-                requiring a code from your authenticator app.
-              </p>
-            </div>
           </div>
         </div>
       </div>
-    );
-  }
+    </motion.div>
+  );
 
   // Standard Login Form
-  return (
-    <div className="p-8 md:p-10">
-      {/* Minimalist Header */}
+  const standardView = (
+    <motion.div
+      key="login"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="p-8 md:p-10"
+    >
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Sign In</h2>
         <p className="text-gray-400">Access your ONYX security dashboard</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="group">
+      <motion.form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.04 } },
+        }}
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="group"
+        >
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
             <EnvelopeIcon className="w-4 h-4 text-cyan-400" />
             Email or Username
@@ -172,9 +195,15 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
             aria-required="true"
             autoComplete="username"
           />
-        </div>
+        </motion.div>
 
-        <div className="group">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="group"
+        >
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
             <LockClosedIcon className="w-4 h-4 text-violet-400" />
             Password
@@ -204,9 +233,15 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
               )}
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="flex items-center justify-between">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="flex items-center justify-between"
+        >
           <label className="flex items-center group cursor-pointer">
             <input
               type="checkbox"
@@ -231,21 +266,34 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
           >
             Forgot password?
           </button>
-        </div>
+        </motion.div>
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          gradient
-          rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
-          isLoading={isLoading}
-          className="w-full"
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
         >
-          Sign In
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            gradient
+            rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
+            isLoading={isLoading}
+            className="w-full"
+          >
+            Sign In
+          </Button>
+        </motion.div>
+      </motion.form>
 
-      <div className="mt-8 text-center">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="mt-8 text-center"
+      >
         <span className="text-gray-400">Don't have an account? </span>
         <button
           type="button"
@@ -254,10 +302,15 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
         >
           Create account
         </button>
-      </div>
+      </motion.div>
 
-      {/* Trust Badges */}
-      <div className="mt-8 pt-6 border-t border-gray-700/50">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="mt-8 pt-6 border-t border-gray-700/50"
+      >
         <div className="flex items-center justify-center gap-6 text-gray-500 text-xs">
           <div className="flex items-center gap-1">
             <ShieldCheckIcon className="w-4 h-4 text-cyan-400" />
@@ -272,7 +325,13 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
             <span>Verified</span>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+  );
+
+  return (
+    <AnimatePresence mode="wait">
+      {requires2FA ? twoFAView : standardView}
+    </AnimatePresence>
   );
 };
