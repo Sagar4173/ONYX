@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { EnvelopeIcon, CheckCircleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
@@ -64,40 +65,77 @@ export const RegistrationSuccess = ({ email, onSwitchToLogin, onResendVerificati
   };
 
   return (
-    <div className="relative min-h-[500px] p-8">
-      {/* Animated Background Blobs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/20 via-violet-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" />
-        <div
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-violet-500/20 via-cyan-500/20 to-violet-500/20 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "1s" }}
-        />
-      </div>
-
-      {/* Content */}
-      <div className="relative text-center">
-        {/* Success Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-full mb-6 animate-bounce">
+    <motion.div
+      className="relative min-h-[500px] p-8"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06 } },
+      }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 10 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="relative text-center"
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 to-violet-600 rounded-full mb-6 animate-bounce"
+        >
           <CheckCircleIcon className="h-10 w-10 text-white" />
-        </div>
+        </motion.div>
 
-        {/* Title */}
-        <h2 className="text-3xl font-bold text-white mb-3 bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
+        <motion.h2
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="text-3xl font-bold text-white mb-3 bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent"
+        >
           Registration Successful!
-        </h2>
+        </motion.h2>
 
-        {/* Description */}
-        <p className="text-gray-300 mb-2">Your account has been created successfully.</p>
-        <p className="text-gray-400 mb-6 text-sm">We've sent a verification email to:</p>
+        <motion.p
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="text-gray-300 mb-2"
+        >
+          Your account has been created successfully.
+        </motion.p>
+        <motion.p
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="text-gray-400 mb-6 text-sm"
+        >
+          We've sent a verification email to:
+        </motion.p>
 
-        {/* Email Display */}
-        <div className="flex items-center justify-center gap-2 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 mb-6">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="flex items-center justify-center gap-2 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 mb-6"
+        >
           <EnvelopeIcon className="h-5 w-5 text-cyan-400" />
           <span className="text-white font-medium">{email}</span>
-        </div>
+        </motion.div>
 
-        {/* Info Box */}
-        <div
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
           className={`${
             resendSuccess
               ? "bg-cyan-500/10 border-cyan-500/30"
@@ -126,31 +164,43 @@ export const RegistrationSuccess = ({ email, onSwitchToLogin, onResendVerificati
               </p>
             </>
           )}
-        </div>
+        </motion.div>
 
-        {/* Resend Button */}
-        <button
-          onClick={handleResendEmail}
-          disabled={isResending || cooldownSeconds > 0}
-          className={`w-full mb-3 py-3 px-4 font-medium rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center
-            ${
-              isResending || cooldownSeconds > 0
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : resendSuccess
-                  ? "bg-gradient-to-r from-violet-500 to-violet-600 text-white hover:from-violet-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-violet-500/25"
-                  : "bg-gradient-to-r from-cyan-500 to-violet-600 text-white hover:from-cyan-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-cyan-500/25"
-            }`}
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
         >
-          {getButtonContent()}
-        </button>
+          <button
+            onClick={handleResendEmail}
+            disabled={isResending || cooldownSeconds > 0}
+            className={`w-full mb-3 py-3 px-4 font-medium rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center
+              ${
+                isResending || cooldownSeconds > 0
+                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  : resendSuccess
+                    ? "bg-gradient-to-r from-violet-500 to-violet-600 text-white hover:from-violet-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-violet-500/25"
+                    : "bg-gradient-to-r from-cyan-500 to-violet-600 text-white hover:from-cyan-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-cyan-500/25"
+              }`}
+          >
+            {getButtonContent()}
+          </button>
+        </motion.div>
 
-        {/* Back to Login */}
-        <button
-          onClick={onSwitchToLogin}
-          className="text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
         >
-          Return to Login
-        </button>
+          <button
+            onClick={onSwitchToLogin}
+            className="text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+          >
+            Return to Login
+          </button>
+        </motion.div>
       </div>
     </div>
   );
