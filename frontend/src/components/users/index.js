@@ -1,5 +1,11 @@
-/**
- * Users Components - User management and audit
- */
 export { default as UserManagement } from "./UserManagement";
 export { default as AuditLogs } from "./AuditLogs";
+export { default as UserFilters } from "./UserFilters";
+export { default as UserTable } from "./UserTable";
+export { default as UserModal } from "./UserModal";
+export { default as UserStatsTab } from "./UserStatsTab";
+export { default as UserSecurityTab } from "./UserSecurityTab";
+export { default as UserSettingsTab } from "./UserSettingsTab";
+export { default as AuditFilters } from "./AuditFilters";
+export { default as AuditTable } from "./AuditTable";
+export { default as AuditPagination } from "./AuditPagination";

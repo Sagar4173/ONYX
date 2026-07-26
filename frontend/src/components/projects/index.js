@@ -1,6 +1,17 @@
-/**
- * Projects Components - Project management and details
- */
 export { default as ProjectList } from "./ProjectList";
 export { default as ProjectManagement } from "./ProjectManagement";
 export { default as ProjectDetails } from "./ProjectDetails";
+export { default as ProjectCard } from "./ProjectCard";
+export { default as ProjectRow } from "./ProjectRow";
+export { default as ProjectForm } from "./ProjectForm";
+export { default as ProjectFilters } from "./ProjectFilters";
+export { default as ProjectGrid } from "./ProjectGrid";
+export { default as ProjectStatsBar } from "./ProjectStatsBar";
+export { default as ProjectDeleteDialog } from "./ProjectDeleteDialog";
+export { default as ScanProgressBanner } from "./ScanProgressBanner";
+export { default as QuickStatsCards } from "./QuickStatsCards";
+export { default as ProjectOverviewTab } from "./ProjectOverviewTab";
+export { default as ScanHistoryTab } from "./ScanHistoryTab";
+export { default as ProjectSettingsTab } from "./ProjectSettingsTab";
+export { default as EditProjectModal } from "./EditProjectModal";
+export { default as DeleteProjectModal } from "./DeleteProjectModal";

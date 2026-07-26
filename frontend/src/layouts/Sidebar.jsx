@@ -121,14 +121,14 @@ const NavItem = ({ item, collapsed, onClick }) => {
     <NavLink
       to={item.path}
       onClick={onClick}
-      className="group relative block focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-xl"
+      className="group relative block focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-xl min-h-[48px]"
       title={collapsed ? item.name : undefined}
       aria-current={isActive ? "page" : undefined}
     >
       {/* Active indicator with animated glow */}
       {isActive && (
         <div
-          className="nav-active-glow absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full 
+          className="nav-active-glow absolute left-0 inset-y-0 my-auto w-1 h-8 rounded-r-full 
                        bg-gradient-to-b from-cyan-500 to-violet-600 shadow-lg shadow-cyan-500/50"
         />
       )}
@@ -227,11 +227,11 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-[3px]">
           {navigation.map((item, _index) => (
             <div key={item.path}>
               {item.separator && !collapsed && (
-                <div className="px-4 py-2 mt-4 mb-2">
+                <div className="px-4 pt-4 pb-2">
                   <div className="border-t border-gray-700/50" />
                   <span className="text-xs text-gray-500 uppercase tracking-wider mt-2 block">
                     Administration
@@ -239,7 +239,7 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
                 </div>
               )}
               {item.separator && collapsed && (
-                <div className="px-2 py-2 mt-4 mb-2">
+                <div className="px-2 py-2">
                   <div className="border-t border-gray-700/50" />
                 </div>
               )}
@@ -328,11 +328,11 @@ const MobileSidebar = ({ isOpen, onClose }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 space-y-1">
+          <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-[3px]">
             {navigation.map((item) => (
               <div key={item.path}>
                 {item.separator && (
-                  <div className="px-4 py-2 mt-4 mb-2">
+                  <div className="px-4 pt-4 pb-2">
                     <div className="border-t border-gray-700/50" />
                     <span className="text-xs text-gray-500 uppercase tracking-wider mt-2 block">
                       Administration

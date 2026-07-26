@@ -96,7 +96,14 @@ const staticTimeline = ({ getFilteredFindings }) => {
     (f) => f.severity === "low" || f.severity === "info"
   );
 
-  const FindingList = ({ findings, severity, icon: Icon, iconColor, emptyColor, emptyText }) => {
+  const FindingList = ({
+    findings,
+    severity: _severity,
+    icon: Icon,
+    iconColor,
+    emptyColor: _emptyColor,
+    emptyText,
+  }) => {
     const shown = findings.slice(0, 5);
     const remaining = findings.length - 5;
 

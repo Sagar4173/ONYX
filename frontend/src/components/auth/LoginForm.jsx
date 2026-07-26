@@ -17,7 +17,7 @@ import {
   DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
-import { Button, Input, FormGroup } from "../../styles/components";
+import { Button, Input } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 

@@ -128,7 +128,7 @@ describe("Button", () => {
 
   describe("loading state", () => {
     it("renders a spinner when isLoading is true", () => {
-      const { container } = render(<Button isLoading>Loading</Button>);
+      const { container: _container } = render(<Button isLoading>Loading</Button>);
       const btn = screen.getByRole("button");
       expect(btn).toBeDisabled();
       expect(btn.querySelector(".animate-spin")).toBeInTheDocument();

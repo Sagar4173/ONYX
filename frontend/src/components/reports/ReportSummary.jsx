@@ -1,30 +1,10 @@
-import { utils } from "../../services/api";
+import { SeverityBadge } from "./ReportBadges";
 import {
   ClockIcon,
   CodeBracketIcon as CodeIcon,
   ShieldCheckIcon,
   FireIcon,
 } from "@heroicons/react/24/outline";
-
-const SeverityBadgeInline = ({ severity }) => {
-  const severityColors = {
-    critical: "bg-red-500/20 text-red-400 border-red-500/30",
-    high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-    medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    low: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-    info: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  };
-  const severityIcons = { critical: "🔴", high: "🟠", medium: "🟡", low: "🔵", info: "⚪" };
-  const colorClass = severityColors[severity?.toLowerCase()] || severityColors.info;
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colorClass} border shadow-sm`}
-    >
-      <span>{severityIcons[severity?.toLowerCase()] || "⚪"}</span>
-      {severity?.charAt(0).toUpperCase() + severity?.slice(1)}
-    </span>
-  );
-};
 
 const StatusBadgeInline = ({ status, utils }) => {
   const colorClass = utils.getStatusColor(status);
@@ -112,7 +92,7 @@ export const ReportSummary = ({ report, utils }) => {
               const percentage = Math.round((count / total) * 100);
               return (
                 <div key={severity} className="text-center p-3 bg-gray-800/50 rounded-lg">
-                  <SeverityBadgeInline severity={severity} />
+                  <SeverityBadge severity={severity} />
                   <div className="mt-2 text-xl font-bold text-white">{count}</div>
                   <div className="text-xs text-gray-500">{percentage}%</div>
                 </div>

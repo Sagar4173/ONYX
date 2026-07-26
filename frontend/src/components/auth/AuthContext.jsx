@@ -9,6 +9,7 @@ import { authAPI } from "../../services/api.js";
 // Auth Context
 const AuthContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -223,11 +223,11 @@ export const statusStyles = {
 export const modalStyles = {
   overlay: "fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4",
   container:
-    "bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden",
-  header: "px-6 py-4 border-b border-gray-700 flex items-center justify-between",
+    "bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden",
+  header: "px-6 py-4 border-b border-gray-700 flex items-center justify-between flex-shrink-0",
   title: "text-lg font-semibold text-white",
-  body: "px-6 py-4 overflow-y-auto",
-  footer: "px-6 py-4 border-t border-gray-700 flex items-center justify-end gap-3",
+  body: "px-6 py-4 flex-1 min-h-0 overflow-y-auto",
+  footer: "px-6 py-4 border-t border-gray-700 flex items-center justify-end gap-3 flex-shrink-0",
 };
 
 // =============================================================================

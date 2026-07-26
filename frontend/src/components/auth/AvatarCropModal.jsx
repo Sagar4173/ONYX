@@ -24,7 +24,7 @@ export const AvatarCropModal = ({
   onCropComplete,
   setCrop,
   setZoom,
-  handleAvatarSelect,
+  handleAvatarSelect: _handleAvatarSelect,
 }) => {
   if (!showAvatarModal) return null;
 

@@ -18,7 +18,7 @@ import { Button, Input } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 
-export const RegisterForm = ({ onSuccess, onSwitchToLogin, onRegistrationSuccess }) => {
+export const RegisterForm = ({ onSuccess: _onSuccess, onSwitchToLogin, onRegistrationSuccess }) => {
   const [formData, setFormData] = useState({
     email: "",
     username: "",

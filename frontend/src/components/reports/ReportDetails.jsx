@@ -23,13 +23,12 @@ import { reportsAPI, utils } from "../../services/api";
 import toast from "react-hot-toast";
 import { PageContainer, PageHeader } from "../../layouts";
 
-import { VulnerabilityList } from "./VulnerabilityList";
 import { ComplianceMapping } from "./ComplianceMapping";
 import { ReportCharts } from "./ReportCharts";
 import { ExportDropdown } from "./ReportExport";
 import { AISection } from "./AISection";
 import { StatusBadge } from "./ReportBadges";
-import RemediationRoadmap from "./RemediationRoadmap";
+
 import SecretDetectionSummary from "./SecretDetectionSummary";
 import FindingCard from "./FindingCard";
 import ScannerResultCard from "./ScannerResultCard";
@@ -37,11 +36,8 @@ import ScannerResultCard from "./ScannerResultCard";
 const ReportDetails = () => {
   const { reportId } = useParams();
   const reportRef = useRef();
-  const [_selectedFinding, _setSelectedFinding] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [severityFilter, setSeverityFilter] = useState("all");
-  const [_expandedFindings, _setExpandedFindings] = useState(new Set());
-  const [_showCodeContext, _setShowCodeContext] = useState(new Set());
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedStandards, setSelectedStandards] = useState(["OWASP", "NIST"]);
 
@@ -440,7 +436,7 @@ const ReportDetails = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {report.scan_results.map((scanResult, index) => (
                         <div
-                          key={index}
+                          key={scanResult.scanner || scanResult.id || index}
                           className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -500,7 +496,11 @@ const ReportDetails = () => {
                 <div className="space-y-4">
                   {filteredFindings.length > 0 ? (
                     filteredFindings.map((finding, index) => (
-                      <FindingCard key={index} finding={finding} index={index} />
+                      <FindingCard
+                        key={finding.id || finding._id || index}
+                        finding={finding}
+                        index={index}
+                      />
                     ))
                   ) : (
                     <div className="glass-container rounded-xl p-8 text-center">
@@ -520,17 +520,16 @@ const ReportDetails = () => {
             {activeTab === "ai-analysis" && (
               <AISection aiAnalysis={aiAnalysis} aiLoading={aiLoading} aiError={aiError} />
             )}
-            {activeTab === "remediation" && (
-              <RemediationRoadmap
-                aiAnalysis={aiAnalysis}
-                getFilteredFindings={getFilteredFindings}
-              />
-            )}
+
             {activeTab === "scanners" && (
               <div className="space-y-6">
                 {report.scan_results && report.scan_results.length > 0 ? (
                   report.scan_results.map((scanResult, index) => (
-                    <ScannerResultCard key={index} scanResult={scanResult} index={index} />
+                    <ScannerResultCard
+                      key={scanResult.scanner || scanResult.id || index}
+                      scanResult={scanResult}
+                      index={index}
+                    />
                   ))
                 ) : (
                   <div className="glass-container rounded-xl p-8 text-center">

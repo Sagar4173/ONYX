@@ -23,7 +23,7 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
-// Page configuration with metadata
+// eslint-disable-next-line react-refresh/only-export-components
 export const pageConfig = {
   "/": {
     title: "Dashboard",

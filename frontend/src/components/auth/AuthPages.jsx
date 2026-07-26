@@ -60,7 +60,7 @@ export const PasswordResetPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get("token");
 
-  const handleResetSuccess = () => {
+  const _handleResetSuccess = () => {
     navigate("/dashboard", {
       state: {
         message: "Password reset successfully! Please log in with your new password.",
@@ -104,7 +104,10 @@ export const PasswordResetPage = () => {
  * Auth Routing Handler
  * Handles routing for unauthenticated users
  */
-export const AuthRoutingHandler = ({ authModalOpen, setAuthModalOpen }) => {
+export const AuthRoutingHandler = ({
+  authModalOpen: _authModalOpen,
+  setAuthModalOpen: _setAuthModalOpen,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
 

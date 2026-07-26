@@ -85,7 +85,7 @@ api.interceptors.response.use(
     // Handle common error cases
     if (error.response?.status === 401) {
       // Extract error message from response
-      const errorMessage = error.response?.data?.detail || "Authentication failed";
+      const _errorMessage = error.response?.data?.detail || "Authentication failed";
 
       // Try to refresh token only if it's not a login request and we have a refresh token
       const refreshToken = localStorage.getItem("refresh_token");

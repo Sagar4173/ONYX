@@ -61,18 +61,7 @@ function AppContent() {
   );
 
   // Public routes that don't require authentication
-  const publicRoutes = [
-    "/",
-    "/landing",
-    "/login",
-    "/register",
-    "/reset-password",
-    "/verify-email",
-    "/legal",
-    "/terms",
-    "/about",
-    "/docs",
-  ];
+  const _publicRoutes = ["/verify-email", "/legal", "/terms", "/about", "/docs"];
   // If authenticated and on auth route (login/register), redirect to dashboard
   if (isAuthenticated && isAuthRoute) {
     return <Navigate to="/dashboard" replace />;

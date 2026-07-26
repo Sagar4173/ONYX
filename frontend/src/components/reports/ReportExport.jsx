@@ -6,6 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const downloadReport = async (format = "json", reportId) => {
   try {
     toast.loading("Preparing download...", { id: "download" });
@@ -47,6 +48,7 @@ export const downloadReport = async (format = "json", reportId) => {
   }
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const printReport = () => {
   window.print();
 };

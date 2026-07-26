@@ -213,7 +213,7 @@ export const Input = ({
 
 export const Textarea = ({
   label,
-  variant = "default",
+  variant: _variant = "default",
   error,
   rows = 3,
   className = "",

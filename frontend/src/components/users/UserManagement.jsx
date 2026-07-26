@@ -1,49 +1,29 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   UsersIcon,
-  MagnifyingGlassIcon,
-  PencilIcon,
-  TrashIcon,
-  EyeIcon,
   ShieldCheckIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  UserCircleIcon,
-  KeyIcon,
-  ComputerDesktopIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  ExclamationTriangleIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import api from "../../services/api";
 import { useAuth } from "../auth";
-import { StatCard } from "../../styles/components";
-import {
-  PageContainer,
-  PageHeader,
-  GlassCard,
-  LoadingState,
-  EmptyState,
-  ErrorState,
-} from "../../layouts";
+import { PageContainer, PageHeader } from "../../layouts";
+import UserFilters from "./UserFilters";
+import UserTable from "./UserTable";
+import UserModal from "./UserModal";
+import UserStatsTab from "./UserStatsTab";
+import UserSecurityTab from "./UserSecurityTab";
+import UserSettingsTab from "./UserSettingsTab";
 
-const userColorToGradient = {
-  blue: "from-blue-500 to-cyan-500",
-  green: "from-green-500 to-emerald-500",
-  yellow: "from-yellow-500 to-amber-500",
-  red: "from-red-500 to-rose-500",
-  orange: "from-orange-500 to-amber-500",
-};
-const userColorToBgGradient = {
-  blue: "from-blue-500/10 to-cyan-500/10",
-  green: "from-green-500/10 to-emerald-500/10",
-  yellow: "from-yellow-500/10 to-amber-500/10",
-  red: "from-red-500/10 to-rose-500/10",
-  orange: "from-orange-500/10 to-amber-500/10",
-};
+const TABS = [
+  { key: "users", label: "Users", icon: UsersIcon },
+  { key: "statistics", label: "Statistics", icon: ChartBarIcon },
+  { key: "security", label: "Security", icon: ShieldCheckIcon },
+  { key: "settings", label: "Settings", icon: Cog6ToothIcon },
+];
 
 const UserManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -58,14 +38,9 @@ const UserManagement = () => {
   });
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [_showBulkActions, _setShowBulkActions] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  // Check if user has admin access
   const hasAdminAccess = user?.role === "admin" || user?.role === "security_manager";
 
-  // Fetch users with pagination and filters
   const {
     data: usersData,
     isLoading: usersLoading,
@@ -84,11 +59,10 @@ const UserManagement = () => {
       const response = await api.get(`/users?${params}`);
       return response.data;
     },
-    enabled: isAuthenticated && hasAdminAccess, // Only fetch if user is authenticated and has admin access
+    enabled: isAuthenticated && hasAdminAccess,
     retry: false,
   });
 
-  // Fetch user statistics
   const { data: statistics, isLoading: statsLoading } = useQuery({
     queryKey: ["userStatistics"],
     queryFn: async () => {
@@ -99,7 +73,6 @@ const UserManagement = () => {
     retry: false,
   });
 
-  // Fetch security overview
   const { data: securityOverview, isLoading: securityLoading } = useQuery({
     queryKey: ["securityOverview"],
     queryFn: async () => {
@@ -108,52 +81,6 @@ const UserManagement = () => {
     },
     enabled: isAuthenticated && hasAdminAccess,
     retry: false,
-  });
-
-  // Update user mutations
-  const _updateUserRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }) => {
-      await api.put(`/users/${userId}/role`, role);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
-      queryClient.invalidateQueries(["userStatistics"]);
-    },
-  });
-
-  const _updateUserStatusMutation = useMutation({
-    mutationFn: async ({ userId, status }) => {
-      await api.put(`/users/${userId}/status`, status);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
-      queryClient.invalidateQueries(["userStatistics"]);
-    },
-  });
-
-  const _bulkUpdateMutation = useMutation({
-    mutationFn: async ({ userIds, updateData }) => {
-      await api.post("/users/bulk-update", {
-        user_ids: userIds,
-        ...updateData,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
-      queryClient.invalidateQueries(["userStatistics"]);
-      setSelectedUsers([]);
-      _setShowBulkActions(false);
-    },
-  });
-
-  const _deleteUserMutation = useMutation({
-    mutationFn: async (userId) => {
-      await api.delete(`/users/${userId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
-      queryClient.invalidateQueries(["userStatistics"]);
-    },
   });
 
   const handleUserSelect = (userId) => {
@@ -170,7 +97,6 @@ const UserManagement = () => {
     }
   };
 
-  // Check authentication and authorization
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
@@ -209,231 +135,9 @@ const UserManagement = () => {
     );
   }
 
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "admin":
-        return "bg-red-900/30 text-red-400 border-red-700/50";
-      case "security_manager":
-        return "bg-orange-900/30 text-orange-400 border-orange-700/50";
-      case "developer":
-        return "bg-cyan-900/30 text-cyan-400 border-cyan-700/50";
-      case "viewer":
-        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
-      default:
-        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "active":
-        return "bg-green-900/30 text-green-400 border-green-700/50";
-      case "inactive":
-        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
-      case "suspended":
-        return "bg-red-900/30 text-red-400 border-red-700/50";
-      case "pending_verification":
-        return "bg-yellow-900/30 text-yellow-400 border-yellow-700/50";
-      default:
-        return "bg-gray-700/30 text-gray-300 border-gray-700/50";
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "active":
-        return <CheckCircleIcon className="w-4 h-4" />;
-      case "inactive":
-        return <XCircleIcon className="w-4 h-4" />;
-      case "suspended":
-        return <ExclamationTriangleIcon className="w-4 h-4" />;
-      case "pending_verification":
-        return <ClockIcon className="w-4 h-4" />;
-      default:
-        return <UserCircleIcon className="w-4 h-4" />;
-    }
-  };
-
-  const UserModal = ({ user, isOpen, onClose }) => {
-    const [activeTab, setActiveTab] = useState("profile");
-    const [userSessions, setUserSessions] = useState([]);
-    const [userTokens, setUserTokens] = useState([]);
-    const [userActivity, setUserActivity] = useState([]);
-
-    useEffect(() => {
-      if (isOpen && user) {
-        // Fetch user details
-        Promise.all([
-          api.get(`/users/${user.id}/sessions`),
-          api.get(`/users/${user.id}/api-tokens`),
-          api.get(`/users/${user.id}/activity`),
-        ]).then(([sessions, tokens, activity]) => {
-          setUserSessions(sessions.data.sessions);
-          setUserTokens(tokens.data.tokens);
-          setUserActivity(activity.data.activities);
-        });
-      }
-    }, [isOpen, user]);
-
-    if (!isOpen) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-          <div className="p-6 border-b border-gray-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-xl flex items-center justify-center">
-                  <UserCircleIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">{user.full_name}</h2>
-                  <p className="text-gray-400">@{user.username}</p>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-              >
-                <XCircleIcon className="w-6 h-6 text-gray-400" />
-              </button>
-            </div>
-
-            <div className="flex space-x-1 mt-6">
-              {["profile", "sessions", "tokens", "activity"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                    activeTab === tab
-                      ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800"
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-6 overflow-y-auto max-h-[60vh]">
-            {activeTab === "profile" && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-gray-400 text-sm">Email</label>
-                    <p className="text-white">{user.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Role</label>
-                    <span
-                      className={`inline-block px-2 py-1 rounded-lg text-xs font-medium border ${getRoleColor(
-                        user.role
-                      )}`}
-                    >
-                      {user.role.replace("_", " ").toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Status</label>
-                    <span
-                      className={`inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-medium border ${getStatusColor(
-                        user.status
-                      )}`}
-                    >
-                      {getStatusIcon(user.status)}
-                      <span>{user.status.replace("_", " ").toUpperCase()}</span>
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Organization</label>
-                    <p className="text-white">{user.organization || "Not specified"}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "sessions" && (
-              <div className="space-y-4">
-                {userSessions.map((session) => (
-                  <div
-                    key={session.session_id}
-                    className="p-4 bg-gray-800/50 rounded-lg border border-gray-700"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <ComputerDesktopIcon className="w-5 h-5 text-gray-400" />
-                        <div>
-                          <p className="text-white text-sm">{session.ip_address}</p>
-                          <p className="text-gray-400 text-xs">{session.user_agent}</p>
-                        </div>
-                      </div>
-                      <button className="text-red-400 hover:text-red-300 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
-                        Revoke
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === "tokens" && (
-              <div className="space-y-4">
-                {userTokens.map((token) => (
-                  <div
-                    key={token.token_id}
-                    className="p-4 bg-gray-800/50 rounded-lg border border-gray-700"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <KeyIcon className="w-5 h-5 text-gray-400" />
-                        <div>
-                          <p className="text-white text-sm">{token.name}</p>
-                          <p className="text-gray-400 text-xs">{token.prefix}...</p>
-                        </div>
-                      </div>
-                      <button className="text-red-400 hover:text-red-300 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
-                        Revoke
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === "activity" && (
-              <div className="space-y-4">
-                {userActivity.map((activity, index) => (
-                  <div key={index} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          activity.type === "login" ? "bg-green-400" : "bg-red-400"
-                        }`}
-                      />
-                      <div>
-                        <p className="text-white text-sm">
-                          {activity.type} from {activity.ip_address}
-                        </p>
-                        <p className="text-gray-400 text-xs">
-                          {new Date(activity.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <PageContainer>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <PageHeader
           title="User Management"
           description="Manage users, roles, and security settings"
@@ -441,14 +145,8 @@ const UserManagement = () => {
           breadcrumb={["Users"]}
         />
 
-        {/* Navigation Tabs */}
         <div className="flex space-x-1 mb-6">
-          {[
-            { key: "users", label: "Users", icon: UsersIcon },
-            { key: "statistics", label: "Statistics", icon: ChartBarIcon },
-            { key: "security", label: "Security", icon: ShieldCheckIcon },
-            { key: "settings", label: "Settings", icon: Cog6ToothIcon },
-          ].map((tab) => (
+          {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setSelectedTab(tab.key)}
@@ -464,367 +162,42 @@ const UserManagement = () => {
           ))}
         </div>
 
-        {/* Content based on selected tab */}
         {selectedTab === "users" && (
           <div className="space-y-6">
-            {/* Search and Filters */}
-            <GlassCard>
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search users..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <select
-                    value={filters.role}
-                    onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
-                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 [&>option]:bg-gray-800 [&>option]:text-white"
-                  >
-                    <option value="" className="bg-gray-800 text-white">
-                      All Roles
-                    </option>
-                    <option value="admin" className="bg-gray-800 text-white">
-                      Admin
-                    </option>
-                    <option value="security_manager" className="bg-gray-800 text-white">
-                      Security Manager
-                    </option>
-                    <option value="developer" className="bg-gray-800 text-white">
-                      Developer
-                    </option>
-                    <option value="viewer" className="bg-gray-800 text-white">
-                      Viewer
-                    </option>
-                  </select>
-                  <select
-                    value={filters.status}
-                    onChange={(e) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        status: e.target.value,
-                      }))
-                    }
-                    className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 [&>option]:bg-gray-800 [&>option]:text-white"
-                  >
-                    <option value="" className="bg-gray-800 text-white">
-                      All Status
-                    </option>
-                    <option value="active" className="bg-gray-800 text-white">
-                      Active
-                    </option>
-                    <option value="inactive" className="bg-gray-800 text-white">
-                      Inactive
-                    </option>
-                    <option value="suspended" className="bg-gray-800 text-white">
-                      Suspended
-                    </option>
-                    <option value="pending_verification" className="bg-gray-800 text-white">
-                      Pending
-                    </option>
-                  </select>
-                </div>
-              </div>
+            <UserFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filters={filters}
+              setFilters={setFilters}
+              selectedUsers={selectedUsers}
+              setSelectedUsers={setSelectedUsers}
+            />
 
-              {selectedUsers.length > 0 && (
-                <div className="mt-4 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-cyan-400 text-sm">
-                      {selectedUsers.length} user(s) selected
-                    </span>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => _setShowBulkActions(true)}
-                        className="px-3 py-1 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                      >
-                        Bulk Actions
-                      </button>
-                      <button
-                        onClick={() => setSelectedUsers([])}
-                        className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </GlassCard>
-
-            {/* Users Table */}
-            {usersLoading ? (
-              <LoadingState message="Loading users..." cards={3} />
-            ) : usersError ? (
-              <ErrorState
-                title="Failed to Load Users"
-                message={usersError?.message || "An error occurred while fetching users."}
-                onRetry={() => queryClient.invalidateQueries(["users"])}
-              />
-            ) : usersData?.users?.length === 0 ? (
-              <EmptyState
-                icon={UsersIcon}
-                title="No Users Found"
-                description={
-                  searchQuery
-                    ? "No users match your search criteria."
-                    : "No users have been created yet."
-                }
-              />
-            ) : (
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-800/50">
-                      <tr>
-                        <th className="p-4 text-left">
-                          <input
-                            type="checkbox"
-                            checked={
-                              selectedUsers.length === usersData?.users?.length &&
-                              usersData?.users?.length > 0
-                            }
-                            onChange={handleSelectAll}
-                            className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
-                          />
-                        </th>
-                        <th className="p-4 text-left text-gray-300 font-medium">User</th>
-                        <th className="p-4 text-left text-gray-300 font-medium">Role</th>
-                        <th className="p-4 text-left text-gray-300 font-medium">Status</th>
-                        <th className="p-4 text-left text-gray-300 font-medium">Last Login</th>
-                        <th className="p-4 text-left text-gray-300 font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {usersData?.users?.map((user) => (
-                        <tr
-                          key={user.id}
-                          className="border-t border-gray-800/50 hover:bg-gray-800/30"
-                        >
-                          <td className="p-4">
-                            <input
-                              type="checkbox"
-                              checked={selectedUsers.includes(user.id)}
-                              onChange={() => handleUserSelect(user.id)}
-                              className="rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
-                            />
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
-                                <UserCircleIcon className="w-4 h-4 text-white" />
-                              </div>
-                              <div>
-                                <p className="text-white font-medium">{user.full_name}</p>
-                                <p className="text-gray-400 text-sm">{user.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span
-                              className={`inline-block px-2 py-1 rounded-lg text-xs font-medium border ${getRoleColor(
-                                user.role
-                              )}`}
-                            >
-                              {user.role.replace("_", " ").toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span
-                              className={`inline-flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-medium border ${getStatusColor(
-                                user.status
-                              )}`}
-                            >
-                              {getStatusIcon(user.status)}
-                              <span>{user.status.replace("_", " ").toUpperCase()}</span>
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-gray-400 text-sm">
-                              {user.last_login
-                                ? new Date(user.last_login).toLocaleDateString()
-                                : "Never"}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowUserModal(true);
-                                }}
-                                className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                              >
-                                <EyeIcon className="w-4 h-4" />
-                              </button>
-                              <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
-                                <PencilIcon className="w-4 h-4" />
-                              </button>
-                              <button className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            <UserTable
+              usersData={usersData}
+              usersLoading={usersLoading}
+              usersError={usersError}
+              selectedUsers={selectedUsers}
+              onSelectAll={handleSelectAll}
+              onSelectUser={handleUserSelect}
+              onViewUser={(user) => {
+                setSelectedUser(user);
+                setShowUserModal(true);
+              }}
+            />
           </div>
         )}
 
         {selectedTab === "statistics" && (
-          <div className="space-y-6">
-            {!statsLoading && statistics && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                  title="Total Users"
-                  value={statistics.total_users}
-                  icon={<UsersIcon className="h-5 w-5 text-white" />}
-                  gradient={userColorToGradient.blue}
-                  bgGradient={userColorToBgGradient.blue}
-                />
-                <StatCard
-                  title="Active Users"
-                  value={statistics.active_users}
-                  icon={<CheckCircleIcon className="h-5 w-5 text-white" />}
-                  gradient={userColorToGradient.green}
-                  bgGradient={userColorToBgGradient.green}
-                />
-                <StatCard
-                  title="Pending Users"
-                  value={statistics.pending_users}
-                  icon={<ClockIcon className="h-5 w-5 text-white" />}
-                  gradient={userColorToGradient.yellow}
-                  bgGradient={userColorToBgGradient.yellow}
-                />
-                <StatCard
-                  title="Suspended Users"
-                  value={statistics.suspended_users}
-                  icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
-                  gradient={userColorToGradient.red}
-                  bgGradient={userColorToBgGradient.red}
-                />
-              </div>
-            )}
-
-            {!statsLoading && statistics?.role_distribution && (
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4">Role Distribution</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {Object.entries(statistics.role_distribution).map(([role, count]) => (
-                    <div key={role} className="text-center">
-                      <p className="text-2xl font-bold text-cyan-400">{count}</p>
-                      <p className="text-gray-400 text-sm">
-                        {role.replace("_", " ").toUpperCase()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <UserStatsTab statistics={statistics} statsLoading={statsLoading} />
         )}
 
         {selectedTab === "security" && (
-          <div className="space-y-6">
-            {!securityLoading && securityOverview && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <StatCard
-                    title="Failed Login Attempts"
-                    value={securityOverview.security_metrics?.users_with_failed_logins || 0}
-                    icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
-                    gradient={userColorToGradient.red}
-                    bgGradient={userColorToBgGradient.red}
-                  />
-                  <StatCard
-                    title="Locked Accounts"
-                    value={securityOverview.security_metrics?.locked_accounts || 0}
-                    icon={<LockClosedIcon className="h-5 w-5 text-white" />}
-                    gradient={userColorToGradient.orange}
-                    bgGradient={userColorToBgGradient.orange}
-                  />
-                  <StatCard
-                    title="Unverified Emails"
-                    value={securityOverview.security_metrics?.unverified_emails || 0}
-                    icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
-                    gradient={userColorToGradient.yellow}
-                    bgGradient={userColorToBgGradient.yellow}
-                  />
-                </div>
-
-                <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">Security Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">Active Sessions</h4>
-                      <p className="text-3xl font-bold text-green-400">
-                        {securityOverview.active_sessions}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-2">
-                        Recent Registrations
-                      </h4>
-                      <p className="text-3xl font-bold text-cyan-400">
-                        {securityOverview.recent_registrations}
-                      </p>
-                      <p className="text-gray-400 text-sm">Last 30 days</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          <UserSecurityTab securityOverview={securityOverview} securityLoading={securityLoading} />
         )}
 
-        {selectedTab === "settings" && (
-          <div className="space-y-6">
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-              <h3 className="text-xl font-bold text-white mb-4">User Management Settings</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-white font-medium">Allow User Registration</h4>
-                    <p className="text-gray-400 text-sm">Allow users to register new accounts</p>
-                  </div>
-                  <button className="rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 text-sm transition-colors">
-                    Configure
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-white font-medium">Password Policy</h4>
-                    <p className="text-gray-400 text-sm">Configure password requirements</p>
-                  </div>
-                  <button className="rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 text-sm transition-colors">
-                    Configure
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-white font-medium">Session Management</h4>
-                    <p className="text-gray-400 text-sm">Configure session timeout and security</p>
-                  </div>
-                  <button className="rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 text-sm transition-colors">
-                    Configure
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {selectedTab === "settings" && <UserSettingsTab />}
 
-        {/* User Detail Modal */}
         <UserModal
           user={selectedUser}
           isOpen={showUserModal}

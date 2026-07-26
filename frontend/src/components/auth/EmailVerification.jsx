@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -6,7 +6,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { useAuth } from "./AuthContext";
+
 import { authAPI } from "../../services/api";
 
 /**
@@ -28,36 +28,39 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
     }
   }, [token, handleVerifyEmail]);
 
-  const handleVerifyEmail = async (verificationToken) => {
-    setIsVerifying(true);
-    try {
-      // Call the API directly without going through context to avoid auth issues
-      await authAPI.verifyEmail(verificationToken);
-      setVerificationStatus("success");
-      // Don't show toast here - the success component will handle the message
-      onSuccess && onSuccess();
-    } catch (error) {
-      setVerificationStatus("error");
-
-      // Check if it's an "already verified" error
-      const errorMsg =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        error.message ||
-        "Email verification failed";
-
-      if (errorMsg.toLowerCase().includes("already verified")) {
+  const handleVerifyEmail = useCallback(
+    async (verificationToken) => {
+      setIsVerifying(true);
+      try {
+        // Call the API directly without going through context to avoid auth issues
+        await authAPI.verifyEmail(verificationToken);
         setVerificationStatus("success");
-        // Don't show toast - success component will handle it
+        // Don't show toast here - the success component will handle the message
         onSuccess && onSuccess();
-      } else {
-        setErrorMessage(errorMsg);
-        console.error("Email verification error:", errorMsg);
+      } catch (error) {
+        setVerificationStatus("error");
+
+        // Check if it's an "already verified" error
+        const errorMsg =
+          error.response?.data?.detail ||
+          error.response?.data?.message ||
+          error.message ||
+          "Email verification failed";
+
+        if (errorMsg.toLowerCase().includes("already verified")) {
+          setVerificationStatus("success");
+          // Don't show toast - success component will handle it
+          onSuccess && onSuccess();
+        } else {
+          setErrorMessage(errorMsg);
+          console.error("Email verification error:", errorMsg);
+        }
+      } finally {
+        setIsVerifying(false);
       }
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+    },
+    [onSuccess]
+  );
 
   const resendVerification = async () => {
     if (!email || !email.includes("@")) {

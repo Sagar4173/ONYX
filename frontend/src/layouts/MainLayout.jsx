@@ -178,7 +178,7 @@ export const MainLayout = () => {
       clearTimeout(timeoutId);
       websocketService.disconnect();
     };
-  }, []);
+  }, [isConnected]);
 
   // Notification handlers
   const handleClearNotifications = () => {

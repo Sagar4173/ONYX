@@ -1,4 +1,9 @@
-/**
- * Settings Components - Platform configuration
- */
 export { default as Settings } from "./Settings";
+export { default as SettingCard } from "./SettingCard";
+export { default as Toggle } from "./Toggle";
+export { default as SystemInfo } from "./SystemInfo";
+export { default as SecurityTab } from "./SecurityTab";
+export { default as NotificationTab } from "./NotificationTab";
+export { default as ScanningTab } from "./ScanningTab";
+export { default as ApiTab } from "./ApiTab";
+export { default as SystemTab } from "./SystemTab";

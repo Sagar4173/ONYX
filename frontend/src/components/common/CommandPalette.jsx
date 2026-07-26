@@ -38,9 +38,8 @@ export const CommandPalette = ({ isOpen, onClose }) => {
     staleTime: 30000,
   });
 
-  const projects = Array.isArray(projectsData) ? projectsData : [];
-
   const allItems = useMemo(() => {
+    const projects = Array.isArray(projectsData) ? projectsData : [];
     const projectItems = projects.map((p) => ({
       id: `project-${p.id || p._id}`,
       label: p.name,
@@ -48,7 +47,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
       path: `/project/${p.id || p._id}`,
     }));
     return [...defaultActions, ...projectItems];
-  }, [projects]);
+  }, [projectsData]);
 
   const fuse = useMemo(
     () =>

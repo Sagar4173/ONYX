@@ -23,7 +23,7 @@ import { useAuth } from "./AuthContext";
 import { authAPI, getApiErrorMessage } from "../../services/api";
 
 export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogout }) => {
-  const { resendVerificationEmail, refreshUserProfile } = useAuth();
+  const { resendVerificationEmail: _resendVerificationEmail, refreshUserProfile } = useAuth();
 
   const [passwordData, setPasswordData] = useState({
     current_password: "",

@@ -14,14 +14,9 @@ import {
   ChevronRightIcon,
   InformationCircleIcon,
   FireIcon,
-  PhotoIcon,
-  CameraIcon,
-  TrashIcon,
   CheckCircleIcon,
   CommandLineIcon,
-  StarIcon,
 } from "@heroicons/react/24/outline";
-import { CheckIcon } from "@heroicons/react/24/solid";
 
 export const ProfileInfo = ({
   user,
@@ -36,7 +31,7 @@ export const ProfileInfo = ({
   handleCancel,
   setIsEditing,
   formatDate,
-  formatDateTime,
+  formatDateTime: _formatDateTime,
   timezones,
 }) => {
   return (

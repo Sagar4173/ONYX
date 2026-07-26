@@ -157,7 +157,7 @@ export const dashboardAPI = {
   /**
    * Search across projects, scans, and vulnerabilities
    */
-  globalSearch: async (query, options = {}) => {
+  globalSearch: async (query, _options = {}) => {
     if (!query || query.length < 2) {
       return { projects: [], scans: [], vulnerabilities: [] };
     }
