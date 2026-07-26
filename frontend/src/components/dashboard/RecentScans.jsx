@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   CheckCircleIcon,
@@ -18,22 +19,40 @@ const statusConfig = {
   in_progress: { icon: ClockIcon, color: "text-blue-400", bg: "bg-blue-500/10", label: "Running" },
   running: { icon: ClockIcon, color: "text-blue-400", bg: "bg-blue-500/10", label: "Running" },
   failed: { icon: XCircleIcon, color: "text-red-400", bg: "bg-red-500/10", label: "Failed" },
+  cancelled: {
+    icon: XCircleIcon,
+    color: "text-gray-400",
+    bg: "bg-gray-500/10",
+    label: "Cancelled",
+  },
   pending: { icon: ClockIcon, color: "text-amber-400", bg: "bg-amber-500/10", label: "Pending" },
 };
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+};
+const itemAnim = { hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } };
 
 const RecentScanItem = ({ report, onClick }) => {
   const status = statusConfig[report.status] || statusConfig.pending;
   const StatusIcon = status.icon;
-  const severityCount = report.findings_by_severity || {};
-  const hasCritical = (severityCount.critical || 0) > 0;
-  const hasHigh = (severityCount.high || 0) > 0;
+  const sev = report.findings_by_severity || {};
+  const critical = sev.critical || 0;
+  const high = sev.high || 0;
+  const medium = sev.medium || 0;
+  const low = sev.low || 0;
+  const total = critical + high + medium + low;
 
   return (
-    <div
+    <motion.div
+      variants={itemAnim}
       onClick={onClick}
-      className="group flex items-center gap-4 p-4 rounded-xl bg-gray-800/20 hover:bg-gray-800/40
-        border border-transparent hover:border-gray-700/50 transition-all cursor-pointer"
+      className="group relative flex items-center gap-4 p-4 rounded-xl bg-gray-800/20 hover:bg-gray-800/40 border border-transparent hover:border-gray-700/50 transition-all cursor-pointer overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
     >
+      <div
+        className={`absolute left-0 top-0 bottom-0 w-1 ${critical > 0 ? "bg-red-500" : high > 0 ? "bg-orange-500" : medium > 0 ? "bg-yellow-500" : "bg-transparent"}`}
+      />
       <div className={`p-2.5 rounded-xl ${status.bg} flex-shrink-0`}>
         <StatusIcon className={`h-5 w-5 ${status.color}`} />
       </div>
@@ -42,27 +61,25 @@ const RecentScanItem = ({ report, onClick }) => {
           <h4 className="text-sm font-medium text-white truncate">
             {report.project_name || "Unknown Project"}
           </h4>
-          {hasCritical && (
+          {critical > 0 && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-500/20 text-red-400">
-              CRITICAL
+              {critical} CRIT
             </span>
           )}
-          {!hasCritical && hasHigh && (
+          {high > 0 && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-orange-500/20 text-orange-400">
-              HIGH
+              {high} HIGH
             </span>
           )}
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500">
           <span>{report.scan_type || "Security"} Scan</span>
-          <span>•</span>
-          <span>{report.total_findings || 0} findings</span>
-          <span>•</span>
+          <span>{total} findings</span>
           <span>{new Date(report.created_at).toLocaleDateString()}</span>
         </div>
       </div>
       <ArrowRightIcon className="w-4 h-4 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
-    </div>
+    </motion.div>
   );
 };
 
@@ -104,7 +121,7 @@ const RecentScans = ({ scans = [], isLoading, error, onRetry }) => {
   }
 
   return (
-    <div className="space-y-2">
+    <motion.div className="space-y-2" variants={container} initial="hidden" animate="show">
       {scans.slice(0, 4).map((report) => (
         <RecentScanItem
           key={report.id || report._id}
@@ -112,7 +129,7 @@ const RecentScans = ({ scans = [], isLoading, error, onRetry }) => {
           onClick={() => navigate(`/report/${report.id || report._id}`)}
         />
       ))}
-    </div>
+    </motion.div>
   );
 };
 
