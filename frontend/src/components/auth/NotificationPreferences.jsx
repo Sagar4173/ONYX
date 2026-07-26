@@ -20,8 +20,8 @@ const categories = [
     title: "Email Notifications",
     description: "Receive important updates and alerts via email",
     icon: EnvelopeIcon,
-    gradient: "from-blue-500/20 to-cyan-500/20",
-    iconColor: "text-blue-400",
+    gradient: "from-cyan-500/20 to-violet-500/20",
+    iconColor: "text-cyan-400",
   },
   {
     key: "push",
@@ -132,7 +132,9 @@ export const NotificationPreferences = () => {
           <div>
             <h3 className="text-white font-bold text-lg">Notification Preferences</h3>
             <p className="text-gray-400 text-sm">
-              {loadingNotifications ? "Loading preferences..." : "Control how and when you receive notifications"}
+              {loadingNotifications
+                ? "Loading preferences..."
+                : "Control how and when you receive notifications"}
             </p>
           </div>
           {savingNotifications && (
@@ -147,7 +149,10 @@ export const NotificationPreferences = () => {
         {loadingNotifications ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5 animate-pulse">
+              <div
+                key={i}
+                className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5 animate-pulse"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gray-700 rounded-xl" />
                   <div className="flex-1 space-y-2">
@@ -167,7 +172,9 @@ export const NotificationPreferences = () => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 bg-gradient-to-br ${item.gradient} rounded-xl group-hover:scale-110 transition-transform duration-300`}>
+                  <div
+                    className={`p-3 bg-gradient-to-br ${item.gradient} rounded-xl group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <item.icon className={`h-5 w-5 ${item.iconColor}`} />
                   </div>
                   <div>
@@ -188,7 +195,7 @@ export const NotificationPreferences = () => {
                   aria-label={`${item.title}: ${notifications[item.key] ? "enabled" : "disabled"}`}
                   onClick={() => handleToggle(item.key)}
                   disabled={savingNotifications}
-                  className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                  className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                     notifications[item.key]
                       ? "bg-gradient-to-r from-indigo-500 to-purple-500"
                       : "bg-gray-700"
@@ -213,17 +220,27 @@ export const NotificationPreferences = () => {
         </h4>
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => setAll({ email: true, push: true, security: true, updates: true, marketing: true })}
+            onClick={() =>
+              setAll({ email: true, push: true, security: true, updates: true, marketing: true })
+            }
             disabled={savingNotifications}
-            className="py-3 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 text-emerald-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            className="py-3 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 text-emerald-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <CheckCircleIcon className="h-5 w-5" />
             Enable All
           </button>
           <button
-            onClick={() => setAll({ email: false, push: false, security: true, updates: false, marketing: false })}
+            onClick={() =>
+              setAll({
+                email: false,
+                push: false,
+                security: true,
+                updates: false,
+                marketing: false,
+              })
+            }
             disabled={savingNotifications}
-            className="py-3 px-4 bg-gradient-to-r from-gray-700/50 to-gray-600/50 hover:from-gray-700 hover:to-gray-600 border border-gray-600/50 text-gray-300 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            className="py-3 px-4 bg-gradient-to-r from-gray-700/50 to-gray-600/50 hover:from-gray-700 hover:to-gray-600 border border-gray-600/50 text-gray-300 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <XMarkIcon className="h-5 w-5" />
             Minimal Only

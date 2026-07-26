@@ -30,14 +30,12 @@ const SearchBar = ({ onOpen }) => {
         ref={inputRef}
         aria-label="Open search"
         className="flex items-center gap-3 px-4 py-2.5 bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 
-                   rounded-xl text-gray-400 hover:text-white hover:border-gray-600/50 hover:bg-gray-800/70
+                   rounded-full text-gray-400 hover:text-white hover:border-gray-600/50 hover:bg-gray-800/70
                    transition-all duration-300 group min-w-[240px]
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
         <MagnifyingGlassIcon className="w-5 h-5" />
-        <span className="text-sm lg:text-base flex-1 text-left">
-          Search anything...
-        </span>
+        <span className="text-sm lg:text-base flex-1 text-left">Search anything...</span>
         <kbd className="hidden sm:flex items-center gap-1 text-[10px] px-2 py-1 bg-gray-700/50 rounded-md text-gray-500 group-hover:text-gray-400">
           <CommandLineIcon className="w-3 h-3" />
           <span>K</span>
@@ -74,8 +72,8 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
         aria-haspopup="true"
         aria-expanded={isOpen}
         className="relative p-2.5 text-gray-400 hover:text-white bg-gray-800/50 hover:bg-gray-700/50 
-                   border border-gray-700/50 hover:border-gray-600/50 rounded-xl transition-all duration-300
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                   border border-gray-700/50 hover:border-gray-600/50 rounded-full transition-all duration-300
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
         <BellIcon className="w-5 h-5" aria-hidden="true" />
         {unreadCount > 0 && (
@@ -92,25 +90,23 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
       {isOpen && (
         <div className="absolute right-0 mt-3 w-96">
           {/* Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl" />
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
 
           <div
             className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 
-                         rounded-2xl shadow-2xl overflow-hidden"
+                         rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up"
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800/50">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600">
                   <BellIcon className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="font-semibold text-white text-base lg:text-lg">
-                  Notifications
-                </h3>
+                <h3 className="font-semibold text-white text-base lg:text-lg">Notifications</h3>
               </div>
               {notifications.length > 0 && (
                 <button
                   onClick={onClear}
-                  className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
                 >
                   Clear all
                 </button>
@@ -132,9 +128,7 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
                       key={notif.id}
                       className="p-4 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer"
                     >
-                      <p className="text-sm lg:text-base text-white">
-                        {notif.message}
-                      </p>
+                      <p className="text-sm lg:text-base text-white">{notif.message}</p>
                       <p className="text-xs lg:text-sm text-gray-500 mt-1">
                         {new Date(notif.timestamp).toLocaleTimeString()}
                       </p>
@@ -191,9 +185,9 @@ const UserMenu = ({ onProfileClick }) => {
         aria-label={isOpen ? "Close user menu" : "Open user menu"}
         aria-haspopup="true"
         aria-expanded={isOpen}
-        className="flex items-center gap-3 p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 
+        className="flex items-center gap-3 p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 
                    border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
         {/* Avatar */}
         {user?.avatar_url ? (
@@ -208,11 +202,9 @@ const UserMenu = ({ onProfileClick }) => {
           />
         ) : null}
         <div
-          className={`w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 
+          className={`w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-600 
                      flex items-center justify-center text-white text-sm font-semibold
-                     shadow-lg shadow-blue-500/25 ${
-                       user?.avatar_url ? "hidden" : ""
-                     }`}
+                     shadow-lg shadow-cyan-500/25 ${user?.avatar_url ? "hidden" : ""}`}
         >
           {getInitials()}
         </div>
@@ -221,9 +213,7 @@ const UserMenu = ({ onProfileClick }) => {
           <p className="text-sm font-medium text-white leading-tight">
             {user?.full_name || user?.name || "User"}
           </p>
-          <p className="text-xs text-gray-500 leading-tight">
-            {user?.role || "Member"}
-          </p>
+          <p className="text-xs text-gray-500 leading-tight">{user?.role || "Member"}</p>
         </div>
 
         <ChevronDownIcon
@@ -236,24 +226,20 @@ const UserMenu = ({ onProfileClick }) => {
       {isOpen && (
         <div className="absolute right-0 mt-3 w-72">
           {/* Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl" />
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
 
           <div
             className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 
-                         rounded-2xl shadow-2xl overflow-hidden"
+                         rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up"
           >
             {/* User Info Header */}
             <div className="p-5 border-b border-gray-800/50">
               <div className="flex items-center gap-4">
                 {user?.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt=""
-                    className="w-12 h-12 rounded-xl object-cover"
-                  />
+                  <img src={user.avatar_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
                 ) : (
                   <div
-                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 
+                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-600 
                                 flex items-center justify-center text-white font-semibold shadow-lg"
                   >
                     {getInitials()}
@@ -263,9 +249,7 @@ const UserMenu = ({ onProfileClick }) => {
                   <p className="font-semibold text-white truncate text-base lg:text-lg">
                     {user?.full_name || user?.name}
                   </p>
-                  <p className="text-sm lg:text-base text-gray-400 truncate">
-                    {user?.email}
-                  </p>
+                  <p className="text-sm lg:text-base text-gray-400 truncate">{user?.email}</p>
                 </div>
               </div>
             </div>
@@ -278,16 +262,14 @@ const UserMenu = ({ onProfileClick }) => {
                   onProfileClick?.();
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300
-                         hover:text-white hover:bg-gray-800/50 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                         hover:text-white hover:bg-gray-800/50 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
               >
                 <div className="p-2 rounded-lg bg-gray-800/50">
                   <UserIcon className="w-5 h-5" />
                 </div>
                 <div className="text-left">
                   <p className="font-medium text-sm lg:text-base">Profile</p>
-                  <p className="text-xs lg:text-sm text-gray-500">
-                    View and edit profile
-                  </p>
+                  <p className="text-xs lg:text-sm text-gray-500">View and edit profile</p>
                 </div>
               </button>
 
@@ -302,9 +284,7 @@ const UserMenu = ({ onProfileClick }) => {
                 </div>
                 <div className="text-left">
                   <p className="font-medium text-sm lg:text-base">Settings</p>
-                  <p className="text-xs lg:text-sm text-gray-500">
-                    Preferences & security
-                  </p>
+                  <p className="text-xs lg:text-sm text-gray-500">Preferences & security</p>
                 </div>
               </Link>
             </div>
@@ -319,9 +299,7 @@ const UserMenu = ({ onProfileClick }) => {
                 <div className="p-2 rounded-lg bg-red-500/10">
                   <ArrowRightOnRectangleIcon className="w-5 h-5" />
                 </div>
-                <span className="font-medium text-sm lg:text-base">
-                  Sign out
-                </span>
+                <span className="font-medium text-sm lg:text-base">Sign out</span>
               </button>
             </div>
           </div>
@@ -351,8 +329,10 @@ export default function Header({
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
+            aria-label="Open navigation menu"
             className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50 
-                     hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all"
+                     hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <Bars3Icon className="w-5 h-5 lg:w-6 lg:h-6" />
           </button>
@@ -363,10 +343,7 @@ export default function Header({
           <div className="hidden md:block">
             <SearchBar onOpen={onCommandPaletteOpen} />
           </div>
-          <NotificationsDropdown
-            notifications={notifications}
-            onClear={onClearNotifications}
-          />
+          <NotificationsDropdown notifications={notifications} onClear={onClearNotifications} />
           <UserMenu onProfileClick={onProfileClick} />
         </div>
       </div>

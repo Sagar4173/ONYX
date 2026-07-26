@@ -281,11 +281,11 @@ export const severityColors = {
     tailwind: "bg-yellow-900/70 text-yellow-200 border-yellow-600",
   },
   low: {
-    bg: "#1e3a8a",
-    text: "#bfdbfe",
-    border: "#3b82f6",
-    gradient: "from-blue-900 to-blue-700",
-    tailwind: "bg-blue-900/70 text-blue-200 border-blue-600",
+    bg: "#0e7490",
+    text: "#67e8f9",
+    border: "#06b6d4",
+    gradient: "from-cyan-900 to-cyan-700",
+    tailwind: "bg-cyan-900/70 text-cyan-200 border-cyan-600",
   },
   info: {
     bg: "#374151",

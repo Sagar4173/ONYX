@@ -3,7 +3,7 @@
  * Display and manage Software Bill of Materials
  * Features: SPDX/CycloneDX support, vulnerability enrichment, export options
  */
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { FixedSizeList as List } from "react-window";
 import {
@@ -33,21 +33,13 @@ const API_BASE_URL = import.meta.env.DEV
 
 // License badge
 const LicenseBadge = ({ license }) => {
-  const openSourceLicenses = [
-    "MIT",
-    "Apache-2.0",
-    "BSD-3-Clause",
-    "GPL-3.0",
-    "ISC",
-  ];
+  const openSourceLicenses = ["MIT", "Apache-2.0", "BSD-3-Clause", "GPL-3.0", "ISC"];
   const isOpenSource = openSourceLicenses.some((l) => license?.includes(l));
 
   return (
     <span
       className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-        isOpenSource
-          ? "bg-green-900/30 text-green-400"
-          : "bg-gray-700/30 text-gray-300"
+        isOpenSource ? "bg-green-900/30 text-green-400" : "bg-gray-700/30 text-gray-300"
       }`}
     >
       {license || "Unknown"}
@@ -70,7 +62,7 @@ const VulnIndicator = ({ count, severity }) => {
     critical: "text-red-400 bg-red-900/30",
     high: "text-orange-400 bg-orange-900/30",
     medium: "text-yellow-400 bg-yellow-900/30",
-    low: "text-blue-400 bg-blue-900/30",
+    low: "text-cyan-400 bg-cyan-900/30",
   };
 
   return (
@@ -86,7 +78,7 @@ const VulnIndicator = ({ count, severity }) => {
 };
 
 // Package row component
-const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
+const PackageRow = ({ pkg, onViewVulns: _onViewVulns, isExpanded, onToggle }) => {
   return (
     <div className="border-b border-gray-700/50 last:border-0">
       <div
@@ -99,7 +91,7 @@ const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
           ) : (
             <ChevronRightIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
           )}
-          <CubeIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          <CubeIcon className="w-4 h-4 text-cyan-500 flex-shrink-0" />
           <span className="font-medium text-white">{pkg.name}</span>
           <span className="text-gray-400 text-sm">@{pkg.version}</span>
         </div>
@@ -114,22 +106,16 @@ const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
 
       {isExpanded && (
         <div className="px-10 pb-4 bg-gray-800/30 space-y-3">
-          {pkg.description && (
-            <p className="text-sm text-gray-400">{pkg.description}</p>
-          )}
+          {pkg.description && <p className="text-sm text-gray-400">{pkg.description}</p>}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-gray-400">Ecosystem:</span>
-              <span className="ml-2 capitalize">
-                {pkg.ecosystem || "unknown"}
-              </span>
+              <span className="ml-2 capitalize">{pkg.ecosystem || "unknown"}</span>
             </div>
             <div>
               <span className="text-gray-400">PURL:</span>
-              <span className="ml-2 font-mono text-xs truncate">
-                {pkg.purl || "N/A"}
-              </span>
+              <span className="ml-2 font-mono text-xs truncate">{pkg.purl || "N/A"}</span>
             </div>
             {pkg.supplier && (
               <div>
@@ -140,18 +126,14 @@ const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
             {pkg.hash && (
               <div>
                 <span className="text-gray-400">Hash:</span>
-                <span className="ml-2 font-mono text-xs">
-                  {pkg.hash.substring(0, 16)}...
-                </span>
+                <span className="ml-2 font-mono text-xs">{pkg.hash.substring(0, 16)}...</span>
               </div>
             )}
           </div>
 
           {pkg.vulnerabilities && pkg.vulnerabilities.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-700/50">
-              <h5 className="text-sm font-medium text-gray-200 mb-2">
-                Known Vulnerabilities
-              </h5>
+              <h5 className="text-sm font-medium text-gray-200 mb-2">Known Vulnerabilities</h5>
               <div className="space-y-2">
                 {pkg.vulnerabilities.map((vuln, i) => (
                   <div
@@ -164,21 +146,19 @@ const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
                           vuln.severity === "critical"
                             ? "text-red-500"
                             : vuln.severity === "high"
-                            ? "text-orange-500"
-                            : "text-yellow-500"
+                              ? "text-orange-500"
+                              : "text-yellow-500"
                         }`}
                       />
                       <span className="font-mono text-sm">{vuln.id}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400">
-                        CVSS: {vuln.cvss || "N/A"}
-                      </span>
+                      <span className="text-xs text-gray-400">CVSS: {vuln.cvss || "N/A"}</span>
                       <a
                         href={`https://nvd.nist.gov/vuln/detail/${vuln.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300"
+                        className="text-cyan-400 hover:text-cyan-300"
                       >
                         <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                       </a>
@@ -197,7 +177,7 @@ const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
                   href={ref.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-400 hover:underline flex items-center gap-1"
+                  className="text-sm text-cyan-400 hover:underline flex items-center gap-1"
                 >
                   {ref.type} <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </a>
@@ -211,7 +191,7 @@ const PackageRow = ({ pkg, onViewVulns, isExpanded, onToggle }) => {
 };
 
 // Main component
-const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
+const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGenerate }) => {
   const [format, setFormat] = useState("spdx");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterVuln, setFilterVuln] = useState(false);
@@ -222,17 +202,14 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
   const generateMutation = useMutation({
     mutationFn: async (params) => {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/api/enterprise/sbom/generate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-          body: JSON.stringify(params),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/enterprise/sbom/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify(params),
+      });
       if (!response.ok) throw new Error("Failed to generate SBOM");
       return response.json();
     },
@@ -243,14 +220,11 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
     queryKey: ["sbom-formats"],
     queryFn: async () => {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/api/enterprise/sbom/formats`,
-        {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/enterprise/sbom/formats`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
       if (!response.ok) throw new Error("Failed to fetch formats");
       return response.json();
     },
@@ -301,17 +275,14 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
       pkg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pkg.version?.includes(searchTerm);
 
-    const matchesVuln =
-      !filterVuln || (pkg.vulnerabilities && pkg.vulnerabilities.length > 0);
+    const matchesVuln = !filterVuln || (pkg.vulnerabilities && pkg.vulnerabilities.length > 0);
 
     return matchesSearch && matchesVuln;
   });
 
   // Count stats
   const totalPackages = packages.length;
-  const vulnPackages = packages.filter(
-    (p) => p.vulnerabilities?.length > 0
-  ).length;
+  const vulnPackages = packages.filter((p) => p.vulnerabilities?.length > 0).length;
   const licenses = [...new Set(packages.map((p) => p.license).filter(Boolean))];
 
   return (
@@ -319,32 +290,28 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">
-            Software Bill of Materials
-          </h2>
-          <p className="text-gray-400">
-            Generate and view SBOM for your project
-          </p>
+          <h2 className="text-2xl font-bold text-white">Software Bill of Materials</h2>
+          <p className="text-gray-400">Generate and view SBOM for your project</p>
         </div>
         <div className="flex items-center gap-2">
           {currentSBOM && (
             <>
               <button
                 onClick={() => setShowRaw(!showRaw)}
-                className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm hover:bg-gray-800/30"
+                className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm hover:bg-gray-800/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <CodeBracketIcon className="w-4 h-4 inline mr-1" />
                 {showRaw ? "View Parsed" : "View Raw"}
               </button>
               <button
                 onClick={copyToClipboard}
-                className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm hover:bg-gray-800/30"
+                className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm hover:bg-gray-800/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <ClipboardIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDownload("json")}
-                className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                className="px-3 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold text-sm hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <ArrowDownTrayIcon className="w-4 h-4 inline mr-1" />
                 Download
@@ -371,9 +338,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               />
             </div>
             <div className="w-48">
-              <label className="block text-sm font-medium text-gray-200 mb-2">
-                Format
-              </label>
+              <label className="block text-sm font-medium text-gray-200 mb-2">Format</label>
               <select
                 value={format}
                 onChange={(e) => setFormat(e.target.value)}
@@ -386,7 +351,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
             <button
               onClick={handleGenerate}
               disabled={generateMutation.isPending}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               {generateMutation.isPending ? (
                 <ArrowPathIcon className="w-4 h-4 animate-spin" />
@@ -407,7 +372,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               key={fmt.id}
               className={`p-4 rounded-xl border cursor-pointer transition-all ${
                 format === fmt.id
-                  ? "border-blue-500 bg-blue-900/30"
+                  ? "border-cyan-500 bg-cyan-900/30"
                   : "border-gray-700/50 hover:border-gray-600"
               }`}
               onClick={() => setFormat(fmt.id)}
@@ -415,9 +380,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-medium text-white">{fmt.name}</h4>
-                  <p className="text-sm text-gray-400 mt-1">
-                    {fmt.description}
-                  </p>
+                  <p className="text-sm text-gray-400 mt-1">{fmt.description}</p>
                 </div>
                 <LockClosedIcon className="w-4 h-4 text-gray-400" />
               </div>
@@ -451,11 +414,9 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Total Packages</p>
-                  <p className="text-2xl font-bold text-white">
-                    {totalPackages}
-                  </p>
+                  <p className="text-2xl font-bold text-white">{totalPackages}</p>
                 </div>
-                <CubeIcon className="w-8 h-8 text-blue-500 opacity-50" />
+                <CubeIcon className="w-8 h-8 text-cyan-500 opacity-50" />
               </div>
             </Card>
 
@@ -483,9 +444,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Unique Licenses</p>
-                  <p className="text-2xl font-bold text-white">
-                    {licenses.length}
-                  </p>
+                  <p className="text-2xl font-bold text-white">{licenses.length}</p>
                 </div>
                 <ShieldCheckIcon className="w-8 h-8 text-purple-500 opacity-50" />
               </div>
@@ -495,9 +454,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-400">Format</p>
-                  <p className="text-2xl font-bold text-white uppercase">
-                    {format}
-                  </p>
+                  <p className="text-2xl font-bold text-white uppercase">{format}</p>
                 </div>
                 <CodeBracketIcon className="w-8 h-8 text-indigo-500 opacity-50" />
               </div>
@@ -527,7 +484,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                 </div>
                 <button
                   onClick={() => setFilterVuln(!filterVuln)}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                     filterVuln
                       ? "bg-red-900/30 text-red-400 border border-red-700/50"
                       : "border border-gray-700/50 text-gray-200 hover:bg-gray-800/30"
@@ -546,9 +503,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
                   </h3>
                   <span className="text-sm text-gray-400">
                     {vulnPackages > 0 && (
-                      <span className="text-red-400">
-                        {vulnPackages} with vulnerabilities
-                      </span>
+                      <span className="text-red-400">{vulnPackages} with vulnerabilities</span>
                     )}
                   </span>
                 </div>
@@ -598,9 +553,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               <div>
                 <span className="text-gray-400">Created:</span>
                 <span className="ml-2">
-                  {currentSBOM.creationInfo?.created ||
-                    currentSBOM.metadata?.timestamp ||
-                    "N/A"}
+                  {currentSBOM.creationInfo?.created || currentSBOM.metadata?.timestamp || "N/A"}
                 </span>
               </div>
               <div>
@@ -620,9 +573,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
               <div>
                 <span className="text-gray-400">Name:</span>
                 <span className="ml-2">
-                  {currentSBOM.name ||
-                    currentSBOM.metadata?.component?.name ||
-                    "N/A"}
+                  {currentSBOM.name || currentSBOM.metadata?.component?.name || "N/A"}
                 </span>
               </div>
             </div>
@@ -635,9 +586,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate }) => {
           <DocumentTextIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-400">No SBOM generated yet</p>
           {repositoryPath && (
-            <p className="text-sm text-gray-400 mt-2">
-              Click "Generate" to create an SBOM
-            </p>
+            <p className="text-sm text-gray-400 mt-2">Click "Generate" to create an SBOM</p>
           )}
         </div>
       )}

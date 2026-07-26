@@ -22,13 +22,7 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { StatCard, EmptyState } from "../styles/components";
-import {
-  PageContainer,
-  PageHeader,
-  GlassCard,
-  SectionHeader,
-  LoadingState,
-} from "../layouts";
+import { PageContainer, PageHeader, GlassCard, SectionHeader, LoadingState } from "../layouts";
 import { reportsAPI, projectsAPI } from "../services/api";
 import { Link } from "react-router-dom";
 
@@ -56,8 +50,8 @@ const SeverityDistribution = ({ data }) => {
     {
       key: "low",
       label: "Low",
-      color: "bg-blue-500",
-      textColor: "text-blue-400",
+      color: "bg-cyan-500",
+      textColor: "text-cyan-400",
     },
     {
       key: "info",
@@ -67,8 +61,7 @@ const SeverityDistribution = ({ data }) => {
     },
   ];
 
-  const total =
-    severities.reduce((sum, s) => sum + (data?.[s.key] || 0), 0) || 1;
+  const total = severities.reduce((sum, s) => sum + (data?.[s.key] || 0), 0) || 1;
 
   return (
     <div className="space-y-4">
@@ -78,9 +71,7 @@ const SeverityDistribution = ({ data }) => {
         return (
           <div key={severity.key}>
             <div className="flex items-center justify-between mb-2">
-              <span className={`text-sm font-medium ${severity.textColor}`}>
-                {severity.label}
-              </span>
+              <span className={`text-sm font-medium ${severity.textColor}`}>{severity.label}</span>
               <span className="text-sm text-gray-400">
                 {count} ({percentage}%)
               </span>
@@ -196,8 +187,8 @@ const RecentScansTimeline = ({ scans = [] }) => {
               scan.status === "completed"
                 ? "bg-green-500/20"
                 : scan.status === "failed"
-                ? "bg-red-500/20"
-                : "bg-blue-500/20"
+                  ? "bg-red-500/20"
+                  : "bg-cyan-500/20"
             }`}
           >
             {scan.status === "completed" ? (
@@ -205,11 +196,11 @@ const RecentScansTimeline = ({ scans = [] }) => {
             ) : scan.status === "failed" ? (
               <XCircleIcon className="h-5 w-5 text-red-400" />
             ) : (
-              <ArrowPathIcon className="h-5 w-5 text-blue-400 animate-spin" />
+              <ArrowPathIcon className="h-5 w-5 text-cyan-400 animate-spin" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate group-hover:text-blue-400 transition-colors">
+            <p className="text-sm font-medium text-white truncate group-hover:text-cyan-400 transition-colors">
               {scan.project_name || scan.repository_url || "Unknown Project"}
             </p>
             <div className="flex items-center gap-2 mt-1">
@@ -218,8 +209,8 @@ const RecentScansTimeline = ({ scans = [] }) => {
                   scan.status === "completed"
                     ? "bg-green-500/20 text-green-400"
                     : scan.status === "failed"
-                    ? "bg-red-500/20 text-red-400"
-                    : "bg-blue-500/20 text-blue-400"
+                      ? "bg-red-500/20 text-red-400"
+                      : "bg-cyan-500/20 text-cyan-400"
                 }`}
               >
                 {scan.status}
@@ -266,16 +257,12 @@ const TopProjects = ({ projects = [] }) => {
           className="flex items-center justify-between p-4 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-all border border-gray-700/30"
         >
           <div className="flex items-center space-x-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">
               {index + 1}
             </div>
             <div>
-              <p className="text-sm font-medium text-white">
-                {project.project_name}
-              </p>
-              <p className="text-xs text-gray-500">
-                {project.scans_count} scans
-              </p>
+              <p className="text-sm font-medium text-white">{project.project_name}</p>
+              <p className="text-xs text-gray-500">{project.scans_count} scans</p>
             </div>
           </div>
           <div className="text-right">
@@ -291,9 +278,7 @@ const TopProjects = ({ projects = [] }) => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {project.total_findings} total findings
-            </p>
+            <p className="text-xs text-gray-500 mt-1">{project.total_findings} total findings</p>
           </div>
         </div>
       ))}
@@ -337,16 +322,14 @@ const ScannerPerformance = ({ scanners = {} }) => {
             className="p-4 rounded-xl bg-gray-800/30 border border-gray-700/30"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-white capitalize">
-                {scanner.name}
-              </span>
+              <span className="text-sm font-medium text-white capitalize">{scanner.name}</span>
               <span
                 className={`text-xs px-2 py-0.5 rounded-full ${
                   successRate >= 90
                     ? "bg-green-500/20 text-green-400"
                     : successRate >= 70
-                    ? "bg-yellow-500/20 text-yellow-400"
-                    : "bg-red-500/20 text-red-400"
+                      ? "bg-yellow-500/20 text-yellow-400"
+                      : "bg-red-500/20 text-red-400"
                 }`}
               >
                 {successRate}% success
@@ -354,16 +337,13 @@ const ScannerPerformance = ({ scanners = {} }) => {
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
               <div>
-                <span className="text-gray-500">Runs:</span>{" "}
-                {scanner.total_runs}
+                <span className="text-gray-500">Runs:</span> {scanner.total_runs}
               </div>
               <div>
-                <span className="text-gray-500">Findings:</span>{" "}
-                {scanner.total_findings}
+                <span className="text-gray-500">Findings:</span> {scanner.total_findings}
               </div>
               <div>
-                <span className="text-gray-500">Avg:</span>{" "}
-                {formatDuration(scanner.avg_duration)}
+                <span className="text-gray-500">Avg:</span> {formatDuration(scanner.avg_duration)}
               </div>
             </div>
           </div>
@@ -389,7 +369,7 @@ const TimePeriodSelector = ({ value, onChange }) => {
           onClick={() => onChange(period.value)}
           className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
             value === period.value
-              ? "bg-blue-500 text-white"
+              ? "bg-cyan-500 text-white"
               : "text-gray-400 hover:text-white hover:bg-gray-700/50"
           }`}
         >
@@ -416,13 +396,21 @@ const Analytics = () => {
   });
 
   // Fetch project analytics
-  const { data: projectAnalytics, isLoading: projectLoading, isError: projectError } = useQuery({
+  const {
+    data: projectAnalytics,
+    isLoading: projectLoading,
+    isError: projectError,
+  } = useQuery({
     queryKey: ["projectAnalytics"],
     queryFn: () => projectsAPI.getAnalyticsOverview(),
   });
 
   // Fetch recent reports
-  const { data: reportsData, isLoading: reportsLoading, isError: reportsError } = useQuery({
+  const {
+    data: reportsData,
+    isLoading: reportsLoading,
+    isError: reportsError,
+  } = useQuery({
     queryKey: ["reports", { limit: 50 }],
     queryFn: () => reportsAPI.getReports({ limit: 50 }),
   });
@@ -455,8 +443,7 @@ const Analytics = () => {
 
     reports.forEach((report) => {
       if (report.findings_by_severity) {
-        aggregatedFindings.critical +=
-          report.findings_by_severity.critical || 0;
+        aggregatedFindings.critical += report.findings_by_severity.critical || 0;
         aggregatedFindings.high += report.findings_by_severity.high || 0;
         aggregatedFindings.medium += report.findings_by_severity.medium || 0;
         aggregatedFindings.low += report.findings_by_severity.low || 0;
@@ -480,10 +467,7 @@ const Analytics = () => {
       aggregatedFindings.low +
       aggregatedFindings.info;
 
-    if (
-      analyticsTotal === 0 &&
-      (calculatedTotalFindings > 0 || aggregatedTotal > 0)
-    ) {
+    if (analyticsTotal === 0 && (calculatedTotalFindings > 0 || aggregatedTotal > 0)) {
       calculatedVulnSummary = aggregatedFindings;
       // If we have total_findings but no severity breakdown, classify as "info"
       if (aggregatedTotal === 0 && calculatedTotalFindings > 0) {
@@ -519,8 +503,7 @@ const Analytics = () => {
       }
       projectMap[name].scans_count += 1;
       projectMap[name].total_findings += report.total_findings || 0;
-      projectMap[name].critical_findings +=
-        report.findings_by_severity?.critical || 0;
+      projectMap[name].critical_findings += report.findings_by_severity?.critical || 0;
       projectMap[name].high_findings += report.findings_by_severity?.high || 0;
     });
     calculatedTopProjects = Object.values(projectMap)
@@ -584,12 +567,7 @@ const Analytics = () => {
       title: "Total Scans",
       value: isLoading ? "—" : totalScans.toString(),
       change: totalScans > 0 ? `${successRate}% success` : null,
-      changeType:
-        successRate >= 80
-          ? "positive"
-          : successRate >= 50
-          ? "neutral"
-          : "negative",
+      changeType: successRate >= 80 ? "positive" : successRate >= 50 ? "neutral" : "negative",
       icon: DocumentTextIcon,
       gradient: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-500/10 to-cyan-500/10",
@@ -601,14 +579,14 @@ const Analytics = () => {
         calculatedVulnSummary.critical > 0
           ? `${calculatedVulnSummary.critical} critical`
           : calculatedVulnSummary.high > 0
-          ? `${calculatedVulnSummary.high} high`
-          : null,
+            ? `${calculatedVulnSummary.high} high`
+            : null,
       changeType:
         calculatedVulnSummary.critical > 0
           ? "negative"
           : calculatedVulnSummary.high > 0
-          ? "negative"
-          : "positive",
+            ? "negative"
+            : "positive",
       icon: ExclamationTriangleIcon,
       gradient: "from-red-500 to-pink-500",
       bgGradient: "from-red-500/10 to-pink-500/10",
@@ -617,17 +595,9 @@ const Analytics = () => {
       title: "Avg Security Score",
       value: isLoading ? "—" : `${Math.round(avgSecurityScore)}/100`,
       change:
-        avgSecurityScore >= 80
-          ? "Healthy"
-          : avgSecurityScore >= 50
-          ? "Needs Work"
-          : "At Risk",
+        avgSecurityScore >= 80 ? "Healthy" : avgSecurityScore >= 50 ? "Needs Work" : "At Risk",
       changeType:
-        avgSecurityScore >= 80
-          ? "positive"
-          : avgSecurityScore >= 50
-          ? "neutral"
-          : "negative",
+        avgSecurityScore >= 80 ? "positive" : avgSecurityScore >= 50 ? "neutral" : "negative",
       icon: ShieldCheckIcon,
       gradient: "from-green-500 to-emerald-500",
       bgGradient: "from-green-500/10 to-emerald-500/10",
@@ -648,15 +618,25 @@ const Analytics = () => {
   if (hasError) {
     return (
       <PageContainer>
-        <PageHeader title="Analytics" description="Failed to load analytics data" icon={ChartBarIcon} breadcrumb={["Analytics"]} />
+        <PageHeader
+          title="Analytics"
+          description="Failed to load analytics data"
+          icon={ChartBarIcon}
+          breadcrumb={["Analytics"]}
+        />
         <div className="text-center py-16">
           <div className="inline-flex p-5 rounded-2xl bg-red-500/10 border border-red-500/20 mb-5">
             <ExclamationTriangleIcon className="h-12 w-12 text-red-400" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">Failed to Load Analytics</h3>
-          <p className="text-gray-400 max-w-sm mx-auto mb-6">Unable to fetch analytics data. Please try again.</p>
-          <button type="button" onClick={() => refetchAnalytics()}
-            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+          <p className="text-gray-400 max-w-sm mx-auto mb-6">
+            Unable to fetch analytics data. Please try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => refetchAnalytics()}
+            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+          >
             Try Again
           </button>
         </div>
@@ -678,7 +658,7 @@ const Analytics = () => {
           <button
             onClick={() => refetchAnalytics()}
             aria-label="Refresh analytics data"
-            className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             title="Refresh data"
           >
             <ArrowPathIcon className="h-5 w-5" aria-hidden="true" />
@@ -691,8 +671,7 @@ const Analytics = () => {
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <CalendarDaysIcon className="h-4 w-4" />
           <span>
-            Showing data from{" "}
-            {new Date(analytics.period.start_date).toLocaleDateString()} to{" "}
+            Showing data from {new Date(analytics.period.start_date).toLocaleDateString()} to{" "}
             {new Date(analytics.period.end_date).toLocaleDateString()}
           </span>
         </div>
@@ -735,10 +714,7 @@ const Analytics = () => {
 
         {/* Scan Type Distribution */}
         <GlassCard>
-          <SectionHeader
-            title="Scanner Activity"
-            description="Breakdown by scanner type"
-          />
+          <SectionHeader title="Scanner Activity" description="Breakdown by scanner type" />
           {isLoading ? (
             <LoadingState message="Loading scan data..." />
           ) : Object.keys(calculatedScannerPerformance).length === 0 ? (

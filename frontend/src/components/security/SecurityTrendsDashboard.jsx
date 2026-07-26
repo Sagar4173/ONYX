@@ -3,7 +3,7 @@
  * Displays security posture trends, metrics, and analytics
  * Features: severity trends, fix velocity, period comparison, projections
  */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowTrendingUpIcon,
@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 // Import centralized styles
-import { Card, Badge, Spinner, statusStyles } from "@styles";
+import { Card, statusStyles } from "@styles";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
@@ -69,7 +69,7 @@ const CircularProgress = ({ value, label, color = "blue", size = 120 }) => {
   const offset = circumference - (value / 100) * circumference;
 
   const colorClasses = {
-    blue: "stroke-blue-500",
+    blue: "stroke-cyan-500",
     green: "stroke-green-500",
     red: "stroke-red-500",
     yellow: "stroke-yellow-500",
@@ -115,11 +115,7 @@ const MetricCard = ({ title, value, change, icon: Icon, trend, subtitle }) => (
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-2xl font-bold text-white">{value}</span>
           {change !== undefined && (
-            <span
-              className={`text-sm ${
-                change >= 0 ? "text-green-400" : "text-red-400"
-              }`}
-            >
+            <span className={`text-sm ${change >= 0 ? "text-green-400" : "text-red-400"}`}>
               {change >= 0 ? (
                 <ArrowUpIcon className="w-3 h-3 inline" />
               ) : (
@@ -146,11 +142,11 @@ const MetricCard = ({ title, value, change, icon: Icon, trend, subtitle }) => (
 );
 
 // Simple bar chart component
-const SimpleBarChart = ({ data, height = 200 }) => {
+const _SimpleBarChart = ({ data, height = 200 }) => {
   if (!data || data.length === 0) return null;
 
   const maxValue = Math.max(...data.map((d) => d.value));
-  const barWidth = 100 / data.length;
+  const _barWidth = 100 / data.length;
 
   return (
     <div className="relative" style={{ height }}>
@@ -158,16 +154,14 @@ const SimpleBarChart = ({ data, height = 200 }) => {
         {data.map((item, index) => (
           <div key={index} className="flex-1 flex flex-col items-center gap-1">
             <div
-              className="w-full bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600"
+              className="w-full bg-cyan-500 rounded-t transition-all duration-300 hover:bg-cyan-600"
               style={{
                 height: `${(item.value / maxValue) * 100}%`,
                 minHeight: 4,
               }}
               title={`${item.label}: ${item.value}`}
             />
-            <span className="text-xs text-gray-400 truncate max-w-full">
-              {item.label}
-            </span>
+            <span className="text-xs text-gray-400 truncate max-w-full">{item.label}</span>
           </div>
         ))}
       </div>
@@ -178,11 +172,7 @@ const SimpleBarChart = ({ data, height = 200 }) => {
 // Severity trend chart
 const SeverityTrendChart = ({ data }) => {
   if (!data || data.length === 0) {
-    return (
-      <div className="text-center text-gray-400 py-8">
-        No trend data available
-      </div>
-    );
+    return <div className="text-center text-gray-400 py-8">No trend data available</div>;
   }
 
   return (
@@ -195,17 +185,14 @@ const SeverityTrendChart = ({ data }) => {
             <th className="pb-2 text-center text-red-400">Critical</th>
             <th className="pb-2 text-center text-orange-600">High</th>
             <th className="pb-2 text-center text-yellow-600">Medium</th>
-            <th className="pb-2 text-center text-blue-600">Low</th>
+            <th className="pb-2 text-center text-cyan-600">Low</th>
             <th className="pb-2 text-center text-green-400">Fixed</th>
             <th className="pb-2 text-center text-purple-600">New</th>
           </tr>
         </thead>
         <tbody>
           {data.slice(-8).map((point, index) => (
-            <tr
-              key={index}
-              className="border-b border-gray-700/50 hover:bg-gray-800/30"
-            >
+            <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-800/30">
               <td className="py-2">
                 {new Date(point.date).toLocaleDateString("en-US", {
                   month: "short",
@@ -218,34 +205,22 @@ const SeverityTrendChart = ({ data }) => {
                     point.security_score >= 80
                       ? "bg-green-900/30 text-green-400"
                       : point.security_score >= 60
-                      ? "bg-yellow-900/30 text-yellow-400"
-                      : "bg-red-900/30 text-red-400"
+                        ? "bg-yellow-900/30 text-yellow-400"
+                        : "bg-red-900/30 text-red-400"
                   }`}
                 >
                   {point.security_score?.toFixed(0)}
                 </span>
               </td>
-              <td className="py-2 text-center text-red-400 font-medium">
-                {point.critical || 0}
-              </td>
-              <td className="py-2 text-center text-orange-600 font-medium">
-                {point.high || 0}
-              </td>
-              <td className="py-2 text-center text-yellow-600">
-                {point.medium || 0}
-              </td>
-              <td className="py-2 text-center text-blue-600">
-                {point.low || 0}
+              <td className="py-2 text-center text-red-400 font-medium">{point.critical || 0}</td>
+              <td className="py-2 text-center text-orange-600 font-medium">{point.high || 0}</td>
+              <td className="py-2 text-center text-yellow-600">{point.medium || 0}</td>
+              <td className="py-2 text-center text-cyan-600">{point.low || 0}</td>
+              <td className="py-2 text-center">
+                {point.fixed > 0 && <span className="text-green-400">+{point.fixed}</span>}
               </td>
               <td className="py-2 text-center">
-                {point.fixed > 0 && (
-                  <span className="text-green-400">+{point.fixed}</span>
-                )}
-              </td>
-              <td className="py-2 text-center">
-                {point.new > 0 && (
-                  <span className="text-purple-600">+{point.new}</span>
-                )}
+                {point.new > 0 && <span className="text-purple-600">+{point.new}</span>}
               </td>
             </tr>
           ))}
@@ -272,14 +247,11 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
       if (projectId) params.append("project_id", projectId);
 
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/api/enterprise/trends/dashboard?${params}`,
-        {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/enterprise/trends/dashboard?${params}`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
       if (!response.ok) throw new Error("Failed to fetch trends data");
       return response.json();
     },
@@ -290,7 +262,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+        <ArrowPathIcon className="w-8 h-8 text-cyan-500 animate-spin" />
       </div>
     );
   }
@@ -322,7 +294,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-gray-800 text-white"
+            className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -330,7 +302,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           </select>
           <button
             onClick={() => refetch()}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg"
+            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <ArrowPathIcon className="w-5 h-5" />
           </button>
@@ -345,10 +317,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             <p className="text-3xl font-bold text-white">
               {current.security_score?.toFixed(0) || 0}
             </p>
-            <TrendIndicator
-              direction={trends.direction}
-              value={trends.improvement_pct}
-            />
+            <TrendIndicator direction={trends.direction} value={trends.improvement_pct} />
           </div>
           <CircularProgress
             value={current.security_score || 0}
@@ -357,8 +326,8 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               current.security_score >= 80
                 ? "green"
                 : current.security_score >= 60
-                ? "yellow"
-                : "red"
+                  ? "yellow"
+                  : "red"
             }
             size={80}
           />
@@ -366,9 +335,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
         <Card>
           <p className="text-sm text-gray-400">Risk Score</p>
-          <p className="text-3xl font-bold text-white">
-            {current.risk_score?.toFixed(0) || 0}
-          </p>
+          <p className="text-3xl font-bold text-white">{current.risk_score?.toFixed(0) || 0}</p>
           <p className="text-xs text-gray-400 mt-1">Lower is better</p>
           <div className="mt-2 w-full bg-gray-700 rounded-full h-2">
             <div
@@ -376,8 +343,8 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
                 current.risk_score <= 30
                   ? "bg-green-900/300"
                   : current.risk_score <= 60
-                  ? "bg-yellow-500"
-                  : "bg-red-500"
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
               }`}
               style={{ width: `${current.risk_score || 0}%` }}
             />
@@ -396,19 +363,13 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           value={`${((trends.fix_rate || 0) * 100).toFixed(0)}%`}
           subtitle="Fixed vs New ratio"
           icon={ViewfinderCircleIcon}
-          trend={
-            trends.fix_rate > 1
-              ? { direction: "improving" }
-              : { direction: "degrading" }
-          }
+          trend={trends.fix_rate > 1 ? { direction: "improving" } : { direction: "degrading" }}
         />
       </div>
 
       {/* Severity Breakdown */}
       <Card padding="lg">
-        <h3 className="font-semibold text-white mb-4">
-          Current Severity Breakdown
-        </h3>
+        <h3 className="font-semibold text-white mb-4">Current Severity Breakdown</h3>
         <div className="grid grid-cols-5 gap-4">
           {[
             {
@@ -432,8 +393,8 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             {
               label: "Low",
               key: "low",
-              color: "bg-blue-500",
-              textColor: "text-blue-400",
+              color: "bg-cyan-500",
+              textColor: "text-cyan-400",
             },
             {
               label: "Info",
@@ -449,7 +410,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               </p>
               <p className="text-sm text-gray-400">{label}</p>
             </div>
-            ))}
+          ))}
         </div>
       </Card>
 
@@ -457,9 +418,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Weekly Trends */}
         <Card padding="lg">
-          <h3 className="font-semibold text-white mb-4">
-            Weekly Severity Trends
-          </h3>
+          <h3 className="font-semibold text-white mb-4">Weekly Severity Trends</h3>
           <SeverityTrendChart data={charts.weekly} />
         </Card>
 
@@ -469,13 +428,11 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <ClockIcon className="w-5 h-5 text-blue-500" />
+                <ClockIcon className="w-5 h-5 text-cyan-500" />
                 <span className="text-gray-200">Mean Time to Remediate</span>
               </div>
               <span className="font-semibold">
-                {current.mttr_hours
-                  ? `${(current.mttr_hours / 24).toFixed(1)} days`
-                  : "N/A"}
+                {current.mttr_hours ? `${(current.mttr_hours / 24).toFixed(1)} days` : "N/A"}
               </span>
             </div>
 
@@ -494,9 +451,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
                 <ShieldCheckIcon className="w-5 h-5 text-purple-500" />
                 <span className="text-gray-200">Coverage</span>
               </div>
-              <span className="font-semibold">
-                {((current.coverage || 0) * 100).toFixed(0)}%
-              </span>
+              <span className="font-semibold">{((current.coverage || 0) * 100).toFixed(0)}%</span>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
@@ -513,13 +468,9 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               <div className="flex items-center justify-between p-3 bg-green-900/30 rounded-lg">
                 <div className="flex items-center gap-3">
                   <CalendarIcon className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-200">
-                    Days to Target Score (90)
-                  </span>
+                  <span className="text-gray-200">Days to Target Score (90)</span>
                 </div>
-                <span className="font-semibold text-green-400">
-                  ~{trends.time_to_target} days
-                </span>
+                <span className="font-semibold text-green-400">~{trends.time_to_target} days</span>
               </div>
             )}
           </div>
@@ -529,19 +480,13 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
       {/* Period Comparison */}
       {comparison.current_period && (
         <Card padding="lg">
-          <h3 className="font-semibold text-white mb-4">
-            Period-over-Period Comparison
-          </h3>
+          <h3 className="font-semibold text-white mb-4">Period-over-Period Comparison</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gray-800/30 rounded-lg">
-              <p className="text-sm text-gray-400 mb-2">
-                Security Score Change
-              </p>
+              <p className="text-sm text-gray-400 mb-2">Security Score Change</p>
               <p
                 className={`text-3xl font-bold ${
-                  comparison.changes?.security_score >= 0
-                    ? "text-green-400"
-                    : "text-red-400"
+                  comparison.changes?.security_score >= 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
                 {comparison.changes?.security_score >= 0 ? "+" : ""}
@@ -554,9 +499,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               <p className="text-sm text-gray-400 mb-2">Finding Change</p>
               <p
                 className={`text-3xl font-bold ${
-                  comparison.changes?.findings_pct <= 0
-                    ? "text-green-400"
-                    : "text-red-400"
+                  comparison.changes?.findings_pct <= 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
                 {comparison.changes?.findings_pct > 0 ? "+" : ""}
@@ -568,9 +511,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             <div className="text-center p-4 bg-gray-800/30 rounded-lg">
               <p className="text-sm text-gray-400 mb-2">Trend Direction</p>
               <div className="flex items-center justify-center gap-2">
-                <TrendIndicator
-                  direction={comparison.changes?.direction || "stable"}
-                />
+                <TrendIndicator direction={comparison.changes?.direction || "stable"} />
                 <span className="text-lg font-medium capitalize">
                   {comparison.changes?.direction || "Stable"}
                 </span>
@@ -581,16 +522,11 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           {/* Insights */}
           {comparison.insights && comparison.insights.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-700/50">
-              <h4 className="text-sm font-medium text-gray-200 mb-2">
-                Key Insights
-              </h4>
+              <h4 className="text-sm font-medium text-gray-200 mb-2">Key Insights</h4>
               <ul className="space-y-1">
                 {comparison.insights.map((insight, index) => (
-                  <li
-                    key={index}
-                    className="text-sm text-gray-300 flex items-start gap-2"
-                  >
-                    <ChartBarSquareIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <li key={index} className="text-sm text-gray-300 flex items-start gap-2">
+                    <ChartBarSquareIcon className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
                     {insight}
                   </li>
                 ))}
@@ -602,14 +538,11 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
       {/* Notable Changes */}
       {data.notable_changes && data.notable_changes.length > 0 && (
-        <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4">
-          <h4 className="font-medium text-blue-300 mb-2">Notable Changes</h4>
+        <div className="bg-cyan-900/30 border border-cyan-700/50 rounded-lg p-4">
+          <h4 className="font-medium text-cyan-300 mb-2">Notable Changes</h4>
           <ul className="space-y-1">
             {data.notable_changes.map((change, index) => (
-              <li
-                key={index}
-                className="text-sm text-blue-300 flex items-center gap-2"
-              >
+              <li key={index} className="text-sm text-cyan-300 flex items-center gap-2">
                 <ChartBarIcon className="w-4 h-4" />
                 {change}
               </li>

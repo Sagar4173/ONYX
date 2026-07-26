@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  EnvelopeIcon,
-  CheckCircleIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import { EnvelopeIcon, CheckCircleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
 /**
@@ -11,11 +7,7 @@ import toast from "react-hot-toast";
  * Success message displayed after user registration
  * Shows email sent confirmation and provides options to resend or return to login
  */
-export const RegistrationSuccess = ({
-  email,
-  onSwitchToLogin,
-  onResendVerification,
-}) => {
+export const RegistrationSuccess = ({ email, onSwitchToLogin, onResendVerification }) => {
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
@@ -95,12 +87,8 @@ export const RegistrationSuccess = ({
         </h2>
 
         {/* Description */}
-        <p className="text-gray-300 mb-2">
-          Your account has been created successfully.
-        </p>
-        <p className="text-gray-400 mb-6 text-sm">
-          We've sent a verification email to:
-        </p>
+        <p className="text-gray-300 mb-2">Your account has been created successfully.</p>
+        <p className="text-gray-400 mb-6 text-sm">We've sent a verification email to:</p>
 
         {/* Email Display */}
         <div className="flex items-center justify-center gap-2 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 mb-6">
@@ -120,29 +108,21 @@ export const RegistrationSuccess = ({
             <>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <CheckCircleIcon className="h-5 w-5 text-cyan-400" />
-                <span className="font-semibold text-cyan-400">
-                  Email Resent Successfully!
-                </span>
+                <span className="font-semibold text-cyan-400">Email Resent Successfully!</span>
               </div>
               <p className="text-sm text-gray-300">
                 We've sent another verification email to your inbox.
               </p>
-              <p className="text-xs text-gray-400 mt-2">
-                Please check your inbox and spam folder.
-              </p>
+              <p className="text-xs text-gray-400 mt-2">Please check your inbox and spam folder.</p>
             </>
           ) : (
             <>
               <p className="text-sm text-gray-300">
-                <span className="font-semibold text-violet-400">
-                  Important:
-                </span>{" "}
-                Please check your email and click the verification link to
-                activate your account.
+                <span className="font-semibold text-violet-400">Important:</span> Please check your
+                email and click the verification link to activate your account.
               </p>
               <p className="text-xs text-gray-400 mt-2">
-                Check your spam folder if you don't see the email within a few
-                minutes.
+                Check your spam folder if you don't see the email within a few minutes.
               </p>
             </>
           )}
@@ -157,8 +137,8 @@ export const RegistrationSuccess = ({
               isResending || cooldownSeconds > 0
                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                 : resendSuccess
-                ? "bg-gradient-to-r from-violet-500 to-violet-600 text-white hover:from-violet-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-violet-500/25"
-                : "bg-gradient-to-r from-cyan-500 to-violet-600 text-white hover:from-cyan-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-cyan-500/25"
+                  ? "bg-gradient-to-r from-violet-500 to-violet-600 text-white hover:from-violet-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-violet-500/25"
+                  : "bg-gradient-to-r from-cyan-500 to-violet-600 text-white hover:from-cyan-600 hover:to-violet-700 transform hover:scale-105 hover:shadow-cyan-500/25"
             }`}
         >
           {getButtonContent()}

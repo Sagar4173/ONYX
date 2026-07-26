@@ -2,13 +2,7 @@
  * Authentication Context Provider
  * Manages authentication state across the application
  */
-import {
-  useState,
-  useEffect,
-  createContext,
-  useContext,
-  useCallback,
-} from "react";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import toast from "react-hot-toast";
 import { authAPI } from "../../services/api.js";
 
@@ -140,9 +134,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Handle other error types including 400, 401, etc.
         let errorMessage =
-          errorData?.detail ||
-          errorData?.message ||
-          "Login failed. Please check your credentials.";
+          errorData?.detail || errorData?.message || "Login failed. Please check your credentials.";
 
         // Clean up error codes like "400: " or "401: "
         if (typeof errorMessage === "string") {
@@ -158,9 +150,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      toast.success(
-        "Registration successful! Please check your email to verify your account."
-      );
+      toast.success("Registration successful! Please check your email to verify your account.");
       return response;
     } catch (error) {
       const errorData = error.response?.data;
@@ -262,9 +252,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         // Handle other error types - fallback
         const errorMessage =
-          errorData?.message ||
-          errorData?.detail ||
-          "Registration failed. Please try again.";
+          errorData?.message || errorData?.detail || "Registration failed. Please try again.";
         toast.error(errorMessage, { duration: 5000 });
       }
       throw error;
@@ -301,8 +289,7 @@ export const AuthProvider = ({ children }) => {
       toast.success("Password reset email sent! Check your inbox.");
     } catch (error) {
       const errorMessage =
-        error.response?.data?.detail ||
-        "Failed to send reset email. Please try again.";
+        error.response?.data?.detail || "Failed to send reset email. Please try again.";
       toast.error(errorMessage);
       throw error;
     }
@@ -314,8 +301,7 @@ export const AuthProvider = ({ children }) => {
       toast.success("Password reset successful! You can now login.");
     } catch (error) {
       const errorMessage =
-        error.response?.data?.detail ||
-        "Failed to reset password. Link may be expired.";
+        error.response?.data?.detail || "Failed to reset password. Link may be expired.";
       toast.error(errorMessage);
       throw error;
     }
@@ -326,8 +312,7 @@ export const AuthProvider = ({ children }) => {
       await authAPI.resendVerificationEmail(email);
       toast.success("Verification email sent! Check your inbox.");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.detail || "Failed to send verification email.";
+      const errorMessage = error.response?.data?.detail || "Failed to send verification email.";
       toast.error(errorMessage);
       throw error;
     }

@@ -26,7 +26,7 @@ const AboutPage = () => {
       title: "Security First",
       description:
         "We believe security should be accessible to every development team, not just enterprises with massive budgets.",
-      gradient: "from-cyan-500 to-blue-500",
+      gradient: "from-cyan-500 to-violet-500",
     },
     {
       icon: LightBulbIcon,
@@ -126,9 +126,8 @@ const AboutPage = () => {
           </h1>
 
           <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            We're on a mission to make world-class security accessible to every
-            development team, empowering developers to build secure software
-            without slowing down.
+            We're on a mission to make world-class security accessible to every development team,
+            empowering developers to build secure software without slowing down.
           </p>
         </div>
       </section>
@@ -138,20 +137,16 @@ const AboutPage = () => {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Our Mission
-              </h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
               <p className="text-gray-400 text-lg leading-relaxed mb-6">
-                Security vulnerabilities cost businesses billions of dollars
-                annually and erode user trust. Yet, most security tools are
-                either too complex, too expensive, or too slow for modern
-                development workflows.
+                Security vulnerabilities cost businesses billions of dollars annually and erode user
+                trust. Yet, most security tools are either too complex, too expensive, or too slow
+                for modern development workflows.
               </p>
               <p className="text-gray-400 text-lg leading-relaxed mb-6">
-                ONYX was built to change that. We combine the power of AI with
-                proven security scanning technologies to deliver fast, accurate,
-                and actionable security insights directly in your development
-                pipeline.
+                ONYX was built to change that. We combine the power of AI with proven security
+                scanning technologies to deliver fast, accurate, and actionable security insights
+                directly in your development pipeline.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -178,9 +173,7 @@ const AboutPage = () => {
                   className="p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-cyan-500/30 transition-all group"
                 >
                   <stat.icon className="w-8 h-8 text-cyan-400 mb-4 group-hover:scale-110 transition-transform" />
-                  <div className="text-3xl font-bold text-white mb-1">
-                    {stat.value}
-                  </div>
+                  <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
                   <div className="text-sm text-gray-400">{stat.label}</div>
                 </div>
               ))}
@@ -211,9 +204,7 @@ const AboutPage = () => {
                   <value.icon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{value.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  {value.description}
-                </p>
+                <p className="text-gray-400 text-sm leading-relaxed">{value.description}</p>
               </div>
             ))}
           </div>
@@ -225,9 +216,7 @@ const AboutPage = () => {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Journey</h2>
-            <p className="text-gray-400 text-lg">
-              Building security tools for the modern era
-            </p>
+            <p className="text-gray-400 text-lg">Building security tools for the modern era</p>
           </div>
 
           <div className="relative">
@@ -260,12 +249,10 @@ const AboutPage = () => {
 
         <div className="max-w-4xl mx-auto px-6 text-center relative">
           <OnyxLogo className="w-16 h-16 mx-auto mb-6" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Secure Your Code?
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Secure Your Code?</h2>
           <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Join developers who trust ONYX to protect their applications. Start
-            your free trial today — no credit card required.
+            Join developers who trust ONYX to protect their applications. Start your free trial
+            today — no credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -295,16 +282,10 @@ const AboutPage = () => {
             <Link to="/about" className="text-cyan-400">
               About
             </Link>
-            <Link
-              to="/terms"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
+            <Link to="/terms" className="text-gray-500 hover:text-gray-300 transition-colors">
               Terms
             </Link>
-            <Link
-              to="/legal"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
+            <Link to="/legal" className="text-gray-500 hover:text-gray-300 transition-colors">
               Data Policy
             </Link>
           </div>

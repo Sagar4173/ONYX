@@ -30,7 +30,11 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
     new_password: "",
     confirm_password: "",
   });
-  const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -246,17 +250,22 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getSecurityScoreColor(securityScore.score).gradient} flex items-center justify-center shadow-lg`}>
+              <div
+                className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getSecurityScoreColor(securityScore.score).gradient} flex items-center justify-center shadow-lg`}
+              >
                 <ShieldCheckIcon className="h-7 w-7 text-white" />
               </div>
-              <div className={`absolute -bottom-1 -right-1 w-6 h-6 ${getSecurityScoreColor(securityScore.score).bg} rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-gray-900`}>
+              <div
+                className={`absolute -bottom-1 -right-1 w-6 h-6 ${getSecurityScoreColor(securityScore.score).bg} rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-gray-900`}
+              >
                 {securityScore.score}
               </div>
             </div>
             <div>
               <h3 className="text-white font-bold text-lg">Security Overview</h3>
               <p className="text-gray-400 text-sm">
-                {securityScore.factors.filter((f) => f.completed).length} of {securityScore.factors.length} security measures active
+                {securityScore.factors.filter((f) => f.completed).length} of{" "}
+                {securityScore.factors.length} security measures active
               </p>
             </div>
           </div>
@@ -282,13 +291,18 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
               <h4 className="text-white font-semibold text-lg flex items-center gap-2">
                 Two-Factor Authentication
                 {loading2FA ? (
-                  <span className="px-2 py-0.5 text-xs bg-gray-500/20 text-gray-400 rounded-full">Loading...</span>
+                  <span className="px-2 py-0.5 text-xs bg-gray-500/20 text-gray-400 rounded-full">
+                    Loading...
+                  </span>
                 ) : twoFactorEnabled ? (
-                  <span className="px-2 py-0.5 text-xs bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">Active</span>
+                  <span className="px-2 py-0.5 text-xs bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
+                    Active
+                  </span>
                 ) : null}
               </h4>
               <p className="text-gray-400 text-sm mt-1 max-w-md">
-                Add an extra layer of security to your account by requiring a verification code in addition to your password.
+                Add an extra layer of security to your account by requiring a verification code in
+                addition to your password.
               </p>
               {!twoFactorEnabled && !loading2FA && (
                 <p className="text-amber-400 text-xs mt-2 flex items-center gap-1">
@@ -310,7 +324,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             <button
               onClick={() => setShowTwoFactorDisable(true)}
               disabled={processing2FA}
-              className="flex-shrink-0 px-4 py-2 text-sm text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl transition-all disabled:opacity-50"
+              className="flex-shrink-0 px-4 py-2 text-sm text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50"
             >
               {processing2FA ? "Processing..." : "Disable"}
             </button>
@@ -318,7 +332,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             <button
               onClick={handleSetup2FA}
               disabled={processing2FA}
-              className="flex-shrink-0 px-4 py-2 text-sm text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-xl transition-all disabled:opacity-50"
+              className="flex-shrink-0 px-4 py-2 text-sm text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50"
             >
               {processing2FA ? "Setting up..." : "Enable 2FA"}
             </button>
@@ -333,7 +347,9 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             </h5>
             <div className="space-y-4">
               <div className="text-center">
-                <p className="text-gray-400 text-sm mb-3">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                <p className="text-gray-400 text-sm mb-3">
+                  Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
+                </p>
                 <div className="inline-block p-4 bg-gray-800 rounded-xl">
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(twoFactorSetupData.qr_code_url)}`}
@@ -344,18 +360,27 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
               </div>
               <div className="text-center">
                 <p className="text-gray-400 text-xs mb-2">Or enter this secret manually:</p>
-                <code className="px-3 py-1.5 bg-gray-800 rounded text-sm text-purple-400 font-mono">{twoFactorSetupData.secret}</code>
+                <code className="px-3 py-1.5 bg-gray-800 rounded text-sm text-purple-400 font-mono">
+                  {twoFactorSetupData.secret}
+                </code>
               </div>
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
                 <p className="text-amber-400 text-xs font-medium mb-2">Save these backup codes:</p>
                 <div className="grid grid-cols-4 gap-2">
                   {twoFactorSetupData.backup_codes.map((code, i) => (
-                    <code key={i} className="text-xs text-gray-300 bg-gray-800 px-2 py-1 rounded text-center font-mono">{code}</code>
+                    <code
+                      key={i}
+                      className="text-xs text-gray-300 bg-gray-800 px-2 py-1 rounded text-center font-mono"
+                    >
+                      {code}
+                    </code>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="text-sm text-gray-300 mb-2">Enter the 6-digit code from your app:</label>
+                <label className="text-sm text-gray-300 mb-2">
+                  Enter the 6-digit code from your app:
+                </label>
                 <input
                   type="text"
                   value={twoFactorCode}
@@ -367,15 +392,19 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => { setShowTwoFactorSetup(false); setTwoFactorSetupData(null); setTwoFactorCode(""); }}
-                  className="flex-1 px-4 py-2.5 text-gray-400 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all"
+                  onClick={() => {
+                    setShowTwoFactorSetup(false);
+                    setTwoFactorSetupData(null);
+                    setTwoFactorCode("");
+                  }}
+                  className="flex-1 px-4 py-2.5 text-gray-400 bg-gray-800 hover:bg-gray-700 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleEnable2FA}
                   disabled={twoFactorCode.length !== 6 || processing2FA}
-                  className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processing2FA ? "Verifying..." : "Verify & Enable"}
                 </button>
@@ -392,32 +421,49 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             </h5>
             <div className="space-y-4">
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                <p className="text-red-400 text-sm">Disabling 2FA will make your account less secure. You'll need to enter your current 2FA code or a backup code to confirm.</p>
+                <p className="text-red-400 text-sm">
+                  Disabling 2FA will make your account less secure. You'll need to enter your
+                  current 2FA code or a backup code to confirm.
+                </p>
               </div>
               <div>
-                <label className="text-sm text-gray-300 mb-2 block">Enter your 2FA code or backup code:</label>
+                <label className="text-sm text-gray-300 mb-2 block">
+                  Enter your 2FA code or backup code:
+                </label>
                 <input
                   type="text"
                   value={disableCode}
-                  onChange={(e) => setDisableCode(e.target.value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase())}
+                  onChange={(e) =>
+                    setDisableCode(
+                      e.target.value
+                        .replace(/[^a-zA-Z0-9]/g, "")
+                        .slice(0, 8)
+                        .toUpperCase()
+                    )
+                  }
                   placeholder="000000 or BACKUP"
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-center text-xl tracking-widest font-mono focus:outline-none focus:border-red-500 uppercase"
                   maxLength={8}
                   autoFocus
                 />
-                <p className="text-gray-500 text-xs mt-2 text-center">Enter 6-digit code from your authenticator app or 8-character backup code</p>
+                <p className="text-gray-500 text-xs mt-2 text-center">
+                  Enter 6-digit code from your authenticator app or 8-character backup code
+                </p>
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => { setShowTwoFactorDisable(false); setDisableCode(""); }}
-                  className="flex-1 px-4 py-2.5 text-gray-400 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all"
+                  onClick={() => {
+                    setShowTwoFactorDisable(false);
+                    setDisableCode("");
+                  }}
+                  className="flex-1 px-4 py-2.5 text-gray-400 bg-gray-800 hover:bg-gray-700 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDisable2FA}
                   disabled={disableCode.length < 6 || processing2FA}
-                  className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processing2FA ? "Disabling..." : "Disable 2FA"}
                 </button>
@@ -427,16 +473,18 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
         )}
       </div>
 
-      <div className="bg-gray-800/30 border border-gray-700/50 hover:border-blue-500/30 rounded-2xl p-6 transition-all duration-300">
+      <div className="bg-gray-800/30 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-6 transition-all duration-300">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
-              <DevicePhoneMobileIcon className="h-6 w-6 text-blue-400" />
+            <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl">
+              <DevicePhoneMobileIcon className="h-6 w-6 text-cyan-400" />
             </div>
             <div>
               <h4 className="text-white font-semibold text-lg">Active Sessions</h4>
               <p className="text-gray-400 text-xs">
-                {loadingSessions ? "Loading..." : `${activeSessions.length} device${activeSessions.length !== 1 ? "s" : ""} logged in`}
+                {loadingSessions
+                  ? "Loading..."
+                  : `${activeSessions.length} device${activeSessions.length !== 1 ? "s" : ""} logged in`}
               </p>
             </div>
           </div>
@@ -444,7 +492,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             <button
               onClick={handleRevokeAllSessions}
               disabled={revokingSession === "all"}
-              className="px-3 py-1.5 text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all disabled:opacity-50"
+              className="px-3 py-1.5 text-xs text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50"
             >
               {revokingSession === "all" ? "Signing out..." : "Sign out all others"}
             </button>
@@ -481,13 +529,19 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`p-2.5 rounded-xl ${session.current ? "bg-indigo-500/20" : "bg-gray-700/50"}`}>
+                  <div
+                    className={`p-2.5 rounded-xl ${session.current ? "bg-indigo-500/20" : "bg-gray-700/50"}`}
+                  >
                     {session.device?.toLowerCase().includes("iphone") ||
                     session.device?.toLowerCase().includes("android") ||
                     session.device?.toLowerCase().includes("mobile") ? (
-                      <DevicePhoneMobileIcon className={`h-5 w-5 ${session.current ? "text-indigo-400" : "text-gray-400"}`} />
+                      <DevicePhoneMobileIcon
+                        className={`h-5 w-5 ${session.current ? "text-indigo-400" : "text-gray-400"}`}
+                      />
                     ) : (
-                      <ComputerDesktopIcon className={`h-5 w-5 ${session.current ? "text-indigo-400" : "text-gray-400"}`} />
+                      <ComputerDesktopIcon
+                        className={`h-5 w-5 ${session.current ? "text-indigo-400" : "text-gray-400"}`}
+                      />
                     )}
                   </div>
                   <div>
@@ -496,7 +550,9 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                       <span className="text-gray-500 text-xs">&bull;</span>
                       <p className="text-gray-400 text-xs">{session.browser}</p>
                       {session.current && (
-                        <span className="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">Current</span>
+                        <span className="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
+                          Current
+                        </span>
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-1">
@@ -516,7 +572,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                   <button
                     onClick={() => handleRevokeSession(session.id)}
                     disabled={revokingSession === session.id}
-                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
+                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50"
                   >
                     {revokingSession === session.id ? (
                       <ArrowPathIcon className="h-4 w-4 animate-spin" />
@@ -563,10 +619,16 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
               <button
                 type="button"
                 onClick={() => setShowPasswords((prev) => ({ ...prev, current: !prev.current }))}
-                aria-label={showPasswords.current ? "Hide current password" : "Show current password"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
+                aria-label={
+                  showPasswords.current ? "Hide current password" : "Show current password"
+                }
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-colors p-1"
               >
-                {showPasswords.current ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                {showPasswords.current ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -592,9 +654,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 type="button"
                 onClick={() => setShowPasswords((prev) => ({ ...prev, new: !prev.new }))}
                 aria-label={showPasswords.new ? "Hide new password" : "Show new password"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-colors p-1"
               >
-                {showPasswords.new ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                {showPasswords.new ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
               </button>
             </div>
             {passwordData.new_password && (
@@ -612,9 +678,15 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-500">
                     Password strength:{" "}
-                    <span className={
-                      passwordStrength.strength >= 4 ? "text-green-400" : passwordStrength.strength >= 3 ? "text-yellow-400" : "text-red-400"
-                    }>
+                    <span
+                      className={
+                        passwordStrength.strength >= 4
+                          ? "text-green-400"
+                          : passwordStrength.strength >= 3
+                            ? "text-yellow-400"
+                            : "text-red-400"
+                      }
+                    >
                       {passwordStrength.label}
                     </span>
                   </p>
@@ -651,11 +723,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 value={passwordData.confirm_password}
                 onChange={handlePasswordInputChange}
                 className={`w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all duration-300 ${
-                  passwordData.confirm_password && passwordData.new_password !== passwordData.confirm_password
+                  passwordData.confirm_password &&
+                  passwordData.new_password !== passwordData.confirm_password
                     ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                    : passwordData.confirm_password && passwordData.new_password === passwordData.confirm_password
-                    ? "border-green-500 focus:border-green-500 focus:ring-green-500/20"
-                    : "border-gray-700 hover:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500/20"
+                    : passwordData.confirm_password &&
+                        passwordData.new_password === passwordData.confirm_password
+                      ? "border-green-500 focus:border-green-500 focus:ring-green-500/20"
+                      : "border-gray-700 hover:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500/20"
                 }`}
                 placeholder="Confirm new password"
                 required
@@ -666,29 +740,40 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 type="button"
                 onClick={() => setShowPasswords((prev) => ({ ...prev, confirm: !prev.confirm }))}
                 aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-colors p-1"
               >
-                {showPasswords.confirm ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                {showPasswords.confirm ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
               </button>
             </div>
-            {passwordData.confirm_password && passwordData.new_password !== passwordData.confirm_password && (
-              <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
-                <XMarkIcon className="h-3.5 w-3.5" />
-                Passwords don't match
-              </p>
-            )}
-            {passwordData.confirm_password && passwordData.new_password === passwordData.confirm_password && (
-              <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
-                <CheckIcon className="h-3.5 w-3.5" />
-                Passwords match
-              </p>
-            )}
+            {passwordData.confirm_password &&
+              passwordData.new_password !== passwordData.confirm_password && (
+                <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                  <XMarkIcon className="h-3.5 w-3.5" />
+                  Passwords don't match
+                </p>
+              )}
+            {passwordData.confirm_password &&
+              passwordData.new_password === passwordData.confirm_password && (
+                <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
+                  <CheckIcon className="h-3.5 w-3.5" />
+                  Passwords match
+                </p>
+              )}
           </div>
 
           <button
             type="submit"
-            disabled={isChangingPassword || !passwordData.current_password || !passwordData.new_password || passwordData.new_password !== passwordData.confirm_password}
-            className="w-full py-4 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 group relative overflow-hidden"
+            disabled={
+              isChangingPassword ||
+              !passwordData.current_password ||
+              !passwordData.new_password ||
+              passwordData.new_password !== passwordData.confirm_password
+            }
+            className="w-full py-4 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             {isChangingPassword ? (
@@ -713,10 +798,12 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
           </div>
           <div className="flex-1">
             <h3 className="text-white font-semibold text-lg mb-1">Sign Out</h3>
-            <p className="text-gray-400 text-sm mb-4">Sign out from this device. You'll need to log in again to access your account.</p>
+            <p className="text-gray-400 text-sm mb-4">
+              Sign out from this device. You'll need to log in again to access your account.
+            </p>
             <button
               onClick={onLogout}
-              className="w-full py-3.5 px-6 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 text-red-400 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+              className="w-full py-3.5 px-6 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 text-red-400 font-semibold rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
               Sign Out

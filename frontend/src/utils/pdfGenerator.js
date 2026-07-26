@@ -13,8 +13,7 @@ export const applyPDFStyles = (element) => {
   element.style.backgroundColor = "#ffffff";
   element.style.color = "#1f2937";
   element.style.padding = "24px";
-  element.style.fontFamily =
-    "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+  element.style.fontFamily = "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
   element.style.fontSize = "12px";
   element.style.lineHeight = "1.6";
 
@@ -48,10 +47,7 @@ export const applyPDFStyles = (element) => {
       el.style.color = "#dc2626";
       el.style.fontWeight = "600";
     }
-    if (
-      el.classList.contains("text-orange-400") ||
-      el.classList.contains("text-orange-500")
-    ) {
+    if (el.classList.contains("text-orange-400") || el.classList.contains("text-orange-500")) {
       el.style.color = "#ea580c";
       el.style.fontWeight = "600";
     }
@@ -73,12 +69,11 @@ export const applyPDFStyles = (element) => {
       el.style.color = "#059669";
       el.style.fontWeight = "600";
     }
-    if (
-      el.classList.contains("text-blue-400") ||
-      el.classList.contains("text-blue-500") ||
-      el.classList.contains("text-cyan-400") ||
-      el.classList.contains("text-cyan-500")
-    ) {
+    if (el.classList.contains("text-cyan-400") || el.classList.contains("text-cyan-500")) {
+      el.style.color = "#06b6d4";
+      el.style.fontWeight = "600";
+    }
+    if (el.classList.contains("text-blue-400") || el.classList.contains("text-blue-500")) {
       el.style.color = "#2563eb";
       el.style.fontWeight = "600";
     }
@@ -91,10 +86,7 @@ export const applyPDFStyles = (element) => {
       el.style.color = "#7c3aed";
       el.style.fontWeight = "600";
     }
-    if (
-      el.classList.contains("text-pink-400") ||
-      el.classList.contains("text-pink-500")
-    ) {
+    if (el.classList.contains("text-pink-400") || el.classList.contains("text-pink-500")) {
       el.style.color = "#db2777";
       el.style.fontWeight = "600";
     }
@@ -120,10 +112,7 @@ export const applyPDFStyles = (element) => {
     }
 
     // Gray severity backgrounds (info level)
-    if (
-      el.classList.contains("bg-gray-500/10") ||
-      el.classList.contains("bg-gray-500/20")
-    ) {
+    if (el.classList.contains("bg-gray-500/10") || el.classList.contains("bg-gray-500/20")) {
       el.style.backgroundColor = "#f3f4f6";
       el.style.border = "1px solid #d1d5db";
     }
@@ -148,10 +137,7 @@ export const applyPDFStyles = (element) => {
       el.style.backgroundColor = "#fef2f2";
       el.style.border = "1px solid #fecaca";
     }
-    if (
-      el.classList.contains("bg-orange-500/10") ||
-      el.classList.contains("bg-orange-500/20")
-    ) {
+    if (el.classList.contains("bg-orange-500/10") || el.classList.contains("bg-orange-500/20")) {
       el.style.backgroundColor = "#fff7ed";
       el.style.border = "1px solid #fed7aa";
     }
@@ -171,11 +157,11 @@ export const applyPDFStyles = (element) => {
       el.style.backgroundColor = "#ecfdf5";
       el.style.border = "1px solid #a7f3d0";
     }
-    if (
-      el.classList.contains("bg-blue-500/10") ||
-      el.classList.contains("bg-blue-500/20") ||
-      el.classList.contains("bg-cyan-500/10")
-    ) {
+    if (el.classList.contains("bg-cyan-500/10")) {
+      el.style.backgroundColor = "#ecfeff";
+      el.style.border = "1px solid #67e8f9";
+    }
+    if (el.classList.contains("bg-blue-500/10") || el.classList.contains("bg-blue-500/20")) {
       el.style.backgroundColor = "#eff6ff";
       el.style.border = "1px solid #bfdbfe";
     }
@@ -198,10 +184,7 @@ export const applyPDFStyles = (element) => {
     ) {
       el.style.borderColor = "#e5e7eb";
     }
-    if (
-      el.classList.contains("border-red-500/30") ||
-      el.classList.contains("border-red-500")
-    ) {
+    if (el.classList.contains("border-red-500/30") || el.classList.contains("border-red-500")) {
       el.style.borderColor = "#fca5a5";
     }
     if (
@@ -216,26 +199,19 @@ export const applyPDFStyles = (element) => {
     ) {
       el.style.borderColor = "#fcd34d";
     }
-    if (
-      el.classList.contains("border-green-500/30") ||
-      el.classList.contains("border-green-500")
-    ) {
+    if (el.classList.contains("border-green-500/30") || el.classList.contains("border-green-500")) {
       el.style.borderColor = "#6ee7b7";
     }
-    if (
-      el.classList.contains("border-blue-500/30") ||
-      el.classList.contains("border-blue-500")
-    ) {
+    if (el.classList.contains("border-cyan-500/30") || el.classList.contains("border-cyan-500")) {
+      el.style.borderColor = "#67e8f9";
+    }
+    if (el.classList.contains("border-blue-500/30") || el.classList.contains("border-blue-500")) {
       el.style.borderColor = "#93c5fd";
     }
 
     // ===== SPECIAL ELEMENTS =====
     // Code blocks
-    if (
-      el.tagName === "CODE" ||
-      el.tagName === "PRE" ||
-      el.classList.contains("code-block")
-    ) {
+    if (el.tagName === "CODE" || el.tagName === "PRE" || el.classList.contains("code-block")) {
       el.style.backgroundColor = "#f3f4f6";
       el.style.color = "#1f2937";
       el.style.padding = "8px 12px";
@@ -434,10 +410,7 @@ export const applyPDFStyles = (element) => {
     }
 
     // Handle padding classes for badges - override with equal padding for centering
-    if (
-      el.classList.contains("py-1") &&
-      el.classList.contains("rounded-full")
-    ) {
+    if (el.classList.contains("py-1") && el.classList.contains("rounded-full")) {
       el.style.paddingTop = "5px";
       el.style.paddingBottom = "5px";
     }
@@ -480,9 +453,7 @@ export const applyPDFStyles = (element) => {
   });
 
   // Hide elements marked as no-print
-  const noPrintElements = element.querySelectorAll(
-    ".no-print, .print\\:hidden"
-  );
+  const noPrintElements = element.querySelectorAll(".no-print, .print\\:hidden");
   noPrintElements.forEach((el) => {
     el.style.display = "none";
   });
@@ -521,11 +492,7 @@ const createExecutiveSummarySection = (reportData) => {
       <p style="font-size: 12px; color: #475569; margin: 0; line-height: 1.5;">
         This security assessment identified <strong style="color: #1e40af;">${totalFindings}</strong> total findings 
         with a security score of <strong style="color: ${
-          securityScore >= 80
-            ? "#059669"
-            : securityScore >= 60
-            ? "#d97706"
-            : "#dc2626"
+          securityScore >= 80 ? "#059669" : securityScore >= 60 ? "#d97706" : "#dc2626"
         };">${securityScore}/100</strong>.
       </p>
     </div>
@@ -555,30 +522,26 @@ const createExecutiveSummarySection = (reportData) => {
             riskScore <= 25
               ? "#059669"
               : riskScore <= 50
-              ? "#d97706"
-              : riskScore <= 75
-              ? "#ea580c"
-              : "#dc2626"
+                ? "#d97706"
+                : riskScore <= 75
+                  ? "#ea580c"
+                  : "#dc2626"
           }; font-weight: 600;">
             ${
               riskScore <= 25
                 ? "Low"
                 : riskScore <= 50
-                ? "Medium"
-                : riskScore <= 75
-                ? "High"
-                : "Critical"
+                  ? "Medium"
+                  : riskScore <= 75
+                    ? "High"
+                    : "Critical"
             } (${riskScore}%)
           </span>
         </div>
         <div style="font-size: 11px; color: #64748b;">
           <strong>Security Score:</strong> 
           <span style="color: ${
-            securityScore >= 80
-              ? "#059669"
-              : securityScore >= 60
-              ? "#d97706"
-              : "#dc2626"
+            securityScore >= 80 ? "#059669" : securityScore >= 60 ? "#d97706" : "#dc2626"
           }; font-weight: 600;">
             ${securityScore}/100
           </span>
@@ -767,9 +730,7 @@ export const generatePDF = async (element, options = {}) => {
         <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 10px; color: #94a3b8;">
           <span>© ${new Date().getFullYear()} ONYX Security</span>
           <span>|</span>
-          <span>${
-            confidential ? "🔒 Confidential Document" : "Security Report"
-          }</span>
+          <span>${confidential ? "🔒 Confidential Document" : "Security Report"}</span>
           <span>|</span>
           <span>v1.0</span>
         </div>

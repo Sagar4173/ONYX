@@ -3,7 +3,7 @@
  * Wraps authenticated pages with sidebar, header, footer and main content area
  */
 import { useState, useEffect, lazy, Suspense } from "react";
-import { Outlet, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { PageTransition } from "../styles/components";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
@@ -13,7 +13,7 @@ const ComplianceRedirect = () => {
   return <Navigate to={`/report/${reportId}`} replace />;
 };
 import toast from "react-hot-toast";
-import Sidebar, { MobileMenuButton } from "./Sidebar";
+import Sidebar from "./Sidebar";
 import Header from "./Header";
 import Footer from "./Footer";
 import { useAuth, VerificationBanner, AdminRoute } from "../components/auth";
@@ -40,7 +40,7 @@ const Settings = lazy(() => import("../components/settings/Settings"));
  * Main Layout with Sidebar and Header
  */
 export const MainLayout = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user: _user, isAuthenticated: _isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -97,9 +97,7 @@ export const MainLayout = () => {
         if (scanStatus === "started") {
           notificationMessage = `🔍 Scan started for ${projectName}`;
         } else if (scanStatus === "running") {
-          notificationMessage = `⏳ Scanning ${projectName}... ${
-            progress || 0
-          }%`;
+          notificationMessage = `⏳ Scanning ${projectName}... ${progress || 0}%`;
         } else if (scanStatus === "completed") {
           const findings = scanData.total_findings || 0;
           notificationMessage = `✅ Scan completed for ${projectName} - ${findings} findings`;
@@ -130,10 +128,9 @@ export const MainLayout = () => {
         const critical = scanData.findings_by_severity?.critical || 0;
         const high = scanData.findings_by_severity?.high || 0;
         if (critical > 0) {
-          toast.error(
-            `🚨 ${critical} CRITICAL issues found in ${projectName}!`,
-            { duration: 6000 }
-          );
+          toast.error(`🚨 ${critical} CRITICAL issues found in ${projectName}!`, {
+            duration: 6000,
+          });
         } else if (high > 0) {
           toast.warning(`⚠️ ${high} high severity issues in ${projectName}`, {
             duration: 5000,
@@ -168,10 +165,7 @@ export const MainLayout = () => {
       ]);
 
       // Show toast based on alert type
-      if (
-        alertType === "vulnerability" &&
-        (severity === "critical" || severity === "high")
-      ) {
+      if (alertType === "vulnerability" && (severity === "critical" || severity === "high")) {
         toast.error(`🚨 ${message}`, { duration: 8000 });
       } else if (alertType === "new_login") {
         toast(`🔐 ${message}`, { duration: 5000 });
@@ -197,6 +191,16 @@ export const MainLayout = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2 focus:bg-gray-900 focus:text-cyan-400 focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("main-content")?.focus();
+        }}
+      >
+        Skip to content
+      </a>
       {/* Sidebar - Handles both mobile and desktop */}
       <Sidebar
         collapsed={sidebarCollapsed}
@@ -224,87 +228,143 @@ export const MainLayout = () => {
         <VerificationBanner />
 
         <main id="main-content" className="flex-1 relative overflow-auto">
-          <Suspense fallback={
-            <div className="animate-pulse space-y-6 p-6">
-              <div className="h-8 w-64 bg-gray-700 rounded-lg" />
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="h-28 bg-gray-700/50 rounded-xl" />
-                <div className="h-28 bg-gray-700/50 rounded-xl" />
-                <div className="h-28 bg-gray-700/50 rounded-xl" />
-                <div className="h-28 bg-gray-700/50 rounded-xl" />
+          <Suspense
+            fallback={
+              <div className="animate-pulse space-y-6 p-6">
+                <div className="h-8 w-64 bg-gray-700 rounded-lg" />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="h-28 bg-gray-700/50 rounded-xl" />
+                  <div className="h-28 bg-gray-700/50 rounded-xl" />
+                  <div className="h-28 bg-gray-700/50 rounded-xl" />
+                  <div className="h-28 bg-gray-700/50 rounded-xl" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="h-64 bg-gray-700/50 rounded-xl" />
+                  <div className="h-64 bg-gray-700/50 rounded-xl" />
+                  <div className="h-64 bg-gray-700/50 rounded-xl" />
+                </div>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="h-64 bg-gray-700/50 rounded-xl" />
-                <div className="h-64 bg-gray-700/50 rounded-xl" />
-                <div className="h-64 bg-gray-700/50 rounded-xl" />
-              </div>
-            </div>
-          }>
-          <PageTransition>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route
-              path="/dashboard"
-              element={<ErrorBoundary><Dashboard notifications={notifications} /></ErrorBoundary>}
-            />
-            <Route path="/projects" element={<ErrorBoundary><ProjectManagement /></ErrorBoundary>} />
-            <Route path="/project/:projectId" element={<ErrorBoundary><ProjectDetails /></ErrorBoundary>} />
-            <Route
-              path="/users"
-              element={
-                <ErrorBoundary>
-                  <AdminRoute>
-                    <UserManagement />
-                  </AdminRoute>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/audit-logs"
-              element={
-                <ErrorBoundary>
-                  <AdminRoute>
-                    <AuditLogs />
-                  </AdminRoute>
-                </ErrorBoundary>
-              }
-            />
-            <Route
-              path="/retention-policies"
-              element={
-                <ErrorBoundary>
-                  <AdminRoute>
-                    <DataRetentionPolicies />
-                  </AdminRoute>
-                </ErrorBoundary>
-              }
-            />
-            <Route path="/compliance" element={<ErrorBoundary><AdvancedCompliance /></ErrorBoundary>} />
-            <Route path="/reports" element={<ErrorBoundary><Reports /></ErrorBoundary>} />
-            <Route
-              path="/report/:reportId"
-              element={<ErrorBoundary><EnhancedReportDetails /></ErrorBoundary>}
-            />
-            {/* Redirect /compliance/:reportId to unified /report/:reportId */}
-            <Route
-              path="/compliance/:reportId"
-              element={<ComplianceRedirect />}
-            />
-            <Route path="/analytics" element={<ErrorBoundary><Analytics /></ErrorBoundary>} />
-            <Route
-              path="/admin"
-              element={
-                <ErrorBoundary>
-                  <AdminRoute>
-                    <AdminDashboard />
-                  </AdminRoute>
-                </ErrorBoundary>
-              }
-            />
-            <Route path="/settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
-            <Route path="*" element={<ErrorBoundary><NotFound /></ErrorBoundary>} />
-          </Routes>
-          </PageTransition>
+            }
+          >
+            <PageTransition>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ErrorBoundary>
+                      <Dashboard notifications={notifications} />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/projects"
+                  element={
+                    <ErrorBoundary>
+                      <ProjectManagement />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/project/:projectId"
+                  element={
+                    <ErrorBoundary>
+                      <ProjectDetails />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/users"
+                  element={
+                    <ErrorBoundary>
+                      <AdminRoute>
+                        <UserManagement />
+                      </AdminRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/audit-logs"
+                  element={
+                    <ErrorBoundary>
+                      <AdminRoute>
+                        <AuditLogs />
+                      </AdminRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/retention-policies"
+                  element={
+                    <ErrorBoundary>
+                      <AdminRoute>
+                        <DataRetentionPolicies />
+                      </AdminRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/compliance"
+                  element={
+                    <ErrorBoundary>
+                      <AdvancedCompliance />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ErrorBoundary>
+                      <Reports />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/report/:reportId"
+                  element={
+                    <ErrorBoundary>
+                      <EnhancedReportDetails />
+                    </ErrorBoundary>
+                  }
+                />
+                {/* Redirect /compliance/:reportId to unified /report/:reportId */}
+                <Route path="/compliance/:reportId" element={<ComplianceRedirect />} />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ErrorBoundary>
+                      <Analytics />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ErrorBoundary>
+                      <AdminRoute>
+                        <AdminDashboard />
+                      </AdminRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ErrorBoundary>
+                      <Settings />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <ErrorBoundary>
+                      <NotFound />
+                    </ErrorBoundary>
+                  }
+                />
+              </Routes>
+            </PageTransition>
           </Suspense>
         </main>
 
@@ -313,15 +373,10 @@ export const MainLayout = () => {
       </div>
 
       {/* User Profile Modal */}
-      {profileModalOpen && (
-        <UserProfile onClose={() => setProfileModalOpen(false)} />
-      )}
+      {profileModalOpen && <UserProfile onClose={() => setProfileModalOpen(false)} />}
 
       {/* Command Palette */}
-      <CommandPalette
-        isOpen={commandPaletteOpen}
-        onClose={() => setCommandPaletteOpen(false)}
-      />
+      <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </div>
   );
 };

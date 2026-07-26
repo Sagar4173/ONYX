@@ -3,11 +3,7 @@
  * Clean, modular architecture with separated concerns
  */
 import { useState } from "react";
-import {
-  BrowserRouter as Router,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter as Router, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
@@ -61,8 +57,7 @@ function AppContent() {
   // Auth routes - redirect to dashboard if already logged in
   const authRoutes = ["/login", "/register"];
   const isAuthRoute = authRoutes.some(
-    (route) =>
-      location.pathname === route || location.pathname.startsWith(route)
+    (route) => location.pathname === route || location.pathname.startsWith(route)
   );
 
   // Public routes that don't require authentication
@@ -89,12 +84,7 @@ function AppContent() {
   }
 
   // If not authenticated, handle public routes or show auth modal
-  return (
-    <AuthRoutingHandler
-      authModalOpen={authModalOpen}
-      setAuthModalOpen={setAuthModalOpen}
-    />
-  );
+  return <AuthRoutingHandler authModalOpen={authModalOpen} setAuthModalOpen={setAuthModalOpen} />;
 }
 
 /**

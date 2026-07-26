@@ -15,24 +15,16 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  CogIcon,
   BoltIcon,
-  GlobeAltIcon,
   ServerIcon,
   CommandLineIcon,
   EyeIcon,
-  PencilIcon,
   TrashIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   ArrowPathIcon,
   UserPlusIcon,
-  UserMinusIcon,
   KeyIcon,
-  BuildingOfficeIcon,
-  CalendarDaysIcon,
   FireIcon,
-  SparklesIcon,
   LockClosedIcon,
   LockOpenIcon,
 } from "@heroicons/react/24/outline";
@@ -88,11 +80,7 @@ const HealthScoreRing = ({ score }) => {
 
   return (
     <div className="relative inline-flex items-center justify-center">
-      <svg
-        height={radius * 2}
-        width={radius * 2}
-        className="transform -rotate-90"
-      >
+      <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
         <circle
           stroke="#374151"
           fill="transparent"
@@ -146,12 +134,10 @@ const ActivityItem = ({ activity }) => {
   };
 
   const getColor = () => {
-    if (activity.type.includes("completed"))
-      return "text-green-400 bg-green-500/20";
+    if (activity.type.includes("completed")) return "text-green-400 bg-green-500/20";
     if (activity.type.includes("failed")) return "text-red-400 bg-red-500/20";
-    if (activity.type.includes("user")) return "text-blue-400 bg-blue-500/20";
-    if (activity.type.includes("project"))
-      return "text-purple-400 bg-purple-500/20";
+    if (activity.type.includes("user")) return "text-cyan-400 bg-cyan-500/20";
+    if (activity.type.includes("project")) return "text-purple-400 bg-purple-500/20";
     return "text-gray-400 bg-gray-500/20";
   };
 
@@ -188,7 +174,7 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
     const colors = {
       admin: "bg-red-500/20 text-red-400 border-red-500/30",
       security_manager: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      developer: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      developer: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
       viewer: "bg-gray-500/20 text-gray-400 border-gray-500/30",
     };
     return colors[role] || colors.viewer;
@@ -212,7 +198,7 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
     >
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center text-white font-semibold">
             {user.username?.charAt(0).toUpperCase() || "U"}
           </div>
           <div>
@@ -222,20 +208,12 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
         </div>
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`px-2 py-1 text-xs rounded-full border ${getRoleBadge(
-            user.role
-          )}`}
-        >
+        <span className={`px-2 py-1 text-xs rounded-full border ${getRoleBadge(user.role)}`}>
           {user.role?.replace("_", " ")}
         </span>
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(
-            user.status
-          )}`}
-        >
+        <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(user.status)}`}>
           {user.status?.replace("_", " ")}
         </span>
       </td>
@@ -252,9 +230,7 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
         </div>
       </td>
       <td className="px-4 py-3 text-sm text-gray-500">
-        {user.last_login
-          ? new Date(user.last_login).toLocaleDateString()
-          : "Never"}
+        {user.last_login ? new Date(user.last_login).toLocaleDateString() : "Never"}
       </td>
       <td className="px-4 py-3">
         <div
@@ -264,14 +240,14 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
         >
           <button
             onClick={() => onEditRole(user)}
-            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             title="Change Role"
           >
             <KeyIcon className="h-4 w-4" />
           </button>
           <button
             onClick={() => onEditStatus(user)}
-            className="p-1.5 text-gray-400 hover:text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-amber-400 hover:bg-amber-500/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             title="Change Status"
           >
             {user.status === "active" ? (
@@ -282,7 +258,7 @@ const UserRow = ({ user, onEditRole, onEditStatus, onDelete }) => {
           </button>
           <button
             onClick={() => onDelete(user)}
-            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             title="Delete User"
           >
             <TrashIcon className="h-4 w-4" />
@@ -307,26 +283,20 @@ const ProjectRow = ({ project, onDelete }) => {
         <div>
           <Link
             to={`/project/${project.id}`}
-            className="text-sm font-medium text-white hover:text-blue-400 transition-colors"
+            className="text-sm font-medium text-white hover:text-cyan-400 transition-colors"
           >
             {project.name}
           </Link>
-          <p className="text-xs text-gray-500 truncate max-w-xs">
-            {project.description}
-          </p>
+          <p className="text-xs text-gray-500 truncate max-w-xs">{project.description}</p>
         </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <UsersIcon className="h-4 w-4 text-gray-500" />
-          <span className="text-sm text-gray-400">
-            {project.owner?.username || "Unknown"}
-          </span>
+          <span className="text-sm text-gray-400">{project.owner?.username || "Unknown"}</span>
         </div>
       </td>
-      <td className="px-4 py-3 text-sm text-gray-400">
-        {project.total_scans || 0} scans
-      </td>
+      <td className="px-4 py-3 text-sm text-gray-400">{project.total_scans || 0} scans</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           {project.critical_findings > 0 && (
@@ -334,15 +304,11 @@ const ProjectRow = ({ project, onDelete }) => {
               {project.critical_findings} critical
             </span>
           )}
-          <span className="text-sm text-gray-400">
-            {project.total_findings || 0} total
-          </span>
+          <span className="text-sm text-gray-400">{project.total_findings || 0} total</span>
         </div>
       </td>
       <td className="px-4 py-3 text-sm text-gray-500">
-        {project.created_at
-          ? new Date(project.created_at).toLocaleDateString()
-          : "Unknown"}
+        {project.created_at ? new Date(project.created_at).toLocaleDateString() : "Unknown"}
       </td>
       <td className="px-4 py-3">
         <div
@@ -352,14 +318,14 @@ const ProjectRow = ({ project, onDelete }) => {
         >
           <Link
             to={`/project/${project.id}`}
-            className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/20 rounded-lg transition-colors"
             title="View Project"
           >
             <EyeIcon className="h-4 w-4" />
           </Link>
           <button
             onClick={() => onDelete(project)}
-            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             title="Delete Project"
           >
             <TrashIcon className="h-4 w-4" />
@@ -377,7 +343,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [userSearch, setUserSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
-  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
+  const [_selectedUserForEdit, _setSelectedUserForEdit] = useState(null);
   const [editModal, setEditModal] = useState({ type: null, user: null });
 
   // Check admin access
@@ -386,8 +352,8 @@ const AdminDashboard = () => {
   // Fetch dashboard stats
   const {
     data: stats,
-    isLoading: statsLoading,
-    refetch: refetchStats,
+    isLoading: _statsLoading,
+    refetch: _refetchStats,
   } = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: adminAPI.getDashboardStats,
@@ -405,8 +371,7 @@ const AdminDashboard = () => {
   // Fetch all projects
   const { data: projectsData, isLoading: projectsLoading } = useQuery({
     queryKey: ["admin-projects", projectSearch],
-    queryFn: () =>
-      adminAPI.getAllProjects({ search: projectSearch, limit: 100 }),
+    queryFn: () => adminAPI.getAllProjects({ search: projectSearch, limit: 100 }),
     enabled: isAdmin && activeTab === "projects",
   });
 
@@ -432,8 +397,7 @@ const AdminDashboard = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ userId, status }) =>
-      adminAPI.updateUserStatus(userId, status),
+    mutationFn: ({ userId, status }) => adminAPI.updateUserStatus(userId, status),
     onSuccess: () => {
       toast.success("User status updated successfully");
       queryClient.invalidateQueries(["admin-users"]);
@@ -478,18 +442,14 @@ const AdminDashboard = () => {
             <div className="w-20 h-20 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <LockClosedIcon className="w-10 h-10 text-red-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">
-              Admin Access Required
-            </h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Admin Access Required</h2>
             <p className="text-gray-400 mb-6">
-              This area is restricted to administrators only. Please contact
-              your system administrator if you need access to these features.
+              This area is restricted to administrators only. Please contact your system
+              administrator if you need access to these features.
             </p>
             <p className="text-sm text-gray-500">
               Your current role:{" "}
-              <span className="text-blue-400 font-medium">
-                {user?.role || "Unknown"}
-              </span>
+              <span className="text-cyan-400 font-medium">{user?.role || "Unknown"}</span>
             </p>
           </div>
         </div>
@@ -521,8 +481,7 @@ const AdminDashboard = () => {
                 </span>
               </h1>
               <p className="text-gray-400 mt-1">
-                Complete system control and monitoring • Logged in as{" "}
-                {user?.username}
+                Complete system control and monitoring • Logged in as {user?.username}
               </p>
             </div>
           </div>
@@ -535,7 +494,7 @@ const AdminDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                   activeTab === tab.id
                     ? "bg-gradient-to-r from-red-500 to-orange-600 text-white shadow-lg"
                     : "text-gray-400 hover:text-white hover:bg-gray-700/50"
@@ -580,12 +539,18 @@ const AdminDashboard = () => {
               <StatCard
                 title="Total Findings"
                 value={stats?.scans?.total_findings || 0}
-                subtitle={`${
-                  stats?.scans?.findings_by_severity?.critical || 0
-                } critical`}
+                subtitle={`${stats?.scans?.findings_by_severity?.critical || 0} critical`}
                 icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
-                gradient={stats?.scans?.findings_by_severity?.critical > 0 ? colorToGradient.red : colorToGradient.green}
-                bgGradient={stats?.scans?.findings_by_severity?.critical > 0 ? colorToBgGradient.red : colorToBgGradient.green}
+                gradient={
+                  stats?.scans?.findings_by_severity?.critical > 0
+                    ? colorToGradient.red
+                    : colorToGradient.green
+                }
+                bgGradient={
+                  stats?.scans?.findings_by_severity?.critical > 0
+                    ? colorToBgGradient.red
+                    : colorToBgGradient.green
+                }
               />
             </div>
 
@@ -610,9 +575,7 @@ const AdminDashboard = () => {
               <StatCard
                 title="Scan Success Rate"
                 value={`${stats?.scans?.success_rate || 0}%`}
-                subtitle={`${
-                  stats?.scans?.by_status?.completed || 0
-                } completed`}
+                subtitle={`${stats?.scans?.by_status?.completed || 0} completed`}
                 icon={<CheckCircleIcon className="h-5 w-5 text-white" />}
                 gradient={colorToGradient.green}
                 bgGradient={colorToBgGradient.green}
@@ -634,21 +597,14 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-400">Users by Role</span>
                   </div>
-                  {Object.entries(stats?.users?.by_role || {}).map(
-                    ([role, count]) => (
-                      <div
-                        key={role}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="text-sm text-gray-500 capitalize">
-                          {role.replace("_", " ")}
-                        </span>
-                        <span className="text-sm text-white font-medium">
-                          {count}
-                        </span>
-                      </div>
-                    )
-                  )}
+                  {Object.entries(stats?.users?.by_role || {}).map(([role, count]) => (
+                    <div key={role} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500 capitalize">
+                        {role.replace("_", " ")}
+                      </span>
+                      <span className="text-sm text-white font-medium">{count}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -660,10 +616,8 @@ const AdminDashboard = () => {
                     Recent Activity
                   </h3>
                   <button
-                    onClick={() =>
-                      queryClient.invalidateQueries(["admin-activity"])
-                    }
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+                    onClick={() => queryClient.invalidateQueries(["admin-activity"])}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                   >
                     <ArrowPathIcon className="h-4 w-4" />
                   </button>
@@ -676,9 +630,7 @@ const AdminDashboard = () => {
                   ) : (
                     activityData?.activities
                       ?.slice(0, 10)
-                      .map((activity, index) => (
-                        <ActivityItem key={index} activity={activity} />
-                      ))
+                      .map((activity, index) => <ActivityItem key={index} activity={activity} />)
                   )}
                 </div>
               </div>
@@ -691,35 +643,30 @@ const AdminDashboard = () => {
                 Findings by Severity (All Projects)
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {["critical", "high", "medium", "low", "info"].map(
-                  (severity) => {
-                    const count =
-                      stats?.scans?.findings_by_severity?.[severity] || 0;
-                    const total = stats?.scans?.total_findings || 1;
-                    const percentage = Math.round((count / total) * 100) || 0;
-                    const colors = {
-                      critical: "bg-red-500",
-                      high: "bg-orange-500",
-                      medium: "bg-amber-500",
-                      low: "bg-blue-500",
-                      info: "bg-gray-500",
-                    };
-                    return (
-                      <div key={severity} className="text-center">
-                        <div className="h-24 flex items-end justify-center mb-2">
-                          <div
-                            className={`w-full max-w-[60px] ${colors[severity]} rounded-t-lg transition-all duration-500`}
-                            style={{ height: `${Math.max(percentage, 5)}%` }}
-                          />
-                        </div>
-                        <p className="text-2xl font-bold text-white">{count}</p>
-                        <p className="text-xs text-gray-500 capitalize">
-                          {severity}
-                        </p>
+                {["critical", "high", "medium", "low", "info"].map((severity) => {
+                  const count = stats?.scans?.findings_by_severity?.[severity] || 0;
+                  const total = stats?.scans?.total_findings || 1;
+                  const percentage = Math.round((count / total) * 100) || 0;
+                  const colors = {
+                    critical: "bg-red-500",
+                    high: "bg-orange-500",
+                    medium: "bg-amber-500",
+                    low: "bg-cyan-500",
+                    info: "bg-gray-500",
+                  };
+                  return (
+                    <div key={severity} className="text-center">
+                      <div className="h-24 flex items-end justify-center mb-2">
+                        <div
+                          className={`w-full max-w-[60px] ${colors[severity]} rounded-t-lg transition-all duration-500`}
+                          style={{ height: `${Math.max(percentage, 5)}%` }}
+                        />
                       </div>
-                    );
-                  }
-                )}
+                      <p className="text-2xl font-bold text-white">{count}</p>
+                      <p className="text-xs text-gray-500 capitalize">{severity}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -737,12 +684,12 @@ const AdminDashboard = () => {
                   placeholder="Search users by name, email..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
               <button
                 onClick={() => queryClient.invalidateQueries(["admin-users"])}
-                className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors"
+                className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <ArrowPathIcon className="h-5 w-5" />
               </button>
@@ -785,18 +732,10 @@ const AdminDashboard = () => {
                       <UserRow
                         key={u.id}
                         user={u}
-                        onEditRole={(u) =>
-                          setEditModal({ type: "role", user: u })
-                        }
-                        onEditStatus={(u) =>
-                          setEditModal({ type: "status", user: u })
-                        }
+                        onEditRole={(u) => setEditModal({ type: "role", user: u })}
+                        onEditStatus={(u) => setEditModal({ type: "status", user: u })}
                         onDelete={(u) => {
-                          if (
-                            confirm(
-                              `Are you sure you want to delete user "${u.username}"?`
-                            )
-                          ) {
+                          if (confirm(`Are you sure you want to delete user "${u.username}"?`)) {
                             deleteUserMutation.mutate(u.id);
                           }
                         }}
@@ -807,8 +746,7 @@ const AdminDashboard = () => {
               </table>
               {usersData?.pagination && (
                 <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-500">
-                  Showing {usersData.users?.length || 0} of{" "}
-                  {usersData.pagination.total} users
+                  Showing {usersData.users?.length || 0} of {usersData.pagination.total} users
                 </div>
               )}
             </div>
@@ -827,14 +765,12 @@ const AdminDashboard = () => {
                   placeholder="Search projects..."
                   value={projectSearch}
                   onChange={(e) => setProjectSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
               <button
-                onClick={() =>
-                  queryClient.invalidateQueries(["admin-projects"])
-                }
-                className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors"
+                onClick={() => queryClient.invalidateQueries(["admin-projects"])}
+                className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <ArrowPathIcon className="h-5 w-5" />
               </button>
@@ -893,8 +829,8 @@ const AdminDashboard = () => {
               </table>
               {projectsData?.pagination && (
                 <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-500">
-                  Showing {projectsData.projects?.length || 0} of{" "}
-                  {projectsData.pagination.total} projects
+                  Showing {projectsData.projects?.length || 0} of {projectsData.pagination.total}{" "}
+                  projects
                 </div>
               )}
             </div>
@@ -910,10 +846,8 @@ const AdminDashboard = () => {
                 System Activity Log
               </h3>
               <button
-                onClick={() =>
-                  queryClient.invalidateQueries(["admin-activity"])
-                }
-                className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-colors flex items-center gap-2"
+                onClick={() => queryClient.invalidateQueries(["admin-activity"])}
+                className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-colors flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <ArrowPathIcon className="h-4 w-4" />
                 Refresh
@@ -937,43 +871,35 @@ const AdminDashboard = () => {
         {editModal.type === "role" && editModal.user && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Change User Role
-              </h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Change User Role</h3>
               <p className="text-gray-400 mb-4">
                 Updating role for{" "}
-                <span className="text-white font-medium">
-                  {editModal.user.username}
-                </span>
+                <span className="text-white font-medium">{editModal.user.username}</span>
               </p>
               <div className="space-y-2 mb-6">
-                {["admin", "security_manager", "developer", "viewer"].map(
-                  (role) => (
-                    <button
-                      key={role}
-                      onClick={() =>
-                        updateRoleMutation.mutate({
-                          userId: editModal.user.id,
-                          role,
-                        })
-                      }
-                      disabled={updateRoleMutation.isPending}
-                      className={`w-full p-3 rounded-lg border text-left transition-colors ${
-                        editModal.user.role === role
-                          ? "border-blue-500 bg-blue-500/20 text-white"
-                          : "border-gray-700 hover:border-gray-600 text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      <span className="capitalize">
-                        {role.replace("_", " ")}
-                      </span>
-                    </button>
-                  )
-                )}
+                {["admin", "security_manager", "developer", "viewer"].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() =>
+                      updateRoleMutation.mutate({
+                        userId: editModal.user.id,
+                        role,
+                      })
+                    }
+                    disabled={updateRoleMutation.isPending}
+                    className={`w-full p-3 rounded-lg border text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                      editModal.user.role === role
+                        ? "border-cyan-500 bg-cyan-500/20 text-white"
+                        : "border-gray-700 hover:border-gray-600 text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="capitalize">{role.replace("_", " ")}</span>
+                  </button>
+                ))}
               </div>
               <button
                 onClick={() => setEditModal({ type: null, user: null })}
-                className="w-full py-2 text-gray-400 hover:text-white transition-colors"
+                className="w-full py-2 text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 Cancel
               </button>
@@ -985,22 +911,13 @@ const AdminDashboard = () => {
         {editModal.type === "status" && editModal.user && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Change User Status
-              </h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Change User Status</h3>
               <p className="text-gray-400 mb-4">
                 Updating status for{" "}
-                <span className="text-white font-medium">
-                  {editModal.user.username}
-                </span>
+                <span className="text-white font-medium">{editModal.user.username}</span>
               </p>
               <div className="space-y-2 mb-6">
-                {[
-                  "active",
-                  "inactive",
-                  "suspended",
-                  "pending_verification",
-                ].map((status) => (
+                {["active", "inactive", "suspended", "pending_verification"].map((status) => (
                   <button
                     key={status}
                     onClick={() =>
@@ -1010,21 +927,19 @@ const AdminDashboard = () => {
                       })
                     }
                     disabled={updateStatusMutation.isPending}
-                    className={`w-full p-3 rounded-lg border text-left transition-colors ${
+                    className={`w-full p-3 rounded-lg border text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                       editModal.user.status === status
-                        ? "border-blue-500 bg-blue-500/20 text-white"
+                        ? "border-cyan-500 bg-cyan-500/20 text-white"
                         : "border-gray-700 hover:border-gray-600 text-gray-400 hover:text-white"
                     }`}
                   >
-                    <span className="capitalize">
-                      {status.replace("_", " ")}
-                    </span>
+                    <span className="capitalize">{status.replace("_", " ")}</span>
                   </button>
                 ))}
               </div>
               <button
                 onClick={() => setEditModal({ type: null, user: null })}
-                className="w-full py-2 text-gray-400 hover:text-white transition-colors"
+                className="w-full py-2 text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 Cancel
               </button>

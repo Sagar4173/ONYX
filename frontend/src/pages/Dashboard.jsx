@@ -41,8 +41,7 @@ const SecurityScoreChart = ({ score = 0, size = 160 }) => {
   const offset = circumference - (score / 100) * circumference;
 
   const getScoreColor = (s) => {
-    if (s >= 80)
-      return { stroke: "url(#scoreGreen)", text: "text-emerald-400" };
+    if (s >= 80) return { stroke: "url(#scoreGreen)", text: "text-emerald-400" };
     if (s >= 60) return { stroke: "url(#scoreYellow)", text: "text-amber-400" };
     return { stroke: "url(#scoreRed)", text: "text-red-400" };
   };
@@ -97,9 +96,7 @@ const SecurityScoreChart = ({ score = 0, size = 160 }) => {
         <span className={`text-4xl font-bold ${colors.text}`}>
           <AnimatedCounter value={score} />
         </span>
-        <span className="text-xs text-gray-400 uppercase tracking-wider mt-1">
-          Score
-        </span>
+        <span className="text-xs text-gray-400 uppercase tracking-wider mt-1">Score</span>
       </div>
     </div>
   );
@@ -109,17 +106,9 @@ const SecurityScoreChart = ({ score = 0, size = 160 }) => {
  * Severity Distribution Bar
  */
 const SeverityBar = ({ data }) => {
-  const total =
-    (data?.critical || 0) +
-    (data?.high || 0) +
-    (data?.medium || 0) +
-    (data?.low || 0);
+  const total = (data?.critical || 0) + (data?.high || 0) + (data?.medium || 0) + (data?.low || 0);
   if (total === 0)
-    return (
-      <p className="text-sm text-gray-500 text-center py-4">
-        No vulnerabilities found
-      </p>
-    );
+    return <p className="text-sm text-gray-500 text-center py-4">No vulnerabilities found</p>;
 
   const getWidth = (count) => `${(count / total) * 100}%`;
 
@@ -156,31 +145,25 @@ const SeverityBar = ({ data }) => {
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 to-rose-500" />
           <span className="text-gray-400">
-            Critical:{" "}
-            <span className="text-white font-medium">
-              {data?.critical || 0}
-            </span>
+            Critical: <span className="text-white font-medium">{data?.critical || 0}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500" />
           <span className="text-gray-400">
-            High:{" "}
-            <span className="text-white font-medium">{data?.high || 0}</span>
+            High: <span className="text-white font-medium">{data?.high || 0}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-yellow-500 to-lime-500" />
           <span className="text-gray-400">
-            Medium:{" "}
-            <span className="text-white font-medium">{data?.medium || 0}</span>
+            Medium: <span className="text-white font-medium">{data?.medium || 0}</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500" />
           <span className="text-gray-400">
-            Low:{" "}
-            <span className="text-white font-medium">{data?.low || 0}</span>
+            Low: <span className="text-white font-medium">{data?.low || 0}</span>
           </span>
         </div>
       </div>
@@ -195,8 +178,8 @@ const QuickAction = ({ action, index }) => (
   <button
     onClick={action.onClick}
     className="group relative flex flex-col items-center justify-center p-5 rounded-xl bg-gray-800/30 
-             border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300 
-             hover:scale-[1.03] text-center flex-1 min-h-[120px]"
+             border border-gray-700/30 hover:border-cyan-500/30 transition-all duration-300 
+             hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-500/10 text-center flex-1 min-h-[120px]"
     style={{ animationDelay: `${index * 0.05}s` }}
   >
     <div
@@ -431,12 +414,9 @@ const Dashboard = ({ notifications = [] }) => {
         actions={
           <Link
             to="/projects?action=new"
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 
-                     text-white font-medium hover:from-blue-600 hover:to-purple-700 
-                     transition-all flex items-center gap-2 shadow-lg hover:shadow-xl
-                     hover:scale-105"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-semibold rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transform hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-cyan-500"
           >
-            <PlusIcon className="h-4 w-4" />
+            <PlusIcon className="h-5 w-5" />
             <span>New Project</span>
           </Link>
         }
@@ -464,10 +444,7 @@ const Dashboard = ({ notifications = [] }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Security Score & Severity - Left Column */}
         <GlassCard>
-          <SectionHeader
-            title="Security Overview"
-            description="Current security status"
-          />
+          <SectionHeader title="Security Overview" description="Current security status" />
 
           <div className="flex flex-col items-center py-4">
             <SecurityScoreChart
@@ -477,27 +454,22 @@ const Dashboard = ({ notifications = [] }) => {
               {stats?.avgSecurityScore == null
                 ? "Run your first scan to see your score"
                 : stats.avgSecurityScore >= 80
-                ? "Your security posture is healthy"
-                : stats.avgSecurityScore >= 60
-                ? "Some issues need attention"
-                : "Critical issues detected"}
+                  ? "Your security posture is healthy"
+                  : stats.avgSecurityScore >= 60
+                    ? "Some issues need attention"
+                    : "Critical issues detected"}
             </p>
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-800/50">
-            <h4 className="text-sm font-medium text-white mb-4">
-              Vulnerability Distribution
-            </h4>
+            <h4 className="text-sm font-medium text-white mb-4">Vulnerability Distribution</h4>
             <SeverityBar data={severityDistribution} />
           </div>
         </GlassCard>
 
         {/* Quick Actions - Middle Column */}
         <GlassCard>
-          <SectionHeader
-            title="Quick Actions"
-            description="Common security operations"
-          />
+          <SectionHeader title="Quick Actions" description="Common security operations" />
 
           <div className="grid grid-cols-2 gap-4">
             {quickActions.map((action, index) => (
@@ -509,13 +481,10 @@ const Dashboard = ({ notifications = [] }) => {
         {/* Recent Scans - Right Column */}
         <GlassCard>
           <div className="flex items-center justify-between mb-4">
-            <SectionHeader
-              title="Recent Scans"
-              description="Latest security scans"
-            />
+            <SectionHeader title="Recent Scans" description="Latest security scans" />
             <Link
               to="/reports"
-              className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+              className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
             >
               View all →
             </Link>
@@ -524,7 +493,7 @@ const Dashboard = ({ notifications = [] }) => {
           <div className="space-y-2">
             {reportsLoading ? (
               <div className="text-center py-4">
-                <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto" />
+                <div className="animate-spin h-6 w-6 border-2 border-cyan-500 border-t-transparent rounded-full mx-auto" />
               </div>
             ) : recentReports.length === 0 ? (
               <EmptyState
@@ -539,9 +508,7 @@ const Dashboard = ({ notifications = [] }) => {
                   <RecentScanItem
                     key={report.id || report._id}
                     report={report}
-                    onClick={() =>
-                      navigate(`/report/${report.id || report._id}`)
-                    }
+                    onClick={() => navigate(`/report/${report.id || report._id}`)}
                   />
                 ))
             )}
@@ -551,10 +518,7 @@ const Dashboard = ({ notifications = [] }) => {
 
       {/* Bottom Row - Live Activity */}
       <GlassCard>
-        <SectionHeader
-          title="Live Activity"
-          description="Real-time notifications and updates"
-        />
+        <SectionHeader title="Live Activity" description="Real-time notifications and updates" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[200px] overflow-y-auto">
           {notifications.length === 0 ? (
@@ -571,8 +535,8 @@ const Dashboard = ({ notifications = [] }) => {
                 key={notif.id}
                 className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-colors"
               >
-                <div className="p-2 rounded-lg bg-blue-500/10 flex-shrink-0">
-                  <BoltIcon className="w-4 h-4 text-blue-400" />
+                <div className="p-2 rounded-lg bg-cyan-500/10 flex-shrink-0">
+                  <BoltIcon className="w-4 h-4 text-cyan-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white truncate">{notif.message}</p>

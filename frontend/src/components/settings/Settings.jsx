@@ -3,33 +3,21 @@
  * Platform configuration and user preferences management
  */
 import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   CogIcon,
   ShieldCheckIcon,
   BellIcon,
   ComputerDesktopIcon,
-  EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
   InformationCircleIcon,
-  Cog6ToothIcon,
-  KeyIcon,
-  GlobeAltIcon,
   DocumentTextIcon,
-  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import {
-  CheckCircleIcon as CheckCircleSolid,
-  ExclamationTriangleIcon as ExclamationTriangleSolid,
-} from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth";
-import { Button, Input } from "../../styles/components";
+import { Button } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
-import { systemAPI } from "../../services/api";
 
 // System Info Component - Fetches real data from backend
 const SystemInfo = () => {
@@ -52,16 +40,11 @@ const SystemInfo = () => {
           const healthData = await healthResponse.json();
           setSystemInfo({
             version: healthData.version || "1.0.0",
-            build:
-              healthData.build_date || new Date().toISOString().split("T")[0],
+            build: healthData.build_date || new Date().toISOString().split("T")[0],
             environment: import.meta.env.DEV ? "Development" : "Production",
             database: {
-              status: healthData.database?.connected
-                ? "connected"
-                : "disconnected",
-              message: healthData.database?.connected
-                ? "Connected"
-                : "Disconnected",
+              status: healthData.database?.connected ? "connected" : "disconnected",
+              message: healthData.database?.connected ? "Connected" : "Disconnected",
             },
             scanners: {
               active: healthData.scanners?.active || 0,
@@ -133,15 +116,8 @@ const SystemInfo = () => {
       </div>
       <div className="flex justify-between">
         <span className="text-gray-400">Scanners:</span>
-        <span
-          className={
-            systemInfo.scanners.active > 0
-              ? "text-green-400"
-              : "text-yellow-400"
-          }
-        >
-          {systemInfo.scanners.active} Active / {systemInfo.scanners.total}{" "}
-          Total
+        <span className={systemInfo.scanners.active > 0 ? "text-green-400" : "text-yellow-400"}>
+          {systemInfo.scanners.active} Active / {systemInfo.scanners.total} Total
         </span>
       </div>
     </div>
@@ -196,9 +172,7 @@ const Settings = () => {
       // Call real settings API endpoint
       const token = localStorage.getItem("access_token");
       const response = await fetch(
-        `${
-          import.meta.env.DEV ? "http://127.0.0.1:8000" : ""
-        }/api/users/me/settings`,
+        `${import.meta.env.DEV ? "http://127.0.0.1:8000" : ""}/api/users/me/settings`,
         {
           method: "PUT",
           headers: {
@@ -263,16 +237,14 @@ const Settings = () => {
         type === "warning"
           ? "border-yellow-500/30"
           : type === "danger"
-          ? "border-red-500/30"
-          : "border-gray-700/50"
+            ? "border-red-500/30"
+            : "border-gray-700/50"
       }`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <h4 className="text-white font-medium mb-1">{title}</h4>
-          {description && (
-            <p className="text-gray-400 text-sm mb-4">{description}</p>
-          )}
+          {description && <p className="text-gray-400 text-sm mb-4">{description}</p>}
         </div>
         <div className="ml-4">{children}</div>
       </div>
@@ -286,8 +258,8 @@ const Settings = () => {
       aria-label={label}
       onClick={() => !disabled && onChange(!enabled)}
       disabled={disabled}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-        enabled ? "bg-blue-600" : "bg-gray-600"
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+        enabled ? "bg-cyan-600" : "bg-gray-600"
       } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
     >
       <span
@@ -320,7 +292,7 @@ const Settings = () => {
                     onClick={() => setActiveTab(tab.key)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       activeTab === tab.key
-                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                        ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
                         : "text-gray-400 hover:text-white hover:bg-gray-700/50"
                     }`}
                   >
@@ -335,7 +307,7 @@ const Settings = () => {
               onClick={handleSaveSettings}
               disabled={saveSettingsMutation.isPending}
               isLoading={saveSettingsMutation.isPending}
-              className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700"
+              className="w-full mt-6 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200"
             >
               Save Settings
             </Button>
@@ -347,9 +319,7 @@ const Settings = () => {
               {/* Security Settings */}
               {activeTab === "security" && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-white">
-                    Security Settings
-                  </h2>
+                  <h2 className="text-xl font-semibold text-white">Security Settings</h2>
 
                   <SettingCard
                     title="Two-Factor Authentication"
@@ -359,11 +329,7 @@ const Settings = () => {
                       label="Two-Factor Authentication"
                       enabled={settings.security.two_factor_enabled}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "security",
-                          "two_factor_enabled",
-                          value
-                        )
+                        handleSettingChange("security", "two_factor_enabled", value)
                       }
                     />
                   </SettingCard>
@@ -376,11 +342,7 @@ const Settings = () => {
                       label="Login Notifications"
                       enabled={settings.security.login_notifications}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "security",
-                          "login_notifications",
-                          value
-                        )
+                        handleSettingChange("security", "login_notifications", value)
                       }
                     />
                   </SettingCard>
@@ -392,13 +354,9 @@ const Settings = () => {
                     <select
                       value={settings.security.session_timeout}
                       onChange={(e) =>
-                        handleSettingChange(
-                          "security",
-                          "session_timeout",
-                          parseInt(e.target.value)
-                        )
+                        handleSettingChange("security", "session_timeout", parseInt(e.target.value))
                       }
-                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
+                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                     >
                       <option value={15} className="bg-gray-800 text-white">
                         15 minutes
@@ -425,9 +383,7 @@ const Settings = () => {
                   >
                     <div className="space-y-3 w-full max-w-md">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-300">
-                          Minimum Length (8)
-                        </span>
+                        <span className="text-sm text-gray-300">Minimum Length (8)</span>
                         <input
                           type="number"
                           min="6"
@@ -445,14 +401,10 @@ const Settings = () => {
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-300">
-                          Require Uppercase
-                        </span>
+                        <span className="text-sm text-gray-300">Require Uppercase</span>
                         <Toggle
                           label="Require Uppercase"
-                          enabled={
-                            settings.security.password_policy.require_uppercase
-                          }
+                          enabled={settings.security.password_policy.require_uppercase}
                           onChange={(value) =>
                             handleNestedSettingChange(
                               "security",
@@ -464,14 +416,10 @@ const Settings = () => {
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-300">
-                          Require Numbers
-                        </span>
+                        <span className="text-sm text-gray-300">Require Numbers</span>
                         <Toggle
                           label="Require Numbers"
-                          enabled={
-                            settings.security.password_policy.require_numbers
-                          }
+                          enabled={settings.security.password_policy.require_numbers}
                           onChange={(value) =>
                             handleNestedSettingChange(
                               "security",
@@ -490,9 +438,7 @@ const Settings = () => {
               {/* Notification Settings */}
               {activeTab === "notifications" && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-white">
-                    Notification Settings
-                  </h2>
+                  <h2 className="text-xl font-semibold text-white">Notification Settings</h2>
 
                   <SettingCard
                     title="Email Notifications"
@@ -502,11 +448,7 @@ const Settings = () => {
                       label="Email Notifications"
                       enabled={settings.notifications.email_enabled}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "notifications",
-                          "email_enabled",
-                          value
-                        )
+                        handleSettingChange("notifications", "email_enabled", value)
                       }
                     />
                   </SettingCard>
@@ -519,11 +461,7 @@ const Settings = () => {
                       label="Critical Security Alerts"
                       enabled={settings.notifications.critical_alerts}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "notifications",
-                          "critical_alerts",
-                          value
-                        )
+                        handleSettingChange("notifications", "critical_alerts", value)
                       }
                     />
                   </SettingCard>
@@ -536,11 +474,7 @@ const Settings = () => {
                       label="Scan Completion"
                       enabled={settings.notifications.scan_completion}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "notifications",
-                          "scan_completion",
-                          value
-                        )
+                        handleSettingChange("notifications", "scan_completion", value)
                       }
                     />
                   </SettingCard>
@@ -553,11 +487,7 @@ const Settings = () => {
                       label="New Vulnerabilities"
                       enabled={settings.notifications.new_vulnerabilities}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "notifications",
-                          "new_vulnerabilities",
-                          value
-                        )
+                        handleSettingChange("notifications", "new_vulnerabilities", value)
                       }
                     />
                   </SettingCard>
@@ -570,11 +500,7 @@ const Settings = () => {
                       label="Weekly Reports"
                       enabled={settings.notifications.weekly_reports}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "notifications",
-                          "weekly_reports",
-                          value
-                        )
+                        handleSettingChange("notifications", "weekly_reports", value)
                       }
                     />
                   </SettingCard>
@@ -584,9 +510,7 @@ const Settings = () => {
               {/* Scanning Settings */}
               {activeTab === "scanning" && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-white">
-                    Scanning Configuration
-                  </h2>
+                  <h2 className="text-xl font-semibold text-white">Scanning Configuration</h2>
 
                   <SettingCard
                     title="Auto-scan on Push"
@@ -596,11 +520,7 @@ const Settings = () => {
                       label="Auto-scan on Push"
                       enabled={settings.scanning.auto_scan_on_push}
                       onChange={(value) =>
-                        handleSettingChange(
-                          "scanning",
-                          "auto_scan_on_push",
-                          value
-                        )
+                        handleSettingChange("scanning", "auto_scan_on_push", value)
                       }
                     />
                   </SettingCard>
@@ -612,13 +532,9 @@ const Settings = () => {
                     <select
                       value={settings.scanning.scan_timeout}
                       onChange={(e) =>
-                        handleSettingChange(
-                          "scanning",
-                          "scan_timeout",
-                          parseInt(e.target.value)
-                        )
+                        handleSettingChange("scanning", "scan_timeout", parseInt(e.target.value))
                       }
-                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
+                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                     >
                       <option value={180} className="bg-gray-800 text-white">
                         3 minutes
@@ -651,7 +567,7 @@ const Settings = () => {
                           parseInt(e.target.value)
                         )
                       }
-                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
+                      className="px-3 py-2 bg-gray-800 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 [&>option]:bg-gray-800 [&>option]:text-white"
                     >
                       <option value={1} className="bg-gray-800 text-white">
                         1 scan
@@ -676,39 +592,23 @@ const Settings = () => {
                     description="Choose which security scanners to use by default"
                   >
                     <div className="space-y-2 w-full max-w-md">
-                      {["sast", "secrets", "container", "infrastructure"].map(
-                        (scanner) => (
-                          <div
-                            key={scanner}
-                            className="flex items-center justify-between"
-                          >
-                            <span className="text-sm text-gray-300 capitalize">
-                              {scanner} Analysis
-                            </span>
-                            <Toggle
-                              label={`${scanner} Analysis`}
-                              enabled={settings.scanning.enabled_scanners.includes(
-                                scanner
-                              )}
-                              onChange={(enabled) => {
-                                const newScanners = enabled
-                                  ? [
-                                      ...settings.scanning.enabled_scanners,
-                                      scanner,
-                                    ]
-                                  : settings.scanning.enabled_scanners.filter(
-                                      (s) => s !== scanner
-                                    );
-                                handleSettingChange(
-                                  "scanning",
-                                  "enabled_scanners",
-                                  newScanners
-                                );
-                              }}
-                            />
-                          </div>
-                        )
-                      )}
+                      {["sast", "secrets", "container", "infrastructure"].map((scanner) => (
+                        <div key={scanner} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-300 capitalize">
+                            {scanner} Analysis
+                          </span>
+                          <Toggle
+                            label={`${scanner} Analysis`}
+                            enabled={settings.scanning.enabled_scanners.includes(scanner)}
+                            onChange={(enabled) => {
+                              const newScanners = enabled
+                                ? [...settings.scanning.enabled_scanners, scanner]
+                                : settings.scanning.enabled_scanners.filter((s) => s !== scanner);
+                              handleSettingChange("scanning", "enabled_scanners", newScanners);
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
                   </SettingCard>
                 </div>
@@ -717,9 +617,7 @@ const Settings = () => {
               {/* API Settings */}
               {activeTab === "api" && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-white">
-                    API & Integration
-                  </h2>
+                  <h2 className="text-xl font-semibold text-white">API & Integration</h2>
 
                   <SettingCard
                     title="API Key"
@@ -747,9 +645,7 @@ const Settings = () => {
                           </button>
                         </div>
                         <Button
-                          onClick={() =>
-                            toast.success("New API key generated!")
-                          }
+                          onClick={() => toast.success("New API key generated!")}
                           variant="warning"
                           size="sm"
                         >
@@ -757,8 +653,7 @@ const Settings = () => {
                         </Button>
                       </div>
                       <p className="text-xs text-yellow-400">
-                        Keep your API key secure. Don't share it or expose it in
-                        client-side code.
+                        Keep your API key secure. Don't share it or expose it in client-side code.
                       </p>
                     </div>
                   </SettingCard>
@@ -770,34 +665,21 @@ const Settings = () => {
                     <input
                       type="url"
                       value={settings.api.webhook_url}
-                      onChange={(e) =>
-                        handleSettingChange(
-                          "api",
-                          "webhook_url",
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => handleSettingChange("api", "webhook_url", e.target.value)}
                       placeholder="https://your-domain.com/webhook"
-                      className="w-full max-w-md px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      className="w-full max-w-md px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                     />
                   </SettingCard>
 
-                  <SettingCard
-                    title="Rate Limiting"
-                    description="API request limits per hour"
-                  >
+                  <SettingCard title="Rate Limiting" description="API request limits per hour">
                     <div className="flex items-center space-x-3">
                       <input
                         type="number"
                         value={settings.api.rate_limit}
                         onChange={(e) =>
-                          handleSettingChange(
-                            "api",
-                            "rate_limit",
-                            parseInt(e.target.value)
-                          )
+                          handleSettingChange("api", "rate_limit", parseInt(e.target.value))
                         }
-                        className="w-24 px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                        className="w-24 px-3 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                       />
                       <span className="text-gray-400">requests/hour</span>
                     </div>
@@ -808,17 +690,13 @@ const Settings = () => {
               {/* System Settings */}
               {activeTab === "system" && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold text-white">
-                    System Information
-                  </h2>
+                  <h2 className="text-xl font-semibold text-white">System Information</h2>
 
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
+                  <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-6">
                     <div className="flex items-start space-x-3">
-                      <InformationCircleIcon className="h-5 w-5 text-blue-400 mt-0.5" />
+                      <InformationCircleIcon className="h-5 w-5 text-cyan-400 mt-0.5" />
                       <div>
-                        <p className="text-blue-400 font-medium">
-                          Platform Information
-                        </p>
+                        <p className="text-cyan-400 font-medium">Platform Information</p>
                         <SystemInfo />
                       </div>
                     </div>
@@ -845,9 +723,7 @@ const Settings = () => {
                   >
                     <Button
                       onClick={() =>
-                        toast.success(
-                          "Data export initiated! You'll receive an email when ready."
-                        )
+                        toast.success("Data export initiated! You'll receive an email when ready.")
                       }
                       variant="success"
                     >

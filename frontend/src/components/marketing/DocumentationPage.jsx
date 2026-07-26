@@ -174,12 +174,10 @@ console.log('Scan started:', scan.id);`,
                 <BookOpenIcon className="w-4 h-4 text-cyan-400" />
                 <span className="text-sm text-cyan-400">Documentation</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                ONYX Documentation
-              </h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">ONYX Documentation</h1>
               <p className="text-gray-400 max-w-xl">
-                Everything you need to integrate ONYX into your security
-                workflow. Explore guides, API references, and best practices.
+                Everything you need to integrate ONYX into your security workflow. Explore guides,
+                API references, and best practices.
               </p>
             </div>
             <div className="flex gap-3">
@@ -306,9 +304,7 @@ console.log('Scan started:', scan.id);`,
               ))}
 
               <button
-                onClick={() =>
-                  copyToClipboard(codeExamples[selectedLang], selectedLang)
-                }
+                onClick={() => copyToClipboard(codeExamples[selectedLang], selectedLang)}
                 className="ml-auto px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-all flex items-center gap-2"
               >
                 {copiedCode === selectedLang ? (
@@ -327,9 +323,7 @@ console.log('Scan started:', scan.id);`,
 
             {/* Code Block */}
             <pre className="p-6 overflow-x-auto">
-              <code className="text-sm text-gray-300 font-mono">
-                {codeExamples[selectedLang]}
-              </code>
+              <code className="text-sm text-gray-300 font-mono">{codeExamples[selectedLang]}</code>
             </pre>
           </div>
         </div>
@@ -344,9 +338,7 @@ console.log('Scan started:', scan.id);`,
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800/50">
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
-                    Method
-                  </th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">Method</th>
                   <th className="text-left py-3 px-4 text-gray-400 font-medium text-sm">
                     Endpoint
                   </th>
@@ -370,9 +362,7 @@ console.log('Scan started:', scan.id);`,
                         {ep.method}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-mono text-sm text-gray-300">
-                      {ep.path}
-                    </td>
+                    <td className="py-3 px-4 font-mono text-sm text-gray-300">{ep.path}</td>
                     <td className="py-3 px-4 text-gray-400 text-sm hidden md:table-cell">
                       {ep.desc}
                     </td>
@@ -383,10 +373,7 @@ console.log('Scan started:', scan.id);`,
           </div>
 
           <p className="mt-4 text-gray-500 text-sm">
-            Base URL:{" "}
-            <code className="text-gray-400">
-              https://api.onyx-security.io/v1
-            </code>
+            Base URL: <code className="text-gray-400">https://api.onyx-security.io/v1</code>
           </p>
         </div>
       </section>
@@ -427,16 +414,10 @@ console.log('Scan started:', scan.id);`,
             <Link to="/docs" className="text-cyan-400">
               Documentation
             </Link>
-            <Link
-              to="/terms"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
+            <Link to="/terms" className="text-gray-500 hover:text-gray-300 transition-colors">
               Terms
             </Link>
-            <Link
-              to="/legal"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
+            <Link to="/legal" className="text-gray-500 hover:text-gray-300 transition-colors">
               Data Policy
             </Link>
           </div>

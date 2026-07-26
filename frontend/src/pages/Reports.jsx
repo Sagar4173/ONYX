@@ -14,6 +14,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ChevronRightIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import {
   PageContainer,
@@ -29,7 +30,7 @@ import { reportsAPI } from "../services/api";
 const StatusBadge = ({ status }) => {
   const styles = {
     completed: "bg-green-500/20 text-green-400 border-green-500/30",
-    running: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    running: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
     pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
     failed: "bg-red-500/20 text-red-400 border-red-500/30",
   };
@@ -48,9 +49,7 @@ const StatusBadge = ({ status }) => {
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${style}`}
     >
-      <Icon
-        className={`h-3.5 w-3.5 ${status === "running" ? "animate-spin" : ""}`}
-      />
+      <Icon className={`h-3.5 w-3.5 ${status === "running" ? "animate-spin" : ""}`} />
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
@@ -62,7 +61,7 @@ const SeverityBadge = ({ severity, count }) => {
     critical: "bg-red-500/20 text-red-400",
     high: "bg-orange-500/20 text-orange-400",
     medium: "bg-yellow-500/20 text-yellow-400",
-    low: "bg-blue-500/20 text-blue-400",
+    low: "bg-cyan-500/20 text-cyan-400",
   };
 
   return (
@@ -78,12 +77,8 @@ const SeverityBadge = ({ severity, count }) => {
 
 // Report Card Component
 const ReportCard = ({ report }) => {
-  const vulnerabilities =
-    report.vulnerability_count || report.findings_summary || {};
-  const totalVulns = Object.values(vulnerabilities).reduce(
-    (sum, val) => sum + (val || 0),
-    0
-  );
+  const vulnerabilities = report.vulnerability_count || report.findings_summary || {};
+  const totalVulns = Object.values(vulnerabilities).reduce((sum, val) => sum + (val || 0), 0);
 
   return (
     <Link
@@ -97,10 +92,8 @@ const ReportCard = ({ report }) => {
             <DocumentTextIcon className="h-5 w-5 text-purple-400" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-white font-medium truncate group-hover:text-blue-400 transition-colors">
-              {report.project_name ||
-                report.repository_url?.split("/").pop() ||
-                "Unknown Project"}
+            <h3 className="text-white font-medium truncate group-hover:text-cyan-400 transition-colors">
+              {report.project_name || report.repository_url?.split("/").pop() || "Unknown Project"}
             </h3>
             <p className="text-sm text-gray-400 truncate mt-0.5">
               {report.repository_url || "No repository URL"}
@@ -118,10 +111,7 @@ const ReportCard = ({ report }) => {
           {/* Vulnerability Summary */}
           <div className="flex items-center gap-2">
             {vulnerabilities.critical > 0 && (
-              <SeverityBadge
-                severity="critical"
-                count={vulnerabilities.critical}
-              />
+              <SeverityBadge severity="critical" count={vulnerabilities.critical} />
             )}
             {vulnerabilities.high > 0 && (
               <SeverityBadge severity="high" count={vulnerabilities.high} />
@@ -172,15 +162,10 @@ const Reports = () => {
     .filter((report) => {
       const matchesSearch =
         searchQuery === "" ||
-        report.project_name
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        report.repository_url
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase());
+        report.project_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.repository_url?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "all" || report.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || report.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     })
@@ -204,7 +189,7 @@ const Reports = () => {
           <button
             onClick={() => refetch()}
             aria-label="Refresh reports"
-            className="px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800 transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-800 transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
           >
             <ArrowPathIcon className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Refresh</span>
@@ -223,7 +208,7 @@ const Reports = () => {
               placeholder="Search reports..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
             />
           </div>
 
@@ -231,7 +216,7 @@ const Reports = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+            className="px-4 py-2.5 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
           >
             <option value="all" className="bg-gray-800 text-white">
               All Status
@@ -254,7 +239,7 @@ const Reports = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2.5 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+            className="px-4 py-2.5 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
           >
             <option value="newest" className="bg-gray-800 text-white">
               Newest First
@@ -272,9 +257,14 @@ const Reports = () => {
               <ExclamationTriangleIcon className="h-12 w-12 text-red-400" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">Failed to Load Reports</h3>
-            <p className="text-gray-400 max-w-sm mx-auto mb-6">Unable to fetch reports. Please try again.</p>
-            <button type="button" onClick={() => refetch()}
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
+            <p className="text-gray-400 max-w-sm mx-auto mb-6">
+              Unable to fetch reports. Please try again.
+            </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
               Try Again
             </button>
           </div>
@@ -302,8 +292,7 @@ const Reports = () => {
         {reportsData?.pagination && (
           <div className="mt-6 pt-4 border-t border-gray-800/50 flex items-center justify-between text-sm text-gray-400">
             <span>
-              Showing {filteredReports.length} of {reportsData.pagination.total}{" "}
-              reports
+              Showing {filteredReports.length} of {reportsData.pagination.total} reports
             </span>
           </div>
         )}

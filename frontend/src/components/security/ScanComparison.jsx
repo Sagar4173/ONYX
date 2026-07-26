@@ -36,7 +36,7 @@ const SeverityBadge = ({ severity }) => {
     critical: "bg-red-900/30 text-red-400 border-red-700/50",
     high: "bg-orange-900/30 text-orange-400 border-orange-700/50",
     medium: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
-    low: "bg-blue-900/30 text-blue-400 border-blue-700/50",
+    low: "bg-cyan-900/30 text-cyan-400 border-cyan-700/50",
     info: "bg-gray-700/30 text-gray-300 border-gray-700/50",
   };
 
@@ -107,15 +107,11 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
           )}
           <ChangeTypeBadge type={changeType} />
           <SeverityBadge severity={finding.severity} />
-          <span className="font-medium text-white truncate">
-            {finding.title}
-          </span>
+          <span className="font-medium text-white truncate">{finding.title}</span>
         </div>
         <div className="flex items-center gap-3 text-sm text-gray-400">
           <span className="hidden md:inline">{finding.scanner}</span>
-          <span className="hidden lg:inline truncate max-w-[200px]">
-            {finding.file_path}
-          </span>
+          <span className="hidden lg:inline truncate max-w-[200px]">{finding.file_path}</span>
           {severityChange && (
             <span className="text-xs text-yellow-400 bg-yellow-900/30 px-2 py-0.5 rounded">
               {severityChange.from} → {severityChange.to}
@@ -129,9 +125,7 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-400">Rule ID:</span>
-              <span className="ml-2 font-mono text-gray-200">
-                {finding.rule_id}
-              </span>
+              <span className="ml-2 font-mono text-gray-200">{finding.rule_id}</span>
             </div>
             <div>
               <span className="text-gray-400">Line:</span>
@@ -140,9 +134,7 @@ const FindingRow = ({ finding, changeType, severityChange }) => {
           </div>
           <div className="text-sm">
             <span className="text-gray-400">File:</span>
-            <span className="ml-2 font-mono text-gray-200">
-              {finding.file_path}
-            </span>
+            <span className="ml-2 font-mono text-gray-200">{finding.file_path}</span>
           </div>
         </div>
       )}
@@ -158,7 +150,7 @@ const SummaryCard = ({ label, value, icon: Icon, color, description }) => {
     purple: "bg-purple-900/30 text-purple-400 border-purple-700/50",
     yellow: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
     gray: "bg-gray-800/30 text-gray-400 border-gray-700/50",
-    blue: "bg-blue-900/30 text-blue-400 border-blue-700/50",
+    blue: "bg-cyan-900/30 text-cyan-400 border-cyan-700/50",
   };
 
   return (
@@ -167,9 +159,7 @@ const SummaryCard = ({ label, value, icon: Icon, color, description }) => {
         <div>
           <p className="text-sm opacity-80">{label}</p>
           <p className="text-2xl font-bold">{value}</p>
-          {description && (
-            <p className="text-xs opacity-60 mt-1">{description}</p>
-          )}
+          {description && <p className="text-xs opacity-60 mt-1">{description}</p>}
         </div>
         <Icon className="w-8 h-8 opacity-50" />
       </div>
@@ -178,11 +168,7 @@ const SummaryCard = ({ label, value, icon: Icon, color, description }) => {
 };
 
 // Main component
-const ScanComparison = ({
-  baseScanId = null,
-  compareScanId = null,
-  projectId = null,
-}) => {
+const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = null }) => {
   const [selectedBaseScan, setSelectedBaseScan] = useState(baseScanId);
   const [selectedCompareScan, setSelectedCompareScan] = useState(compareScanId);
   const [activeTab, setActiveTab] = useState("all");
@@ -200,21 +186,18 @@ const ScanComparison = ({
       if (!selectedBaseScan || !selectedCompareScan) return null;
 
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${API_BASE_URL}/api/enterprise/scans/compare`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-          body: JSON.stringify({
-            base_scan_id: selectedBaseScan,
-            compare_scan_id: selectedCompareScan,
-            include_unchanged: false,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/enterprise/scans/compare`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({
+          base_scan_id: selectedBaseScan,
+          compare_scan_id: selectedCompareScan,
+          include_unchanged: false,
+        }),
+      });
       if (!response.ok) throw new Error("Failed to compare scans");
       return response.json();
     },
@@ -248,10 +231,7 @@ const ScanComparison = ({
         branch: report.branch || report.repository_branch || "main",
         findings:
           report.total_findings ||
-          Object.values(report.findings_by_severity || {}).reduce(
-            (a, b) => a + b,
-            0
-          ) ||
+          Object.values(report.findings_by_severity || {}).reduce((a, b) => a + b, 0) ||
           0,
         status: report.status,
         scan_type: report.scan_type,
@@ -276,10 +256,7 @@ const ScanComparison = ({
       ];
     }
     if (activeTab === "all" || activeTab === "new") {
-      findings = [
-        ...findings,
-        ...(details.new || []).map((f) => ({ ...f, _changeType: "new" })),
-      ];
+      findings = [...findings, ...(details.new || []).map((f) => ({ ...f, _changeType: "new" }))];
     }
     if (activeTab === "all" || activeTab === "reintroduced") {
       findings = [
@@ -315,16 +292,14 @@ const ScanComparison = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Scan Comparison</h2>
-          <p className="text-gray-400">
-            Compare security scans to track remediation progress
-          </p>
+          <p className="text-gray-400">Compare security scans to track remediation progress</p>
         </div>
         <button
           onClick={() => refetch()}
           disabled={!selectedBaseScan || !selectedCompareScan}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         >
-            <ArrowPathIcon className="w-4 h-4" />
+          <ArrowPathIcon className="w-4 h-4" />
           Compare
         </button>
       </div>
@@ -339,13 +314,13 @@ const ScanComparison = ({
             <select
               value={selectedBaseScan || ""}
               onChange={(e) => setSelectedBaseScan(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-white"
+              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
             >
               <option value="">Select base scan...</option>
               {scansData?.scans?.map((scan) => (
                 <option key={scan.id} value={scan.id}>
-                  {new Date(scan.timestamp).toLocaleDateString()} -{" "}
-                  {scan.branch} ({scan.findings} findings)
+                  {new Date(scan.timestamp).toLocaleDateString()} - {scan.branch} ({scan.findings}{" "}
+                  findings)
                 </option>
               ))}
             </select>
@@ -360,13 +335,13 @@ const ScanComparison = ({
             <select
               value={selectedCompareScan || ""}
               onChange={(e) => setSelectedCompareScan(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-800 text-white"
+              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
             >
               <option value="">Select compare scan...</option>
               {scansData?.scans?.map((scan) => (
                 <option key={scan.id} value={scan.id}>
-                  {new Date(scan.timestamp).toLocaleDateString()} -{" "}
-                  {scan.branch} ({scan.findings} findings)
+                  {new Date(scan.timestamp).toLocaleDateString()} - {scan.branch} ({scan.findings}{" "}
+                  findings)
                 </option>
               ))}
             </select>
@@ -376,7 +351,7 @@ const ScanComparison = ({
 
       {isLoading && (
         <div className="flex items-center justify-center h-64">
-          <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+          <ArrowPathIcon className="w-8 h-8 text-cyan-500 animate-spin" />
         </div>
       )}
 
@@ -421,11 +396,7 @@ const ScanComparison = ({
             />
             <SummaryCard
               label="Net Change"
-              value={
-                summary.net_change > 0
-                  ? `+${summary.net_change}`
-                  : summary.net_change
-              }
+              value={summary.net_change > 0 ? `+${summary.net_change}` : summary.net_change}
               icon={summary.net_change <= 0 ? ArrowTrendingDownIcon : ArrowTrendingUpIcon}
               color={summary.net_change <= 0 ? "green" : "red"}
               description="New - Fixed"
@@ -464,9 +435,7 @@ const ScanComparison = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Findings:</span>
-                  <span className="font-medium">
-                    {data.base_scan?.total_findings || 0}
-                  </span>
+                  <span className="font-medium">{data.base_scan?.total_findings || 0}</span>
                 </div>
               </div>
             </Card>
@@ -494,26 +463,21 @@ const ScanComparison = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Findings:</span>
-                  <span className="font-medium">
-                    {data.compare_scan?.total_findings || 0}
-                  </span>
+                  <span className="font-medium">{data.compare_scan?.total_findings || 0}</span>
                 </div>
               </div>
             </Card>
+          </div>
 
           {/* Analysis Insights */}
           {data.analysis && (
-            <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-4">
-              <h4 className="font-medium text-blue-300 mb-2">
-                {data.analysis.summary}
-              </h4>
+            <div className="bg-cyan-900/30 border border-cyan-700/50 rounded-xl p-4">
+              <h4 className="font-medium text-cyan-300 mb-2">{data.analysis.summary}</h4>
 
               {data.analysis.highlights?.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-sm text-blue-300 font-medium mb-1">
-                    Highlights:
-                  </p>
-                  <ul className="text-sm text-blue-300 space-y-1">
+                  <p className="text-sm text-cyan-300 font-medium mb-1">Highlights:</p>
+                  <ul className="text-sm text-cyan-300 space-y-1">
                     {data.analysis.highlights.map((h, i) => (
                       <li key={i}>{h}</li>
                     ))}
@@ -523,10 +487,8 @@ const ScanComparison = ({
 
               {data.analysis.recommendations?.length > 0 && (
                 <div>
-                  <p className="text-sm text-blue-300 font-medium mb-1">
-                    Recommendations:
-                  </p>
-                  <ul className="text-sm text-blue-300 space-y-1">
+                  <p className="text-sm text-cyan-300 font-medium mb-1">Recommendations:</p>
+                  <ul className="text-sm text-cyan-300 space-y-1">
                     {data.analysis.recommendations.map((r, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <ArrowRightIcon className="w-3 h-3 mt-1 flex-shrink-0" />
@@ -547,10 +509,7 @@ const ScanComparison = ({
                 {
                   key: "all",
                   label: "All Changes",
-                  count:
-                    (summary.fixed || 0) +
-                    (summary.new || 0) +
-                    (summary.reintroduced || 0),
+                  count: (summary.fixed || 0) + (summary.new || 0) + (summary.reintroduced || 0),
                 },
                 { key: "fixed", label: "Fixed", count: summary.fixed || 0 },
                 { key: "new", label: "New", count: summary.new || 0 },
@@ -568,9 +527,9 @@ const ScanComparison = ({
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap ${
+                  className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                     activeTab === tab.key
-                      ? "bg-blue-900/30 text-blue-400"
+                      ? "bg-cyan-900/30 text-cyan-400"
                       : "text-gray-400 hover:bg-gray-800/30"
                   }`}
                 >
@@ -618,7 +577,7 @@ const ScanComparison = ({
 
           {/* Export Button */}
           <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-700/50 rounded-lg hover:bg-gray-800/30">
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-700/50 rounded-lg hover:bg-gray-800/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
               <ArrowDownTrayIcon className="w-4 h-4" />
               Export Comparison Report
             </button>

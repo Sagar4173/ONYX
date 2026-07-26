@@ -2,7 +2,7 @@
  * Sidebar Component - Enterprise Glass Design
  * Matches the project's glass morphism and gradient design language
  */
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   XMarkIcon,
@@ -121,7 +121,7 @@ const NavItem = ({ item, collapsed, onClick }) => {
     <NavLink
       to={item.path}
       onClick={onClick}
-      className="group relative block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-xl"
+      className="group relative block focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-xl"
       title={collapsed ? item.name : undefined}
       aria-current={isActive ? "page" : undefined}
     >
@@ -129,7 +129,7 @@ const NavItem = ({ item, collapsed, onClick }) => {
       {isActive && (
         <div
           className="nav-active-glow absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full 
-                       bg-gradient-to-b from-blue-500 to-purple-600 shadow-lg shadow-blue-500/50"
+                       bg-gradient-to-b from-cyan-500 to-violet-600 shadow-lg shadow-cyan-500/50"
         />
       )}
 
@@ -159,11 +159,7 @@ const NavItem = ({ item, collapsed, onClick }) => {
         </div>
 
         {!collapsed && (
-          <span
-            className={`text-sm font-medium transition-colors ${
-              isActive ? "text-white" : ""
-            }`}
-          >
+          <span className={`text-sm font-medium transition-colors ${isActive ? "text-white" : ""}`}>
             {item.name}
           </span>
         )}
@@ -232,7 +228,7 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 space-y-1">
-          {navigation.map((item, index) => (
+          {navigation.map((item, _index) => (
             <div key={item.path}>
               {item.separator && !collapsed && (
                 <div className="px-4 py-2 mt-4 mb-2">
@@ -259,11 +255,11 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-expanded={!collapsed}
             className={`
-              w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              w-full flex items-center gap-3 px-4 py-3 rounded-full
               text-gray-400 hover:text-white bg-gray-800/30 hover:bg-gray-800/50
               border border-gray-700/30 hover:border-gray-600/50
               transition-all duration-300
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900
               ${collapsed ? "justify-center" : ""}
             `}
           >
@@ -308,10 +304,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
   return (
     <div className="lg:hidden fixed inset-0 z-50">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-[280px]">
@@ -323,15 +316,15 @@ const MobileSidebar = ({ isOpen, onClose }) => {
           {/* Header */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800/50">
             <Logo collapsed={false} />
-          <button
-            onClick={onClose}
-            aria-label="Close navigation menu"
-            className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
+            <button
+              onClick={onClose}
+              aria-label="Close navigation menu"
+              className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
                      hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-          >
-            <XMarkIcon className="w-5 h-5 lg:w-6 lg:h-6" />
-          </button>
+                     focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <XMarkIcon className="w-5 h-5 lg:w-6 lg:h-6" />
+            </button>
           </div>
 
           {/* Navigation */}
@@ -358,9 +351,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                           border border-cyan-500/20"
             >
               <p className="text-xs text-gray-400">
-                <span className="text-cyan-400 font-semibold tracking-wide">
-                  ONYX
-                </span>
+                <span className="text-cyan-400 font-semibold tracking-wide">ONYX</span>
                 <span className="text-gray-500"> • </span>
                 <span className="text-gray-500">v1.0</span>
               </p>
@@ -381,7 +372,7 @@ export const MobileMenuButton = ({ onClick }) => (
     aria-label="Open navigation menu"
     className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
              hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all
-             focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+             focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
   >
     <Bars3Icon className="w-5 h-5" />
   </button>
@@ -390,12 +381,7 @@ export const MobileMenuButton = ({ onClick }) => (
 /**
  * Main Sidebar Export
  */
-export default function Sidebar({
-  collapsed,
-  onToggle,
-  mobileOpen,
-  onMobileClose,
-}) {
+export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
   return (
     <>
       <DesktopSidebar collapsed={collapsed} onToggle={onToggle} />

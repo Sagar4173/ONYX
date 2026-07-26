@@ -14,51 +14,22 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
 
   if (variant === "mini") {
     return (
-      <svg
-        viewBox="0 0 32 32"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={className}
-      >
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
         <defs>
-          <linearGradient
-            id={`mini-bg-${uniqueId}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id={`mini-bg-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#0c1222" />
             <stop offset="100%" stopColor="#1a1f35" />
           </linearGradient>
-          <linearGradient
-            id={`mini-stroke-${uniqueId}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id={`mini-stroke-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#06b6d4" />
             <stop offset="50%" stopColor="#8b5cf6" />
             <stop offset="100%" stopColor="#06b6d4" />
           </linearGradient>
-          <linearGradient
-            id={`mini-eye-${uniqueId}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id={`mini-eye-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#22d3ee" />
             <stop offset="100%" stopColor="#a855f7" />
           </linearGradient>
-          <filter
-            id={`mini-glow-${uniqueId}`}
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
-          >
+          <filter id={`mini-glow-${uniqueId}`} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="1" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -91,20 +62,8 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
           strokeWidth="1"
           opacity="0.6"
         />
-        <circle
-          cx="16"
-          cy="16"
-          r="4"
-          fill={`url(#mini-eye-${uniqueId})`}
-          opacity="0.2"
-        />
-        <circle
-          cx="16"
-          cy="16"
-          r="3"
-          fill="#0e7490"
-          filter={`url(#mini-glow-${uniqueId})`}
-        />
+        <circle cx="16" cy="16" r="4" fill={`url(#mini-eye-${uniqueId})`} opacity="0.2" />
+        <circle cx="16" cy="16" r="3" fill="#0e7490" filter={`url(#mini-glow-${uniqueId})`} />
         <circle cx="16" cy="16" r="1.5" fill="#22d3ee" />
         <circle cx="15" cy="15" r="0.6" fill="white" />
       </svg>
@@ -113,77 +72,37 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
 
   if (variant === "glow") {
     return (
-      <svg
-        className={className}
-        viewBox="0 0 64 64"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient
-            id={`glow-bg-${uniqueId}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id={`glow-bg-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#0c1222" />
             <stop offset="50%" stopColor="#1a1f35" />
             <stop offset="100%" stopColor="#0c1222" />
           </linearGradient>
-          <linearGradient
-            id={`glow-stroke-${uniqueId}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id={`glow-stroke-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#06b6d4" />
             <stop offset="33%" stopColor="#8b5cf6" />
             <stop offset="66%" stopColor="#ec4899" />
             <stop offset="100%" stopColor="#06b6d4" />
           </linearGradient>
-          <linearGradient
-            id={`glow-eye-${uniqueId}`}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
+          <linearGradient id={`glow-eye-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#22d3ee" />
             <stop offset="50%" stopColor="#a855f7" />
             <stop offset="100%" stopColor="#22d3ee" />
           </linearGradient>
-          <radialGradient
-            id={`glow-core-${uniqueId}`}
-            cx="50%"
-            cy="50%"
-            r="50%"
-          >
+          <radialGradient id={`glow-core-${uniqueId}`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#67e8f9" />
             <stop offset="50%" stopColor="#22d3ee" />
             <stop offset="100%" stopColor="#0891b2" />
           </radialGradient>
-          <filter
-            id={`outer-glow-${uniqueId}`}
-            x="-100%"
-            y="-100%"
-            width="300%"
-            height="300%"
-          >
+          <filter id={`outer-glow-${uniqueId}`} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="3" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter
-            id={`eye-glow-${uniqueId}`}
-            x="-100%"
-            y="-100%"
-            width="300%"
-            height="300%"
-          >
+          <filter id={`eye-glow-${uniqueId}`} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="2" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -250,20 +169,8 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
         />
 
         {/* AI Eye core */}
-        <circle
-          cx="32"
-          cy="32"
-          r="8"
-          fill={`url(#glow-eye-${uniqueId})`}
-          opacity="0.15"
-        />
-        <circle
-          cx="32"
-          cy="32"
-          r="6"
-          fill="#0e7490"
-          filter={`url(#eye-glow-${uniqueId})`}
-        />
+        <circle cx="32" cy="32" r="8" fill={`url(#glow-eye-${uniqueId})`} opacity="0.15" />
+        <circle cx="32" cy="32" r="6" fill="#0e7490" filter={`url(#eye-glow-${uniqueId})`} />
         <circle cx="32" cy="32" r="4" fill={`url(#glow-core-${uniqueId})`} />
         <circle cx="32" cy="32" r="2" fill="#67e8f9" />
         <circle cx="30" cy="30" r="1" fill="white" />
@@ -279,42 +186,19 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
 
   // Default variant - balanced design for sidebars/headers
   return (
-    <svg
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
       <defs>
-        <linearGradient
-          id={`def-bg-${uniqueId}`}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
-        >
+        <linearGradient id={`def-bg-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#0c1222" />
           <stop offset="50%" stopColor="#1a1f35" />
           <stop offset="100%" stopColor="#0c1222" />
         </linearGradient>
-        <linearGradient
-          id={`def-stroke-${uniqueId}`}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
-        >
+        <linearGradient id={`def-stroke-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#06b6d4" />
           <stop offset="50%" stopColor="#8b5cf6" />
           <stop offset="100%" stopColor="#06b6d4" />
         </linearGradient>
-        <linearGradient
-          id={`def-eye-${uniqueId}`}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
-        >
+        <linearGradient id={`def-eye-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#22d3ee" />
           <stop offset="100%" stopColor="#a855f7" />
         </linearGradient>
@@ -322,13 +206,7 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
           <stop offset="0%" stopColor="#67e8f9" />
           <stop offset="100%" stopColor="#0891b2" />
         </radialGradient>
-        <filter
-          id={`def-glow-${uniqueId}`}
-          x="-50%"
-          y="-50%"
-          width="200%"
-          height="200%"
-        >
+        <filter id={`def-glow-${uniqueId}`} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
@@ -375,20 +253,8 @@ const OnyxLogo = ({ className = "w-10 h-10", variant = "default" }) => {
       />
 
       {/* AI Eye core */}
-      <circle
-        cx="16"
-        cy="16"
-        r="4"
-        fill={`url(#def-eye-${uniqueId})`}
-        opacity="0.2"
-      />
-      <circle
-        cx="16"
-        cy="16"
-        r="3"
-        fill="#0e7490"
-        filter={`url(#def-glow-${uniqueId})`}
-      />
+      <circle cx="16" cy="16" r="4" fill={`url(#def-eye-${uniqueId})`} opacity="0.2" />
+      <circle cx="16" cy="16" r="3" fill="#0e7490" filter={`url(#def-glow-${uniqueId})`} />
       <circle cx="16" cy="16" r="2" fill={`url(#def-core-${uniqueId})`} />
       <circle cx="16" cy="16" r="1" fill="#67e8f9" />
       <circle cx="15" cy="15" r="0.4" fill="white" />

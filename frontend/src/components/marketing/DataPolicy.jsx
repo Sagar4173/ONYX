@@ -167,9 +167,7 @@ We comply with GDPR, CCPA, and other applicable data regulations.`,
               <ShieldCheckIcon className="w-4 h-4 text-cyan-400" />
               <span className="text-sm text-cyan-400">Legal</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Data Protection Policy
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Data Protection Policy</h1>
             <p className="text-gray-400">Last updated: {lastUpdated}</p>
           </div>
 
@@ -194,11 +192,7 @@ We comply with GDPR, CCPA, and other applicable data regulations.`,
           {/* Sections */}
           <div className="space-y-12">
             {sections.map((section, index) => (
-              <section
-                key={section.id}
-                id={section.id}
-                className="scroll-mt-24"
-              >
+              <section key={section.id} id={section.id} className="scroll-mt-24">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
                     <section.icon className="w-5 h-5 text-cyan-400" />
@@ -214,14 +208,8 @@ We comply with GDPR, CCPA, and other applicable data regulations.`,
                       className="text-gray-400 leading-relaxed mb-4 whitespace-pre-line"
                       dangerouslySetInnerHTML={{
                         __html: paragraph
-                          .replace(
-                            /\*\*(.*?)\*\*/g,
-                            "<strong class='text-white'>$1</strong>"
-                          )
-                          .replace(
-                            /• /g,
-                            "<span class='text-cyan-400'>•</span> "
-                          ),
+                          .replace(/\*\*(.*?)\*\*/g, "<strong class='text-white'>$1</strong>")
+                          .replace(/• /g, "<span class='text-cyan-400'>•</span> "),
                       }}
                     />
                   ))}
@@ -232,12 +220,9 @@ We comply with GDPR, CCPA, and other applicable data regulations.`,
 
           {/* Contact */}
           <div className="mt-16 p-8 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-2xl text-center">
-            <h3 className="text-xl font-bold mb-2">
-              Questions About Data Protection?
-            </h3>
+            <h3 className="text-xl font-bold mb-2">Questions About Data Protection?</h3>
             <p className="text-gray-400 mb-6">
-              Contact our Data Protection Officer for any data-related
-              inquiries.
+              Contact our Data Protection Officer for any data-related inquiries.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
@@ -264,10 +249,7 @@ We comply with GDPR, CCPA, and other applicable data regulations.`,
             © {new Date().getFullYear()} ONYX Security Intelligence
           </p>
           <div className="flex items-center gap-6 text-sm">
-            <Link
-              to="/terms"
-              className="text-gray-500 hover:text-gray-300 transition-colors"
-            >
+            <Link to="/terms" className="text-gray-500 hover:text-gray-300 transition-colors">
               Terms of Service
             </Link>
             <Link to="/legal" className="text-cyan-400">

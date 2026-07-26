@@ -15,7 +15,7 @@ import {
 import toast from "react-hot-toast";
 import { enterpriseAPI, projectsAPI } from "../../services/api";
 import { Button, Card, EmptyState, Modal } from "../../styles/components";
-import { PageContainer, PageHeader} from "../../layouts";
+import { PageContainer, PageHeader } from "../../layouts";
 
 const AdvancedCompliance = () => {
   const queryClient = useQueryClient();
@@ -24,7 +24,8 @@ const AdvancedCompliance = () => {
   const [selectedAssessment, setSelectedAssessment] = useState(null);
   const [formData, setFormData] = useState({
     project_id: "",
-    frameworks: []});
+    frameworks: [],
+  });
 
   // Compliance frameworks
   const frameworks = [
@@ -34,71 +35,87 @@ const AdvancedCompliance = () => {
       fullName: "Sarbanes-Oxley Act",
       description: "Financial reporting and internal controls",
       color: "from-blue-500 to-cyan-500",
-      icon: "💼"},
+      icon: "💼",
+    },
     {
       id: "hipaa",
       name: "HIPAA",
       fullName: "Health Insurance Portability and Accountability Act",
       description: "Healthcare data privacy and security",
       color: "from-green-500 to-emerald-500",
-      icon: "🏥"},
+      icon: "🏥",
+    },
     {
       id: "iso27001",
       name: "ISO 27001",
       fullName: "ISO/IEC 27001",
       description: "Information security management",
       color: "from-purple-500 to-pink-500",
-      icon: "🔒"},
+      icon: "🔒",
+    },
     {
       id: "pci_dss",
       name: "PCI DSS",
       fullName: "Payment Card Industry Data Security Standard",
       description: "Payment card data protection",
       color: "from-orange-500 to-red-500",
-      icon: "💳"},
+      icon: "💳",
+    },
     {
       id: "gdpr",
       name: "GDPR",
       fullName: "General Data Protection Regulation",
       description: "EU data protection and privacy",
-      color: "from-blue-500 to-indigo-500",
-      icon: "🇪🇺"},
+      color: "from-cyan-500 to-violet-500",
+      icon: "🇪🇺",
+    },
     {
       id: "soc2",
       name: "SOC 2",
       fullName: "Service Organization Control 2",
       description: "Service provider security controls",
       color: "from-teal-500 to-cyan-500",
-      icon: "🛡️"},
+      icon: "🛡️",
+    },
     {
       id: "nist",
       name: "NIST",
       fullName: "NIST Cybersecurity Framework",
       description: "Risk-based cybersecurity guidance",
       color: "from-indigo-500 to-purple-500",
-      icon: "🔐"},
+      icon: "🔐",
+    },
     {
       id: "cis",
       name: "CIS",
       fullName: "CIS Controls",
       description: "Cybersecurity best practices",
       color: "from-yellow-500 to-orange-500",
-      icon: "⚡"},
+      icon: "⚡",
+    },
     {
       id: "owasp",
       name: "OWASP",
       fullName: "OWASP Top 10",
       description: "Web application security risks",
       color: "from-red-500 to-pink-500",
-      icon: "🌐"},
+      icon: "🌐",
+    },
   ];
 
   // Fetch assessments
-  const { data: assessmentsData, isLoading, isError, refetch } = useQuery({
+  const {
+    data: assessmentsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["complianceAssessments", selectedFramework],
     queryFn: () =>
       enterpriseAPI.getComplianceAssessments({
-        framework: selectedFramework !== "all" ? selectedFramework : undefined})});
+        framework: selectedFramework !== "all" ? selectedFramework : undefined,
+      }),
+  });
 
   // Fetch projects for dropdown
   const { data: projectsData } = useQuery({
@@ -109,7 +126,8 @@ const AdvancedCompliance = () => {
   // Fetch framework summary
   const { data: summaryData, isError: summaryError } = useQuery({
     queryKey: ["complianceFrameworkSummary"],
-    queryFn: () => enterpriseAPI.getComplianceFrameworkSummary()});
+    queryFn: () => enterpriseAPI.getComplianceFrameworkSummary(),
+  });
 
   // Create assessment mutation
   const createAssessmentMutation = useMutation({
@@ -122,10 +140,9 @@ const AdvancedCompliance = () => {
       resetForm();
     },
     onError: (error) => {
-      toast.error(
-        error.response?.data?.detail || "Failed to create assessment"
-      );
-    }});
+      toast.error(error.response?.data?.detail || "Failed to create assessment");
+    },
+  });
 
   // Export assessment mutation
   const exportAssessmentMutation = useMutation({
@@ -133,7 +150,8 @@ const AdvancedCompliance = () => {
     onSuccess: (data, variables) => {
       // Create download
       const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json"});
+        type: "application/json",
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -146,12 +164,14 @@ const AdvancedCompliance = () => {
     },
     onError: (error) => {
       toast.error("Failed to export report");
-    }});
+    },
+  });
 
   const resetForm = () => {
     setFormData({
       project_id: "",
-      frameworks: []});
+      frameworks: [],
+    });
   };
 
   const handleSubmit = (e) => {
@@ -195,7 +215,7 @@ const AdvancedCompliance = () => {
           actions={
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all"
+              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               <PlusIcon className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>New Assessment</span>
@@ -208,7 +228,7 @@ const AdvancedCompliance = () => {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedFramework("all")}
-              className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
+              className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                 selectedFramework === "all"
                   ? "bg-purple-500 text-white"
                   : "bg-gray-900/50 text-gray-400 hover:bg-gray-800/50"
@@ -220,7 +240,7 @@ const AdvancedCompliance = () => {
               <button
                 key={framework.id}
                 onClick={() => setSelectedFramework(framework.id)}
-                className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-medium transition-all ${
+                className={`px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                   selectedFramework === framework.id
                     ? `bg-gradient-to-r ${framework.color} text-white`
                     : "bg-gray-900/50 text-gray-400 hover:bg-gray-800/50"
@@ -236,22 +256,14 @@ const AdvancedCompliance = () => {
         {summaryData && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {frameworks.slice(0, 3).map((framework) => {
-              const summary = summaryData.frameworks?.find(
-                (f) => f.framework === framework.id
-              );
+              const summary = summaryData.frameworks?.find((f) => f.framework === framework.id);
               return (
-                <Card
-                  key={framework.id}
-                  padding="lg"
-                  className="shadow-xl"
-                >
+                <Card key={framework.id} padding="lg" className="shadow-xl">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <span className="text-3xl">{framework.icon}</span>
                       <div>
-                        <h3 className="text-lg font-semibold text-white">
-                          {framework.name}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-white">{framework.name}</h3>
                         <p className="text-sm text-gray-400">
                           {summary?.total_assessments || 0} assessments
                         </p>
@@ -264,9 +276,7 @@ const AdvancedCompliance = () => {
                         <span className="text-gray-400">Avg Score:</span>
                         <span
                           className={`font-semibold ${
-                            summary.average_score >= 70
-                              ? "text-green-400"
-                              : "text-yellow-400"
+                            summary.average_score >= 70 ? "text-green-400" : "text-yellow-400"
                           }`}
                         >
                           {summary.average_score?.toFixed(1)}%
@@ -291,9 +301,7 @@ const AdvancedCompliance = () => {
         {/* Assessments List */}
         <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
           <div className="p-6 border-b border-gray-700/50">
-            <h2 className="text-xl font-semibold text-white">
-              Compliance Assessments
-            </h2>
+            <h2 className="text-xl font-semibold text-white">Compliance Assessments</h2>
           </div>
 
           {isError ? (
@@ -302,8 +310,11 @@ const AdvancedCompliance = () => {
                 <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
               </div>
               <p className="text-gray-400 mb-4">Failed to load assessments</p>
-              <button type="button" onClick={() => refetch()}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 px-4 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+              >
                 Try Again
               </button>
             </div>
@@ -321,10 +332,7 @@ const AdvancedCompliance = () => {
           ) : (
             <div className="divide-y divide-gray-700/50">
               {assessmentsData?.assessments?.map((assessment) => (
-                <div
-                  key={assessment.id}
-                  className="p-6 hover:bg-gray-800/30 transition-colors"
-                >
+                <div key={assessment.id} className="p-6 hover:bg-gray-800/30 transition-colors">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -336,8 +344,8 @@ const AdvancedCompliance = () => {
                             assessment.status === "completed"
                               ? "bg-green-500/20 text-green-400"
                               : assessment.status === "in_progress"
-                              ? "bg-yellow-500/20 text-yellow-400"
-                              : "bg-gray-500/20 text-gray-400"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : "bg-gray-500/20 text-gray-400"
                           }`}
                         >
                           {assessment.status}
@@ -350,16 +358,17 @@ const AdvancedCompliance = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedAssessment(assessment)}
-                        className="p-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-400 transition-all"
+                        className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-lg text-cyan-400 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                       >
                         <EyeIcon className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() =>
                           exportAssessmentMutation.mutate({
-                            assessmentId: assessment.id})
+                            assessmentId: assessment.id,
+                          })
                         }
-                        className="p-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 transition-all"
+                        className="p-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg text-green-400 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                       >
                         <ArrowDownTrayIcon className="w-5 h-5" />
                       </button>
@@ -371,14 +380,9 @@ const AdvancedCompliance = () => {
                     {assessment.framework_results?.map((result) => {
                       const frameworkInfo = getFrameworkInfo(result.framework);
                       return (
-                        <Card
-                          key={result.framework}
-                          className="bg-gray-800/30"
-                        >
+                        <Card key={result.framework} className="bg-gray-800/30">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">
-                              {frameworkInfo?.icon}
-                            </span>
+                            <span className="text-xl">{frameworkInfo?.icon}</span>
                             <span className="text-sm font-medium text-white">
                               {frameworkInfo?.name}
                             </span>
@@ -387,23 +391,17 @@ const AdvancedCompliance = () => {
                             <div>
                               <p
                                 className={`text-2xl font-bold ${
-                                  result.score >= 70
-                                    ? "text-green-400"
-                                    : "text-yellow-400"
+                                  result.score >= 70 ? "text-green-400" : "text-yellow-400"
                                 }`}
                               >
                                 {result.score?.toFixed(0)}%
                               </p>
                               <p className="text-xs text-gray-400">
-                                {result.passed_controls}/{result.total_controls}{" "}
-                                controls
+                                {result.passed_controls}/{result.total_controls} controls
                               </p>
                             </div>
                             <div className="w-12 h-12">
-                              <svg
-                                className="transform -rotate-90"
-                                viewBox="0 0 36 36"
-                              >
+                              <svg className="transform -rotate-90" viewBox="0 0 36 36">
                                 <path
                                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                   fill="none"
@@ -413,9 +411,7 @@ const AdvancedCompliance = () => {
                                 <path
                                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                   fill="none"
-                                  stroke={
-                                    result.score >= 70 ? "#4ade80" : "#fbbf24"
-                                  }
+                                  stroke={result.score >= 70 ? "#4ade80" : "#fbbf24"}
                                   strokeWidth="3"
                                   strokeDasharray={`${result.score}, 100`}
                                 />
@@ -434,14 +430,17 @@ const AdvancedCompliance = () => {
 
         {/* Assessment Details Modal */}
         {selectedAssessment && (
-          <Modal size="xl" isOpen={!!selectedAssessment} onClose={() => setSelectedAssessment(null)} title="Assessment Details">
+          <Modal
+            size="xl"
+            isOpen={!!selectedAssessment}
+            onClose={() => setSelectedAssessment(null)}
+            title="Assessment Details"
+          >
             {/* Assessment Info */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-800/30 rounded-xl p-4">
                 <p className="text-sm text-gray-400 mb-1">Project ID</p>
-                <p className="text-lg font-semibold text-white">
-                  {selectedAssessment.project_id}
-                </p>
+                <p className="text-lg font-semibold text-white">{selectedAssessment.project_id}</p>
               </div>
               <div className="bg-gray-800/30 rounded-xl p-4">
                 <p className="text-sm text-gray-400 mb-1">Status</p>
@@ -451,7 +450,9 @@ const AdvancedCompliance = () => {
               </div>
               <div className="bg-gray-800/30 rounded-xl p-4">
                 <p className="text-sm text-gray-400 mb-1">Overall Score</p>
-                <p className={`text-2xl font-bold ${selectedAssessment.overall_score >= 70 ? "text-green-400" : "text-yellow-400"}`}>
+                <p
+                  className={`text-2xl font-bold ${selectedAssessment.overall_score >= 70 ? "text-green-400" : "text-yellow-400"}`}
+                >
                   {selectedAssessment.overall_score?.toFixed(1)}%
                 </p>
               </div>
@@ -485,7 +486,9 @@ const AdvancedCompliance = () => {
 
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-green-400">{result.passed_controls}</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {result.passed_controls}
+                        </p>
                         <p className="text-xs text-gray-400">Passed</p>
                       </div>
                       <div className="text-center">
@@ -520,12 +523,29 @@ const AdvancedCompliance = () => {
           <Modal
             size="lg"
             isOpen={showCreateModal}
-            onClose={() => { setShowCreateModal(false); resetForm(); }}
+            onClose={() => {
+              setShowCreateModal(false);
+              resetForm();
+            }}
             title="Create Compliance Assessment"
             footer={
               <>
-                <Button variant="ghost" onClick={() => { setShowCreateModal(false); resetForm(); }}>Cancel</Button>
-                <Button type="submit" form="assessment-form" gradient isLoading={createAssessmentMutation.isPending} disabled={formData.frameworks.length === 0}>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  form="assessment-form"
+                  gradient
+                  isLoading={createAssessmentMutation.isPending}
+                  disabled={formData.frameworks.length === 0}
+                >
                   Start Assessment
                 </Button>
               </>
@@ -547,8 +567,13 @@ const AdvancedCompliance = () => {
                     Choose a project...
                   </option>
                   {(projectsData?.projects || []).map((project) => (
-                    <option key={project.id || project._id} value={project.id || project._id} className="bg-gray-800 text-white">
-                      {project.name}{project.repository?.url ? ` — ${project.repository.url}` : ""}
+                    <option
+                      key={project.id || project._id}
+                      value={project.id || project._id}
+                      className="bg-gray-800 text-white"
+                    >
+                      {project.name}
+                      {project.repository?.url ? ` — ${project.repository.url}` : ""}
                     </option>
                   ))}
                 </select>
@@ -575,7 +600,7 @@ const AdvancedCompliance = () => {
                           : [...formData.frameworks, framework.id];
                         setFormData({ ...formData, frameworks: newFrameworks });
                       }}
-                      className={`p-4 border rounded-xl text-left transition-all ${
+                      className={`p-4 border rounded-xl text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                         formData.frameworks.includes(framework.id)
                           ? `bg-gradient-to-r ${framework.color} border-transparent`
                           : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
@@ -589,7 +614,9 @@ const AdvancedCompliance = () => {
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-sm text-gray-400">Select at least one framework for assessment</p>
+                <p className="mt-2 text-sm text-gray-400">
+                  Select at least one framework for assessment
+                </p>
               </div>
             </form>
           </Modal>

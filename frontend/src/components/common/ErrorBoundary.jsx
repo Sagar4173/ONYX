@@ -3,10 +3,7 @@
  * Catches JavaScript errors anywhere in the component tree and displays a fallback UI
  */
 import React from "react";
-import {
-  ExclamationTriangleIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -54,14 +51,11 @@ class ErrorBoundary extends React.Component {
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl font-bold text-white mb-2">
-              Something went wrong
-            </h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
 
             {/* Description */}
             <p className="text-gray-400 mb-6">
-              We're sorry, but something unexpected happened. Please try again
-              or reload the page.
+              We're sorry, but something unexpected happened. Please try again or reload the page.
             </p>
 
             {/* Error Details (Development only) */}

@@ -12,7 +12,6 @@ import {
   LockClosedIcon,
   UserIcon,
   KeyIcon,
-  ArrowPathIcon,
   ArrowRightIcon,
   CheckCircleIcon,
   DevicePhoneMobileIcon,
@@ -22,11 +21,7 @@ import { Button, Input, FormGroup } from "../../styles/components";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 
-export const LoginForm = ({
-  onSuccess,
-  onSwitchToRegister,
-  onSwitchToForgotPassword,
-}) => {
+export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassword }) => {
   const [formData, setFormData] = useState({
     username_or_email: "",
     password: "",
@@ -78,9 +73,7 @@ export const LoginForm = ({
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-violet-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-4">
             <DevicePhoneMobileIcon className="w-8 h-8 text-violet-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Two-Factor Authentication
-          </h2>
+          <h2 className="text-2xl font-bold text-white mb-2">Two-Factor Authentication</h2>
           <p className="text-gray-400 text-sm">
             Enter the 6-digit code from your authenticator app for{" "}
             <span className="text-cyan-400">{twoFAEmail}</span>
@@ -127,12 +120,7 @@ export const LoginForm = ({
             Verify & Sign In
           </Button>
 
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleBack}
-            className="w-full"
-          >
+          <Button type="button" variant="ghost" onClick={handleBack} className="w-full">
             ← Back to login
           </Button>
         </form>
@@ -142,12 +130,10 @@ export const LoginForm = ({
           <div className="flex items-start gap-3">
             <ShieldCheckSolid className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-gray-300">
-              <p className="font-medium text-violet-300 mb-1">
-                Your account is protected
-              </p>
+              <p className="font-medium text-violet-300 mb-1">Your account is protected</p>
               <p className="text-gray-400 text-xs">
-                Two-factor authentication adds an extra layer of security to
-                your account by requiring a code from your authenticator app.
+                Two-factor authentication adds an extra layer of security to your account by
+                requiring a code from your authenticator app.
               </p>
             </div>
           </div>
@@ -165,7 +151,7 @@ export const LoginForm = ({
         <p className="text-gray-400">Access your ONYX security dashboard</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="group">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
             <EnvelopeIcon className="w-4 h-4 text-cyan-400" />
@@ -197,9 +183,7 @@ export const LoginForm = ({
             <Input
               type={showPassword ? "text" : "password"}
               value={formData.password}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, password: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
               leadingIcon={<KeyIcon className="w-5 h-5" />}
               placeholder="Enter your password"
               required
@@ -211,7 +195,7 @@ export const LoginForm = ({
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-600/30 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               {showPassword ? (
                 <EyeSlashIcon className="h-5 w-5" />
@@ -243,7 +227,7 @@ export const LoginForm = ({
           <button
             type="button"
             onClick={onSwitchToForgotPassword}
-            className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium hover:underline"
+            className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded"
           >
             Forgot password?
           </button>
@@ -253,7 +237,7 @@ export const LoginForm = ({
           type="submit"
           disabled={isLoading}
           gradient
-          rightIcon={<ArrowRightIcon className="w-5 h-5" />}
+          rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
           isLoading={isLoading}
           className="w-full"
         >
@@ -261,15 +245,15 @@ export const LoginForm = ({
         </Button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-8 text-center">
         <span className="text-gray-400">Don't have an account? </span>
-        <Button
-          variant="ghost"
+        <button
+          type="button"
           onClick={onSwitchToRegister}
-          className="text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text font-semibold hover:from-cyan-300 hover:to-violet-300 transition-all !bg-none p-0"
+          className="font-semibold text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text hover:from-cyan-300 hover:to-violet-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded"
         >
           Create account
-        </Button>
+        </button>
       </div>
 
       {/* Trust Badges */}

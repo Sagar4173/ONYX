@@ -10,13 +10,9 @@ import {
   EllipsisVerticalIcon,
   PencilIcon,
   TrashIcon,
-  UserPlusIcon,
   UsersIcon,
   ChartBarIcon,
-  CalendarIcon,
-  TagIcon,
   GlobeAltIcon,
-  ShieldCheckIcon,
   ExclamationTriangleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -102,7 +98,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
       <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl group-hover:scale-105 transition-all duration-300" />
 
       <div
-        className="relative bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-5 lg:p-6 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer"
+        className="relative bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-5 lg:p-6 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 cursor-pointer"
         onClick={() => onView(project)}
       >
         {/* Header */}
@@ -110,7 +106,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
           <div className="flex items-center space-x-3">
             <div className="text-2xl">{getCategoryIcon(project.category)}</div>
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-blue-400 transition-colors">
+              <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-cyan-400 transition-colors">
                 {project.name}
               </h3>
               <div className="flex items-center space-x-2">
@@ -135,7 +131,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
           <div className="relative">
             <button
               onClick={() => setShowActions(!showActions)}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all"
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               <EllipsisVerticalIcon className="h-5 w-5" />
             </button>
@@ -147,7 +143,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
                     onView(project);
                     setShowActions(false);
                   }}
-                  className="w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all flex items-center space-x-2"
+                  className="w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   <ChartBarIcon className="h-4 w-4" />
                   <span>View Details</span>
@@ -157,7 +153,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
                     onEdit(project);
                     setShowActions(false);
                   }}
-                  className="w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all flex items-center space-x-2"
+                  className="w-full px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   <PencilIcon className="h-4 w-4" />
                   <span>Edit Project</span>
@@ -167,104 +163,74 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }) => {
                     onDelete(project);
                     setShowActions(false);
                   }}
-                  className="w-full px-4 py-3 text-left text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all flex items-center space-x-2"
+                  className="w-full px-4 py-3 text-left text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   <TrashIcon className="h-4 w-4" />
                   <span>Delete Project</span>
-</button>
-        </div>
-      )}
+                </button>
+              </div>
+            )}
           </div>
 
-        {/* Description */}
-        {project.description && (
-          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-            {project.description}
-          </p>
-        )}
+          {/* Description */}
+          {project.description && (
+            <p className="text-gray-400 text-sm mb-4 line-clamp-2">{project.description}</p>
+          )}
 
-        {/* Repository */}
-        <div className="flex items-center space-x-2 mb-4">
-          <GlobeAltIcon className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-400 truncate">
-            {project.repository_url
-              .replace("https://", "")
-              .replace("http://", "")}
-          </span>
-        </div>
+          {/* Repository */}
+          <div className="flex items-center space-x-2 mb-4">
+            <GlobeAltIcon className="h-4 w-4 text-gray-400" />
+            <span className="text-sm text-gray-400 truncate">
+              {project.repository_url.replace("https://", "").replace("http://", "")}
+            </span>
+          </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="text-center p-3 rounded-xl bg-gray-800/50">
-            <div className="text-lg font-bold text-white">
-              {project.total_scans}
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="text-center p-3 rounded-xl bg-gray-800/50">
+              <div className="text-lg font-bold text-white">{project.total_scans}</div>
+              <div className="text-xs text-gray-400">Scans</div>
             </div>
-            <div className="text-xs text-gray-400">Scans</div>
-          </div>
-          <div className="text-center p-3 rounded-xl bg-gray-800/50">
-            <div
-              className={`text-lg font-bold ${
-                totalVulns > 0 ? "text-orange-400" : "text-green-400"
-              }`}
-            >
-              {totalVulns}
+            <div className="text-center p-3 rounded-xl bg-gray-800/50">
+              <div
+                className={`text-lg font-bold ${
+                  totalVulns > 0 ? "text-orange-400" : "text-green-400"
+                }`}
+              >
+                {totalVulns}
+              </div>
+              <div className="text-xs text-gray-400">Issues</div>
             </div>
-            <div className="text-xs text-gray-400">Issues</div>
-          </div>
-          <div className="text-center p-3 rounded-xl bg-gray-800/50">
-            <div
-              className={`text-lg font-bold ${getScoreColor(
-                project.security_score || 0
-              )}`}
-            >
-              {Math.round(project.security_score || 0)}
+            <div className="text-center p-3 rounded-xl bg-gray-800/50">
+              <div className={`text-lg font-bold ${getScoreColor(project.security_score || 0)}`}>
+                {Math.round(project.security_score || 0)}
+              </div>
+              <div className="text-xs text-gray-400">Score</div>
             </div>
-            <div className="text-xs text-gray-400">Score</div>
           </div>
-        </div>
 
-        {/* Vulnerability Breakdown */}
-        {totalVulns > 0 && (
-          <div className="flex items-center justify-between text-xs mb-4 p-3 rounded-xl bg-gray-800/30 border border-gray-700/30">
-            <div
-              className="flex items-center space-x-1.5 text-red-400"
-              title="Critical"
-            >
-              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="font-medium">
-                {project.vulnerability_count.critical}
-              </span>
+          {/* Vulnerability Breakdown */}
+          {totalVulns > 0 && (
+            <div className="flex items-center justify-between text-xs mb-4 p-3 rounded-xl bg-gray-800/30 border border-gray-700/30">
+              <div className="flex items-center space-x-1.5 text-red-400" title="Critical">
+                <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="font-medium">{project.vulnerability_count.critical}</span>
+              </div>
+              <div className="flex items-center space-x-1.5 text-orange-400" title="High">
+                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
+                <span className="font-medium">{project.vulnerability_count.high}</span>
+              </div>
+              <div className="flex items-center space-x-1.5 text-yellow-400" title="Medium">
+                <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
+                <span className="font-medium">{project.vulnerability_count.medium}</span>
+              </div>
+              <div className="flex items-center space-x-1.5 text-cyan-400" title="Low">
+                <div className="w-2.5 h-2.5 bg-cyan-500 rounded-full"></div>
+                <span className="font-medium">{project.vulnerability_count.low}</span>
+              </div>
             </div>
-            <div
-              className="flex items-center space-x-1.5 text-orange-400"
-              title="High"
-            >
-              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full"></div>
-              <span className="font-medium">
-                {project.vulnerability_count.high}
-              </span>
-            </div>
-            <div
-              className="flex items-center space-x-1.5 text-yellow-400"
-              title="Medium"
-            >
-              <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
-              <span className="font-medium">
-                {project.vulnerability_count.medium}
-              </span>
-            </div>
-            <div
-              className="flex items-center space-x-1.5 text-blue-400"
-              title="Low"
-            >
-              <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-              <span className="font-medium">
-                {project.vulnerability_count.low}
-              </span>
-          </div>
+          )}
         </div>
-      )}
-          </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-700/50">
@@ -394,7 +360,7 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-center space-x-3">
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600">
             <PlusIcon className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -402,7 +368,11 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
             <p className="text-gray-400">Set up a new security scanning project</p>
           </div>
         </div>
-        <button onClick={onClose} aria-label="Close create project" className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+        <button
+          onClick={onClose}
+          aria-label="Close create project"
+          className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+        >
           <XMarkIcon className="h-6 w-6" />
         </button>
       </div>
@@ -420,7 +390,7 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                 placeholder="My Awesome Project"
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                 required
                 aria-required="true"
                 autoComplete="off"
@@ -432,10 +402,14 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
               <select
                 value={formData.category}
                 onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
               >
                 {templates?.categories.map((category) => (
-                  <option key={category.value} value={category.value} className="bg-gray-800 text-white">
+                  <option
+                    key={category.value}
+                    value={category.value}
+                    className="bg-gray-800 text-white"
+                  >
                     {category.label}
                   </option>
                 ))}
@@ -450,7 +424,7 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Describe your project..."
               rows={3}
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all resize-none"
             />
           </div>
 
@@ -459,10 +433,14 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
             <select
               value={formData.priority}
               onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
             >
               {templates?.priorities.map((priority) => (
-                <option key={priority.value} value={priority.value} className="bg-gray-800 text-white">
+                <option
+                  key={priority.value}
+                  value={priority.value}
+                  className="bg-gray-800 text-white"
+                >
                   {priority.label}
                 </option>
               ))}
@@ -476,13 +454,20 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">Repository URL *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Repository URL *
+              </label>
               <input
                 type="url"
                 value={formData.repository.url}
-                onChange={(e) => setFormData((prev) => ({ ...prev, repository: { ...prev.repository, url: e.target.value } }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    repository: { ...prev.repository, url: e.target.value },
+                  }))
+                }
                 placeholder="https://github.com/user/repo"
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                 required
                 aria-required="true"
                 autoComplete="url"
@@ -494,21 +479,33 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
               <input
                 type="text"
                 value={formData.repository.branch}
-                onChange={(e) => setFormData((prev) => ({ ...prev, repository: { ...prev.repository, branch: e.target.value } }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    repository: { ...prev.repository, branch: e.target.value },
+                  }))
+                }
                 placeholder="main"
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">Access Token (for private repositories)</label>
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Access Token (for private repositories)
+            </label>
             <input
               type="password"
               value={formData.repository.access_token}
-              onChange={(e) => setFormData((prev) => ({ ...prev, repository: { ...prev.repository, access_token: e.target.value } }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  repository: { ...prev.repository, access_token: e.target.value },
+                }))
+              }
               placeholder="ghp_xxxxxxxxxxxx"
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
             />
           </div>
         </div>
@@ -525,14 +522,14 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
                 onClick={() => toggleScanner(scanner.value)}
                 className={`p-4 rounded-xl border-2 transition-all text-left ${
                   formData.scan_config.enabled_scanners.includes(scanner.value)
-                    ? "border-blue-500/70 bg-blue-500/20"
+                    ? "border-cyan-500/70 bg-cyan-500/20"
                     : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
-                }`}
+                } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-white">{scanner.label}</span>
                   {formData.scan_config.enabled_scanners.includes(scanner.value) && (
-                    <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                    <CheckCircleIcon className="h-5 w-5 text-cyan-400" />
                   )}
                 </div>
                 <p className="text-sm text-gray-400">{scanner.description}</p>
@@ -552,17 +549,26 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
               onChange={(e) => setTagInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
               placeholder="Add tags..."
-              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
             />
-            <Button type="button" onClick={addTag}>Add</Button>
+            <Button type="button" onClick={addTag}>
+              Add
+            </Button>
           </div>
 
           {formData.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {formData.tags.map((tag) => (
-                <span key={tag} className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2">
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
+                >
                   <span>{tag}</span>
-                  <button type="button" onClick={() => removeTag(tag)} className="text-gray-400 hover:text-white">
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-inset"
+                  >
                     <XMarkIcon className="h-4 w-4" />
                   </button>
                 </span>
@@ -573,7 +579,9 @@ const CreateProjectModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* Submit */}
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
-          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" gradient isLoading={isSubmitting || createMutation.isPending}>
             {isSubmitting || createMutation.isPending ? "Creating..." : "Create Project"}
           </Button>
@@ -595,7 +603,7 @@ export const ProjectManagement = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const navigate = useNavigate();
 
   const { data: projectsData, isLoading } = useQuery({
@@ -628,9 +636,8 @@ export const ProjectManagement = () => {
   });
 
   // Update project mutation
-  const updateProjectMutation = useMutation({
-    mutationFn: ({ projectId, projectData }) =>
-      projectsAPI.updateProject(projectId, projectData),
+  const _updateProjectMutation = useMutation({
+    mutationFn: ({ projectId, projectData }) => projectsAPI.updateProject(projectId, projectData),
     onSuccess: () => {
       toast.success("Project updated successfully!");
       setEditingProject(null);
@@ -669,7 +676,7 @@ export const ProjectManagement = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Loading projects...</p>
           </div>
         </div>
@@ -688,7 +695,7 @@ export const ProjectManagement = () => {
         actions={
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all flex items-center space-x-2"
+            className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <PlusIcon className="h-5 w-5" />
             <span>New Project</span>
@@ -745,12 +752,8 @@ export const ProjectManagement = () => {
                     <stat.icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                   </div>
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-                  {stat.value}
-                </h3>
-                <p className="text-gray-400 font-medium text-sm">
-                  {stat.title}
-                </p>
+                <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">{stat.value}</h3>
+                <p className="text-gray-400 font-medium text-sm">{stat.title}</p>
               </div>
             </div>
           ))}
@@ -761,14 +764,14 @@ export const ProjectManagement = () => {
       <GlassCard className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <MagnifyingGlassIcon className="h-5 w-5 text-blue-400" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-cyan-400" />
             Search & Filter
           </h3>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${
+            className={`p-2.5 rounded-xl transition-all flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
               showFilters
-                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
                 : "text-gray-400 hover:text-white hover:bg-gray-700/50"
             }`}
           >
@@ -785,11 +788,9 @@ export const ProjectManagement = () => {
             <input
               type="text"
               value={filters.search}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, search: e.target.value }))
-              }
+              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
               placeholder="Search by project name, description, or tags..."
-              className="w-full pl-12 pr-4 py-3.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm"
+              className="w-full pl-12 pr-4 py-3.5 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all text-sm"
             />
           </div>
 
@@ -797,10 +798,8 @@ export const ProjectManagement = () => {
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               <select
                 value={filters.status}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, status: e.target.value }))
-                }
-                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px] [&>option]:bg-gray-800 [&>option]:text-white"
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all text-sm min-w-[140px] [&>option]:bg-gray-800 [&>option]:text-white"
               >
                 <option value="" className="bg-gray-800 text-white">
                   All Status
@@ -818,33 +817,22 @@ export const ProjectManagement = () => {
 
               <select
                 value={filters.category}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, category: e.target.value }))
-                }
-                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[160px] [&>option]:bg-gray-800 [&>option]:text-white"
+                onChange={(e) => setFilters((prev) => ({ ...prev, category: e.target.value }))}
+                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all text-sm min-w-[160px] [&>option]:bg-gray-800 [&>option]:text-white"
               >
                 <option value="" className="bg-gray-800 text-white">
                   All Categories
                 </option>
-                <option
-                  value="web_application"
-                  className="bg-gray-800 text-white"
-                >
+                <option value="web_application" className="bg-gray-800 text-white">
                   🌐 Web Application
                 </option>
-                <option
-                  value="mobile_application"
-                  className="bg-gray-800 text-white"
-                >
+                <option value="mobile_application" className="bg-gray-800 text-white">
                   📱 Mobile App
                 </option>
                 <option value="api_service" className="bg-gray-800 text-white">
                   🔌 API Service
                 </option>
-                <option
-                  value="infrastructure"
-                  className="bg-gray-800 text-white"
-                >
+                <option value="infrastructure" className="bg-gray-800 text-white">
                   🏗️ Infrastructure
                 </option>
                 <option value="microservice" className="bg-gray-800 text-white">
@@ -860,10 +848,8 @@ export const ProjectManagement = () => {
 
               <select
                 value={filters.priority}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, priority: e.target.value }))
-                }
-                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm min-w-[140px] [&>option]:bg-gray-800 [&>option]:text-white"
+                onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}
+                className="px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all text-sm min-w-[140px] [&>option]:bg-gray-800 [&>option]:text-white"
               >
                 <option value="" className="bg-gray-800 text-white">
                   All Priorities
@@ -892,7 +878,7 @@ export const ProjectManagement = () => {
                       priority: "",
                     }))
                   }
-                  className="px-4 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 hover:bg-red-500/30 transition-all text-sm font-medium"
+                  className="px-4 py-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 hover:bg-red-500/30 transition-all text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   Clear Filters
                 </button>
@@ -919,13 +905,26 @@ export const ProjectManagement = () => {
       {projectsData?.projects?.length === 0 && (
         <GlassCard className="text-center">
           <EmptyState
-            icon={<UsersIcon className="h-12 w-12 text-blue-400" />}
-            title={filters.search || filters.status || filters.category || filters.priority ? "No Projects Match Your Filters" : "No Projects Yet"}
-            description={filters.search || filters.status || filters.category || filters.priority ? "Try adjusting your search criteria or clearing the filters to see all projects." : "Get started by creating your first security scanning project."}
+            icon={<UsersIcon className="h-12 w-12 text-cyan-400" />}
+            title={
+              filters.search || filters.status || filters.category || filters.priority
+                ? "No Projects Match Your Filters"
+                : "No Projects Yet"
+            }
+            description={
+              filters.search || filters.status || filters.category || filters.priority
+                ? "Try adjusting your search criteria or clearing the filters to see all projects."
+                : "Get started by creating your first security scanning project."
+            }
             action={
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 {(filters.search || filters.status || filters.category || filters.priority) && (
-                  <Button variant="ghost" onClick={() => setFilters({ search: "", status: "", category: "", priority: "" })}>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      setFilters({ search: "", status: "", category: "", priority: "" })
+                    }
+                  >
                     <XMarkIcon className="h-5 w-5" />
                     Clear Filters
                   </Button>
@@ -944,7 +943,7 @@ export const ProjectManagement = () => {
       {/* Pagination */}
       {projectsData?.pagination?.has_more && (
         <div className="flex justify-center mt-8">
-          <button className="px-6 py-3 bg-gray-800/50 text-white rounded-xl hover:bg-gray-700/50 transition-all">
+          <button className="px-6 py-3 bg-gray-800/50 text-white rounded-xl hover:bg-gray-700/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
             Load More Projects
           </button>
         </div>
@@ -979,7 +978,9 @@ export const ProjectManagement = () => {
           size="sm"
           footer={
             <>
-              <Button variant="ghost" onClick={() => setDeletingProject(null)}>Cancel</Button>
+              <Button variant="ghost" onClick={() => setDeletingProject(null)}>
+                Cancel
+              </Button>
               <Button
                 variant="danger"
                 isLoading={deleteProjectMutation.isPending}
@@ -993,8 +994,8 @@ export const ProjectManagement = () => {
           <div className="text-center py-2">
             <ExclamationTriangleIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <p className="text-gray-400">
-              Are you sure you want to delete "{deletingProject.name}"? This
-              action cannot be undone and will remove all associated scan data.
+              Are you sure you want to delete "{deletingProject.name}"? This action cannot be undone
+              and will remove all associated scan data.
             </p>
           </div>
         </Modal>
@@ -1018,10 +1019,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
       exclude_paths: project?.repository?.exclude_paths || [],
     },
     scan_config: {
-      enabled_scanners: project?.scan_config?.enabled_scanners || [
-        "sast",
-        "secrets",
-      ],
+      enabled_scanners: project?.scan_config?.enabled_scanners || ["sast", "secrets"],
       auto_scan_on_push: project?.scan_config?.auto_scan_on_push || false,
       scan_timeout_minutes: project?.scan_config?.scan_timeout_minutes || 60,
       fail_on_critical: project?.scan_config?.fail_on_critical || false,
@@ -1064,10 +1062,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
           exclude_paths: project.repository?.exclude_paths || [],
         },
         scan_config: {
-          enabled_scanners: project.scan_config?.enabled_scanners || [
-            "sast",
-            "secrets",
-          ],
+          enabled_scanners: project.scan_config?.enabled_scanners || ["sast", "secrets"],
           auto_scan_on_push: project.scan_config?.auto_scan_on_push || false,
           scan_timeout_minutes: project.scan_config?.scan_timeout_minutes || 60,
           fail_on_critical: project.scan_config?.fail_on_critical || false,
@@ -1127,7 +1122,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
     <Modal size="xl" isOpen={isOpen} onClose={onClose}>
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-center space-x-3">
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600">
             <PencilIcon className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -1135,7 +1130,11 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
             <p className="text-gray-400">Update your project configuration</p>
           </div>
         </div>
-        <button onClick={onClose} aria-label="Close edit project" className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+        <button
+          onClick={onClose}
+          aria-label="Close edit project"
+          className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+        >
           <XMarkIcon className="h-6 w-6" />
         </button>
       </div>
@@ -1151,7 +1150,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                 required
               />
             </div>
@@ -1161,10 +1160,14 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
               <select
                 value={formData.category}
                 onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
               >
                 {templates?.categories?.map((category) => (
-                  <option key={category.value} value={category.value} className="bg-gray-800 text-white">
+                  <option
+                    key={category.value}
+                    value={category.value}
+                    className="bg-gray-800 text-white"
+                  >
                     {category.label}
                   </option>
                 ))}
@@ -1179,7 +1182,7 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="Describe your project..."
               rows={3}
-              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all resize-none"
             />
           </div>
 
@@ -1188,10 +1191,14 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
             <select
               value={formData.priority}
               onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value }))}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
             >
               {templates?.priorities?.map((priority) => (
-                <option key={priority.value} value={priority.value} className="bg-gray-800 text-white">
+                <option
+                  key={priority.value}
+                  value={priority.value}
+                  className="bg-gray-800 text-white"
+                >
                   {priority.label}
                 </option>
               ))}
@@ -1210,14 +1217,14 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
                 onClick={() => toggleScanner(scanner.value)}
                 className={`p-4 rounded-xl border-2 transition-all text-left ${
                   formData.scan_config.enabled_scanners.includes(scanner.value)
-                    ? "border-blue-500/70 bg-blue-500/20"
+                    ? "border-cyan-500/70 bg-cyan-500/20"
                     : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
-                }`}
+                } focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-white">{scanner.label}</span>
                   {formData.scan_config.enabled_scanners.includes(scanner.value) && (
-                    <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                    <CheckCircleIcon className="h-5 w-5 text-cyan-400" />
                   )}
                 </div>
                 <p className="text-sm text-gray-400">{scanner.description}</p>
@@ -1236,17 +1243,26 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
               onChange={(e) => setTagInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
               placeholder="Add tags..."
-              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
             />
-            <Button type="button" onClick={addTag}>Add</Button>
+            <Button type="button" onClick={addTag}>
+              Add
+            </Button>
           </div>
 
           {formData.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {formData.tags.map((tag) => (
-                <span key={tag} className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2">
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
+                >
                   <span>{tag}</span>
-                  <button type="button" onClick={() => removeTag(tag)} className="text-gray-400 hover:text-white">
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-inset"
+                  >
                     <XMarkIcon className="h-4 w-4" />
                   </button>
                 </span>
@@ -1256,7 +1272,9 @@ const EditProjectModal = ({ project, isOpen, onClose, onSuccess }) => {
         </div>
 
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
-          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" gradient isLoading={isSubmitting || updateMutation.isPending}>
             {isSubmitting || updateMutation.isPending ? "Updating..." : "Update Project"}
           </Button>

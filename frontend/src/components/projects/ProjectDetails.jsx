@@ -6,9 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeftIcon,
   ArrowPathIcon,
-  CalendarIcon,
   ChartBarIcon,
   ClockIcon,
   CodeBracketIcon,
@@ -22,7 +20,6 @@ import {
   StopIcon,
   TagIcon,
   TrashIcon,
-  UserIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -95,7 +92,7 @@ const ProjectDetails = () => {
   });
 
   // Fetch project analytics
-  const { data: projectAnalytics, refetch: refetchAnalytics } = useQuery({
+  const { data: _projectAnalytics, refetch: refetchAnalytics } = useQuery({
     queryKey: ["projectAnalytics", projectId],
     queryFn: () => projectsAPI.getProjectAnalytics(projectId),
     enabled: !!projectId,
@@ -140,8 +137,7 @@ const ProjectDetails = () => {
 
             if (status.status === "completed") {
               const findings = status.findings_by_severity || {};
-              const criticalHigh =
-                (findings.critical || 0) + (findings.high || 0);
+              const criticalHigh = (findings.critical || 0) + (findings.high || 0);
 
               if (criticalHigh > 0) {
                 toast.error(
@@ -170,8 +166,7 @@ const ProjectDetails = () => {
           // Update activeScan with final status (keep the card visible)
           // Use current local time for completed_at to ensure consistent duration calculation
           const completedTime = new Date().toISOString();
-          const finalProgress =
-            status.status === "completed" ? 100 : status.progress || 0;
+          const finalProgress = status.status === "completed" ? 100 : status.progress || 0;
           setActiveScan((prev) => ({
             ...prev,
             ...status,
@@ -261,8 +256,7 @@ const ProjectDetails = () => {
 
   // Update project mutation
   const updateProjectMutation = useMutation({
-    mutationFn: (updateData) =>
-      projectsAPI.updateProject(projectId, updateData),
+    mutationFn: (updateData) => projectsAPI.updateProject(projectId, updateData),
     onSuccess: () => {
       toast.success("Project updated successfully!");
       queryClient.invalidateQueries(["project", projectId]);
@@ -294,11 +288,7 @@ const ProjectDetails = () => {
     startScanMutation.mutate({
       repository_url: project.repository?.url,
       branch: project.repository?.branch || "main",
-      scan_types: project.scan_config?.enabled_scanners || [
-        "sast",
-        "secrets",
-        "container",
-      ],
+      scan_types: project.scan_config?.enabled_scanners || ["sast", "secrets", "container"],
       project_id: projectId,
     });
   };
@@ -330,10 +320,7 @@ const ProjectDetails = () => {
           access_token: project.repository?.access_token || "",
         },
         scan_config: {
-          enabled_scanners: project.scan_config?.enabled_scanners || [
-            "sast",
-            "secrets",
-          ],
+          enabled_scanners: project.scan_config?.enabled_scanners || ["sast", "secrets"],
           auto_scan_on_push: project.scan_config?.auto_scan_on_push || false,
           scan_timeout_minutes: project.scan_config?.scan_timeout_minutes || 60,
           fail_on_critical: project.scan_config?.fail_on_critical || false,
@@ -395,7 +382,7 @@ const ProjectDetails = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Loading project details...</p>
           </div>
         </div>
@@ -409,16 +396,13 @@ const ProjectDetails = () => {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <ExclamationCircleIcon className="h-12 w-12 text-red-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">
-              Project Not Found
-            </h2>
+            <h2 className="text-xl font-semibold text-white mb-2">Project Not Found</h2>
             <p className="text-gray-400 mb-6">
-              The project you're looking for doesn't exist or you don't have
-              access to it.
+              The project you're looking for doesn't exist or you don't have access to it.
             </p>
             <button
               onClick={() => navigate("/projects")}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               Back to Projects
             </button>
@@ -460,9 +444,7 @@ const ProjectDetails = () => {
   // When scan just completed, prefer the live data from activeScan
   const stats = project.stats || {};
   const liveFindings =
-    scanCompleted && activeScan?.findings_by_severity
-      ? activeScan.findings_by_severity
-      : null;
+    scanCompleted && activeScan?.findings_by_severity ? activeScan.findings_by_severity : null;
 
   const vulnCounts = {
     critical: liveFindings?.critical ?? stats.critical_vulnerabilities ?? 0,
@@ -470,8 +452,7 @@ const ProjectDetails = () => {
     medium: liveFindings?.medium ?? stats.medium_vulnerabilities ?? 0,
     low: liveFindings?.low ?? stats.low_vulnerabilities ?? 0,
   };
-  const totalVulns =
-    vulnCounts.critical + vulnCounts.high + vulnCounts.medium + vulnCounts.low;
+  const totalVulns = vulnCounts.critical + vulnCounts.high + vulnCounts.medium + vulnCounts.low;
 
   // Calculate live security score if scan just completed
   const liveSecurityScore = liveFindings
@@ -488,9 +469,7 @@ const ProjectDetails = () => {
   // Check if there's an active scan from scan history (exclude our current activeScan to avoid stale state)
   const runningScans =
     scanHistory?.reports?.filter(
-      (r) =>
-        (r.status === "running" || r.status === "pending") &&
-        r.scan_id !== activeScan?.scan_id
+      (r) => (r.status === "running" || r.status === "pending") && r.scan_id !== activeScan?.scan_id
     ) || [];
 
   // Determine if scan is actively running (not completed/failed/cancelled)
@@ -501,7 +480,7 @@ const ProjectDetails = () => {
       activeScan.status !== "completed" &&
       activeScan.status !== "failed" &&
       activeScan.status !== "cancelled") ||
-    runningScans.length > 0);
+      runningScans.length > 0);
 
   return (
     <PageContainer>
@@ -520,19 +499,15 @@ const ProjectDetails = () => {
                   <button
                     onClick={handleStopScan}
                     disabled={stopScanMutation.isPending}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-rose-700 disabled:opacity-50 transition-all flex items-center space-x-2 animate-pulse"
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-rose-700 disabled:opacity-50 transition-all flex items-center space-x-2 animate-pulse focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                   >
                     <StopIcon className="h-5 w-5" />
-                    <span>
-                      {stopScanMutation.isPending ? "Stopping..." : "Stop Scan"}
-                    </span>
+                    <span>{stopScanMutation.isPending ? "Stopping..." : "Stop Scan"}</span>
                   </button>
-                  <div className="px-4 py-2 bg-blue-500/20 rounded-xl flex items-center space-x-2">
-                    <ArrowPathIcon className="h-4 w-4 text-blue-400 animate-spin" />
-                    <span className="text-blue-400 text-sm font-medium">
-                      {activeScan?.status === "running"
-                        ? "Scanning..."
-                        : "Pending..."}
+                  <div className="px-4 py-2 bg-cyan-500/20 rounded-xl flex items-center space-x-2">
+                    <ArrowPathIcon className="h-4 w-4 text-cyan-400 animate-spin" />
+                    <span className="text-cyan-400 text-sm font-medium">
+                      {activeScan?.status === "running" ? "Scanning..." : "Pending..."}
                     </span>
                   </div>
                 </div>
@@ -540,24 +515,22 @@ const ProjectDetails = () => {
                 <button
                   onClick={handleStartScan}
                   disabled={startScanMutation.isPending}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center space-x-2 group"
+                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center space-x-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   <PlayIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                  <span>
-                    {startScanMutation.isPending ? "Starting..." : "Start Scan"}
-                  </span>
+                  <span>{startScanMutation.isPending ? "Starting..." : "Start Scan"}</span>
                 </button>
               )}
               <button
                 onClick={openEditModal}
-                className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all"
+                className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 title="Edit Project"
               >
                 <PencilIcon className="h-5 w-5" />
               </button>
               <button
                 onClick={() => setShowDeleteModal(true)}
-                className="p-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/20 transition-all"
+                className="p-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/20 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 title="Delete Project"
               >
                 <TrashIcon className="h-5 w-5" />
@@ -574,9 +547,9 @@ const ProjectDetails = () => {
                 ? activeScan.status === "completed"
                   ? "bg-gradient-to-r from-gray-900 via-green-900/30 to-gray-900 border border-green-500/40 shadow-green-500/10"
                   : activeScan.status === "cancelled"
-                  ? "bg-gradient-to-r from-gray-900 via-yellow-900/30 to-gray-900 border border-yellow-500/40 shadow-yellow-500/10"
-                  : "bg-gradient-to-r from-gray-900 via-red-900/30 to-gray-900 border border-red-500/40 shadow-red-500/10"
-                : "bg-gradient-to-r from-gray-900 via-blue-900/30 to-gray-900 border border-blue-500/40 shadow-blue-500/10"
+                    ? "bg-gradient-to-r from-gray-900 via-yellow-900/30 to-gray-900 border border-yellow-500/40 shadow-yellow-500/10"
+                    : "bg-gradient-to-r from-gray-900 via-red-900/30 to-gray-900 border border-red-500/40 shadow-red-500/10"
+                : "bg-gradient-to-r from-gray-900 via-blue-900/30 to-gray-900 border border-cyan-500/40 shadow-cyan-500/10"
             }`}
           >
             {/* Header */}
@@ -586,9 +559,9 @@ const ProjectDetails = () => {
                   ? activeScan.status === "completed"
                     ? "bg-gradient-to-r from-green-600/20 to-emerald-600/20 border-green-500/30"
                     : activeScan.status === "cancelled"
-                    ? "bg-gradient-to-r from-yellow-600/20 to-amber-600/20 border-yellow-500/30"
-                    : "bg-gradient-to-r from-red-600/20 to-rose-600/20 border-red-500/30"
-                  : "bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border-blue-500/30"
+                      ? "bg-gradient-to-r from-yellow-600/20 to-amber-600/20 border-yellow-500/30"
+                      : "bg-gradient-to-r from-red-600/20 to-rose-600/20 border-red-500/30"
+                  : "bg-gradient-to-r from-cyan-600/20 to-violet-600/20 border-cyan-500/30"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -600,9 +573,9 @@ const ProjectDetails = () => {
                           ? activeScan.status === "completed"
                             ? "bg-green-500/30"
                             : activeScan.status === "cancelled"
-                            ? "bg-yellow-500/30"
-                            : "bg-red-500/30"
-                          : "bg-blue-500/30"
+                              ? "bg-yellow-500/30"
+                              : "bg-red-500/30"
+                          : "bg-cyan-500/30"
                       }`}
                     >
                       {scanCompleted ? (
@@ -612,7 +585,7 @@ const ProjectDetails = () => {
                           <ExclamationCircleIcon className="h-7 w-7 text-yellow-400" />
                         )
                       ) : (
-                        <ShieldCheckIcon className="h-7 w-7 text-blue-400" />
+                        <ShieldCheckIcon className="h-7 w-7 text-cyan-400" />
                       )}
                     </div>
                     {!scanCompleted && (
@@ -625,8 +598,8 @@ const ProjectDetails = () => {
                         ? activeScan.status === "completed"
                           ? "Scan Completed Successfully"
                           : activeScan.status === "cancelled"
-                          ? "Scan Cancelled"
-                          : "Scan Failed"
+                            ? "Scan Cancelled"
+                            : "Scan Failed"
                         : "Security Scan in Progress"}
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
@@ -634,26 +607,22 @@ const ProjectDetails = () => {
                             ? activeScan.status === "completed"
                               ? "bg-green-500/20 text-green-400 border-green-500/30"
                               : activeScan.status === "cancelled"
-                              ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                              : "bg-red-500/20 text-red-400 border-red-500/30"
+                                ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                                : "bg-red-500/20 text-red-400 border-red-500/30"
                             : "bg-green-500/20 text-green-400 border-green-500/30"
                         }`}
                       >
-                        {scanCompleted
-                          ? activeScan.status?.toUpperCase()
-                          : "LIVE"}
+                        {scanCompleted ? activeScan.status?.toUpperCase() : "LIVE"}
                       </span>
                     </h3>
                     <p
                       className={`text-sm mt-0.5 ${
-                        scanCompleted ? "text-gray-300" : "text-blue-300"
+                        scanCompleted ? "text-gray-300" : "text-cyan-300"
                       }`}
                     >
                       {project?.name || "Repository"} •{" "}
                       {scanCompleted
-                        ? `Completed at ${new Date(
-                            activeScan.completed_at
-                          ).toLocaleTimeString()}`
+                        ? `Completed at ${new Date(activeScan.completed_at).toLocaleTimeString()}`
                         : activeScan?.project_name || "Scanning..."}
                     </p>
                   </div>
@@ -661,23 +630,22 @@ const ProjectDetails = () => {
                 <div className="flex items-center space-x-3">
                   {scanCompleted ? (
                     <>
-                      {activeScan.status === "completed" &&
-                        activeScan.report_id && (
-                          <Link
-                            to={`/report/${activeScan.report_id}`}
-                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-blue-500/20"
-                          >
-                            <EyeIcon className="h-5 w-5" />
-                            <span className="font-medium">View Report</span>
-                          </Link>
-                        )}
+                      {activeScan.status === "completed" && activeScan.report_id && (
+                        <Link
+                          to={`/report/${activeScan.report_id}`}
+                          className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                        >
+                          <EyeIcon className="h-5 w-5" />
+                          <span className="font-medium">View Report</span>
+                        </Link>
+                      )}
                       <button
                         onClick={() => {
                           setActiveScan(null);
                           setScanCompleted(false);
                           setScanProgress(0);
                         }}
-                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                         title="Dismiss"
                       >
                         <XMarkIcon className="h-5 w-5" />
@@ -687,7 +655,7 @@ const ProjectDetails = () => {
                     <button
                       onClick={handleStopScan}
                       disabled={stopScanMutation.isPending}
-                      className="px-4 py-2 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 border border-red-500/30 transition-all flex items-center space-x-2 group"
+                      className="px-4 py-2 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 border border-red-500/30 transition-all flex items-center space-x-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                     >
                       <StopIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
                       <span className="font-medium">Stop Scan</span>
@@ -709,18 +677,15 @@ const ProjectDetails = () => {
                       <ExclamationCircleIcon className="h-5 w-5 text-yellow-400" />
                     )
                   ) : (
-                    <ArrowPathIcon className="h-5 w-5 text-blue-400 animate-spin" />
+                    <ArrowPathIcon className="h-5 w-5 text-cyan-400 animate-spin" />
                   )}
                   <span className="text-white font-medium">
                     {scanCompleted
                       ? activeScan.status === "completed"
-                        ? `Found ${
-                            activeScan.total_findings || 0
-                          } security findings`
+                        ? `Found ${activeScan.total_findings || 0} security findings`
                         : activeScan.status === "cancelled"
-                        ? "Scan was cancelled by user"
-                        : activeScan.error_message ||
-                          "Scan encountered an error"
+                          ? "Scan was cancelled by user"
+                          : activeScan.error_message || "Scan encountered an error"
                       : activeScan?.current_scanner || "Initializing scan..."}
                   </span>
                 </div>
@@ -730,7 +695,7 @@ const ProjectDetails = () => {
                       ? activeScan.status === "completed"
                         ? "text-green-400"
                         : "text-yellow-400"
-                      : "text-blue-400"
+                      : "text-cyan-400"
                   }`}
                 >
                   {scanProgress}%
@@ -745,7 +710,7 @@ const ProjectDetails = () => {
                       ? activeScan.status === "completed"
                         ? "bg-gradient-to-r from-green-600 via-emerald-500 to-green-400"
                         : "bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-400"
-                      : "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500"
+                      : "bg-gradient-to-r from-cyan-600 via-violet-500 to-purple-500"
                   }`}
                   style={{ width: `${Math.max(scanProgress, 2)}%` }}
                 />
@@ -768,8 +733,7 @@ const ProjectDetails = () => {
                   { label: "Process", min: 70, max: 90 },
                   { label: "AI Analysis", min: 90, max: 100 },
                 ].map((stage, idx) => {
-                  const isActive =
-                    scanProgress >= stage.min && scanProgress < stage.max;
+                  const isActive = scanProgress >= stage.min && scanProgress < stage.max;
                   const isComplete = scanProgress >= stage.max;
                   return (
                     <div key={idx} className="text-center">
@@ -778,8 +742,8 @@ const ProjectDetails = () => {
                           isComplete
                             ? "bg-green-500"
                             : isActive && !scanCompleted
-                            ? "bg-blue-500 animate-pulse"
-                            : "bg-gray-700"
+                              ? "bg-cyan-500 animate-pulse"
+                              : "bg-gray-700"
                         }`}
                       />
                       <span
@@ -787,8 +751,8 @@ const ProjectDetails = () => {
                           isComplete
                             ? "text-green-400"
                             : isActive && !scanCompleted
-                            ? "text-blue-400"
-                            : "text-gray-500"
+                              ? "text-cyan-400"
+                              : "text-gray-500"
                         }`}
                       >
                         {isComplete ? "✓ " : ""}
@@ -865,14 +829,14 @@ const ProjectDetails = () => {
                   <div
                     className={`rounded-xl p-3 text-center border ${
                       (activeScan.findings_by_severity?.low || 0) > 0
-                        ? "bg-blue-500/20 border-blue-500/40"
+                        ? "bg-cyan-500/20 border-cyan-500/40"
                         : "bg-gray-800/50 border-gray-700/50"
                     }`}
                   >
                     <p
                       className={`text-2xl font-bold mb-0.5 ${
                         (activeScan.findings_by_severity?.low || 0) > 0
-                          ? "text-blue-400"
+                          ? "text-cyan-400"
                           : "text-gray-500"
                       }`}
                     >
@@ -886,17 +850,13 @@ const ProjectDetails = () => {
               {/* Scan Details */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-800/50">
                 <div className="bg-gray-800/30 rounded-xl p-3">
-                  <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">
-                    Scan ID
-                  </p>
+                  <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Scan ID</p>
                   <p className="text-gray-300 font-mono text-sm">
                     {activeScan?.scan_id?.slice(0, 12) || "..."}
                   </p>
                 </div>
                 <div className="bg-gray-800/30 rounded-xl p-3">
-                  <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">
-                    Started
-                  </p>
+                  <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Started</p>
                   <p className="text-gray-300 text-sm">
                     {activeScan?.started_at
                       ? new Date(activeScan.started_at).toLocaleTimeString()
@@ -913,7 +873,7 @@ const ProjectDetails = () => {
                         ? activeScan.status === "completed"
                           ? "text-green-400"
                           : "text-yellow-400"
-                        : "text-blue-400"
+                        : "text-cyan-400"
                     }`}
                   >
                     {scanCompleted && activeScan.completed_at
@@ -938,17 +898,15 @@ const ProjectDetails = () => {
                             const absDuration = Math.abs(duration);
                             if (absDuration < 60) return `${absDuration}s`;
                             if (absDuration < 3600)
-                              return `${Math.round(absDuration / 60)}m ${
-                                absDuration % 60
-                              }s`;
+                              return `${Math.round(absDuration / 60)}m ${absDuration % 60}s`;
                             return `${Math.floor(
                               absDuration / 3600
                             )}h ${Math.round((absDuration % 3600) / 60)}m`;
                           })()
                         : "N/A"
                       : activeScan?.total_findings !== undefined
-                      ? activeScan.total_findings
-                      : "Scanning..."}
+                        ? activeScan.total_findings
+                        : "Scanning..."}
                   </p>
                 </div>
               </div>
@@ -965,21 +923,20 @@ const ProjectDetails = () => {
                       handleStartScan();
                     }}
                     disabled={startScanMutation.isPending}
-                    className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center space-x-2"
+                    className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                   >
                     <PlayIcon className="h-5 w-5" />
                     <span>Run New Scan</span>
                   </button>
-                  {activeScan.status === "completed" &&
-                    activeScan.report_id && (
-                      <Link
-                        to={`/report/${activeScan.report_id}`}
-                        className="px-5 py-2.5 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-all flex items-center space-x-2"
-                      >
-                        <EyeIcon className="h-5 w-5" />
-                        <span>View Detailed Report</span>
-                      </Link>
-                    )}
+                  {activeScan.status === "completed" && activeScan.report_id && (
+                    <Link
+                      to={`/report/${activeScan.report_id}`}
+                      className="px-5 py-2.5 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-all flex items-center space-x-2"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                      <span>View Detailed Report</span>
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -988,17 +945,16 @@ const ProjectDetails = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card padding="lg" className="rounded-2xl hover:border-blue-500/30 transition-all">
+          <Card padding="lg" className="rounded-2xl hover:border-cyan-500/30 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Scans</p>
                 <p className="text-2xl font-bold text-white">
-                  {(scanCompleted
-                    ? (stats.total_scans || 0) + 1
-                    : stats.total_scans) || (scanCompleted ? 1 : 0)}
+                  {(scanCompleted ? (stats.total_scans || 0) + 1 : stats.total_scans) ||
+                    (scanCompleted ? 1 : 0)}
                 </p>
               </div>
-              <ChartBarIcon className="h-8 w-8 text-blue-400" />
+              <ChartBarIcon className="h-8 w-8 text-cyan-400" />
             </div>
           </Card>
 
@@ -1035,8 +991,8 @@ const ProjectDetails = () => {
                     (liveSecurityScore ?? stats.security_score ?? 0) >= 80
                       ? "text-green-400"
                       : (liveSecurityScore ?? stats.security_score ?? 0) >= 60
-                      ? "text-yellow-400"
-                      : "text-red-400"
+                        ? "text-yellow-400"
+                        : "text-red-400"
                   }`}
                 >
                   {Math.round(liveSecurityScore ?? stats.security_score ?? 0)}
@@ -1047,13 +1003,11 @@ const ProjectDetails = () => {
                       (liveSecurityScore ?? stats.security_score ?? 0) >= 80
                         ? "bg-green-500"
                         : (liveSecurityScore ?? stats.security_score ?? 0) >= 60
-                        ? "bg-yellow-500"
-                        : "bg-red-500"
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                     }`}
                     style={{
-                      width: `${
-                        liveSecurityScore ?? stats.security_score ?? 0
-                      }%`,
+                      width: `${liveSecurityScore ?? stats.security_score ?? 0}%`,
                     }}
                   />
                 </div>
@@ -1062,7 +1016,10 @@ const ProjectDetails = () => {
             </div>
           </Card>
 
-          <Card padding="lg" className="rounded-2xl hover:border-purple-500/30 transition-all group">
+          <Card
+            padding="lg"
+            className="rounded-2xl hover:border-purple-500/30 transition-all group"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Last Scan</p>
@@ -1070,14 +1027,14 @@ const ProjectDetails = () => {
                   {scanCompleted
                     ? "Just now"
                     : stats.last_scan_date
-                    ? utils.formatRelativeDate(stats.last_scan_date)
-                    : "Never"}
+                      ? utils.formatRelativeDate(stats.last_scan_date)
+                      : "Never"}
                 </p>
                 {!stats.last_scan_date && !scanCompleted && (
                   <button
                     onClick={handleStartScan}
                     disabled={!!activeScan || startScanMutation.isPending}
-                    className="mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                    className="mt-2 text-xs text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-inset"
                   >
                     Run first scan →
                   </button>
@@ -1103,9 +1060,9 @@ const ProjectDetails = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-all ${
+                className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                   activeTab === tab.key
-                    ? "text-blue-400 border-b-2 border-blue-400"
+                    ? "text-cyan-400 border-b-2 border-cyan-400"
                     : "text-gray-400 hover:text-white"
                 }`}
               >
@@ -1122,9 +1079,7 @@ const ProjectDetails = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-6">
                     <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
-                      <h3 className="text-lg font-semibold text-white mb-4">
-                        Project Information
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white mb-4">Project Information</h3>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <span className="text-gray-400">Status</span>
@@ -1160,21 +1115,17 @@ const ProjectDetails = () => {
                     </div>
 
                     <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
-                      <h3 className="text-lg font-semibold text-white mb-4">
-                        Repository
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white mb-4">Repository</h3>
                       <div className="space-y-4">
                         <div className="flex items-start space-x-3">
                           <GlobeAltIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-gray-400 text-sm">
-                              Repository URL
-                            </p>
+                            <p className="text-gray-400 text-sm">Repository URL</p>
                             <a
                               href={project.repository?.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300 transition-colors break-all"
+                              className="text-cyan-400 hover:text-cyan-300 transition-colors break-all"
                             >
                               {project.repository?.url || "Not configured"}
                             </a>
@@ -1215,41 +1166,29 @@ const ProjectDetails = () => {
                           {
                             severity: "low",
                             count: vulnCounts.low,
-                            color: "text-blue-400",
+                            color: "text-cyan-400",
                           },
                         ].map(({ severity, count, color }) => (
-                          <div
-                            key={severity}
-                            className="flex items-center justify-between"
-                          >
+                          <div key={severity} className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <div
-                                className={`w-3 h-3 rounded-full ${color.replace(
-                                  "text-",
-                                  "bg-"
-                                )}`}
+                                className={`w-3 h-3 rounded-full ${color.replace("text-", "bg-")}`}
                               ></div>
-                              <span className="text-gray-400 capitalize">
-                                {severity}
-                              </span>
+                              <span className="text-gray-400 capitalize">{severity}</span>
                             </div>
-                            <span className={`font-medium ${color}`}>
-                              {count}
-                            </span>
+                            <span className={`font-medium ${color}`}>{count}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
-                      <h3 className="text-lg font-semibold text-white mb-4">
-                        Enabled Scanners
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white mb-4">Enabled Scanners</h3>
                       <div className="flex flex-wrap gap-2">
                         {project.scan_config.enabled_scanners.map((scanner) => (
                           <span
                             key={scanner}
-                            className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium"
+                            className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm font-medium"
                           >
                             {scanner.toUpperCase()}
                           </span>
@@ -1259,9 +1198,7 @@ const ProjectDetails = () => {
 
                     {project.tags && project.tags.length > 0 && (
                       <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
-                        <h3 className="text-lg font-semibold text-white mb-4">
-                          Tags
-                        </h3>
+                        <h3 className="text-lg font-semibold text-white mb-4">Tags</h3>
                         <div className="flex flex-wrap gap-2">
                           {project.tags.map((tag) => (
                             <span
@@ -1282,13 +1219,11 @@ const ProjectDetails = () => {
             {activeTab === "scans" && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-white">
-                    Scan History
-                  </h3>
+                  <h3 className="text-lg font-semibold text-white">Scan History</h3>
                   <button
                     onClick={handleStartScan}
                     disabled={startScanMutation.isPending}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                   >
                     {startScanMutation.isPending ? "Starting..." : "New Scan"}
                   </button>
@@ -1320,29 +1255,25 @@ const ProjectDetails = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <h4 className="text-white font-medium">
-                                Scan #{scan.id.slice(-8)}
-                              </h4>
+                              <h4 className="text-white font-medium">Scan #{scan.id.slice(-8)}</h4>
                               <span
                                 className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${
                                   scan.status === "completed"
                                     ? "bg-green-500/20 text-green-400 border border-green-500/30"
                                     : scan.status === "running"
-                                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                                    : scan.status === "pending"
-                                    ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                                    : "bg-red-500/20 text-red-400 border border-red-500/30"
+                                      ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                                      : scan.status === "pending"
+                                        ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                        : "bg-red-500/20 text-red-400 border border-red-500/30"
                                 }`}
                               >
                                 {scan.status === "running" && (
                                   <ArrowPathIcon className="h-3 w-3 animate-spin" />
                                 )}
-                                <span className="capitalize">
-                                  {scan.status}
-                                </span>
+                                <span className="capitalize">{scan.status}</span>
                               </span>
                               {index === 0 && scan.status === "completed" && (
-                                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
+                                <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs rounded-full border border-cyan-500/30">
                                   Latest
                                 </span>
                               )}
@@ -1350,29 +1281,21 @@ const ProjectDetails = () => {
                             <div className="flex items-center flex-wrap gap-4 text-sm text-gray-400 mb-3">
                               <span className="flex items-center space-x-1">
                                 <ClockIcon className="h-4 w-4" />
-                                <span>
-                                  {utils.formatRelativeDate(scan.created_at)}
-                                </span>
+                                <span>{utils.formatRelativeDate(scan.created_at)}</span>
                               </span>
                               <span>Branch: {scan.branch || "main"}</span>
                               {scan.duration_seconds && (
-                                <span>
-                                  Duration:{" "}
-                                  {utils.formatDuration(scan.duration_seconds)}
-                                </span>
+                                <span>Duration: {utils.formatDuration(scan.duration_seconds)}</span>
                               )}
                             </div>
 
                             {/* Vulnerability Summary for completed scans */}
                             {scan.status === "completed" && (
                               <div className="flex items-center space-x-3">
-                                <span className="text-gray-500 text-sm">
-                                  Findings:
-                                </span>
+                                <span className="text-gray-500 text-sm">Findings:</span>
                                 {scan.findings_by_severity?.critical > 0 && (
                                   <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-lg border border-red-500/30 font-medium">
-                                    {scan.findings_by_severity.critical}{" "}
-                                    Critical
+                                    {scan.findings_by_severity.critical} Critical
                                   </span>
                                 )}
                                 {scan.findings_by_severity?.high > 0 && (
@@ -1386,7 +1309,7 @@ const ProjectDetails = () => {
                                   </span>
                                 )}
                                 {scan.findings_by_severity?.low > 0 && (
-                                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-lg border border-blue-500/30 font-medium">
+                                  <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-lg border border-cyan-500/30 font-medium">
                                     {scan.findings_by_severity.low} Low
                                   </span>
                                 )}
@@ -1407,14 +1330,14 @@ const ProjectDetails = () => {
                             {scan.status === "completed" && (
                               <Link
                                 to={`/report/${scan.id}`}
-                                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center space-x-2 shadow-lg shadow-blue-500/20"
+                                className="px-4 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                               >
                                 <EyeIcon className="h-4 w-4" />
                                 <span>View Report</span>
                               </Link>
                             )}
                             {scan.status === "running" && (
-                              <div className="px-4 py-2.5 bg-blue-500/20 text-blue-400 rounded-xl flex items-center space-x-2">
+                              <div className="px-4 py-2.5 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center space-x-2">
                                 <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                 <span>In Progress...</span>
                               </div>
@@ -1429,7 +1352,16 @@ const ProjectDetails = () => {
                     icon={<ChartBarIcon className="h-12 w-12" />}
                     title="No Scans Yet"
                     description="Start your first security scan to see results here."
-                    action={<Button variant="primary" onClick={handleStartScan} disabled={startScanMutation.isPending} isLoading={startScanMutation.isPending}>Start First Scan</Button>}
+                    action={
+                      <Button
+                        variant="primary"
+                        onClick={handleStartScan}
+                        disabled={startScanMutation.isPending}
+                        isLoading={startScanMutation.isPending}
+                      >
+                        Start First Scan
+                      </Button>
+                    }
                   />
                 )}
               </div>
@@ -1437,20 +1369,15 @@ const ProjectDetails = () => {
 
             {activeTab === "settings" && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-white">
-                  Project Settings
-                </h3>
+                <h3 className="text-lg font-semibold text-white">Project Settings</h3>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
                   <div className="flex items-start space-x-3">
                     <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mt-0.5" />
                     <div>
-                      <p className="text-yellow-400 font-medium">
-                        Settings Configuration
-                      </p>
+                      <p className="text-yellow-400 font-medium">Settings Configuration</p>
                       <p className="text-yellow-300 text-sm mt-1">
-                        Project settings will be available in a future update.
-                        Currently, you can edit basic project information using
-                        the edit button above.
+                        Project settings will be available in a future update. Currently, you can
+                        edit basic project information using the edit button above.
                       </p>
                     </div>
                   </div>
@@ -1463,7 +1390,7 @@ const ProjectDetails = () => {
           <Modal size="xl" isOpen={showEditModal} onClose={() => setShowEditModal(false)}>
             <div className="flex items-start justify-between mb-8">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600">
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600">
                   <PencilIcon className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -1471,7 +1398,10 @@ const ProjectDetails = () => {
                   <p className="text-gray-400">Update your project configuration</p>
                 </div>
               </div>
-              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+              >
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
@@ -1479,7 +1409,7 @@ const ProjectDetails = () => {
             <form onSubmit={handleUpdateProject} className="space-y-8">
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-                  <InformationCircleIcon className="h-5 w-5 text-blue-400" />
+                  <InformationCircleIcon className="h-5 w-5 text-cyan-400" />
                   <span>Basic Information</span>
                 </h3>
 
@@ -1493,7 +1423,7 @@ const ProjectDetails = () => {
                       value={editForm.name}
                       onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
                       placeholder="My Awesome Project"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                       required
                     />
                   </div>
@@ -1502,8 +1432,10 @@ const ProjectDetails = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-3">Category</label>
                     <select
                       value={editForm.category}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      onChange={(e) =>
+                        setEditForm((prev) => ({ ...prev, category: e.target.value }))
+                      }
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                     >
                       <option value="web_application">🌐 Web Application</option>
                       <option value="api_service">🔌 API Service</option>
@@ -1517,13 +1449,17 @@ const ProjectDetails = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">Description</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Description
+                  </label>
                   <textarea
                     value={editForm.description}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     placeholder="Describe your project..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all resize-none"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all resize-none"
                   />
                 </div>
 
@@ -1532,8 +1468,10 @@ const ProjectDetails = () => {
                     <label className="block text-sm font-medium text-gray-300 mb-3">Priority</label>
                     <select
                       value={editForm.priority}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, priority: e.target.value }))}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      onChange={(e) =>
+                        setEditForm((prev) => ({ ...prev, priority: e.target.value }))
+                      }
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                     >
                       <option value="low">🟢 Low</option>
                       <option value="medium">🟡 Medium</option>
@@ -1546,7 +1484,7 @@ const ProjectDetails = () => {
                     <select
                       value={editForm.status}
                       onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                     >
                       <option value="active">✅ Active</option>
                       <option value="inactive">⏸️ Inactive</option>
@@ -1565,36 +1503,57 @@ const ProjectDetails = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">Repository URL</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      Repository URL
+                    </label>
                     <input
                       type="url"
                       value={editForm.repository.url}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, repository: { ...prev.repository, url: e.target.value } }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          repository: { ...prev.repository, url: e.target.value },
+                        }))
+                      }
                       placeholder="https://github.com/user/repo"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">Default Branch</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">
+                      Default Branch
+                    </label>
                     <input
                       type="text"
                       value={editForm.repository.branch}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, repository: { ...prev.repository, branch: e.target.value } }))}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          repository: { ...prev.repository, branch: e.target.value },
+                        }))
+                      }
                       placeholder="main"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">Access Token (for private repositories)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Access Token (for private repositories)
+                  </label>
                   <input
                     type="password"
                     value={editForm.repository.access_token}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, repository: { ...prev.repository, access_token: e.target.value } }))}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        repository: { ...prev.repository, access_token: e.target.value },
+                      }))
+                    }
                     placeholder="ghp_xxxxxxxxxxxx"
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                   />
                   <p className="text-xs text-gray-500 mt-2">Leave empty to keep current token</p>
                 </div>
@@ -1609,27 +1568,47 @@ const ProjectDetails = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
-                    { value: "sast", label: "SAST", description: "Static Application Security Testing" },
-                    { value: "secrets", label: "Secrets", description: "Secret & credential detection" },
-                    { value: "dependency", label: "Dependencies", description: "Dependency vulnerability scanning" },
-                    { value: "container", label: "Container", description: "Container image security scanning" },
+                    {
+                      value: "sast",
+                      label: "SAST",
+                      description: "Static Application Security Testing",
+                    },
+                    {
+                      value: "secrets",
+                      label: "Secrets",
+                      description: "Secret & credential detection",
+                    },
+                    {
+                      value: "dependency",
+                      label: "Dependencies",
+                      description: "Dependency vulnerability scanning",
+                    },
+                    {
+                      value: "container",
+                      label: "Container",
+                      description: "Container image security scanning",
+                    },
                     { value: "iac", label: "IaC", description: "Infrastructure as Code scanning" },
-                    { value: "dast", label: "DAST", description: "Dynamic Application Security Testing" },
+                    {
+                      value: "dast",
+                      label: "DAST",
+                      description: "Dynamic Application Security Testing",
+                    },
                   ].map((scanner) => (
                     <button
                       key={scanner.value}
                       type="button"
                       onClick={() => toggleScanner(scanner.value)}
-                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                      className={`p-4 rounded-xl border-2 transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                         editForm.scan_config.enabled_scanners.includes(scanner.value)
-                          ? "border-blue-500/70 bg-blue-500/20"
+                          ? "border-cyan-500/70 bg-cyan-500/20"
                           : "border-gray-700/50 bg-gray-800/30 hover:border-gray-600/50"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-white">{scanner.label}</span>
                         {editForm.scan_config.enabled_scanners.includes(scanner.value) && (
-                          <CheckCircleIcon className="h-5 w-5 text-blue-400" />
+                          <CheckCircleIcon className="h-5 w-5 text-cyan-400" />
                         )}
                       </div>
                       <p className="text-sm text-gray-400">{scanner.description}</p>
@@ -1642,12 +1621,19 @@ const ProjectDetails = () => {
                     <input
                       type="checkbox"
                       checked={editForm.scan_config.auto_scan_on_push}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, scan_config: { ...prev.scan_config, auto_scan_on_push: e.target.checked } }))}
-                      className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500/50"
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          scan_config: { ...prev.scan_config, auto_scan_on_push: e.target.checked },
+                        }))
+                      }
+                      className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500/50"
                     />
                     <div>
                       <p className="text-white font-medium">Auto-scan on Push</p>
-                      <p className="text-xs text-gray-400">Automatically scan when code is pushed</p>
+                      <p className="text-xs text-gray-400">
+                        Automatically scan when code is pushed
+                      </p>
                     </div>
                   </label>
 
@@ -1655,25 +1641,42 @@ const ProjectDetails = () => {
                     <input
                       type="checkbox"
                       checked={editForm.scan_config.fail_on_critical}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, scan_config: { ...prev.scan_config, fail_on_critical: e.target.checked } }))}
-                      className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500/50"
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          scan_config: { ...prev.scan_config, fail_on_critical: e.target.checked },
+                        }))
+                      }
+                      className="w-5 h-5 rounded bg-gray-700 border-gray-600 text-cyan-500 focus:ring-cyan-500/50"
                     />
                     <div>
                       <p className="text-white font-medium">Fail on Critical</p>
-                      <p className="text-xs text-gray-400">Mark scan as failed if critical issues found</p>
+                      <p className="text-xs text-gray-400">
+                        Mark scan as failed if critical issues found
+                      </p>
                     </div>
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">Scan Timeout (minutes)</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Scan Timeout (minutes)
+                  </label>
                   <input
                     type="number"
                     min="5"
                     max="180"
                     value={editForm.scan_config.scan_timeout_minutes}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, scan_config: { ...prev.scan_config, scan_timeout_minutes: parseInt(e.target.value) || 60 } }))}
-                    className="w-full md:w-48 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    onChange={(e) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        scan_config: {
+                          ...prev.scan_config,
+                          scan_timeout_minutes: parseInt(e.target.value) || 60,
+                        },
+                      }))
+                    }
+                    className="w-full md:w-48 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                   />
                 </div>
               </div>
@@ -1692,17 +1695,26 @@ const ProjectDetails = () => {
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                     placeholder="Add tags..."
-                    className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                    className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                   />
-                  <Button type="button" onClick={addTag}>Add</Button>
+                  <Button type="button" onClick={addTag}>
+                    Add
+                  </Button>
                 </div>
 
                 {editForm.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {editForm.tags.map((tag) => (
-                      <span key={tag} className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2">
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm flex items-center space-x-2"
+                      >
                         <span>{tag}</span>
-                        <button type="button" onClick={() => removeTag(tag)} className="text-gray-400 hover:text-white">
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-inset"
+                        >
                           <XMarkIcon className="h-4 w-4" />
                         </button>
                       </span>
@@ -1713,13 +1725,11 @@ const ProjectDetails = () => {
 
               {/* Submit */}
               <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700/50">
-                <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" onClick={() => setShowEditModal(false)}>
+                  Cancel
+                </Button>
                 <Button type="submit" gradient isLoading={updateProjectMutation.isPending}>
-                  {updateProjectMutation.isPending ? (
-                    <>Saving...</>
-                  ) : (
-                    <>Save Changes</>
-                  )}
+                  {updateProjectMutation.isPending ? <>Saving...</> : <>Save Changes</>}
                 </Button>
               </div>
             </form>
@@ -1730,7 +1740,10 @@ const ProjectDetails = () => {
         {showDeleteModal && (
           <Modal
             isOpen={showDeleteModal}
-            onClose={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setDeleteConfirmText("");
+            }}
             title="Delete Project Permanently"
             size="sm"
           >
@@ -1750,7 +1763,9 @@ const ProjectDetails = () => {
                 </p>
                 <ul className="text-red-200/80 text-sm space-y-1.5 ml-4">
                   <li>• The project and all its configuration</li>
-                  <li>• All scan reports and vulnerability findings ({stats.total_scans || 0} scans)</li>
+                  <li>
+                    • All scan reports and vulnerability findings ({stats.total_scans || 0} scans)
+                  </li>
                   <li>• All webhook events and history</li>
                   <li>• All team member associations</li>
                 </ul>
@@ -1775,7 +1790,10 @@ const ProjectDetails = () => {
               <div className="flex space-x-3">
                 <Button
                   variant="ghost"
-                  onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirmText("");
+                  }}
                   className="flex-1"
                 >
                   Cancel

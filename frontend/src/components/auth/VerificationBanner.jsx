@@ -48,9 +48,7 @@ export const VerificationBanner = () => {
               <ExclamationTriangleIcon className="h-5 w-5 text-amber-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-amber-200">
-                Email not verified
-              </p>
+              <p className="text-sm font-medium text-amber-200">Email not verified</p>
               <p className="text-xs text-amber-300/70 truncate">
                 Verify your email ({user.email}) to access all features
               </p>

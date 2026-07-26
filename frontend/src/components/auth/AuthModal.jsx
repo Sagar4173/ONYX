@@ -9,6 +9,7 @@ import {
   SparklesIcon,
   CheckCircleIcon,
   ShieldCheckIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthContext";
 import { OnyxLogo } from "../common";
@@ -39,12 +40,7 @@ const FEATURE_HOVER_BG = {
  * Central authentication modal that manages all auth forms and view switching
  * Handles state management for the entire authentication flow
  */
-export const AuthModal = ({
-  isOpen,
-  onClose,
-  initialView = "login",
-  resetToken = null,
-}) => {
+export const AuthModal = ({ isOpen, onClose, initialView = "login", resetToken = null }) => {
   const [currentView, setCurrentView] = useState(initialView);
   const [userEmail, setUserEmail] = useState("");
   const { resendVerificationEmail } = useAuth();
@@ -80,9 +76,7 @@ export const AuthModal = ({
   // Handle successful password reset
   const handlePasswordResetSuccess = () => {
     setCurrentView("login");
-    toast.success(
-      "Password reset successfully! Please log in with your new password."
-    );
+    toast.success("Password reset successfully! Please log in with your new password.");
   };
 
   // Don't render if modal is closed
@@ -263,24 +257,16 @@ export const AuthModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      {/* Animated Particles Background */}
+    <div className="fixed inset-0 z-50 overflow-hidden bg-gray-950">
+      {/* Animated gradient orb (subtle) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
-          className="absolute top-1/4 left-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-ping"
-          style={{ animationDuration: "3s" }}
+          className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-cyan-500/10 via-violet-500/10 to-transparent rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "8s" }}
         />
         <div
-          className="absolute top-1/3 right-1/4 w-2 h-2 bg-violet-400 rounded-full animate-ping"
-          style={{ animationDuration: "4s", animationDelay: "1s" }}
-        />
-        <div
-          className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-cyan-300 rounded-full animate-ping"
-          style={{ animationDuration: "5s", animationDelay: "2s" }}
-        />
-        <div
-          className="absolute top-1/2 right-1/3 w-2 h-2 bg-violet-300 rounded-full animate-ping"
-          style={{ animationDuration: "4s", animationDelay: "0.5s" }}
+          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-violet-500/10 via-cyan-500/10 to-transparent rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "12s", animationDelay: "2s" }}
         />
       </div>
 
@@ -294,20 +280,6 @@ export const AuthModal = ({
             <div
               className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-violet-500/20 via-cyan-500/20 to-violet-500/20 rounded-full blur-3xl animate-pulse"
               style={{ animationDelay: "2s" }}
-            />
-
-            {/* Floating geometric shapes */}
-            <div
-              className="absolute top-1/4 left-1/4 w-20 h-20 border-2 border-cyan-400/30 rounded-lg rotate-45 animate-spin"
-              style={{ animationDuration: "10s" }}
-            />
-            <div
-              className="absolute bottom-1/3 right-1/4 w-16 h-16 border-2 border-violet-400/30 rounded-full animate-bounce"
-              style={{ animationDuration: "3s" }}
-            />
-            <div
-              className="absolute top-1/2 right-1/3 w-12 h-12 bg-cyan-400/10 backdrop-blur-xl rounded-lg animate-pulse"
-              style={{ animationDuration: "4s" }}
             />
           </div>
 
@@ -328,8 +300,8 @@ export const AuthModal = ({
                 {currentView === "login"
                   ? "Secure your applications with AI-powered vulnerability detection"
                   : currentView === "register"
-                  ? "Start protecting your code in less than 2 minutes"
-                  : "We'll help you regain access to your account securely"}
+                    ? "Start protecting your code in less than 2 minutes"
+                    : "We'll help you regain access to your account securely"}
               </p>
             </div>
 
@@ -347,12 +319,8 @@ export const AuthModal = ({
                     {feature.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-400 text-sm">
-                      {feature.description}
-                    </p>
+                    <h3 className="font-semibold text-lg mb-1">{feature.title}</h3>
+                    <p className="text-gray-400 text-sm">{feature.description}</p>
                   </div>
                 </div>
               ))}
@@ -364,9 +332,7 @@ export const AuthModal = ({
                 <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-cyan-400 transition-all">
                   99.9%
                 </div>
-                <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300">
-                  Uptime
-                </div>
+                <div className="text-sm text-gray-400 mt-1 group-hover:text-gray-300">Uptime</div>
               </div>
               <div className="text-center group hover:scale-105 transition-transform">
                 <div className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-violet-300 bg-clip-text text-transparent group-hover:from-violet-300 group-hover:to-violet-400 transition-all">
@@ -400,8 +366,8 @@ export const AuthModal = ({
                       <span className="font-semibold text-white">
                         Enterprise-grade security scanning
                       </span>{" "}
-                      with 12+ integrated scanners covering SAST, secrets
-                      detection, container security, and more.
+                      with 12+ integrated scanners covering SAST, secrets detection, container
+                      security, and more.
                     </p>
                     <div className="flex items-center gap-3 text-xs text-gray-400">
                       <span className="flex items-center gap-1">
@@ -430,36 +396,18 @@ export const AuthModal = ({
                 ONYX
               </h1>
             </div>
-            <p className="text-xs text-gray-400 tracking-widest uppercase">
-              Security Intelligence
-            </p>
+            <p className="text-xs text-gray-400 tracking-widest uppercase">Security Intelligence</p>
           </div>
 
           {/* Form Container */}
           <div className="flex items-center justify-center min-h-full p-6 lg:p-12">
             <div className="w-full max-w-md">
-              <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800/50 shadow-2xl overflow-hidden transform transition-all duration-500 hover:shadow-cyan-500/10">
+              <div className="relative bg-gray-900/60 backdrop-blur-2xl border border-gray-700/40 rounded-2xl shadow-2xl shadow-cyan-500/5 overflow-hidden">
                 {/* Gradient Background Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-violet-500/5 to-cyan-500/5" />
 
                 {/* Content */}
                 <div className="relative">{renderCurrentView()}</div>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="mt-6 flex items-center justify-center gap-4 text-xs text-gray-500">
-                <div className="flex items-center gap-1">
-                  <CheckCircleIcon className="w-4 h-4 text-cyan-400" />
-                  <span>256-bit SSL</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ShieldCheckIcon className="w-4 h-4 text-violet-400" />
-                  <span>SOC 2 Certified</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <LockClosedIcon className="w-4 h-4 text-cyan-300" />
-                  <span>GDPR Compliant</span>
-                </div>
               </div>
             </div>
           </div>
@@ -470,22 +418,10 @@ export const AuthModal = ({
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 bg-gray-800/50 hover:bg-violet-500/20 rounded-full transition-colors z-50"
+          className="absolute top-6 right-6 p-2 bg-gray-800/50 hover:bg-violet-500/20 rounded-full transition-colors z-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950"
           aria-label="Close"
         >
-          <svg
-            className="w-6 h-6 text-gray-400 hover:text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <XMarkIcon className="w-6 h-6 text-gray-400 hover:text-white" />
         </button>
       )}
     </div>

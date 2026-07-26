@@ -86,22 +86,19 @@ export const Breadcrumb = ({ items = [] }) => {
   if (items.length === 0) return null;
 
   return (
-    <nav
-      className="flex items-center space-x-2 text-sm mb-4"
-      aria-label="Breadcrumb"
-    >
-      <Link to="/" className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded" aria-label="Home">
+    <nav className="flex items-center space-x-2 text-sm mb-4" aria-label="Breadcrumb">
+      <Link
+        to="/"
+        className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
+        aria-label="Home"
+      >
         <HomeIcon className="h-4 w-4" />
       </Link>
       {items.map((item, index) => (
         <React.Fragment key={index}>
           <ChevronRightIcon className="h-4 w-4 text-gray-600" />
           <span
-            className={
-              index === items.length - 1
-                ? "text-white font-medium"
-                : "text-gray-400"
-            }
+            className={index === items.length - 1 ? "text-white font-medium" : "text-gray-400"}
             aria-current={index === items.length - 1 ? "page" : undefined}
           >
             {item}
@@ -113,31 +110,21 @@ export const Breadcrumb = ({ items = [] }) => {
 };
 
 // Page Header Component
-export const PageHeader = ({
-  title,
-  description,
-  icon: Icon,
-  actions,
-  breadcrumb = [],
-}) => {
+export const PageHeader = ({ title, description, icon: Icon, actions, breadcrumb = [] }) => {
   return (
     <div className="mb-6 lg:mb-8">
       <Breadcrumb items={breadcrumb} />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center space-x-4">
           {Icon && (
-            <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
+            <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 shadow-lg">
               <Icon className="h-6 w-6 text-white" />
             </div>
           )}
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">
-              {title}
-            </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">{title}</h1>
             {description && (
-              <p className="text-gray-400 mt-1 text-sm sm:text-base">
-                {description}
-              </p>
+              <p className="text-gray-400 mt-1 text-sm sm:text-base">{description}</p>
             )}
           </div>
         </div>
@@ -180,9 +167,7 @@ export const SectionHeader = ({ title, description, action }) => {
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
       <div>
         <h2 className="text-lg lg:text-xl font-bold text-white">{title}</h2>
-        {description && (
-          <p className="text-sm text-gray-400 mt-1">{description}</p>
-        )}
+        {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
       </div>
       {action}
     </div>
@@ -231,8 +216,11 @@ export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
       </div>
       <div className="flex items-center justify-center py-6 gap-3">
         <div className="relative">
-          <div className="w-8 h-8 rounded-full border-2 border-gray-700 border-t-blue-500 animate-spin" />
-          <div className="absolute inset-0 w-8 h-8 rounded-full border-2 border-transparent border-b-purple-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+          <div className="w-8 h-8 rounded-full border-2 border-gray-700 border-t-cyan-500 animate-spin" />
+          <div
+            className="absolute inset-0 w-8 h-8 rounded-full border-2 border-transparent border-b-purple-500 animate-spin"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+          />
         </div>
         <p className="text-gray-400 text-sm">{message}</p>
       </div>
@@ -243,10 +231,30 @@ export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
 // Live Indicator Component — Real-time status display
 export const LiveIndicator = ({ status = "connected", label }) => {
   const config = {
-    connected: { color: "bg-emerald-500", shadow: "shadow-emerald-500/50", text: "text-emerald-400", label: label || "Live" },
-    scanning: { color: "bg-amber-500", shadow: "shadow-amber-500/50", text: "text-amber-400", label: label || "Scanning" },
-    disconnected: { color: "bg-red-500", shadow: "shadow-red-500/50", text: "text-red-400", label: label || "Offline" },
-    idle: { color: "bg-gray-500", shadow: "shadow-gray-500/50", text: "text-gray-400", label: label || "Idle" },
+    connected: {
+      color: "bg-emerald-500",
+      shadow: "shadow-emerald-500/50",
+      text: "text-emerald-400",
+      label: label || "Live",
+    },
+    scanning: {
+      color: "bg-amber-500",
+      shadow: "shadow-amber-500/50",
+      text: "text-amber-400",
+      label: label || "Scanning",
+    },
+    disconnected: {
+      color: "bg-red-500",
+      shadow: "shadow-red-500/50",
+      text: "text-red-400",
+      label: label || "Offline",
+    },
+    idle: {
+      color: "bg-gray-500",
+      shadow: "shadow-gray-500/50",
+      text: "text-gray-400",
+      label: label || "Idle",
+    },
   };
   const c = config[status] || config.idle;
 
@@ -254,9 +262,13 @@ export const LiveIndicator = ({ status = "connected", label }) => {
     <div className="flex items-center gap-2">
       <span className={`relative flex h-2.5 w-2.5`}>
         {status === "connected" && (
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${c.color} opacity-75`} />
+          <span
+            className={`animate-ping absolute inline-flex h-full w-full rounded-full ${c.color} opacity-75`}
+          />
         )}
-        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${c.color} shadow-lg ${c.shadow}`} />
+        <span
+          className={`relative inline-flex rounded-full h-2.5 w-2.5 ${c.color} shadow-lg ${c.shadow}`}
+        />
       </span>
       <span className={`text-xs font-medium ${c.text} uppercase tracking-wider`}>{c.label}</span>
     </div>
@@ -276,10 +288,7 @@ export const ErrorState = ({ title = "Error", message, onRetry }) => {
         <button
           type="button"
           onClick={onRetry}
-          className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600
-                     text-white rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25
-                     hover:-translate-y-0.5 font-medium
-                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+          className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         >
           Try Again
         </button>

@@ -27,11 +27,7 @@ export { SecuritySettings } from "./SecuritySettings";
 export { NotificationPreferences } from "./NotificationPreferences";
 
 // Auth Pages
-export {
-  EmailVerificationPage,
-  PasswordResetPage,
-  AuthRoutingHandler,
-} from "./AuthPages";
+export { EmailVerificationPage, PasswordResetPage, AuthRoutingHandler } from "./AuthPages";
 
 // Verification Banner
 export { VerificationBanner } from "./VerificationBanner";

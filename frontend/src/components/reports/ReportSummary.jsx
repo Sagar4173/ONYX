@@ -1,18 +1,25 @@
 import { utils } from "../../services/api";
-import { ClockIcon, CodeBracketIcon as CodeIcon, ShieldCheckIcon, FireIcon } from "@heroicons/react/24/outline";
+import {
+  ClockIcon,
+  CodeBracketIcon as CodeIcon,
+  ShieldCheckIcon,
+  FireIcon,
+} from "@heroicons/react/24/outline";
 
 const SeverityBadgeInline = ({ severity }) => {
   const severityColors = {
     critical: "bg-red-500/20 text-red-400 border-red-500/30",
     high: "bg-orange-500/20 text-orange-400 border-orange-500/30",
     medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    low: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    low: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
     info: "bg-gray-500/20 text-gray-400 border-gray-500/30",
   };
   const severityIcons = { critical: "🔴", high: "🟠", medium: "🟡", low: "🔵", info: "⚪" };
   const colorClass = severityColors[severity?.toLowerCase()] || severityColors.info;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colorClass} border shadow-sm`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colorClass} border shadow-sm`}
+    >
       <span>{severityIcons[severity?.toLowerCase()] || "⚪"}</span>
       {severity?.charAt(0).toUpperCase() + severity?.slice(1)}
     </span>
@@ -22,7 +29,9 @@ const SeverityBadgeInline = ({ severity }) => {
 const StatusBadgeInline = ({ status, utils }) => {
   const colorClass = utils.getStatusColor(status);
   return (
-    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorClass} border`}>
+    <span
+      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorClass} border`}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
@@ -52,9 +61,13 @@ export const ReportSummary = ({ report, utils }) => {
           </div>
           <div className="text-right">
             <StatusBadgeInline status={report.status} utils={utils} />
-            <div className="mt-2 text-sm text-gray-400 print:text-gray-600">Scan ID: {report.scan_id}</div>
+            <div className="mt-2 text-sm text-gray-400 print:text-gray-600">
+              Scan ID: {report.scan_id}
+            </div>
             {report.duration_seconds && (
-              <div className="text-sm text-gray-400 print:text-gray-600">Duration: {Math.round(report.duration_seconds)}s</div>
+              <div className="text-sm text-gray-400 print:text-gray-600">
+                Duration: {Math.round(report.duration_seconds)}s
+              </div>
             )}
           </div>
         </div>
@@ -64,8 +77,8 @@ export const ReportSummary = ({ report, utils }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="glass-container rounded-xl p-6">
             <div className="flex items-center">
-              <div className="p-2 rounded-lg bg-blue-500/20">
-                <ShieldCheckIcon className="h-6 w-6 text-blue-400" />
+              <div className="p-2 rounded-lg bg-cyan-500/20">
+                <ShieldCheckIcon className="h-6 w-6 text-cyan-400" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-400">Total Findings</p>
@@ -94,7 +107,8 @@ export const ReportSummary = ({ report, utils }) => {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {["critical", "high", "medium", "low", "info"].map((severity) => {
               const count = report.findings_by_severity?.[severity] || 0;
-              const total = Object.values(report.findings_by_severity || {}).reduce((a, b) => a + b, 0) || 1;
+              const total =
+                Object.values(report.findings_by_severity || {}).reduce((a, b) => a + b, 0) || 1;
               const percentage = Math.round((count / total) * 100);
               return (
                 <div key={severity} className="text-center p-3 bg-gray-800/50 rounded-lg">

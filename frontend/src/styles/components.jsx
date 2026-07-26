@@ -3,10 +3,7 @@
  * Styled components that use the centralized theme system
  */
 import React from "react";
-import {
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from "@heroicons/react/24/outline";
 import {
   getButtonClasses,
   getBadgeClasses,
@@ -21,7 +18,7 @@ import {
   navStyles,
   formStyles,
 } from "./classNames";
-import { animations, dynamicStyles, severityColors } from "./theme";
+import { animations, dynamicStyles } from "./theme";
 
 // =============================================================================
 // BUTTON COMPONENT
@@ -40,7 +37,7 @@ export const Button = ({
   ...props
 }) => {
   const gradientClasses = gradient
-    ? "bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+    ? "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-semibold rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transform hover:scale-[1.03] active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 focus-visible:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
     : getButtonClasses(variant, size);
 
   return (
@@ -87,9 +84,7 @@ export const IconButton = ({
 
   return (
     <button
-      className={`${getButtonClasses(variant, size, true)} ${
-        sizeClasses[size]
-      } ${className}`}
+      className={`${getButtonClasses(variant, size, true)} ${sizeClasses[size]} ${className}`}
       aria-label={label}
       title={label}
       {...props}
@@ -112,25 +107,18 @@ export const Card = ({
   ...props
 }) => {
   return (
-    <div
-      className={`${getCardClasses(variant, padding, hoverable)} ${className}`}
-      {...props}
-    >
+    <div className={`${getCardClasses(variant, padding, hoverable)} ${className}`} {...props}>
       {children}
     </div>
   );
 };
 
 export const CardHeader = ({ children, className = "" }) => (
-  <div className={`pb-4 border-b border-gray-700/50 mb-4 ${className}`}>
-    {children}
-  </div>
+  <div className={`pb-4 border-b border-gray-700/50 mb-4 ${className}`}>{children}</div>
 );
 
 export const CardTitle = ({ children, className = "" }) => (
-  <h3 className={`text-lg font-semibold text-white ${className}`}>
-    {children}
-  </h3>
+  <h3 className={`text-lg font-semibold text-white ${className}`}>{children}</h3>
 );
 
 export const CardDescription = ({ children, className = "" }) => (
@@ -142,31 +130,23 @@ export const CardContent = ({ children, className = "" }) => (
 );
 
 export const CardFooter = ({ children, className = "" }) => (
-  <div className={`pt-4 border-t border-gray-700/50 mt-4 ${className}`}>
-    {children}
-  </div>
+  <div className={`pt-4 border-t border-gray-700/50 mt-4 ${className}`}>{children}</div>
 );
 
 // =============================================================================
 // BADGE COMPONENT
 // =============================================================================
 
-export const Badge = React.memo(({
-  children,
-  variant = "default",
-  size = "sm",
-  className = "",
-  ...props
-}) => {
-  return (
-    <span
-      className={`${getBadgeClasses(variant, size)} ${className}`}
-      {...props}
-    >
-      {children}
-    </span>
-  );
-});
+export const Badge = React.memo(
+  ({ children, variant = "default", size = "sm", className = "", ...props }) => {
+    return (
+      <span className={`${getBadgeClasses(variant, size)} ${className}`} {...props}>
+        {children}
+      </span>
+    );
+  }
+);
+Badge.displayName = "Badge";
 
 // Severity-specific badge
 export const SeverityBadge = React.memo(({ severity, className = "" }) => {
@@ -179,14 +159,12 @@ export const SeverityBadge = React.memo(({ severity, className = "" }) => {
   };
 
   return (
-    <Badge
-      variant={severityMap[severity?.toLowerCase()] || "default"}
-      className={className}
-    >
+    <Badge variant={severityMap[severity?.toLowerCase()] || "default"} className={className}>
       {severity?.toUpperCase()}
     </Badge>
   );
 });
+SeverityBadge.displayName = "SeverityBadge";
 
 // =============================================================================
 // INPUT COMPONENT
@@ -233,21 +211,29 @@ export const Input = ({
 // =============================================================================
 
 export const Textarea = ({
+  label,
   variant = "default",
   error,
   rows = 3,
   className = "",
   ...props
 }) => {
+  const id = React.useId();
   const baseClasses =
     "w-full rounded-lg border bg-gray-800 text-gray-100 placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 px-4 py-2 text-sm resize-none";
   const variantClasses = error
     ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-    : "border-gray-600 focus:border-blue-500 focus:ring-blue-500/20";
+    : "border-gray-600 focus:border-cyan-500 focus:ring-cyan-500/20";
 
   return (
     <div className="w-full">
+      {label && (
+        <label htmlFor={id} className={formStyles.label}>
+          {label}
+        </label>
+      )}
       <textarea
+        id={id}
         className={`${baseClasses} ${variantClasses} ${className}`}
         rows={rows}
         {...props}
@@ -262,6 +248,7 @@ export const Textarea = ({
 // =============================================================================
 
 export const Select = ({
+  label,
   options = [],
   placeholder = "Select...",
   variant = "default",
@@ -270,9 +257,16 @@ export const Select = ({
   className = "",
   ...props
 }) => {
+  const id = React.useId();
   return (
     <div className="w-full">
+      {label && (
+        <label htmlFor={id} className={formStyles.label}>
+          {label}
+        </label>
+      )}
       <select
+        id={id}
         className={`${getInputClasses(
           error ? "error" : variant,
           size
@@ -299,14 +293,7 @@ export const Select = ({
 // ALERT COMPONENT
 // =============================================================================
 
-export const Alert = ({
-  variant = "info",
-  title,
-  children,
-  icon,
-  onClose,
-  className = "",
-}) => {
+export const Alert = ({ variant = "info", title, children, icon, onClose, className = "" }) => {
   return (
     <div className={`${getAlertClasses(variant)} ${className}`}>
       {icon && <span className="w-5 h-5 flex-shrink-0">{icon}</span>}
@@ -317,6 +304,7 @@ export const Alert = ({
       {onClose && (
         <button
           onClick={onClose}
+          aria-label="Dismiss alert"
           className="flex-shrink-0 opacity-70 hover:opacity-100"
         >
           ×
@@ -331,11 +319,7 @@ export const Alert = ({
 // =============================================================================
 
 export const Spinner = ({ size = "md", className = "" }) => {
-  return (
-    <div
-      className={`${loadingStyles.spinner} ${loadingStyles.sizes[size]} ${className}`}
-    />
-  );
+  return <div className={`${loadingStyles.spinner} ${loadingStyles.sizes[size]} ${className}`} />;
 };
 
 export const LoadingOverlay = ({ message = "Loading..." }) => (
@@ -360,11 +344,7 @@ export const Skeleton = ({ className = "", variant = "text" }) => {
     card: "h-32 w-full",
   };
 
-  return (
-    <div
-      className={`${loadingStyles.skeleton} ${variants[variant]} ${className}`}
-    />
-  );
+  return <div className={`${loadingStyles.skeleton} ${variants[variant]} ${className}`} />;
 };
 
 // =============================================================================
@@ -388,18 +368,12 @@ export const StatusDot = ({ status = "neutral", className = "" }) => {
 
   return (
     <span
-      className={`${statusStyles.dot.base} ${
-        statusMap[status] || statusMap.neutral
-      } ${className}`}
+      className={`${statusStyles.dot.base} ${statusMap[status] || statusMap.neutral} ${className}`}
     />
   );
 };
 
-export const StatusIndicator = ({
-  status = "neutral",
-  label,
-  className = "",
-}) => {
+export const StatusIndicator = ({ status = "neutral", label, className = "" }) => {
   const statusMap = {
     success: statusStyles.indicator.success,
     active: statusStyles.indicator.success,
@@ -427,16 +401,10 @@ export const StatusIndicator = ({
 // MODAL COMPONENT
 // =============================================================================
 
-const FOCUSABLE_MODAL = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE_MODAL =
+  'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export const Modal = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-  footer,
-  size = "md",
-}) => {
+export const Modal = ({ isOpen, onClose, title, children, footer, size = "md" }) => {
   const titleId = React.useId();
   const containerRef = React.useRef(null);
 
@@ -446,7 +414,10 @@ export const Modal = ({
     if (!container) return;
     const prevFocus = document.activeElement;
     const handleKey = (e) => {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
       if (e.key !== "Tab") return;
       const focusable = container.querySelectorAll(FOCUSABLE_MODAL);
       if (!focusable.length) return;
@@ -489,11 +460,13 @@ export const Modal = ({
       >
         {title && (
           <div className={modalStyles.header}>
-            <h2 id={titleId} className={modalStyles.title}>{title}</h2>
+            <h2 id={titleId} className={modalStyles.title}>
+              {title}
+            </h2>
             <button
               onClick={onClose}
               aria-label="Close dialog"
-              className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+              className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
             >
               ×
             </button>
@@ -518,23 +491,11 @@ export const Divider = ({ className = "" }) => (
 // EMPTY STATE COMPONENT
 // =============================================================================
 
-export const EmptyState = ({
-  icon,
-  title,
-  description,
-  action,
-  className = "",
-}) => (
-  <div
-    className={`flex flex-col items-center justify-center py-12 text-center ${className}`}
-  >
+export const EmptyState = ({ icon, title, description, action, className = "" }) => (
+  <div className={`flex flex-col items-center justify-center py-12 text-center ${className}`}>
     {icon && <div className="text-gray-500 mb-4">{icon}</div>}
-    {title && (
-      <h3 className="text-lg font-medium text-gray-300 mb-2">{title}</h3>
-    )}
-    {description && (
-      <p className="text-gray-500 max-w-sm mb-4">{description}</p>
-    )}
+    {title && <h3 className="text-lg font-medium text-gray-300 mb-2">{title}</h3>}
+    {description && <p className="text-gray-500 max-w-sm mb-4">{description}</p>}
     {action}
   </div>
 );
@@ -557,7 +518,7 @@ export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
     }
 
     const animate = () => {
-      let start = 0;
+      let _start = 0;
       const end = numValue;
       const startTime = Date.now();
 
@@ -600,97 +561,96 @@ export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
   );
 };
 
-export const StatCard = React.memo(({
-  title,
-  value,
-  change,
-  changeType = "neutral",
-  icon,
-  className = "",
-  trend,
-  trendPositive = true,
-  subtitle,
-  gradient,
-  bgGradient,
-  animated = false,
-  animatedDuration = 1000,
-  onClick,
-}) => {
-  const changeColors = {
-    increase: "text-green-400",
-    decrease: "text-red-400",
-    positive: "text-green-400",
-    negative: "text-red-400",
-    neutral: "text-gray-400",
-  };
+export const StatCard = React.memo(
+  ({
+    title,
+    value,
+    change,
+    changeType = "neutral",
+    icon,
+    className = "",
+    trend,
+    trendPositive = true,
+    _subtitle,
+    gradient,
+    bgGradient,
+    animated = false,
+    animatedDuration = 1000,
+    onClick,
+  }) => {
+    const changeColors = {
+      increase: "text-green-400",
+      decrease: "text-red-400",
+      positive: "text-green-400",
+      negative: "text-red-400",
+      neutral: "text-gray-400",
+    };
 
-  const TrendIcon =
-    trend >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
-  const trendColor = trendPositive
-    ? trend >= 0 ? "text-emerald-400" : "text-red-400"
-    : trend >= 0 ? "text-red-400" : "text-emerald-400";
+    const TrendIcon = trend >= 0 ? ArrowTrendingUpIcon : ArrowTrendingDownIcon;
+    const _trendColor = trendPositive
+      ? trend >= 0
+        ? "text-emerald-400"
+        : "text-red-400"
+      : trend >= 0
+        ? "text-red-400"
+        : "text-emerald-400";
 
-  if (gradient) {
-    const cardBg = bgGradient || "bg-gray-800/30";
-    return (
-      <div
-        onClick={onClick}
-        className={`group relative ${cardBg} rounded-2xl p-5 border border-gray-800/50
+    if (gradient) {
+      const cardBg = bgGradient || "bg-gray-800/30";
+      return (
+        <div
+          onClick={onClick}
+          className={`group relative ${cardBg} rounded-2xl p-5 border border-gray-800/50
           hover:border-gray-700/50 transition-all ${onClick ? "cursor-pointer" : ""} ${className}`}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-        <div className="relative">
-          <div className="flex items-center justify-between mb-3">
-            <div
-              className={`p-2.5 rounded-xl bg-gradient-to-r ${gradient} shadow-lg`}
-            >
-              {icon}
-            </div>
-            {trend !== undefined && trend !== null && (
-              <div
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-sm font-medium ${
-                  trend >= 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                <TrendIcon className="h-4 w-4" />
-                {Math.abs(trend)}%
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`p-2.5 rounded-xl bg-gradient-to-r ${gradient} shadow-lg`}>
+                {icon}
               </div>
+              {trend !== undefined && trend !== null && (
+                <div
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-sm font-medium ${
+                    trend >= 0 ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  <TrendIcon className="h-4 w-4" />
+                  {Math.abs(trend)}%
+                </div>
+              )}
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-1">
+              {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
+            </h3>
+            <p className="text-gray-400 text-sm">{title}</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <Card className={className}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-400">{title}</p>
+            <p className="text-2xl font-bold text-white mt-1">
+              {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
+            </p>
+            {change !== undefined && (
+              <p className={`text-sm mt-1 ${changeColors[changeType]}`}>
+                {changeType === "increase" && "↑"}
+                {changeType === "decrease" && "↓"}
+                {change}
+              </p>
             )}
           </div>
-          <h3 className="text-2xl font-bold text-white mb-1">
-            {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
-          </h3>
-          <p className="text-gray-400 text-sm">{title}</p>
+          {icon && <div className="p-3 bg-gray-700/50 rounded-lg text-gray-400">{icon}</div>}
         </div>
-      </div>
+      </Card>
     );
   }
-
-  return (
-    <Card className={className}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-white mt-1">
-            {animated ? <AnimatedCounter value={value} duration={animatedDuration} /> : value}
-          </p>
-          {change !== undefined && (
-            <p className={`text-sm mt-1 ${changeColors[changeType]}`}>
-              {changeType === "increase" && "↑"}
-              {changeType === "decrease" && "↓"}
-              {change}
-            </p>
-          )}
-        </div>
-        {icon && (
-          <div className="p-3 bg-gray-700/50 rounded-lg text-gray-400">
-            {icon}
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-});
+);
 
 // =============================================================================
 // PROGRESS BAR COMPONENT
@@ -722,11 +682,7 @@ export const ProgressBar = ({
           style={dynamicStyles.progressWidth(percentage)}
         />
       </div>
-      {showLabel && (
-        <span className="text-xs text-gray-400 mt-1">
-          {Math.round(percentage)}%
-        </span>
-      )}
+      {showLabel && <span className="text-xs text-gray-400 mt-1">{Math.round(percentage)}%</span>}
     </div>
   );
 };
@@ -771,10 +727,7 @@ export const SeverityProgressBar = ({
         className="bg-yellow-500 transition-all duration-500"
         style={{ width: getWidth(medium) }}
       />
-      <div
-        className="bg-blue-500 transition-all duration-500"
-        style={{ width: getWidth(low) }}
-      />
+      <div className="bg-cyan-500 transition-all duration-500" style={{ width: getWidth(low) }} />
     </div>
   );
 };
@@ -783,13 +736,7 @@ export const SeverityProgressBar = ({
 // ANIMATED LIST ITEM (handles stagger animation)
 // =============================================================================
 
-export const AnimatedListItem = ({
-  children,
-  index,
-  delay = 0.1,
-  className = "",
-  ...props
-}) => {
+export const AnimatedListItem = ({ children, index, delay = 0.1, className = "", ...props }) => {
   return (
     <div
       className={`animate-fade-in-up ${className}`}
@@ -821,10 +768,7 @@ export const DonutChart = ({
   const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div
-      className={`relative ${className}`}
-      style={{ width: size, height: size }}
-    >
+    <div className={`relative ${className}`} style={{ width: size, height: size }}>
       <svg width={size} height={size} className="transform -rotate-90">
         {/* Background circle */}
         <circle
@@ -852,9 +796,7 @@ export const DonutChart = ({
       {/* Center content */}
       <div className="absolute inset-0 flex items-center justify-center">
         {children || (
-          <span className="text-xl font-bold text-white">
-            {Math.round(percentage)}%
-          </span>
+          <span className="text-xl font-bold text-white">{Math.round(percentage)}%</span>
         )}
       </div>
     </div>
@@ -867,9 +809,7 @@ export const DonutChart = ({
 
 export const Code = ({ children, inline = false, className = "" }) => {
   if (inline) {
-    return (
-      <code className={`${codeStyles.inline} ${className}`}>{children}</code>
-    );
+    return <code className={`${codeStyles.inline} ${className}`}>{children}</code>;
   }
 
   return (
@@ -894,9 +834,7 @@ export const Tabs = ({ tabs, activeTab, onChange, className = "" }) => {
             aria-selected={activeTab === tab.id}
             aria-controls={`tabpanel-${tab.id}`}
             onClick={() => onChange(tab.id)}
-            className={
-              activeTab === tab.id ? navStyles.tabActive : navStyles.tab
-            }
+            className={activeTab === tab.id ? navStyles.tabActive : navStyles.tab}
           >
             {tab.icon && <span className="mr-2">{tab.icon}</span>}
             {tab.label}
@@ -1029,7 +967,7 @@ export const Truncate = ({ text, maxLength = 100, className = "" }) => {
       {isExpanded ? text : `${text.slice(0, maxLength)}...`}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="ml-1 text-blue-400 hover:text-blue-300 text-sm"
+        className="ml-1 text-cyan-400 hover:text-cyan-300 text-sm"
       >
         {isExpanded ? "Show less" : "Show more"}
       </button>
@@ -1047,7 +985,10 @@ const TableSkeleton = ({ rows = 5, columns = 4 }) => (
       <tr key={i} className="border-b border-gray-700/50">
         {Array.from({ length: columns }).map((_, j) => (
           <td key={j} className="px-4 py-3">
-            <div className="h-4 bg-gray-700/50 rounded animate-pulse" style={{ width: `${60 + Math.random() * 40}%` }} />
+            <div
+              className="h-4 bg-gray-700/50 rounded animate-pulse"
+              style={{ width: `${60 + Math.random() * 40}%` }}
+            />
           </td>
         ))}
       </tr>
@@ -1093,9 +1034,7 @@ export const DataTable = ({
                 <span className="flex items-center gap-1">
                   {col.label}
                   {col.sortable && sortKey === col.key && (
-                    <span className="text-blue-400">
-                      {sortDirection === "asc" ? "↑" : "↓"}
-                    </span>
+                    <span className="text-cyan-400">{sortDirection === "asc" ? "↑" : "↓"}</span>
                   )}
                 </span>
               </th>
@@ -1107,10 +1046,7 @@ export const DataTable = ({
             <TableSkeleton rows={5} columns={columns.length} />
           ) : data.length === 0 ? (
             <tr>
-              <td
-                colSpan={columns.length}
-                className="px-4 py-12 text-center text-gray-400"
-              >
+              <td colSpan={columns.length} className="px-4 py-12 text-center text-gray-400">
                 {emptyMessage}
               </td>
             </tr>
@@ -1125,7 +1061,7 @@ export const DataTable = ({
               >
                 {columns.map((col) => (
                   <td key={col.key} className="px-4 py-3 text-gray-300">
-                    {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
+                    {col.render ? col.render(row[col.key], row) : (row[col.key] ?? "-")}
                   </td>
                 ))}
               </tr>
@@ -1180,17 +1116,23 @@ export const ConfirmDialog = ({
   const [typedText, setTypedText] = React.useState("");
   const titleId = React.useId();
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const prevFocus = document.activeElement;
+    return () => {
+      prevFocus?.focus();
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const buttonColors = {
     danger: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
     warning: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500",
-    primary: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
+    primary: "bg-cyan-600 hover:bg-cyan-700 focus:ring-cyan-500",
   };
 
-  const canConfirm = requireTypeToConfirm
-    ? typedText === confirmText
-    : true;
+  const canConfirm = requireTypeToConfirm ? typedText === confirmText : true;
 
   return (
     <div
@@ -1204,13 +1146,19 @@ export const ConfirmDialog = ({
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={titleId} className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <h3 id={titleId} className="text-lg font-semibold text-white mb-2">
+          {title}
+        </h3>
         <p className="text-gray-400 text-sm mb-4">{message}</p>
 
         {requireTypeToConfirm && (
           <div className="mb-4">
             <p className="text-sm text-gray-400 mb-2">
-              Type <span className="font-mono text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">{confirmText}</span> to confirm:
+              Type{" "}
+              <span className="font-mono text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">
+                {confirmText}
+              </span>{" "}
+              to confirm:
             </p>
             <input
               type="text"
@@ -1230,7 +1178,10 @@ export const ConfirmDialog = ({
             {cancelLabel}
           </button>
           <button
-            onClick={() => { onConfirm(); onClose(); }}
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
             disabled={!canConfirm}
             className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all disabled:opacity-50 ${buttonColors[variant]}`}
           >
@@ -1246,45 +1197,52 @@ export const ConfirmDialog = ({
 // METRIC CARD COMPONENT
 // =============================================================================
 
-export const MetricCard = React.memo(({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  trend,
-  direction = "up",
-  color = "blue",
-  className = "",
-}) => {
-  const colorMap = {
-    blue: "from-blue-500 to-cyan-500",
-    green: "from-emerald-500 to-green-500",
-    red: "from-red-500 to-rose-500",
-    yellow: "from-yellow-500 to-amber-500",
-    purple: "from-purple-500 to-violet-500",
-    indigo: "from-indigo-500 to-blue-500",
-  };
+export const MetricCard = React.memo(
+  ({
+    title,
+    value,
+    subtitle,
+    icon: Icon,
+    trend,
+    direction = "up",
+    color = "blue",
+    className = "",
+  }) => {
+    const colorMap = {
+      blue: "from-blue-500 to-cyan-500",
+      green: "from-emerald-500 to-green-500",
+      red: "from-red-500 to-rose-500",
+      yellow: "from-yellow-500 to-amber-500",
+      purple: "from-purple-500 to-violet-500",
+      indigo: "from-indigo-500 to-blue-500",
+    };
 
-  return (
-    <div className={`bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 ${className}`}>
-      <div className="flex items-center justify-between mb-3">
-        {Icon && (
-          <div className={`p-2.5 rounded-xl bg-gradient-to-r ${colorMap[color] || colorMap.blue} shadow-lg`}>
-            <Icon className="w-5 h-5 text-white" />
-          </div>
-        )}
-        {trend !== undefined && (
-          <span className={`text-sm font-medium ${direction === "up" ? "text-green-400" : "text-red-400"}`}>
-            {direction === "up" ? "↑" : "↓"} {Math.abs(trend)}%
-          </span>
-        )}
+    return (
+      <div className={`bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 ${className}`}>
+        <div className="flex items-center justify-between mb-3">
+          {Icon && (
+            <div
+              className={`p-2.5 rounded-xl bg-gradient-to-r ${colorMap[color] || colorMap.blue} shadow-lg`}
+            >
+              <Icon className="w-5 h-5 text-white" />
+            </div>
+          )}
+          {trend !== undefined && (
+            <span
+              className={`text-sm font-medium ${direction === "up" ? "text-green-400" : "text-red-400"}`}
+            >
+              {direction === "up" ? "↑" : "↓"} {Math.abs(trend)}%
+            </span>
+          )}
+        </div>
+        <p className="text-2xl font-bold text-white">{value}</p>
+        <p className="text-sm text-gray-400 mt-1">{title}</p>
+        {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      <p className="text-sm text-gray-400 mt-1">{title}</p>
-      {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
-    </div>
-  );
-});
+    );
+  }
+);
+MetricCard.displayName = "MetricCard";
 
 // =============================================================================
 // STATUS BADGE COMPONENT
@@ -1305,7 +1263,9 @@ const statusBadgeVariants = {
 export const StatusBadge = ({ status = "inactive", label, className = "" }) => {
   const variant = statusBadgeVariants[status] || statusBadgeVariants.inactive;
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${variant} ${className}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${variant} ${className}`}
+    >
       {label || status}
     </span>
   );
@@ -1315,72 +1275,77 @@ export const StatusBadge = ({ status = "inactive", label, className = "" }) => {
 // FINDING CARD COMPONENT
 // =============================================================================
 
-export const FindingCard = React.memo(({
-  title,
-  severity = "info",
-  scanner,
-  filePath,
-  ruleId,
-  status = "open",
-  onClick,
-  className = "",
-}) => {
-  const severityGradients = {
-    critical: "from-red-500 to-rose-600",
-    high: "from-orange-500 to-red-500",
-    medium: "from-yellow-500 to-amber-500",
-    low: "from-blue-500 to-cyan-500",
-    info: "from-gray-500 to-gray-400",
-  };
+export const FindingCard = React.memo(
+  ({
+    title,
+    severity = "info",
+    scanner,
+    filePath,
+    ruleId,
+    status = "open",
+    onClick,
+    className = "",
+  }) => {
+    const severityGradients = {
+      critical: "from-red-500 to-rose-600",
+      high: "from-orange-500 to-red-500",
+      medium: "from-yellow-500 to-amber-500",
+      low: "from-cyan-500 to-violet-600",
+      info: "from-gray-500 to-gray-400",
+    };
 
-  const severityLabels = {
-    critical: "text-red-400 bg-red-900/30 border-red-700/50",
-    high: "text-orange-400 bg-orange-900/30 border-orange-700/50",
-    medium: "text-yellow-400 bg-yellow-900/30 border-yellow-700/50",
-    low: "text-blue-400 bg-blue-900/30 border-blue-700/50",
-    info: "text-gray-400 bg-gray-700/30 border-gray-700/50",
-  };
+    const severityLabels = {
+      critical: "text-red-400 bg-red-900/30 border-red-700/50",
+      high: "text-orange-400 bg-orange-900/30 border-orange-700/50",
+      medium: "text-yellow-400 bg-yellow-900/30 border-yellow-700/50",
+      low: "text-cyan-400 bg-cyan-900/30 border-cyan-700/50",
+      info: "text-gray-400 bg-gray-700/30 border-gray-700/50",
+    };
 
-  return (
-    <div
-      className={`bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 hover:border-gray-600/50 transition-all ${
-        onClick ? "cursor-pointer hover:-translate-y-0.5" : ""
-      } ${className}`}
-      onClick={onClick}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-1 h-10 rounded-full bg-gradient-to-b ${severityGradients[severity] || severityGradients.info} flex-shrink-0`} />
-          <div className="min-w-0">
-            <p className="font-medium text-white truncate">{title}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`px-1.5 py-0.5 text-xs font-medium rounded border ${severityLabels[severity] || severityLabels.info}`}>
-                {severity.toUpperCase()}
-              </span>
-              {scanner && <span className="text-xs text-gray-500">{scanner}</span>}
+    return (
+      <div
+        className={`bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 hover:border-gray-600/50 transition-all ${
+          onClick ? "cursor-pointer hover:-translate-y-0.5" : ""
+        } ${className}`}
+        onClick={onClick}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className={`w-1 h-10 rounded-full bg-gradient-to-b ${severityGradients[severity] || severityGradients.info} flex-shrink-0`}
+            />
+            <div className="min-w-0">
+              <p className="font-medium text-white truncate">{title}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  className={`px-1.5 py-0.5 text-xs font-medium rounded border ${severityLabels[severity] || severityLabels.info}`}
+                >
+                  {severity.toUpperCase()}
+                </span>
+                {scanner && <span className="text-xs text-gray-500">{scanner}</span>}
+              </div>
             </div>
           </div>
+          <StatusBadge status={status} />
         </div>
-        <StatusBadge status={status} />
+        {(filePath || ruleId) && (
+          <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center gap-4 text-xs text-gray-500">
+            {filePath && <span className="truncate">{filePath}</span>}
+            {ruleId && <span className="font-mono">{ruleId}</span>}
+          </div>
+        )}
       </div>
-      {(filePath || ruleId) && (
-        <div className="mt-3 pt-3 border-t border-gray-700/50 flex items-center gap-4 text-xs text-gray-500">
-          {filePath && <span className="truncate">{filePath}</span>}
-          {ruleId && <span className="font-mono">{ruleId}</span>}
-        </div>
-      )}
-    </div>
-  );
-});
+    );
+  }
+);
+FindingCard.displayName = "FindingCard";
 
 // =============================================================================
 // PAGE TRANSITION COMPONENT
 // =============================================================================
 
 export const PageTransition = ({ children, className = "" }) => (
-  <div className={`page-enter ${className}`}>
-    {children}
-  </div>
+  <div className={`page-enter ${className}`}>{children}</div>
 );
 
 export default {

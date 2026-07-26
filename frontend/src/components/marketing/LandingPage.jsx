@@ -5,26 +5,18 @@ import {
   SparklesIcon,
   CubeTransparentIcon,
   ChartBarIcon,
-  CloudArrowUpIcon,
   LockClosedIcon,
   BoltIcon,
   CommandLineIcon,
-  EyeIcon,
   CpuChipIcon,
   ServerStackIcon,
   CodeBracketIcon,
   ArrowRightIcon,
   CheckCircleIcon,
   PlayIcon,
-  ChevronRightIcon,
-  BeakerIcon,
-  FingerPrintIcon,
   GlobeAltIcon,
   RocketLaunchIcon,
-  ArrowTrendingUpIcon,
   UserGroupIcon,
-  BuildingOffice2Icon,
-  AcademicCapIcon,
   DocumentCheckIcon,
   ExclamationTriangleIcon,
   ClockIcon,
@@ -73,8 +65,6 @@ const TypeWriter = ({ words, className }) => {
   );
 };
 
-
-
 // Floating particles background
 const FloatingParticles = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -109,7 +99,7 @@ const LandingPage = () => {
     developers: 0,
     uptime: null,
   });
-  const [isVisible, setIsVisible] = useState({});
+  const [_isVisible, _setIsVisible] = useState({});
   const heroRef = useRef(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -118,13 +108,7 @@ const LandingPage = () => {
   const [showFixModal, setShowFixModal] = useState(null); // null, 'sql', or 'secret'
 
   // Words for typing animation
-  const heroWords = [
-    "Vulnerabilities",
-    "Threats",
-    "Breaches",
-    "Attacks",
-    "Risks",
-  ];
+  const heroWords = ["Vulnerabilities", "Threats", "Breaches", "Attacks", "Risks"];
 
   // Smooth scroll to section
   const scrollToSection = (sectionId) => {
@@ -211,7 +195,7 @@ const LandingPage = () => {
       title: "AI-Powered Analysis",
       description:
         "Dual AI provider support with OpenAI GPT-4 and Google Gemini to analyze vulnerabilities, explain risks in plain language, and suggest code fixes automatically.",
-      gradient: "from-cyan-500 to-blue-600",
+      gradient: "from-cyan-500 to-violet-600",
       stats: "GPT-4 + Gemini",
       details: [
         "Vulnerability explanation in plain language",
@@ -286,7 +270,7 @@ const LandingPage = () => {
       title: "DevSecOps Integration",
       description:
         "Connect with GitHub, GitLab, and Bitbucket. Webhook support for CI/CD pipelines. RESTful API for custom integrations.",
-      gradient: "from-indigo-500 to-blue-600",
+      gradient: "from-indigo-500 to-violet-600",
       stats: "REST API",
       details: [
         "GitHub, GitLab, Bitbucket support",
@@ -314,7 +298,11 @@ const LandingPage = () => {
       value: counters.developers.toLocaleString() + "+",
       icon: UserGroupIcon,
     },
-    { label: "Platform Uptime", value: counters.uptime != null ? counters.uptime + "%" : "—", icon: ClockIcon },
+    {
+      label: "Platform Uptime",
+      value: counters.uptime != null ? counters.uptime + "%" : "—",
+      icon: ClockIcon,
+    },
   ];
 
   const scanners = [
@@ -402,9 +390,7 @@ const LandingPage = () => {
 
   // Filter scanners based on active tab
   const filteredScanners =
-    activeTab === "all"
-      ? scanners
-      : scanners.filter((s) => s.type === activeTab);
+    activeTab === "all" ? scanners : scanners.filter((s) => s.type === activeTab);
 
   // Platform highlights - Real features, not fake testimonials
   const platformHighlights = [
@@ -559,9 +545,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <div className="flex items-center gap-3">
                   <div
                     className={`p-2 rounded-xl ${
-                      showFixModal === "sql"
-                        ? "bg-red-500/20"
-                        : "bg-amber-500/20"
+                      showFixModal === "sql" ? "bg-red-500/20" : "bg-amber-500/20"
                     }`}
                   >
                     {showFixModal === "sql" ? (
@@ -587,6 +571,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 </div>
                 <button
                   onClick={() => setShowFixModal(null)}
+                  aria-label="Close dialog"
                   className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <XMarkIcon className="w-5 h-5 text-gray-400" />
@@ -598,9 +583,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
                   Problem
                 </h4>
-                <p className="text-gray-300">
-                  {fixSuggestions[showFixModal].problem}
-                </p>
+                <p className="text-gray-300">{fixSuggestions[showFixModal].problem}</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
@@ -616,9 +599,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
                   Explanation
                 </h4>
-                <p className="text-gray-300">
-                  {fixSuggestions[showFixModal].explanation}
-                </p>
+                <p className="text-gray-300">{fixSuggestions[showFixModal].explanation}</p>
               </div>
             </div>
             <div className="p-6 border-t border-gray-800 flex justify-end gap-3">
@@ -648,8 +629,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
         <div
           className="absolute w-[800px] h-[800px] rounded-full opacity-20 blur-3xl"
           style={{
-            background:
-              "radial-gradient(circle, rgba(34,211,238,0.4) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(34,211,238,0.4) 0%, transparent 70%)",
             left: `${-200 + mousePosition.x * 0.02}px`,
             top: `${-200 + mousePosition.y * 0.02}px`,
             transform: `translateY(${scrollY * 0.2}px)`,
@@ -658,8 +638,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
         <div
           className="absolute w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
           style={{
-            background:
-              "radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 70%)",
             right: `${-100 - mousePosition.x * 0.01}px`,
             top: `${200 + mousePosition.y * 0.01}px`,
             transform: `translateY(${scrollY * -0.1}px)`,
@@ -668,8 +647,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
         <div
           className="absolute w-[500px] h-[500px] rounded-full opacity-15 blur-3xl"
           style={{
-            background:
-              "radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%)",
             left: "40%",
             bottom: "-200px",
             transform: `translateY(${scrollY * -0.15}px)`,
@@ -738,14 +716,10 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsNavOpen(!isNavOpen)}
+              aria-label={isNavOpen ? "Close navigation menu" : "Open navigation menu"}
               className="md:hidden p-2 text-gray-400 hover:text-white"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isNavOpen ? (
                   <path
                     strokeLinecap="round"
@@ -855,8 +829,8 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
 
             {/* Subheading */}
             <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
-              AI-powered security platform that scans, analyzes, and protects
-              your codebase with 10 specialized scanners.
+              AI-powered security platform that scans, analyzes, and protects your codebase with 10
+              specialized scanners.
               <span className="text-cyan-400 font-medium">
                 {" "}
                 Find vulnerabilities before they ship.
@@ -935,9 +909,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-xs text-gray-500 uppercase tracking-widest">
-            Explore
-          </span>
+          <span className="text-xs text-gray-500 uppercase tracking-widest">Explore</span>
           <div className="w-6 h-10 rounded-full border-2 border-gray-700 flex items-start justify-center p-2">
             <ArrowDownIcon className="w-3 h-3 text-cyan-400 animate-bounce" />
           </div>
@@ -969,9 +941,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <span className="text-sm font-semibold text-white tracking-wide">
                   {standard.name}
                 </span>
-                <span className="text-xs text-cyan-400 font-medium">
-                  {standard.desc}
-                </span>
+                <span className="text-xs text-cyan-400 font-medium">{standard.desc}</span>
               </div>
             ))}
           </div>
@@ -1032,9 +1002,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                   <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 w-fit mb-4">
                     <item.icon className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">
-                    {item.title}
-                  </h3>
+                  <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
                   <p className="text-gray-400 text-sm">{item.desc}</p>
                 </div>
               </div>
@@ -1076,9 +1044,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                     <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                     <div className="w-3 h-3 rounded-full bg-green-500/80" />
                   </div>
-                  <span className="text-gray-500 text-sm ml-2">
-                    auth_controller.py
-                  </span>
+                  <span className="text-gray-500 text-sm ml-2">auth_controller.py</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30">
@@ -1103,10 +1069,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                       <span className="text-violet-400">def</span>{" "}
                       <span className="text-cyan-400">authenticate_user</span>
                       (username, password):{"\n"}
-                      <span className="text-gray-500">
-                        {" "}
-                        # SQL Query - VULNERABILITY DETECTED!
-                      </span>
+                      <span className="text-gray-500"> # SQL Query - VULNERABILITY DETECTED!</span>
                       {"\n"}
                       <span className="relative">
                         <span className="absolute -left-4 top-0 w-1 h-full bg-red-500 rounded animate-pulse" />
@@ -1116,10 +1079,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                           username{"}"}'"{"\n"}
                         </span>
                       </span>
-                      <span className="text-gray-500">
-                        {" "}
-                        # Hardcoded secret - CRITICAL!
-                      </span>
+                      <span className="text-gray-500"> # Hardcoded secret - CRITICAL!</span>
                       {"\n"}
                       <span className="relative">
                         <span className="absolute -left-4 top-0 w-1 h-full bg-amber-500 rounded animate-pulse" />
@@ -1128,8 +1088,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                           api_key = "sk-prod-12345-secret-key"{"\n"}
                         </span>
                       </span>
-                      <span className="text-violet-400"> return</span>{" "}
-                      db.execute(query)
+                      <span className="text-violet-400"> return</span> db.execute(query)
                     </pre>
                   </div>
                 </div>
@@ -1138,20 +1097,14 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <div className="mt-6 pt-6 border-t border-gray-800/50">
                   <div className="flex items-center gap-2 mb-4">
                     <CpuChipIcon className="w-5 h-5 text-cyan-400" />
-                    <span className="text-white font-semibold">
-                      AI Detection Results
-                    </span>
-                    <span className="ml-auto text-xs text-gray-500">
-                      Scan completed in 0.8s
-                    </span>
+                    <span className="text-white font-semibold">AI Detection Results</span>
+                    <span className="ml-auto text-xs text-gray-500">Scan completed in 0.8s</span>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
                       <div className="flex items-center gap-2 mb-2">
                         <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
-                        <span className="font-semibold text-red-400">
-                          SQL Injection
-                        </span>
+                        <span className="font-semibold text-red-400">SQL Injection</span>
                         <span className="ml-auto text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full">
                           Critical
                         </span>
@@ -1163,16 +1116,13 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                         onClick={() => setShowFixModal("sql")}
                         className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
                       >
-                        View fix suggestion{" "}
-                        <ArrowRightIcon className="w-3 h-3" />
+                        View fix suggestion <ArrowRightIcon className="w-3 h-3" />
                       </button>
                     </div>
                     <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
                       <div className="flex items-center gap-2 mb-2">
                         <LockClosedIcon className="w-5 h-5 text-amber-400" />
-                        <span className="font-semibold text-amber-400">
-                          Hardcoded Secret
-                        </span>
+                        <span className="font-semibold text-amber-400">Hardcoded Secret</span>
                         <span className="ml-auto text-xs px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">
                           High
                         </span>
@@ -1184,8 +1134,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                         onClick={() => setShowFixModal("secret")}
                         className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
                       >
-                        View fix suggestion{" "}
-                        <ArrowRightIcon className="w-3 h-3" />
+                        View fix suggestion <ArrowRightIcon className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
@@ -1216,18 +1165,14 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-white">
-                          {feature.title}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
                         <span
                           className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${feature.gradient} bg-opacity-20 text-white`}
                         >
                           {feature.stats}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-sm leading-relaxed">
-                        {feature.description}
-                      </p>
+                      <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
                     </div>
                   </div>
 
@@ -1272,9 +1217,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                       >
                         {features[activeFeature].stats}
                       </div>
-                      <div className="text-sm text-gray-400">
-                        Performance Metric
-                      </div>
+                      <div className="text-sm text-gray-400">Performance Metric</div>
                     </div>
                   </div>
 
@@ -1348,8 +1291,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                     : "bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-800 hover:text-white"
                 }`}
               >
-                {tab.label}{" "}
-                <span className="ml-1 text-xs opacity-60">({tab.count})</span>
+                {tab.label} <span className="ml-1 text-xs opacity-60">({tab.count})</span>
               </button>
             ))}
           </div>
@@ -1365,20 +1307,14 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                     {scanner.icon}
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-lg">
-                      {scanner.name}
-                    </h4>
+                    <h4 className="font-bold text-white text-lg">{scanner.name}</h4>
                     <span className="text-xs text-violet-400 font-medium px-2 py-0.5 bg-violet-500/10 rounded-full">
                       {scanner.category}
                     </span>
                   </div>
                 </div>
-                <p className="text-sm text-gray-300 font-medium mb-2">
-                  {scanner.description}
-                </p>
-                <p className="text-sm text-gray-500 leading-relaxed">
-                  {scanner.what}
-                </p>
+                <p className="text-sm text-gray-300 font-medium mb-2">{scanner.description}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{scanner.what}</p>
               </div>
             ))}
           </div>
@@ -1398,18 +1334,15 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
       <section className="py-24 bg-gray-900/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
-              <ServerStackIcon className="w-4 h-4 text-blue-400" />
-              <span className="text-sm text-blue-400">
-                Git Platform Integration
-              </span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+              <ServerStackIcon className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm text-cyan-400">Git Platform Integration</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Connect Your <span className="text-blue-400">Repositories</span>
+              Connect Your <span className="text-cyan-400">Repositories</span>
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Direct integration with major Git platforms. Connect your repos
-              and start scanning.
+              Direct integration with major Git platforms. Connect your repos and start scanning.
             </p>
           </div>
 
@@ -1436,26 +1369,20 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             ].map((integration, i) => (
               <div
                 key={i}
-                className="group p-6 rounded-2xl bg-gray-800/30 border border-gray-800/50 hover:border-blue-500/30 hover:bg-gray-800/50 transition-all text-center"
+                className="group p-6 rounded-2xl bg-gray-800/30 border border-gray-800/50 hover:border-cyan-500/30 hover:bg-gray-800/50 transition-all text-center"
               >
                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
                   {integration.icon}
                 </div>
-                <div className="font-bold text-white text-lg mb-1">
-                  {integration.name}
-                </div>
-                <div className="text-xs text-blue-400 font-medium mb-3">
-                  {integration.category}
-                </div>
+                <div className="font-bold text-white text-lg mb-1">{integration.name}</div>
+                <div className="text-xs text-cyan-400 font-medium mb-3">{integration.category}</div>
                 <p className="text-sm text-gray-400">{integration.desc}</p>
               </div>
             ))}
           </div>
 
           <div className="text-center mt-12 p-6 rounded-2xl bg-gray-800/20 border border-gray-700/30 max-w-2xl mx-auto">
-            <h4 className="text-lg font-semibold text-white mb-2">
-              Additional Capabilities
-            </h4>
+            <h4 className="text-lg font-semibold text-white mb-2">Additional Capabilities</h4>
             <div className="flex flex-wrap justify-center gap-3">
               {[
                 { name: "Webhooks", desc: "CI/CD triggers" },
@@ -1466,9 +1393,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                   key={i}
                   className="px-4 py-2 rounded-lg bg-gray-800/50 border border-gray-700/30"
                 >
-                  <span className="text-white font-medium text-sm">
-                    {cap.name}
-                  </span>
+                  <span className="text-white font-medium text-sm">{cap.name}</span>
                   <span className="text-gray-500 text-xs ml-2">{cap.desc}</span>
                 </div>
               ))}
@@ -1481,9 +1406,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
       <section className="py-24 border-y border-gray-800/50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Automated Compliance
-            </h3>
+            <h3 className="text-2xl font-bold text-white mb-4">Automated Compliance</h3>
             <p className="text-gray-400">
               Meet regulatory requirements with automated checks and reports
             </p>
@@ -1517,8 +1440,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
               <span className="text-sm text-amber-400">Why Choose ONYX</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Built for <span className="text-cyan-400">Modern</span> Security
-              Teams
+              Built for <span className="text-cyan-400">Modern</span> Security Teams
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Everything you need to secure your code, all in one platform
@@ -1548,14 +1470,10 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 </span>
 
                 {/* Title */}
-                <h3 className="text-xl font-bold text-white mb-3">
-                  {highlight.title}
-                </h3>
+                <h3 className="text-xl font-bold text-white mb-3">{highlight.title}</h3>
 
                 {/* Description */}
-                <p className="text-gray-400 leading-relaxed">
-                  {highlight.description}
-                </p>
+                <p className="text-gray-400 leading-relaxed">{highlight.description}</p>
 
                 {/* Active indicator */}
                 {currentTestimonial === index && (
@@ -1571,10 +1489,9 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
               <button
                 key={index}
                 onClick={() => setCurrentTestimonial(index)}
+                aria-label={`Go to testimonial ${index + 1}`}
                 className={`w-2 h-2 rounded-full transition-all ${
-                  currentTestimonial === index
-                    ? "w-8 bg-cyan-400"
-                    : "bg-gray-700 hover:bg-gray-600"
+                  currentTestimonial === index ? "w-8 bg-cyan-400" : "bg-gray-700 hover:bg-gray-600"
                 }`}
               />
             ))}
@@ -1621,13 +1538,9 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 )}
 
                 <div className="text-center mb-8">
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {plan.name}
-                  </h3>
+                  <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                   <div className="flex items-baseline justify-center gap-2 mb-2">
-                    <span className="text-4xl font-black text-white">
-                      {plan.price}
-                    </span>
+                    <span className="text-4xl font-black text-white">{plan.price}</span>
                     <span className="text-gray-500">/{plan.period}</span>
                   </div>
                   <p className="text-sm text-gray-400">{plan.description}</p>
@@ -1669,8 +1582,8 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             Ready to Secure Your Code?
           </h2>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Start scanning your repositories with AI-powered security analysis.
-            Get started for free — no credit card required.
+            Start scanning your repositories with AI-powered security analysis. Get started for free
+            — no credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <button
@@ -1727,9 +1640,8 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 </span>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm">
-                Open-source AI-powered security scanning platform for modern
-                development teams. Detect vulnerabilities before they become
-                threats.
+                Open-source AI-powered security scanning platform for modern development teams.
+                Detect vulnerabilities before they become threats.
               </p>
               <div className="flex items-center gap-4">
                 {[
@@ -1804,14 +1716,8 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                   <li key={i}>
                     <a
                       href={link.href}
-                      target={
-                        link.href.startsWith("http") ? "_blank" : undefined
-                      }
-                      rel={
-                        link.href.startsWith("http")
-                          ? "noopener noreferrer"
-                          : undefined
-                      }
+                      target={link.href.startsWith("http") ? "_blank" : undefined}
+                      rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
                       className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
                     >
                       {link.name}
@@ -1846,8 +1752,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
           {/* Bottom */}
           <div className="pt-8 border-t border-gray-800/50 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} ONYX Security Intelligence. All
-              rights reserved.
+              © {new Date().getFullYear()} ONYX Security Intelligence. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <button

@@ -2,7 +2,7 @@
  * AuditLogs Component - Enterprise Audit Trail Viewer
  * Displays comprehensive audit logs with filtering, search, and export
  */
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ClockIcon,
@@ -11,19 +11,16 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ArrowDownTrayIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
   InformationCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CalendarIcon,
-  ComputerDesktopIcon,
   GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { enterpriseAPI, utils } from "../../services/api";
-import { Button, Card, EmptyState } from "../../styles/components";
+import { enterpriseAPI } from "../../services/api";
+import { Card, EmptyState } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 
 const AuditLogs = () => {
@@ -109,7 +106,7 @@ const AuditLogs = () => {
   const {
     data: auditData,
     isLoading,
-    refetch,
+    refetch: _refetch,
   } = useQuery({
     queryKey: ["auditLogs", filters, page, limit],
     queryFn: () =>
@@ -168,7 +165,7 @@ const AuditLogs = () => {
         return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
       case "info":
       default:
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        return "bg-cyan-500/20 text-cyan-400 border-cyan-500/30";
     }
   };
 
@@ -203,7 +200,7 @@ const AuditLogs = () => {
           actions={
             <button
               onClick={() => handleExport("json")}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all"
+              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               <ArrowDownTrayIcon className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>Export</span>
@@ -221,9 +218,7 @@ const AuditLogs = () => {
                 type="text"
                 placeholder="Search logs..."
                 value={filters.search}
-                onChange={(e) =>
-                  setFilters({ ...filters, search: e.target.value })
-                }
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 className="w-full pl-10 lg:pl-12 pr-4 py-2.5 lg:py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-sm lg:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
@@ -231,7 +226,7 @@ const AuditLogs = () => {
             {/* Filter Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl text-purple-300 transition-all text-sm lg:text-base"
+              className="flex items-center justify-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl text-purple-300 transition-all text-sm lg:text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               <FunnelIcon className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>Filters</span>
@@ -246,7 +241,7 @@ const AuditLogs = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => handleExport("json")}
-                className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-xl text-blue-300 transition-all text-sm lg:text-base"
+                className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 rounded-xl text-cyan-300 transition-all text-sm lg:text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 <ArrowDownTrayIcon className="w-4 h-4 lg:w-5 lg:h-5" />
                 <span className="hidden sm:inline">Export</span> JSON
@@ -268,21 +263,14 @@ const AuditLogs = () => {
                   onChange={(e) =>
                     setFilters({
                       ...filters,
-                      event_types: Array.from(
-                        e.target.selectedOptions,
-                        (option) => option.value
-                      ),
+                      event_types: Array.from(e.target.selectedOptions, (option) => option.value),
                     })
                   }
                   className="w-full px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   size="5"
                 >
                   {eventTypes.map((type) => (
-                    <option
-                      key={type.value}
-                      value={type.value}
-                      className="bg-gray-800 text-white"
-                    >
+                    <option key={type.value} value={type.value} className="bg-gray-800 text-white">
                       {type.label}
                     </option>
                   ))}
@@ -291,30 +279,21 @@ const AuditLogs = () => {
 
               {/* Users */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Users
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Users</label>
                 <select
                   multiple
                   value={filters.users}
                   onChange={(e) =>
                     setFilters({
                       ...filters,
-                      users: Array.from(
-                        e.target.selectedOptions,
-                        (option) => option.value
-                      ),
+                      users: Array.from(e.target.selectedOptions, (option) => option.value),
                     })
                   }
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                   size="5"
                 >
                   {usersData?.users?.map((user) => (
-                    <option
-                      key={user}
-                      value={user}
-                      className="bg-gray-800 text-white"
-                    >
+                    <option key={user} value={user} className="bg-gray-800 text-white">
                       {user}
                     </option>
                   ))}
@@ -323,15 +302,11 @@ const AuditLogs = () => {
 
               {/* Date Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Start Date
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
                 <input
                   type="datetime-local"
                   value={filters.start_date}
-                  onChange={(e) =>
-                    setFilters({ ...filters, start_date: e.target.value })
-                  }
+                  onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <label className="block text-sm font-medium text-gray-300 mb-2 mt-2">
@@ -340,34 +315,24 @@ const AuditLogs = () => {
                 <input
                   type="datetime-local"
                   value={filters.end_date}
-                  onChange={(e) =>
-                    setFilters({ ...filters, end_date: e.target.value })
-                  }
+                  onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
               {/* Severity */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Severity
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Severity</label>
                 <select
                   value={filters.severity}
-                  onChange={(e) =>
-                    setFilters({ ...filters, severity: e.target.value })
-                  }
+                  onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   <option value="" className="bg-gray-800 text-white">
                     All Severities
                   </option>
                   {severityLevels.map((level) => (
-                    <option
-                      key={level}
-                      value={level}
-                      className="bg-gray-800 text-white"
-                    >
+                    <option key={level} value={level} className="bg-gray-800 text-white">
                       {level.toUpperCase()}
                     </option>
                   ))}
@@ -460,12 +425,8 @@ const AuditLogs = () => {
                         </td>
                         <td className="px-6 py-4">
                           <button
-                            onClick={() =>
-                              setExpandedLog(
-                                expandedLog === log.id ? null : log.id
-                              )
-                            }
-                            className="text-purple-400 hover:text-purple-300 text-sm font-medium"
+                            onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
+                            className="text-purple-400 hover:text-purple-300 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                           >
                             {expandedLog === log.id ? "Hide" : "Details"}
                           </button>
@@ -477,12 +438,8 @@ const AuditLogs = () => {
                             <div className="space-y-3">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <p className="text-sm font-medium text-gray-400 mb-1">
-                                    Event ID
-                                  </p>
-                                  <p className="text-sm text-white font-mono">
-                                    {log.id}
-                                  </p>
+                                  <p className="text-sm font-medium text-gray-400 mb-1">Event ID</p>
+                                  <p className="text-sm text-white font-mono">{log.id}</p>
                                 </div>
                                 <div>
                                   <p className="text-sm font-medium text-gray-400 mb-1">
@@ -528,22 +485,21 @@ const AuditLogs = () => {
           {auditData?.total > limit && (
             <div className="px-6 py-4 border-t border-gray-700/50 flex items-center justify-between">
               <p className="text-sm text-gray-400">
-                Showing {(page - 1) * limit + 1} to{" "}
-                {Math.min(page * limit, auditData.total)} of {auditData.total}{" "}
-                logs
+                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, auditData.total)} of{" "}
+                {auditData.total} logs
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-gray-800/30 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700/50 rounded-lg text-white transition-all"
+                  className="px-4 py-2 bg-gray-800/30 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700/50 rounded-lg text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPage(page + 1)}
                   disabled={page * limit >= auditData.total}
-                  className="px-4 py-2 bg-gray-800/30 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700/50 rounded-lg text-white transition-all"
+                  className="px-4 py-2 bg-gray-800/30 hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700/50 rounded-lg text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 >
                   Next
                 </button>

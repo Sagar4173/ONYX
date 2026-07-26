@@ -88,9 +88,7 @@ const ProjectList = () => {
       // Use correct API base URL for dev/prod
       const API_BASE_URL = import.meta.env.DEV
         ? "http://127.0.0.1:8000/api"
-        : import.meta.env.VITE_API_URL ||
-          import.meta.env.VITE_API_BASE_URL ||
-          "/api";
+        : import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
       const response = await fetch(
         `${API_BASE_URL}/reports/${reportId}/download?format=${format}`,
@@ -102,8 +100,8 @@ const ProjectList = () => {
               format === "pdf"
                 ? "application/pdf"
                 : format === "csv"
-                ? "text/csv"
-                : "application/json",
+                  ? "text/csv"
+                  : "application/json",
           },
         }
       );
@@ -124,8 +122,7 @@ const ProjectList = () => {
         const pdfBlob = new Blob([blob], { type: "application/pdf" });
         utils.downloadFile(pdfBlob, `security-report-${reportId}.pdf`);
       } else {
-        const extension =
-          format === "csv" ? "csv" : format === "json" ? "json" : "pdf";
+        const extension = format === "csv" ? "csv" : format === "json" ? "json" : "pdf";
         utils.downloadFile(blob, `security-report-${reportId}.${extension}`);
       }
 
@@ -171,12 +168,7 @@ const ProjectList = () => {
       <div
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass} bg-opacity-10 border border-current`}
       >
-        <span
-          className={`h-2 w-2 rounded-full ${colorClass.replace(
-            "text-",
-            "bg-"
-          )} mr-1`}
-        />
+        <span className={`h-2 w-2 rounded-full ${colorClass.replace("text-", "bg-")} mr-1`} />
         {score}/100
       </div>
     );
@@ -205,9 +197,7 @@ const ProjectList = () => {
 
   const FindingsSummary = ({ findingsBySeverity }) => {
     const severities = ["critical", "high", "medium", "low"];
-    const hasFindings = Object.values(findingsBySeverity || {}).some(
-      (count) => count > 0
-    );
+    const hasFindings = Object.values(findingsBySeverity || {}).some((count) => count > 0);
 
     if (!hasFindings) {
       return (
@@ -268,7 +258,7 @@ const ProjectList = () => {
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-2 lg:px-3 py-1 text-xs lg:text-sm font-medium text-gray-400 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-2 lg:px-3 py-1 text-xs lg:text-sm font-medium text-gray-400 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             <span className="hidden sm:inline">Previous</span>
             <span className="sm:hidden">Prev</span>
@@ -278,9 +268,9 @@ const ProjectList = () => {
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-2.5 lg:px-3 py-1 text-xs lg:text-sm font-medium rounded-md transition-all ${
+              className={`px-2.5 lg:px-3 py-1 text-xs lg:text-sm font-medium rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
                 page === currentPage
-                  ? "text-blue-400 bg-blue-500/20 border border-blue-500/30"
+                  ? "text-cyan-400 bg-cyan-500/20 border border-cyan-500/30"
                   : "text-gray-400 bg-gray-800 border border-gray-600 hover:bg-gray-700 hover:text-white"
               }`}
             >
@@ -289,11 +279,9 @@ const ProjectList = () => {
           ))}
 
           <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="px-2 lg:px-3 py-1 text-xs lg:text-sm font-medium text-gray-400 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-2 lg:px-3 py-1 text-xs lg:text-sm font-medium text-gray-400 bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
           >
             Next
           </button>
@@ -310,15 +298,13 @@ const ProjectList = () => {
           <div className="flex">
             <XCircleIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-400">
-                Error loading reports
-              </h3>
+              <h3 className="text-sm font-medium text-red-400">Error loading reports</h3>
               <p className="mt-2 text-sm text-red-300">
                 {error?.message || "Failed to fetch reports"}
               </p>
               <button
                 onClick={() => refetch()}
-                className="mt-3 text-sm text-red-400 underline hover:text-red-300 transition-colors"
+                className="mt-3 text-sm text-red-400 underline hover:text-red-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
               >
                 Try again
               </button>
@@ -334,7 +320,7 @@ const ProjectList = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
             Security Dashboard
           </h1>
           <p className="mt-2 text-sm lg:text-base text-gray-400">
@@ -345,23 +331,27 @@ const ProjectList = () => {
         {/* Quick Stats */}
         {analytics && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
-            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
+            <Card
+              className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
+              padding="lg"
+            >
               <div className="flex items-center">
-                <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-blue-500/20 border border-blue-500/30 flex-shrink-0">
-                  <DocumentIcon className="h-5 w-5 lg:h-8 lg:w-8 text-blue-400" />
+                <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex-shrink-0">
+                  <DocumentIcon className="h-5 w-5 lg:h-8 lg:w-8 text-cyan-400" />
                 </div>
                 <div className="ml-3 lg:ml-4 min-w-0">
                   <p className="text-lg lg:text-2xl font-bold text-white">
                     {analytics.scan_summary?.total_scans || 0}
                   </p>
-                  <p className="text-xs lg:text-sm text-gray-400 truncate">
-                    Total Scans
-                  </p>
+                  <p className="text-xs lg:text-sm text-gray-400 truncate">Total Scans</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
+            <Card
+              className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
+              padding="lg"
+            >
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-red-500/20 border border-red-500/30 flex-shrink-0">
                   <ExclamationTriangleIcon className="h-5 w-5 lg:h-8 lg:w-8 text-red-400" />
@@ -370,14 +360,15 @@ const ProjectList = () => {
                   <p className="text-lg lg:text-2xl font-bold text-white">
                     {analytics.vulnerability_summary?.critical || 0}
                   </p>
-                  <p className="text-xs lg:text-sm text-gray-400 truncate">
-                    Critical Issues
-                  </p>
+                  <p className="text-xs lg:text-sm text-gray-400 truncate">Critical Issues</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
+            <Card
+              className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
+              padding="lg"
+            >
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-green-500/20 border border-green-500/30 flex-shrink-0">
                   <CheckCircleIcon className="h-5 w-5 lg:h-8 lg:w-8 text-green-400" />
@@ -386,14 +377,15 @@ const ProjectList = () => {
                   <p className="text-lg lg:text-2xl font-bold text-white">
                     {analytics.scan_summary?.success_rate?.toFixed(1) || 0}%
                   </p>
-                  <p className="text-xs lg:text-sm text-gray-400 truncate">
-                    Success Rate
-                  </p>
+                  <p className="text-xs lg:text-sm text-gray-400 truncate">Success Rate</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300" padding="lg">
+            <Card
+              className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
+              padding="lg"
+            >
               <div className="flex items-center">
                 <div className="p-2 lg:p-3 rounded-lg lg:rounded-xl bg-purple-500/20 border border-purple-500/30 flex-shrink-0">
                   <ClockIcon className="h-5 w-5 lg:h-8 lg:w-8 text-purple-400" />
@@ -402,9 +394,7 @@ const ProjectList = () => {
                   <p className="text-lg lg:text-2xl font-bold text-white">
                     {analytics.top_projects?.length || 0}
                   </p>
-                  <p className="text-xs lg:text-sm text-gray-400 truncate">
-                    Active Projects
-                  </p>
+                  <p className="text-xs lg:text-sm text-gray-400 truncate">Active Projects</p>
                 </div>
               </div>
             </Card>
@@ -420,7 +410,7 @@ const ProjectList = () => {
               <input
                 type="text"
                 placeholder="Search projects..."
-                className="pl-9 lg:pl-10 pr-4 py-2.5 lg:py-3 w-full bg-gray-900/50 border border-gray-600/50 rounded-xl text-sm lg:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                className="pl-9 lg:pl-10 pr-4 py-2.5 lg:py-3 w-full bg-gray-900/50 border border-gray-600/50 rounded-xl text-sm lg:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                 onChange={(e) => handleSearch(e.target.value)}
               />
             </div>
@@ -432,7 +422,7 @@ const ProjectList = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+                  className="px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {statusOptions.map((option) => (
                     <option
@@ -448,7 +438,7 @@ const ProjectList = () => {
                 <select
                   value={severityFilter}
                   onChange={(e) => setSeverityFilter(e.target.value)}
-                  className="px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+                  className="px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {severityOptions.map((option) => (
                     <option
@@ -468,20 +458,14 @@ const ProjectList = () => {
                     setSortBy(field);
                     setSortOrder(order);
                   }}
-                  className="hidden sm:block px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+                  className="hidden sm:block px-3 lg:px-4 py-2 bg-gray-800 border border-gray-600/50 rounded-lg lg:rounded-xl text-white text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all [&>option]:bg-gray-800 [&>option]:text-white"
                 >
                   {sortOptions.map((option) => (
                     <React.Fragment key={option.value}>
-                      <option
-                        value={`${option.value}:desc`}
-                        className="bg-gray-800 text-white"
-                      >
+                      <option value={`${option.value}:desc`} className="bg-gray-800 text-white">
                         {option.label} (Newest)
                       </option>
-                      <option
-                        value={`${option.value}:asc`}
-                        className="bg-gray-800 text-white"
-                      >
+                      <option value={`${option.value}:asc`} className="bg-gray-800 text-white">
                         {option.label} (Oldest)
                       </option>
                     </React.Fragment>
@@ -491,7 +475,7 @@ const ProjectList = () => {
 
               <button
                 onClick={() => refetch()}
-                className="p-2 rounded-lg lg:rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 transition-all duration-300"
+                className="p-2 rounded-lg lg:rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                 title="Refresh"
               >
                 <RefreshIcon className="h-4 w-4 lg:h-5 lg:w-5" />
@@ -532,7 +516,11 @@ const ProjectList = () => {
             <EmptyState
               icon={<DocumentIcon className="h-12 w-12" />}
               title="No security scans found"
-              description={searchTerm || statusFilter !== "all" || severityFilter !== "all" ? "No scans match your current filters. Try adjusting your search criteria." : "Get started by running your first security scan on a repository."}
+              description={
+                searchTerm || statusFilter !== "all" || severityFilter !== "all"
+                  ? "No scans match your current filters. Try adjusting your search criteria."
+                  : "Get started by running your first security scan on a repository."
+              }
             />
           ) : (
             reports.map((report) => (
@@ -544,13 +532,11 @@ const ProjectList = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2 lg:mb-3">
-                      <h3 className="text-base lg:text-lg font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
+                      <h3 className="text-base lg:text-lg font-semibold text-white truncate group-hover:text-cyan-300 transition-colors">
                         {report.project_name}
                       </h3>
                       <StatusBadge status={report.status} />
-                      <SecurityScoreBadge
-                        findingsBySeverity={report.findings_by_severity}
-                      />
+                      <SecurityScoreBadge findingsBySeverity={report.findings_by_severity} />
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs lg:text-sm text-gray-400 mb-2 lg:mb-3">
@@ -558,31 +544,26 @@ const ProjectList = () => {
                         <ClockIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 mr-1" />
                         {utils.formatRelativeDate(report.created_at)}
                       </div>
-                      <span className="hidden sm:inline">
-                        Branch: {report.branch || "main"}
-                      </span>
+                      <span className="hidden sm:inline">Branch: {report.branch || "main"}</span>
                       <span className="hidden md:inline">
                         Commit: {report.commit_hash?.substring(0, 8) || "N/A"}
                       </span>
                       {report.duration_seconds && (
                         <span className="hidden lg:inline">
-                          Duration:{" "}
-                          {utils.formatDuration(report.duration_seconds)}
+                          Duration: {utils.formatDuration(report.duration_seconds)}
                         </span>
                       )}
                     </div>
 
                     <div className="mb-2 lg:mb-4">
-                      <FindingsSummary
-                        findingsBySeverity={report.findings_by_severity}
-                      />
+                      <FindingsSummary findingsBySeverity={report.findings_by_severity} />
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 sm:ml-4 lg:ml-6">
                     <Link
                       to={`/report/${report.id}`}
-                      className="inline-flex items-center px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 transition-all duration-300 group/btn text-xs lg:text-sm"
+                      className="inline-flex items-center px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300 group/btn text-xs lg:text-sm"
                     >
                       <EyeIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 mr-1.5 lg:mr-2 group-hover/btn:scale-110 transition-transform" />
                       <span className="hidden sm:inline">View Report</span>
@@ -593,7 +574,7 @@ const ProjectList = () => {
                     {report.status === "completed" && (
                       <button
                         onClick={() => handleDownloadReport(report.id)}
-                        className="inline-flex items-center px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl bg-gray-700/50 border border-gray-600/50 text-gray-300 hover:bg-gray-600/50 hover:border-gray-500/50 hover:text-white transition-all duration-300 group/btn text-xs lg:text-sm"
+                        className="inline-flex items-center px-3 lg:px-4 py-2 rounded-lg lg:rounded-xl bg-gray-700/50 border border-gray-600/50 text-gray-300 hover:bg-gray-600/50 hover:border-gray-500/50 hover:text-white transition-all duration-300 group/btn text-xs lg:text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
                       >
                         <DownloadIcon className="h-3.5 w-3.5 lg:h-4 lg:w-4 sm:mr-1.5 lg:mr-2 group-hover/btn:scale-110 transition-transform" />
                         <span className="hidden sm:inline">Download</span>

@@ -23,8 +23,7 @@ export const COMPLIANCE_STANDARDS = {
     name: "NIST Cybersecurity Framework",
     version: "1.1",
     icon: "🏛️",
-    description:
-      "National Institute of Standards and Technology Cybersecurity Framework",
+    description: "National Institute of Standards and Technology Cybersecurity Framework",
     categories: {
       ID: "Identify",
       PR: "Protect",
@@ -89,68 +88,68 @@ export const getAllFindings = (report) => {
 };
 
 export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGenerating, toast }) => {
-    setIsGenerating(true);
-    try {
-      const allFindings = getAllFindings(report);
-      const totalFindings = allFindings.length;
+  setIsGenerating(true);
+  try {
+    const allFindings = getAllFindings(report);
+    const totalFindings = allFindings.length;
 
-      // Prepare report data
-      const reportData = {
-        totalFindings: totalFindings,
-        critical: report?.findings_by_severity?.critical || 0,
-        high: report?.findings_by_severity?.high || 0,
-        medium: report?.findings_by_severity?.medium || 0,
-        low: report?.findings_by_severity?.low || 0,
-        info: report?.findings_by_severity?.info || 0,
-        riskScore:
-          aiAnalysis?.risk_score ||
-          Math.min(
-            100,
-            (report?.findings_by_severity?.critical || 0) * 25 +
-              (report?.findings_by_severity?.high || 0) * 15 +
-              (report?.findings_by_severity?.medium || 0) * 5 +
-              (report?.findings_by_severity?.low || 0) * 1
-          ),
-        securityScore:
-          aiAnalysis?.security_score ||
-          Math.max(
-            0,
-            100 -
-              ((report?.findings_by_severity?.critical || 0) * 20 +
-                (report?.findings_by_severity?.high || 0) * 10 +
-                (report?.findings_by_severity?.medium || 0) * 3)
-          ),
-      };
+    // Prepare report data
+    const reportData = {
+      totalFindings: totalFindings,
+      critical: report?.findings_by_severity?.critical || 0,
+      high: report?.findings_by_severity?.high || 0,
+      medium: report?.findings_by_severity?.medium || 0,
+      low: report?.findings_by_severity?.low || 0,
+      info: report?.findings_by_severity?.info || 0,
+      riskScore:
+        aiAnalysis?.risk_score ||
+        Math.min(
+          100,
+          (report?.findings_by_severity?.critical || 0) * 25 +
+            (report?.findings_by_severity?.high || 0) * 15 +
+            (report?.findings_by_severity?.medium || 0) * 5 +
+            (report?.findings_by_severity?.low || 0) * 1
+        ),
+      securityScore:
+        aiAnalysis?.security_score ||
+        Math.max(
+          0,
+          100 -
+            ((report?.findings_by_severity?.critical || 0) * 20 +
+              (report?.findings_by_severity?.high || 0) * 10 +
+              (report?.findings_by_severity?.medium || 0) * 3)
+        ),
+    };
 
-      // Calculate page estimates for TOC
-      const criticalCount = reportData.critical;
-      const highCount = reportData.high;
-      const mediumCount = reportData.medium;
-      const lowCount = reportData.low;
-      const infoCount = reportData.info;
+    // Calculate page estimates for TOC
+    const criticalCount = reportData.critical;
+    const highCount = reportData.high;
+    const mediumCount = reportData.medium;
+    const lowCount = reportData.low;
+    const infoCount = reportData.info;
 
-      // Estimate pages: Cover=1, TOC=1, Summary=1, Findings=variable, Compliance=2, Remediation=1, AI=1
-      const findingsPages = Math.ceil(totalFindings / 4) || 1; // ~4 findings per page
-      const pageEstimates = {
-        cover: 1,
-        toc: 2,
-        summary: 3,
-        findings: 4,
-        compliance: 4 + findingsPages,
-        remediation: 4 + findingsPages + 2,
-        ai: 4 + findingsPages + 3,
-      };
+    // Estimate pages: Cover=1, TOC=1, Summary=1, Findings=variable, Compliance=2, Remediation=1, AI=1
+    const findingsPages = Math.ceil(totalFindings / 4) || 1; // ~4 findings per page
+    const pageEstimates = {
+      cover: 1,
+      toc: 2,
+      summary: 3,
+      findings: 4,
+      compliance: 4 + findingsPages,
+      remediation: 4 + findingsPages + 2,
+      ai: 4 + findingsPages + 3,
+    };
 
-      // Build comprehensive PDF content
-      const pdfContent = document.createElement("div");
-      pdfContent.style.fontFamily = "'Inter', 'Segoe UI', Arial, sans-serif";
-      pdfContent.style.color = "#1f2937";
-      pdfContent.style.backgroundColor = "#ffffff";
-      pdfContent.style.padding = "0";
-      pdfContent.style.width = "100%";
+    // Build comprehensive PDF content
+    const pdfContent = document.createElement("div");
+    pdfContent.style.fontFamily = "'Inter', 'Segoe UI', Arial, sans-serif";
+    pdfContent.style.color = "#1f2937";
+    pdfContent.style.backgroundColor = "#ffffff";
+    pdfContent.style.padding = "0";
+    pdfContent.style.width = "100%";
 
-      // ============ COVER PAGE ============
-      const coverPage = `
+    // ============ COVER PAGE ============
+    const coverPage = `
         <div style="page-break-after: always; background: #1e1b4b; color: white; padding: 50px 40px; min-height: 800px;">
           <!-- Header -->
           <table style="width: 100%; margin-bottom: 60px;">
@@ -224,27 +223,25 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                 <div>Branch: <strong style="color: white;">${
                   report?.git_metadata?.branch || "main"
                 }</strong></div>
-                <div style="margin-top: 4px;">Scan ID: ${
-                  report?.scan_id || reportId
-                }</div>
+                <div style="margin-top: 4px;">Scan ID: ${report?.scan_id || reportId}</div>
               </td>
               <td style="text-align: right;">
                 <div>Generated: <strong style="color: white;">${new Date().toLocaleDateString(
                   "en-US",
                   { year: "numeric", month: "long", day: "numeric" }
                 )}</strong></div>
-                <div style="margin-top: 4px;">${new Date().toLocaleTimeString(
-                  "en-US",
-                  { hour: "2-digit", minute: "2-digit" }
-                )}</div>
+                <div style="margin-top: 4px;">${new Date().toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}</div>
               </td>
             </tr>
           </table>
         </div>
       `;
 
-      // ============ TABLE OF CONTENTS ============
-      const tocPage = `
+    // ============ TABLE OF CONTENTS ============
+    const tocPage = `
         <div style="page-break-after: always; padding: 40px;">
           <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">📑 Table of Contents</h2>
           <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
@@ -267,26 +264,10 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                     ? `• Critical Vulnerabilities (${criticalCount} issues)<br/>`
                     : ""
                 }
-                ${
-                  highCount > 0
-                    ? `• High Severity Issues (${highCount} issues)<br/>`
-                    : ""
-                }
-                ${
-                  mediumCount > 0
-                    ? `• Medium Severity Issues (${mediumCount} issues)<br/>`
-                    : ""
-                }
-                ${
-                  lowCount > 0
-                    ? `• Low Severity Issues (${lowCount} issues)<br/>`
-                    : ""
-                }
-                ${
-                  infoCount > 0
-                    ? `• Informational Findings (${infoCount} issues)`
-                    : ""
-                }
+                ${highCount > 0 ? `• High Severity Issues (${highCount} issues)<br/>` : ""}
+                ${mediumCount > 0 ? `• Medium Severity Issues (${mediumCount} issues)<br/>` : ""}
+                ${lowCount > 0 ? `• Low Severity Issues (${lowCount} issues)<br/>` : ""}
+                ${infoCount > 0 ? `• Informational Findings (${infoCount} issues)` : ""}
               </td>
             </tr>
             <tr style="border-bottom: 1px dotted #cbd5e1;">
@@ -332,8 +313,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                   reportData.securityScore >= 70
                     ? "#059669"
                     : reportData.securityScore >= 40
-                    ? "#d97706"
-                    : "#dc2626"
+                      ? "#d97706"
+                      : "#dc2626"
                 };">${reportData.securityScore}/100</td>
               </tr>
               <tr>
@@ -351,43 +332,43 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
         </div>
       `;
 
-      // ============ EXECUTIVE SUMMARY ============
-      const riskLevel =
-        reportData.riskScore <= 25
-          ? "Low"
-          : reportData.riskScore <= 50
+    // ============ EXECUTIVE SUMMARY ============
+    const riskLevel =
+      reportData.riskScore <= 25
+        ? "Low"
+        : reportData.riskScore <= 50
           ? "Medium"
           : reportData.riskScore <= 75
-          ? "High"
-          : "Critical";
-      const riskColor =
-        reportData.riskScore <= 25
-          ? "#059669"
-          : reportData.riskScore <= 50
+            ? "High"
+            : "Critical";
+    const riskColor =
+      reportData.riskScore <= 25
+        ? "#059669"
+        : reportData.riskScore <= 50
           ? "#d97706"
           : reportData.riskScore <= 75
-          ? "#ea580c"
-          : "#dc2626";
-      const securityGrade =
-        reportData.securityScore >= 90
-          ? "A+"
-          : reportData.securityScore >= 80
+            ? "#ea580c"
+            : "#dc2626";
+    const securityGrade =
+      reportData.securityScore >= 90
+        ? "A+"
+        : reportData.securityScore >= 80
           ? "A"
           : reportData.securityScore >= 70
-          ? "B"
-          : reportData.securityScore >= 60
-          ? "C"
-          : reportData.securityScore >= 50
-          ? "D"
-          : "F";
-      const gradeColor =
-        reportData.securityScore >= 70
-          ? "#10b981"
-          : reportData.securityScore >= 50
+            ? "B"
+            : reportData.securityScore >= 60
+              ? "C"
+              : reportData.securityScore >= 50
+                ? "D"
+                : "F";
+    const gradeColor =
+      reportData.securityScore >= 70
+        ? "#10b981"
+        : reportData.securityScore >= 50
           ? "#f59e0b"
           : "#ef4444";
 
-      const executiveSummary = `
+    const executiveSummary = `
         <div style="page-break-after: always; padding: 40px;">
           <h2 style="font-size: 26px; font-weight: 800; color: #1e40af; border-bottom: 4px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">
             📊 Executive Summary
@@ -400,8 +381,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               <td style="width: 48%; vertical-align: top; background: #ecfdf5; border: 2px solid #10b981; border-radius: 12px; padding: 20px; text-align: center;">
                 <div style="font-size: 12px; color: #047857; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 12px;">🛡️ Security Score</div>
                 <div style="font-size: 48px; font-weight: 900; color: ${gradeColor}; margin-bottom: 8px;">${
-        reportData.securityScore
-      }</div>
+                  reportData.securityScore
+                }</div>
                 <div style="font-size: 32px; font-weight: 800; color: ${gradeColor};">Grade: ${securityGrade}</div>
               </td>
               <td style="width: 4%;"></td>
@@ -410,8 +391,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                 <div style="font-size: 12px; color: ${riskColor}; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 12px;">⚠️ Risk Assessment</div>
                 <div style="font-size: 40px; font-weight: 900; color: ${riskColor}; margin-bottom: 8px;">${riskLevel}</div>
                 <div style="font-size: 13px; color: ${riskColor};">Risk Score: <strong>${Math.round(
-        reportData.riskScore
-      )}/100</strong></div>
+                  reportData.riskScore
+                )}/100</strong></div>
               </td>
             </tr>
           </table>
@@ -429,8 +410,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               including <strong style="color: #dc2626;">${criticalCount} critical</strong> and <strong style="color: #ea580c;">${highCount} high-severity</strong> issues 
               that require immediate attention. The overall security posture is rated as <strong style="color: ${riskColor};">${riskLevel} Risk</strong> 
               with a security score of <strong style="color: ${gradeColor};">${
-        reportData.securityScore
-      }/100 (Grade: ${securityGrade})</strong>.
+                reportData.securityScore
+              }/100 (Grade: ${securityGrade})</strong>.
               ${
                 criticalCount > 0
                   ? ' <span style="color: #dc2626; font-weight: 600;">⚠️ Immediate action required.</span>'
@@ -499,17 +480,15 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               }</td>
               <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b; width: 18%;">Score</td>
               <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: ${gradeColor}; font-weight: 700; width: 32%;">${
-        reportData.securityScore
-      }/100 (${securityGrade})</td>
+                reportData.securityScore
+              }/100 (${securityGrade})</td>
             </tr>
             <tr>
               <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Risk</td>
               <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: ${riskColor}; font-weight: 700;">${riskLevel}</td>
               <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #64748b;">Duration</td>
               <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; color: #1e293b;">${
-                report?.duration_seconds
-                  ? Math.round(report.duration_seconds) + "s"
-                  : "N/A"
+                report?.duration_seconds ? Math.round(report.duration_seconds) + "s" : "N/A"
               }</td>
             </tr>
             <tr style="background: #f8fafc;">
@@ -563,105 +542,96 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
         </div>
       `;
 
-      // ============ DETAILED FINDINGS ============
-      const severityOrder = ["critical", "high", "medium", "low", "info"];
-      const findingsBySeverity = {};
-      severityOrder.forEach((sev) => {
-        findingsBySeverity[sev] = [];
-      });
-      allFindings.forEach((f) => {
-        const sev = (f.severity || "info").toLowerCase();
-        if (findingsBySeverity[sev]) {
-          findingsBySeverity[sev].push(f);
-        } else {
-          findingsBySeverity["info"].push(f);
-        }
-      });
+    // ============ DETAILED FINDINGS ============
+    const severityOrder = ["critical", "high", "medium", "low", "info"];
+    const findingsBySeverity = {};
+    severityOrder.forEach((sev) => {
+      findingsBySeverity[sev] = [];
+    });
+    allFindings.forEach((f) => {
+      const sev = (f.severity || "info").toLowerCase();
+      if (findingsBySeverity[sev]) {
+        findingsBySeverity[sev].push(f);
+      } else {
+        findingsBySeverity["info"].push(f);
+      }
+    });
 
-      const severityColors = {
-        critical: {
-          bg: "#fef2f2",
-          border: "#dc2626",
-          text: "#dc2626",
-          headerBg: "#dc2626",
-        },
-        high: {
-          bg: "#fff7ed",
-          border: "#ea580c",
-          text: "#ea580c",
-          headerBg: "#ea580c",
-        },
-        medium: {
-          bg: "#fffbeb",
-          border: "#d97706",
-          text: "#d97706",
-          headerBg: "#d97706",
-        },
-        low: {
-          bg: "#eff6ff",
-          border: "#2563eb",
-          text: "#2563eb",
-          headerBg: "#2563eb",
-        },
-        info: {
-          bg: "#f3f4f6",
-          border: "#6b7280",
-          text: "#6b7280",
-          headerBg: "#6b7280",
-        },
-      };
+    const severityColors = {
+      critical: {
+        bg: "#fef2f2",
+        border: "#dc2626",
+        text: "#dc2626",
+        headerBg: "#dc2626",
+      },
+      high: {
+        bg: "#fff7ed",
+        border: "#ea580c",
+        text: "#ea580c",
+        headerBg: "#ea580c",
+      },
+      medium: {
+        bg: "#fffbeb",
+        border: "#d97706",
+        text: "#d97706",
+        headerBg: "#d97706",
+      },
+      low: {
+        bg: "#eff6ff",
+        border: "#2563eb",
+        text: "#2563eb",
+        headerBg: "#2563eb",
+      },
+      info: {
+        bg: "#f3f4f6",
+        border: "#6b7280",
+        text: "#6b7280",
+        headerBg: "#6b7280",
+      },
+    };
 
-      let findingsHtml = `<div style="padding: 40px; page-break-before: always;">
+    let findingsHtml = `<div style="padding: 40px; page-break-before: always;">
         <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🔍 Detailed Vulnerability Analysis</h2>
         <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Complete list of security vulnerabilities identified during the scan, organized by severity level with file locations, line numbers, and recommended fixes.</p>`;
 
-      // Generate default remediation based on finding type
-      const getDefaultRemediation = (finding) => {
-        const title = (finding.title || finding.message || "").toLowerCase();
-        const desc = (finding.description || "").toLowerCase();
+    // Generate default remediation based on finding type
+    const getDefaultRemediation = (finding) => {
+      const title = (finding.title || finding.message || "").toLowerCase();
+      const desc = (finding.description || "").toLowerCase();
 
-        if (title.includes("sql") || desc.includes("sql injection")) {
-          return "Use parameterized queries or prepared statements instead of string concatenation. Implement input validation and use ORM frameworks.";
-        } else if (
-          title.includes("xss") ||
-          desc.includes("cross-site scripting")
-        ) {
-          return "Encode all user-supplied data before rendering. Use Content Security Policy (CSP) headers and sanitize HTML input.";
-        } else if (
-          title.includes("hardcoded") ||
-          desc.includes("secret") ||
-          desc.includes("password")
-        ) {
-          return "Remove hardcoded credentials. Use environment variables or secure secret management solutions like HashiCorp Vault.";
-        } else if (title.includes("auth") || desc.includes("authentication")) {
-          return "Implement proper authentication mechanisms. Use secure session management and multi-factor authentication where possible.";
-        } else if (title.includes("crypto") || desc.includes("encryption")) {
-          return "Use strong, modern encryption algorithms (AES-256, RSA-2048+). Avoid deprecated algorithms like MD5, SHA1, or DES.";
-        } else if (
-          title.includes("injection") ||
-          desc.includes("command injection")
-        ) {
-          return "Validate and sanitize all user inputs. Avoid executing shell commands with user-supplied data. Use safe APIs.";
-        } else if (title.includes("path") || desc.includes("traversal")) {
-          return "Validate file paths and use allowlists for permitted directories. Never use user input directly in file operations.";
-        } else if (
-          title.includes("ssrf") ||
-          desc.includes("server-side request")
-        ) {
-          return "Validate and sanitize URLs. Use allowlists for permitted domains. Disable unnecessary URL schemes.";
-        } else if (title.includes("insecure") || desc.includes("http://")) {
-          return "Use HTTPS instead of HTTP. Implement HSTS headers and ensure all connections are encrypted.";
-        } else if (title.includes("log") || desc.includes("sensitive data")) {
-          return "Avoid logging sensitive information. Implement data masking and secure log storage practices.";
-        }
-        return "Review the code and apply security best practices. Consult OWASP guidelines for specific remediation steps.";
-      };
+      if (title.includes("sql") || desc.includes("sql injection")) {
+        return "Use parameterized queries or prepared statements instead of string concatenation. Implement input validation and use ORM frameworks.";
+      } else if (title.includes("xss") || desc.includes("cross-site scripting")) {
+        return "Encode all user-supplied data before rendering. Use Content Security Policy (CSP) headers and sanitize HTML input.";
+      } else if (
+        title.includes("hardcoded") ||
+        desc.includes("secret") ||
+        desc.includes("password")
+      ) {
+        return "Remove hardcoded credentials. Use environment variables or secure secret management solutions like HashiCorp Vault.";
+      } else if (title.includes("auth") || desc.includes("authentication")) {
+        return "Implement proper authentication mechanisms. Use secure session management and multi-factor authentication where possible.";
+      } else if (title.includes("crypto") || desc.includes("encryption")) {
+        return "Use strong, modern encryption algorithms (AES-256, RSA-2048+). Avoid deprecated algorithms like MD5, SHA1, or DES.";
+      } else if (title.includes("injection") || desc.includes("command injection")) {
+        return "Validate and sanitize all user inputs. Avoid executing shell commands with user-supplied data. Use safe APIs.";
+      } else if (title.includes("path") || desc.includes("traversal")) {
+        return "Validate file paths and use allowlists for permitted directories. Never use user input directly in file operations.";
+      } else if (title.includes("ssrf") || desc.includes("server-side request")) {
+        return "Validate and sanitize URLs. Use allowlists for permitted domains. Disable unnecessary URL schemes.";
+      } else if (title.includes("insecure") || desc.includes("http://")) {
+        return "Use HTTPS instead of HTTP. Implement HSTS headers and ensure all connections are encrypted.";
+      } else if (title.includes("log") || desc.includes("sensitive data")) {
+        return "Avoid logging sensitive information. Implement data masking and secure log storage practices.";
+      }
+      return "Review the code and apply security best practices. Consult OWASP guidelines for specific remediation steps.";
+    };
 
-      severityOrder.forEach((severity) => {
-        const findings = findingsBySeverity[severity];
-        if (findings.length > 0) {
-          const colors = severityColors[severity];
-          findingsHtml += `
+    severityOrder.forEach((severity) => {
+      const findings = findingsBySeverity[severity];
+      if (findings.length > 0) {
+        const colors = severityColors[severity];
+        findingsHtml += `
             <div style="margin-bottom: 32px;">
               <table style="width: 100%; background: ${
                 colors.headerBg
@@ -682,50 +652,34 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               }; border-top: none; border-radius: 0 0 8px 8px; padding: 16px;">
           `;
 
-          // Show ALL findings with complete details
-          findings.forEach((finding, idx) => {
-            const title =
-              finding.title ||
-              finding.message ||
-              finding.rule_id ||
-              `Finding ${idx + 1}`;
-            const filePath =
-              finding.file_path ||
-              finding.path ||
-              finding.location?.path ||
-              "Unknown file";
-            const lineNum =
-              finding.line_number ||
-              finding.line ||
-              finding.location?.line ||
-              "";
-            const endLine =
-              finding.end_line || finding.location?.end_line || "";
-            const colNum =
-              finding.column || finding.col || finding.location?.column || "";
-            const description = finding.description || finding.message || "";
-            const recommendation =
-              finding.recommendation ||
-              finding.fix ||
-              finding.remediation ||
-              getDefaultRemediation(finding);
-            const ruleId =
-              finding.rule_id || finding.check_id || finding.id || "";
-            const scanner =
-              finding.scanner || finding.tool || finding.source || "";
-            const cwe = finding.cwe || finding.cwe_id || "";
-            const owasp = finding.owasp || finding.owasp_category || "";
-            const codeSnippet =
-              finding.code_snippet ||
-              finding.snippet ||
-              finding.vulnerable_code ||
-              finding.extra?.lines ||
-              "";
-            const confidence = finding.confidence || finding.certainty || "";
-            const category =
-              finding.category || finding.vulnerability_class || "";
+        // Show ALL findings with complete details
+        findings.forEach((finding, idx) => {
+          const title = finding.title || finding.message || finding.rule_id || `Finding ${idx + 1}`;
+          const filePath =
+            finding.file_path || finding.path || finding.location?.path || "Unknown file";
+          const lineNum = finding.line_number || finding.line || finding.location?.line || "";
+          const endLine = finding.end_line || finding.location?.end_line || "";
+          const colNum = finding.column || finding.col || finding.location?.column || "";
+          const description = finding.description || finding.message || "";
+          const recommendation =
+            finding.recommendation ||
+            finding.fix ||
+            finding.remediation ||
+            getDefaultRemediation(finding);
+          const ruleId = finding.rule_id || finding.check_id || finding.id || "";
+          const scanner = finding.scanner || finding.tool || finding.source || "";
+          const cwe = finding.cwe || finding.cwe_id || "";
+          const owasp = finding.owasp || finding.owasp_category || "";
+          const codeSnippet =
+            finding.code_snippet ||
+            finding.snippet ||
+            finding.vulnerable_code ||
+            finding.extra?.lines ||
+            "";
+          const confidence = finding.confidence || finding.certainty || "";
+          const category = finding.category || finding.vulnerability_class || "";
 
-            findingsHtml += `
+          findingsHtml += `
               <div style="margin-bottom: 20px; padding: 18px; background: ${
                 colors.bg
               }; border-radius: 10px; border-left: 5px solid ${colors.border};">
@@ -766,10 +720,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                       <span style="margin-left: 16px; color: #60a5fa;">📍</span>
                       <span style="color: #94a3b8;"> Line:</span>
                       <span style="color: #4ade80; font-weight: 600;"> ${lineNum}${
-                              endLine && endLine !== lineNum
-                                ? ` - ${endLine}`
-                                : ""
-                            }${colNum ? `, Col: ${colNum}` : ""}</span>
+                        endLine && endLine !== lineNum ? ` - ${endLine}` : ""
+                      }${colNum ? `, Col: ${colNum}` : ""}</span>
                     `
                         : ""
                     }
@@ -842,68 +794,51 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                 </div>
               </div>
             `;
-          });
-          findingsHtml += `</div></div>`;
-        }
-      });
+        });
+        findingsHtml += `</div></div>`;
+      }
+    });
 
-      if (totalFindings === 0) {
-        findingsHtml += `
+    if (totalFindings === 0) {
+      findingsHtml += `
           <div style="text-align: center; padding: 40px; background: #ecfdf5; border-radius: 12px; border: 2px solid #059669;">
             <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
             <h3 style="color: #059669; margin: 0 0 8px 0;">No Vulnerabilities Found</h3>
             <p style="color: #047857; margin: 0;">The security scan did not detect any vulnerabilities in the codebase.</p>
           </div>
         `;
-      }
-      findingsHtml += `</div>`;
+    }
+    findingsHtml += `</div>`;
 
-      // ============ COMPLIANCE SECTION ============
-      let complianceHtml = `<div style="padding: 40px; page-break-before: always;">
+    // ============ COMPLIANCE SECTION ============
+    let complianceHtml = `<div style="padding: 40px; page-break-before: always;">
         <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">📋 Compliance Assessment</h2>
         <p style="font-size: 14px; color: #64748b; margin-bottom: 24px;">Assessment of security findings against major compliance frameworks and security standards.</p>`;
 
-      Object.entries(COMPLIANCE_STANDARDS).forEach(([key, standard]) => {
-        const categories = Object.entries(standard.categories);
-        const affectedCategories = categories.filter(([code, name]) => {
-          return allFindings.some((f) => {
-            const desc = (
-              (f.description || "") +
-              (f.title || "") +
-              (f.message || "")
-            ).toLowerCase();
-            return (
-              desc.includes(code.toLowerCase()) ||
-              desc.includes(name.toLowerCase().split(" ")[0])
-            );
-          });
+    Object.entries(COMPLIANCE_STANDARDS).forEach(([key, standard]) => {
+      const categories = Object.entries(standard.categories);
+      const affectedCategories = categories.filter(([code, name]) => {
+        return allFindings.some((f) => {
+          const desc = ((f.description || "") + (f.title || "") + (f.message || "")).toLowerCase();
+          return (
+            desc.includes(code.toLowerCase()) || desc.includes(name.toLowerCase().split(" ")[0])
+          );
         });
-        const complianceScore =
-          categories.length > 0
-            ? Math.round(
-                ((categories.length - affectedCategories.length) /
-                  categories.length) *
-                  100
-              )
-            : 100;
-        const scoreColor =
-          complianceScore >= 80
-            ? "#059669"
-            : complianceScore >= 50
-            ? "#d97706"
-            : "#dc2626";
+      });
+      const complianceScore =
+        categories.length > 0
+          ? Math.round(((categories.length - affectedCategories.length) / categories.length) * 100)
+          : 100;
+      const scoreColor =
+        complianceScore >= 80 ? "#059669" : complianceScore >= 50 ? "#d97706" : "#dc2626";
 
-        complianceHtml += `
+      complianceHtml += `
           <div style="margin-bottom: 24px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
             <table style="width: 100%; background: #1e40af; color: white;">
               <tr>
                 <td style="padding: 16px;">
-                  <span style="font-size: 24px; margin-right: 12px;">${
-                    standard.icon
-                  }</span>
-                  <span style="font-size: 18px; font-weight: 600;">${
-                    standard.name
-                  }</span>
+                  <span style="font-size: 24px; margin-right: 12px;">${standard.icon}</span>
+                  <span style="font-size: 18px; font-weight: 600;">${standard.name}</span>
                   <span style="font-size: 12px; color: #c7d2fe; margin-left: 8px;">v${
                     standard.version
                   }</span>
@@ -921,75 +856,65 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               <table style="width: 100%; font-size: 11px;">
                 ${categories
                   .map(([code, name], idx) => {
-                    const isAffected = affectedCategories.some(
-                      ([c]) => c === code
-                    );
-                    return `${
-                      idx % 3 === 0 ? "<tr>" : ""
-                    }<td style="padding: 6px; background: ${
+                    const isAffected = affectedCategories.some(([c]) => c === code);
+                    return `${idx % 3 === 0 ? "<tr>" : ""}<td style="padding: 6px; background: ${
                       isAffected ? "#fef2f2" : "#ecfdf5"
                     }; border-radius: 4px; border-left: 3px solid ${
                       isAffected ? "#dc2626" : "#059669"
                     }; width: 33%;"><strong>${code}:</strong> ${name} <span style="float: right;">${
                       isAffected ? "⚠️" : "✅"
-                    }</span></td>${
-                      idx % 3 === 2 || idx === categories.length - 1
-                        ? "</tr>"
-                        : ""
-                    }`;
+                    }</span></td>${idx % 3 === 2 || idx === categories.length - 1 ? "</tr>" : ""}`;
                   })
                   .join("")}
               </table>
             </div>
           </div>
         `;
-      });
-      complianceHtml += `</div>`;
+    });
+    complianceHtml += `</div>`;
 
-      // ============ REMEDIATION RECOMMENDATIONS ============
-      let remediationHtml = `<div style="padding: 40px; page-break-before: always;">
+    // ============ REMEDIATION RECOMMENDATIONS ============
+    let remediationHtml = `<div style="padding: 40px; page-break-before: always;">
         <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">💡 Remediation Recommendations</h2>`;
 
-      const priorityActions = [
-        {
-          priority: "Immediate",
-          color: "#dc2626",
-          items: findingsBySeverity.critical
-            .slice(0, 5)
-            .map((f) => f.title || f.message || "Critical vulnerability"),
-        },
-        {
-          priority: "High Priority",
-          color: "#ea580c",
-          items: findingsBySeverity.high
-            .slice(0, 5)
-            .map((f) => f.title || f.message || "High severity issue"),
-        },
-        {
-          priority: "Medium Priority",
-          color: "#d97706",
-          items: findingsBySeverity.medium
-            .slice(0, 5)
-            .map((f) => f.title || f.message || "Medium severity issue"),
-        },
-      ];
+    const priorityActions = [
+      {
+        priority: "Immediate",
+        color: "#dc2626",
+        items: findingsBySeverity.critical
+          .slice(0, 5)
+          .map((f) => f.title || f.message || "Critical vulnerability"),
+      },
+      {
+        priority: "High Priority",
+        color: "#ea580c",
+        items: findingsBySeverity.high
+          .slice(0, 5)
+          .map((f) => f.title || f.message || "High severity issue"),
+      },
+      {
+        priority: "Medium Priority",
+        color: "#d97706",
+        items: findingsBySeverity.medium
+          .slice(0, 5)
+          .map((f) => f.title || f.message || "Medium severity issue"),
+      },
+    ];
 
-      priorityActions.forEach(({ priority, color, items }) => {
-        if (items.length > 0) {
-          remediationHtml += `
+    priorityActions.forEach(({ priority, color, items }) => {
+      if (items.length > 0) {
+        remediationHtml += `
             <div style="margin-bottom: 24px;">
               <h3 style="font-size: 16px; font-weight: 600; color: ${color}; margin-bottom: 12px;">${priority} Actions</h3>
               <ul style="margin: 0; padding-left: 24px; font-size: 13px; line-height: 2;">
-                ${items
-                  .map((item) => `<li style="color: #1e293b;">${item}</li>`)
-                  .join("")}
+                ${items.map((item) => `<li style="color: #1e293b;">${item}</li>`).join("")}
               </ul>
             </div>
           `;
-        }
-      });
+      }
+    });
 
-      remediationHtml += `
+    remediationHtml += `
         <div style="background: #f0f9ff; border: 1px solid #0284c7; border-radius: 8px; padding: 20px; margin-top: 24px;">
           <h4 style="color: #0369a1; margin: 0 0 12px 0;">📚 General Security Best Practices</h4>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.8; color: #1e293b;">
@@ -1005,51 +930,43 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
         </div>
       </div>`;
 
-      // ============ AI ANALYSIS (if available) ============
-      let aiHtml = "";
-      if (aiAnalysis && aiAnalysis.has_analysis !== false) {
-        // Parse AI analysis data properly - map to backend response fields
-        const aiSummary =
-          aiAnalysis.executive_summary ||
-          aiAnalysis.summary ||
-          aiAnalysis.analysis_summary ||
-          "";
-        const aiRecs =
-          aiAnalysis.priority_recommendations ||
-          aiAnalysis.recommendations ||
-          aiAnalysis.suggested_fixes ||
-          [];
-        const aiRiskAssessment =
-          aiAnalysis.overall_risk_assessment ||
-          aiAnalysis.risk_assessment ||
-          aiAnalysis.threat_analysis ||
-          "";
-        const aiScore =
-          aiAnalysis.security_score ||
-          aiAnalysis.risk_score ||
-          reportData.securityScore;
-        const aiRiskLevel =
-          aiAnalysis.risk_level ||
-          aiAnalysis.severity ||
-          (aiScore >= 70 ? "Low" : aiScore >= 40 ? "Medium" : "High");
-        const aiThreatVectors =
-          aiAnalysis.attack_vectors || aiAnalysis.threat_vectors || [];
-        const aiPriorityFindings =
-          aiAnalysis.priority_findings || aiAnalysis.priority_fixes || [];
-        const aiComplianceImpact = aiAnalysis.compliance_impact || {};
-        const aiSecureCodeExamples = aiAnalysis.secure_code_examples || {};
-        const aiRemediationRoadmap = aiAnalysis.remediation_roadmap || [];
-        const aiThreatCategories = aiAnalysis.threat_categories || {};
-        const aiEstimatedFixTime = aiAnalysis.estimated_fix_time || "";
-        const aiModelUsed = aiAnalysis.model_used || "AI Analysis Engine";
-        const aiGeneratedAt = aiAnalysis.generated_at || "";
+    // ============ AI ANALYSIS (if available) ============
+    let aiHtml = "";
+    if (aiAnalysis && aiAnalysis.has_analysis !== false) {
+      // Parse AI analysis data properly - map to backend response fields
+      const aiSummary =
+        aiAnalysis.executive_summary || aiAnalysis.summary || aiAnalysis.analysis_summary || "";
+      const aiRecs =
+        aiAnalysis.priority_recommendations ||
+        aiAnalysis.recommendations ||
+        aiAnalysis.suggested_fixes ||
+        [];
+      const aiRiskAssessment =
+        aiAnalysis.overall_risk_assessment ||
+        aiAnalysis.risk_assessment ||
+        aiAnalysis.threat_analysis ||
+        "";
+      const aiScore =
+        aiAnalysis.security_score || aiAnalysis.risk_score || reportData.securityScore;
+      const aiRiskLevel =
+        aiAnalysis.risk_level ||
+        aiAnalysis.severity ||
+        (aiScore >= 70 ? "Low" : aiScore >= 40 ? "Medium" : "High");
+      const aiThreatVectors = aiAnalysis.attack_vectors || aiAnalysis.threat_vectors || [];
+      const aiPriorityFindings = aiAnalysis.priority_findings || aiAnalysis.priority_fixes || [];
+      const aiComplianceImpact = aiAnalysis.compliance_impact || {};
+      const aiSecureCodeExamples = aiAnalysis.secure_code_examples || {};
+      const aiRemediationRoadmap = aiAnalysis.remediation_roadmap || [];
+      const aiThreatCategories = aiAnalysis.threat_categories || {};
+      const aiEstimatedFixTime = aiAnalysis.estimated_fix_time || "";
+      const aiModelUsed = aiAnalysis.model_used || "AI Analysis Engine";
+      const aiGeneratedAt = aiAnalysis.generated_at || "";
 
-        // Create visual risk meter
-        const riskMeterColor =
-          aiScore >= 70 ? "#10b981" : aiScore >= 40 ? "#f59e0b" : "#ef4444";
-        const riskMeterWidth = Math.min(100, Math.max(0, aiScore));
+      // Create visual risk meter
+      const riskMeterColor = aiScore >= 70 ? "#10b981" : aiScore >= 40 ? "#f59e0b" : "#ef4444";
+      const riskMeterWidth = Math.min(100, Math.max(0, aiScore));
 
-        aiHtml = `<div style="padding: 40px; page-break-before: always;">
+      aiHtml = `<div style="padding: 40px; page-break-before: always;">
           <h2 style="font-size: 24px; font-weight: 800; color: #1e40af; border-bottom: 4px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">
             🤖 AI-Powered Security Analysis
           </h2>
@@ -1078,8 +995,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                     aiRiskLevel === "Low"
                       ? "#4ade80"
                       : aiRiskLevel === "Medium"
-                      ? "#fbbf24"
-                      : "#f87171"
+                        ? "#fbbf24"
+                        : "#f87171"
                   };">${aiRiskLevel}</div>
                   <div style="font-size: 10px; color: #c7d2fe; margin-top: 4px;">Risk Level</div>
                 </td>
@@ -1176,8 +1093,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                               finding.severity === "critical"
                                 ? "#dc2626"
                                 : finding.severity === "high"
-                                ? "#ea580c"
-                                : "#d97706"
+                                  ? "#ea580c"
+                                  : "#d97706"
                             }; color: white; padding: 2px 6px; border-radius: 3px; margin-top: 4px; display: inline-block;">${finding.severity.toUpperCase()}</span>`
                           : ""
                       }
@@ -1283,10 +1200,7 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                     <td style="vertical-align: top; padding-left: 10px;">
                       <span style="font-size: 12px; color: #1e293b; line-height: 1.6;">${
                         typeof rec === "object"
-                          ? rec.recommendation ||
-                            rec.text ||
-                            rec.description ||
-                            JSON.stringify(rec)
+                          ? rec.recommendation || rec.text || rec.description || JSON.stringify(rec)
                           : rec
                       }</span>
                     </td>
@@ -1314,20 +1228,16 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               <table style="width: 100%; margin-bottom: 12px;">
                 <tr>
                   <td style="width: 36px; vertical-align: top;">
-                    <div style="background: ${
-                      idx === 0 ? "#0ea5e9" : "#bae6fd"
-                    }; color: ${
-                  idx === 0 ? "white" : "#0369a1"
-                }; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 12px;">${
-                  idx + 1
-                }</div>
+                    <div style="background: ${idx === 0 ? "#0ea5e9" : "#bae6fd"}; color: ${
+                      idx === 0 ? "white" : "#0369a1"
+                    }; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; font-size: 12px;">${
+                      idx + 1
+                    }</div>
                   </td>
                   <td style="vertical-align: top;">
                     <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #bae6fd;">
                       <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 4px;">${
-                        typeof step === "object"
-                          ? step.title || step.step || step.action
-                          : step
+                        typeof step === "object" ? step.title || step.step || step.action : step
                       }</div>
                       ${
                         typeof step === "object" && step.description
@@ -1389,9 +1299,7 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
                     <div style="font-size: 13px; font-weight: 700; color: #6d28d9; margin-bottom: 6px;">📌 ${framework}</div>
                     <div style="font-size: 11px; color: #64748b; line-height: 1.5;">${
                       typeof impact === "object"
-                        ? impact.description ||
-                          impact.impact ||
-                          JSON.stringify(impact)
+                        ? impact.description || impact.impact || JSON.stringify(impact)
                         : impact
                     }</div>
                   </td>
@@ -1408,9 +1316,9 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
         `
             : ""
         }`;
-      } else {
-        // No AI analysis available - show helpful message
-        aiHtml = `<div style="padding: 40px; page-break-before: always;">
+    } else {
+      // No AI analysis available - show helpful message
+      aiHtml = `<div style="padding: 40px; page-break-before: always;">
           <h2 style="font-size: 24px; font-weight: 700; color: #1e40af; border-bottom: 3px solid #1e40af; padding-bottom: 12px; margin-bottom: 24px;">🤖 AI-Powered Security Analysis</h2>
           
           <div style="background: #e0f2fe; border: 2px solid #0284c7; border-radius: 16px; padding: 32px; text-align: center;">
@@ -1474,10 +1382,10 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
             </div>
           </div>
         </div>`;
-      }
+    }
 
-      // ============ FOOTER ============
-      const footer = `
+    // ============ FOOTER ============
+    const footer = `
         <div style="padding: 40px; background: #0f172a; color: white;">
           <!-- Main Footer Content -->
           <table style="width: 100%; margin-bottom: 24px;">
@@ -1526,8 +1434,8 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
               <td style="padding: 16px; text-align: center;">
                 <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Security Score</div>
                 <div style="font-size: 12px; font-weight: 600; color: ${gradeColor};">${
-        reportData.securityScore
-      }/100</div>
+                  reportData.securityScore
+                }/100</div>
               </td>
             </tr>
           </table>
@@ -1549,47 +1457,43 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
         </div>
       `;
 
-      // Assemble the complete PDF
-      pdfContent.innerHTML =
-        coverPage +
-        tocPage +
-        executiveSummary +
-        findingsHtml +
-        complianceHtml +
-        remediationHtml +
-        aiHtml +
-        footer;
+    // Assemble the complete PDF
+    pdfContent.innerHTML =
+      coverPage +
+      tocPage +
+      executiveSummary +
+      findingsHtml +
+      complianceHtml +
+      remediationHtml +
+      aiHtml +
+      footer;
 
-      await generatePDF(pdfContent, {
-        filename: `ONYX-Security-Report-${report?.project_name || reportId}-${
-          new Date().toISOString().split("T")[0]
-        }.pdf`,
-        title: "ONYX Security Report",
-        subtitle: `Complete Security Analysis - ${
-          report?.project_name || "Security Assessment"
-        }`,
-        showExecutiveSummary: false,
-        showTableOfContents: false,
-        showHeader: false,
-        showFooter: false,
-        reportData: reportData,
-        companyName: report?.project_name,
-        confidential: true,
-        format: "a4",
-        orientation: "portrait",
-        margin: 0,
-      });
+    await generatePDF(pdfContent, {
+      filename: `ONYX-Security-Report-${report?.project_name || reportId}-${
+        new Date().toISOString().split("T")[0]
+      }.pdf`,
+      title: "ONYX Security Report",
+      subtitle: `Complete Security Analysis - ${report?.project_name || "Security Assessment"}`,
+      showExecutiveSummary: false,
+      showTableOfContents: false,
+      showHeader: false,
+      showFooter: false,
+      reportData: reportData,
+      companyName: report?.project_name,
+      confidential: true,
+      format: "a4",
+      orientation: "portrait",
+      margin: 0,
+    });
 
-      toast.success("🎉 Complete security report generated!", {
-        icon: "📄",
-        duration: 4000,
-      });
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast.error(
-        "Failed to generate PDF: " + (error.message || "Unknown error")
-      );
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+    toast.success("🎉 Complete security report generated!", {
+      icon: "📄",
+      duration: 4000,
+    });
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
+  } finally {
+    setIsGenerating(false);
+  }
+};

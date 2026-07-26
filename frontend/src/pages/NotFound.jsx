@@ -4,11 +4,7 @@
  */
 
 import { Link } from "react-router-dom";
-import {
-  HomeIcon,
-  ExclamationTriangleIcon,
-  ArrowLeftIcon,
-} from "@heroicons/react/24/outline";
+import { HomeIcon, ExclamationTriangleIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { PageContainer } from "../layouts";
 
 const NotFound = () => {
@@ -25,33 +21,29 @@ const NotFound = () => {
           </div>
 
           {/* Error Code */}
-          <h1 className="text-6xl sm:text-7xl font-bold text-white mb-4">
-            404
-          </h1>
+          <h1 className="text-6xl sm:text-7xl font-bold text-white mb-4">404</h1>
 
           {/* Error Title */}
-          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3">
-            Page Not Found
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3">Page Not Found</h2>
 
           {/* Error Description */}
           <p className="text-gray-400 mb-8 leading-relaxed">
-            The page you're looking for doesn't exist or has been moved. Let's
-            get you back on track.
+            The page you're looking for doesn't exist or has been moved. Let's get you back on
+            track.
           </p>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200"
             >
               <HomeIcon className="h-5 w-5" />
               Go to Dashboard
             </Link>
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white font-medium rounded-xl hover:bg-gray-800 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-800/50 border border-gray-700/50 text-gray-300 hover:text-white font-medium rounded-xl hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all"
             >
               <ArrowLeftIcon className="h-5 w-5" />
               Go Back
@@ -64,25 +56,25 @@ const NotFound = () => {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 to="/projects"
-                className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
+                className="text-sm text-gray-400 hover:text-cyan-400 transition-colors"
               >
                 Projects
               </Link>
               <Link
                 to="/reports"
-                className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
+                className="text-sm text-gray-400 hover:text-cyan-400 transition-colors"
               >
                 Reports
               </Link>
               <Link
                 to="/analytics"
-                className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
+                className="text-sm text-gray-400 hover:text-cyan-400 transition-colors"
               >
                 Analytics
               </Link>
               <Link
                 to="/settings"
-                className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
+                className="text-sm text-gray-400 hover:text-cyan-400 transition-colors"
               >
                 Settings
               </Link>

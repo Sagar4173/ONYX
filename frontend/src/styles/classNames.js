@@ -23,18 +23,15 @@ export const buttonStyles = {
 
   // Color variants
   variants: {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-    secondary:
-      "bg-gray-700 text-gray-200 hover:bg-gray-600 focus:ring-gray-500",
+    primary: "bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-cyan-500",
+    secondary: "bg-gray-700 text-gray-200 hover:bg-gray-600 focus:ring-gray-500",
     success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-    warning:
-      "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500",
-    ghost:
-      "bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white focus:ring-gray-500",
+    warning: "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500",
+    ghost: "bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white focus:ring-gray-500",
     outline:
       "border border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500 focus:ring-gray-500",
-    link: "text-blue-400 hover:text-blue-300 hover:underline p-0",
+    link: "text-cyan-400 hover:text-cyan-300 hover:underline p-0",
   },
 
   // Icon-only button
@@ -46,14 +43,8 @@ export const buttonStyles = {
 };
 
 // Helper function to get button classes
-export const getButtonClasses = (
-  variant = "primary",
-  size = "md",
-  isIconOnly = false
-) => {
-  const sizeClass = isIconOnly
-    ? buttonStyles.icon[size]
-    : buttonStyles.sizes[size];
+export const getButtonClasses = (variant = "primary", size = "md", isIconOnly = false) => {
+  const sizeClass = isIconOnly ? buttonStyles.icon[size] : buttonStyles.sizes[size];
   return `${buttonStyles.base} ${sizeClass} ${buttonStyles.variants[variant]}`;
 };
 
@@ -71,7 +62,7 @@ export const cardStyles = {
     success: "bg-green-900/20 border-green-700/50",
     danger: "bg-red-900/20 border-red-700/50",
     warning: "bg-yellow-900/20 border-yellow-700/50",
-    info: "bg-blue-900/20 border-blue-700/50",
+    info: "bg-cyan-900/20 border-cyan-700/50",
   },
 
   padding: {
@@ -86,11 +77,7 @@ export const cardStyles = {
     "hover:bg-gray-700/50 hover:border-gray-600/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200",
 };
 
-export const getCardClasses = (
-  variant = "default",
-  padding = "md",
-  hoverable = false
-) => {
+export const getCardClasses = (variant = "default", padding = "md", hoverable = false) => {
   const classes = [
     "backdrop-blur-sm rounded-xl border",
     cardStyles.variants[variant],
@@ -114,7 +101,7 @@ export const inputStyles = {
   },
 
   variants: {
-    default: "border-gray-600 focus:border-blue-500 focus:ring-blue-500/20",
+    default: "border-gray-600 focus:border-cyan-500 focus:ring-cyan-500/20",
     error: "border-red-500 focus:border-red-500 focus:ring-red-500/20",
     success: "border-green-500 focus:border-green-500 focus:ring-green-500/20",
   },
@@ -140,7 +127,7 @@ export const badgeStyles = {
 
   variants: {
     default: "bg-gray-700 text-gray-300",
-    primary: "bg-blue-900/50 text-blue-300 border border-blue-700/50",
+    primary: "bg-cyan-900/50 text-cyan-300 border border-cyan-700/50",
     success: "bg-green-900/50 text-green-300 border border-green-700/50",
     danger: "bg-red-900/50 text-red-300 border border-red-700/50",
     warning: "bg-yellow-900/50 text-yellow-300 border border-yellow-700/50",
@@ -149,7 +136,7 @@ export const badgeStyles = {
     critical: "bg-red-900/70 text-red-200 border border-red-600",
     high: "bg-orange-900/70 text-orange-200 border border-orange-600",
     medium: "bg-yellow-900/70 text-yellow-200 border border-yellow-600",
-    low: "bg-blue-900/70 text-blue-200 border border-blue-600",
+    low: "bg-cyan-900/70 text-cyan-200 border border-cyan-600",
   },
 };
 
@@ -215,7 +202,7 @@ export const statusStyles = {
     success: "bg-green-500",
     warning: "bg-yellow-500",
     danger: "bg-red-500",
-    info: "bg-blue-500",
+    info: "bg-cyan-500",
     neutral: "bg-gray-500",
   },
 
@@ -224,7 +211,7 @@ export const statusStyles = {
     success: "bg-green-900/30 text-green-400",
     warning: "bg-yellow-900/30 text-yellow-400",
     danger: "bg-red-900/30 text-red-400",
-    info: "bg-blue-900/30 text-blue-400",
+    info: "bg-cyan-900/30 text-cyan-400",
     neutral: "bg-gray-700/50 text-gray-400",
   },
 };
@@ -234,16 +221,13 @@ export const statusStyles = {
 // =============================================================================
 
 export const modalStyles = {
-  overlay:
-    "fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+  overlay: "fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4",
   container:
     "bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden",
-  header:
-    "px-6 py-4 border-b border-gray-700 flex items-center justify-between",
+  header: "px-6 py-4 border-b border-gray-700 flex items-center justify-between",
   title: "text-lg font-semibold text-white",
   body: "px-6 py-4 overflow-y-auto",
-  footer:
-    "px-6 py-4 border-t border-gray-700 flex items-center justify-end gap-3",
+  footer: "px-6 py-4 border-t border-gray-700 flex items-center justify-end gap-3",
 };
 
 // =============================================================================
@@ -256,7 +240,7 @@ export const alertStyles = {
     success: "bg-green-900/30 border border-green-700/50 text-green-300",
     danger: "bg-red-900/30 border border-red-700/50 text-red-300",
     warning: "bg-yellow-900/30 border border-yellow-700/50 text-yellow-300",
-    info: "bg-blue-900/30 border border-blue-700/50 text-blue-300",
+    info: "bg-cyan-900/30 border border-cyan-700/50 text-cyan-300",
   },
   icon: "w-5 h-5 flex-shrink-0 mt-0.5",
   content: "flex-1",
@@ -281,8 +265,7 @@ export const tooltipStyles = {
 // =============================================================================
 
 export const loadingStyles = {
-  spinner:
-    "animate-spin rounded-full border-2 border-gray-600 border-t-blue-500",
+  spinner: "animate-spin rounded-full border-2 border-gray-600 border-t-cyan-500",
   sizes: {
     sm: "w-4 h-4",
     md: "w-6 h-6",
@@ -334,11 +317,11 @@ export const progressStyles = {
   },
 
   colors: {
-    primary: "bg-blue-500",
+    primary: "bg-cyan-500",
     success: "bg-green-500",
     warning: "bg-yellow-500",
     danger: "bg-red-500",
-    gradient: "bg-gradient-to-r from-blue-500 to-purple-500",
+    gradient: "bg-gradient-to-r from-cyan-500 to-violet-500",
   },
 };
 
@@ -384,8 +367,7 @@ export const navStyles = {
   item: "px-3 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors",
   itemActive: "px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg",
   tab: "px-4 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent hover:text-white hover:border-gray-600 transition-colors",
-  tabActive:
-    "px-4 py-2 text-sm font-medium text-blue-400 border-b-2 border-blue-400",
+  tabActive: "px-4 py-2 text-sm font-medium text-cyan-400 border-b-2 border-cyan-400",
 };
 
 // =============================================================================
@@ -395,7 +377,7 @@ export const navStyles = {
 export const formStyles = {
   group: "space-y-2",
   label: "block text-sm font-medium text-gray-300",
-  hint: "text-xs text-gray-500 mt-1",
+  hint: "text-xs text-gray-400 mt-1",
   error: "text-xs text-red-400 mt-1",
   required: "text-red-400 ml-0.5",
   row: "flex items-center gap-4",

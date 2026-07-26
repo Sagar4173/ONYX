@@ -1,4 +1,3 @@
-
 import { PaperAirplaneIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 /**
@@ -31,12 +30,8 @@ export const ForgotPasswordSuccess = ({ email, onSwitchToLogin }) => {
         </h2>
 
         {/* Description */}
-        <p className="text-gray-300 mb-2">
-          Password reset instructions have been sent!
-        </p>
-        <p className="text-gray-400 mb-6 text-sm">
-          We've sent a password reset link to:
-        </p>
+        <p className="text-gray-300 mb-2">Password reset instructions have been sent!</p>
+        <p className="text-gray-400 mb-6 text-sm">We've sent a password reset link to:</p>
 
         {/* Email Display */}
         <div className="flex items-center justify-center gap-2 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-3 mb-6">
@@ -64,8 +59,8 @@ export const ForgotPasswordSuccess = ({ email, onSwitchToLogin }) => {
             </li>
           </ul>
           <p className="text-xs text-gray-400 mt-3">
-            <span className="text-violet-400">Note:</span> Check your spam
-            folder if you don't see the email within a few minutes.
+            <span className="text-violet-400">Note:</span> Check your spam folder if you don't see
+            the email within a few minutes.
           </p>
         </div>
 
