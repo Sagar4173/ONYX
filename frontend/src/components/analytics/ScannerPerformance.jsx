@@ -1,4 +1,5 @@
-import { CpuChipIcon } from "@heroicons/react/24/outline";
+import { motion } from "framer-motion";
+import { CpuChipIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { EmptyState } from "../../layouts";
 
 const formatDuration = (seconds) => {
@@ -8,7 +9,10 @@ const formatDuration = (seconds) => {
 };
 
 const ScannerPerformance = ({ scanners = {} }) => {
-  const scannerList = Object.entries(scanners).map(([name, stats]) => ({ name, ...stats }));
+  const scannerList = Object.entries(scanners).map(([name, stats]) => ({
+    name,
+    ...stats,
+  }));
 
   if (scannerList.length === 0) {
     return (
@@ -21,21 +25,32 @@ const ScannerPerformance = ({ scanners = {} }) => {
   }
 
   return (
-    <div className="space-y-3">
+    <motion.div
+      className="space-y-3"
+      initial="hidden"
+      animate="show"
+      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+    >
       {scannerList.slice(0, 6).map((scanner) => {
         const successRate =
           scanner.total_runs > 0
             ? Math.round((scanner.successful_runs / scanner.total_runs) * 100)
             : 0;
         return (
-          <div
+          <motion.div
             key={scanner.name}
-            className="p-4 rounded-xl bg-gray-800/30 border border-gray-700/30"
+            variants={{
+              hidden: { opacity: 0, y: 10 },
+              show: { opacity: 1, y: 0 },
+            }}
+            className="p-4 rounded-xl bg-gray-800/40 backdrop-blur-sm border border-gray-700/50"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-white capitalize">{scanner.name}</span>
+              <span className="text-sm font-medium text-white capitalize flex items-center gap-2">
+                <CpuChipIcon className="h-4 w-4 text-cyan-400" /> {scanner.name}
+              </span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   successRate >= 90
                     ? "bg-green-500/20 text-green-400"
                     : successRate >= 70
@@ -46,6 +61,14 @@ const ScannerPerformance = ({ scanners = {} }) => {
                 {successRate}% success
               </span>
             </div>
+            <div className="h-1.5 bg-gray-700/50 rounded-full overflow-hidden mb-2">
+              <motion.div
+                className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${successRate}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
+            </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
               <div>
                 <span className="text-gray-500">Runs:</span> {scanner.total_runs}
@@ -53,14 +76,15 @@ const ScannerPerformance = ({ scanners = {} }) => {
               <div>
                 <span className="text-gray-500">Findings:</span> {scanner.total_findings}
               </div>
-              <div>
-                <span className="text-gray-500">Avg:</span> {formatDuration(scanner.avg_duration)}
+              <div className="flex items-center gap-1">
+                <ClockIcon className="h-3 w-3 text-gray-500" />{" "}
+                {formatDuration(scanner.avg_duration)}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 };
 
