@@ -129,7 +129,7 @@ function App() {
             },
             loading: {
               duration: Infinity,
-              iconTheme: { primary: "#3b82f6", secondary: "#fff" },
+              iconTheme: { primary: "#06b6d4", secondary: "#fff" },
             },
           }}
         />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShieldCheckIcon,
@@ -807,7 +808,12 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-8 animate-pulse">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20 mb-8"
+            >
               <SparklesIcon className="w-4 h-4 text-cyan-400" />
               <span className="text-sm text-gray-300">
                 AI-Powered Security Intelligence Platform
@@ -816,29 +822,44 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-cyan-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
               </span>
-            </div>
+            </motion.div>
 
             {/* Main Heading with typing animation */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight"
+            >
               <span className="block text-white mb-2">Stop</span>
               <span className="block bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent min-h-[1.2em]">
                 <TypeWriter words={heroWords} />
               </span>
               <span className="block text-white mt-2">Before They Start</span>
-            </h1>
+            </motion.h1>
 
             {/* Subheading */}
-            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+              className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed"
+            >
               AI-powered security platform that scans, analyzes, and protects your codebase with 10
               specialized scanners.
               <span className="text-cyan-400 font-medium">
                 {" "}
                 Find vulnerabilities before they ship.
               </span>
-            </p>
+            </motion.p>
 
             {/* Trust Badges */}
-            <div className="flex items-center justify-center gap-6 mb-10 text-sm text-gray-500">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.45, ease: "easeOut" }}
+              className="flex items-center justify-center gap-6 mb-10 text-sm text-gray-500"
+            >
               <div className="flex items-center gap-2">
                 <CheckBadgeIcon className="w-5 h-5 text-green-500" />
                 <span>10 Security Scanners</span>
@@ -851,10 +872,15 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 <CheckBadgeIcon className="w-5 h-5 text-green-500" />
                 <span>Dual AI Analysis</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+            >
               <button
                 onClick={() => navigate("/register")}
                 className="group relative px-8 py-4 rounded-2xl font-bold text-lg overflow-hidden w-full sm:w-auto"
@@ -876,13 +902,21 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                   See It In Action
                 </span>
               </button>
-            </div>
+            </motion.div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.75, ease: "easeOut" }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+            >
               {securityMetrics.map((stat, index) => (
-                <div
+                <motion.div
                   key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.9 + index * 0.1, ease: "easeOut" }}
                   className="relative group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-cyan-500/30 transition-all hover:transform hover:-translate-y-1"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-violet-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -901,9 +935,9 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                     )}
                   </div>
                   <div className="text-sm text-gray-500">{stat.label}</div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
 
@@ -1015,7 +1049,13 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
       <section id="features" className="py-32 relative">
         <div className="max-w-7xl mx-auto px-6">
           {/* Section Header */}
-          <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center mb-20"
+          >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
               <CubeTransparentIcon className="w-4 h-4 text-cyan-400" />
               <span className="text-sm text-cyan-400">Core Capabilities</span>
@@ -1030,7 +1070,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
               Powered by GPT-4 and Gemini AI with 10 security scanners.
               <span className="text-white"> Find vulnerabilities fast.</span>
             </p>
-          </div>
+          </motion.div>
 
           {/* Live Code Demo */}
           <div className="mb-20 relative">
@@ -1144,12 +1184,22 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
           </div>
 
           {/* Features Grid */}
-          <div className="grid lg:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="grid lg:grid-cols-2 gap-8"
+          >
             {/* Feature Cards */}
             <div className="space-y-4">
               {features.map((feature, index) => (
-                <div
+                <motion.div
                   key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
                   onClick={() => setActiveFeature(index)}
                   className={`relative group p-6 rounded-2xl cursor-pointer transition-all duration-300 ${
                     activeFeature === index
@@ -1180,7 +1230,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                   {activeFeature === index && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-gradient-to-b from-cyan-400 to-violet-500 rounded-r-full" />
                   )}
-                </div>
+                </motion.div>
               ))}
             </div>
 
@@ -1248,7 +1298,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -1572,7 +1622,13 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 relative overflow-hidden">
+      <motion.section
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="py-32 relative overflow-hidden"
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-violet-500/10 to-purple-500/10" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,211,238,0.1),transparent_70%)]" />
 
@@ -1622,7 +1678,7 @@ const API_KEY = await secretsManager.getSecret("api-key");`,
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="py-16 border-t border-gray-800/50 bg-gray-950">

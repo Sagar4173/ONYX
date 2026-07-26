@@ -29,7 +29,7 @@ describe("EmptyState", () => {
     expect(el.className).toContain("flex");
     expect(el.className).toContain("flex-col");
     expect(el.className).toContain("items-center");
-    expect(el.className).toContain("py-12");
+    expect(el.className).toContain("py-16");
   });
 
   it("merges custom className", () => {

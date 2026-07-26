@@ -272,7 +272,7 @@ export const loadingStyles = {
     lg: "w-8 h-8",
     xl: "w-12 h-12",
   },
-  skeleton: "animate-pulse bg-gray-700 rounded",
+  skeleton: "skeleton",
 };
 
 // =============================================================================

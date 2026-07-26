@@ -3,6 +3,7 @@
  * Styled components that use the centralized theme system
  */
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from "@heroicons/react/24/outline";
 import {
   getButtonClasses,
@@ -18,7 +19,7 @@ import {
   navStyles,
   formStyles,
 } from "./classNames";
-import { animations, dynamicStyles } from "./theme";
+import { dynamicStyles } from "./theme";
 
 // =============================================================================
 // BUTTON COMPONENT
@@ -438,8 +439,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = "md" })
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-lg",
@@ -449,33 +448,48 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = "md" })
   };
 
   return (
-    <div className={modalStyles.overlay} onClick={onClose}>
-      <div
-        ref={containerRef}
-        className={`${modalStyles.container} ${sizeClasses[size]}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? titleId : undefined}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {title && (
-          <div className={modalStyles.header}>
-            <h2 id={titleId} className={modalStyles.title}>
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              aria-label="Close dialog"
-              className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
-            >
-              ×
-            </button>
-          </div>
-        )}
-        <div className={modalStyles.body}>{children}</div>
-        {footer && <div className={modalStyles.footer}>{footer}</div>}
-      </div>
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className={modalStyles.overlay}
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          <motion.div
+            ref={containerRef}
+            className={`${modalStyles.container} ${sizeClasses[size]}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? titleId : undefined}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            {title && (
+              <div className={modalStyles.header}>
+                <h2 id={titleId} className={modalStyles.title}>
+                  {title}
+                </h2>
+                <button
+                  onClick={onClose}
+                  aria-label="Close dialog"
+                  className="text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            <div className={modalStyles.body}>{children}</div>
+            {footer && <div className={modalStyles.footer}>{footer}</div>}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -492,12 +506,43 @@ export const Divider = ({ className = "" }) => (
 // =============================================================================
 
 export const EmptyState = ({ icon, title, description, action, className = "" }) => (
-  <div className={`flex flex-col items-center justify-center py-12 text-center ${className}`}>
-    {icon && <div className="text-gray-500 mb-4">{icon}</div>}
-    {title && <h3 className="text-lg font-medium text-gray-300 mb-2">{title}</h3>}
-    {description && <p className="text-gray-500 max-w-sm mb-4">{description}</p>}
-    {action}
-  </div>
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.35, ease: "easeOut" }}
+    className={`flex flex-col items-center justify-center py-16 text-center ${className}`}
+  >
+    <motion.div
+      initial={{ scale: 0.8 }}
+      animate={{ scale: 1 }}
+      transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
+      className="mb-6"
+    >
+      {icon ? (
+        <div className="text-gray-500">{icon}</div>
+      ) : (
+        <svg
+          className="w-20 h-20 text-gray-600"
+          fill="none"
+          viewBox="0 0 96 96"
+          stroke="currentColor"
+          strokeWidth={1}
+        >
+          <circle cx="48" cy="48" r="40" strokeDasharray="4 4" opacity="0.3" />
+          <circle cx="48" cy="48" r="28" strokeDasharray="4 4" opacity="0.5" />
+          <path strokeLinecap="round" d="M48 28v6M48 62v6M62 48h6M28 48h6" />
+          <circle cx="48" cy="48" r="3" fill="currentColor" opacity="0.6" />
+        </svg>
+      )}
+    </motion.div>
+    {title && <h3 className="text-lg font-semibold text-gray-200 mb-2">{title}</h3>}
+    {description && <p className="text-gray-500 max-w-sm mb-6 leading-relaxed">{description}</p>}
+    {action && (
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        {action}
+      </motion.div>
+    )}
+  </motion.div>
 );
 
 // =============================================================================
@@ -738,13 +783,16 @@ export const SeverityProgressBar = ({
 
 export const AnimatedListItem = ({ children, index, delay = 0.1, className = "", ...props }) => {
   return (
-    <div
-      className={`animate-fade-in-up ${className}`}
-      style={animations.staggerDelay(index, delay)}
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.3, delay: index * delay, ease: "easeOut" }}
       {...props}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
 
@@ -757,7 +805,7 @@ export const DonutChart = ({
   max = 100,
   size = 120,
   strokeWidth = 8,
-  color = "#3b82f6",
+  color = "#06b6d4",
   bgColor = "#374151",
   children,
   className = "",
@@ -888,6 +936,13 @@ export const Tooltip = ({ content, children, position = "top" }) => {
     right: "left-full top-1/2 -translate-y-1/2 ml-2",
   };
 
+  const motionPositions = {
+    top: { y: 4 },
+    bottom: { y: -4 },
+    left: { x: 4 },
+    right: { x: -4 },
+  };
+
   return (
     <div
       className="relative inline-block"
@@ -896,15 +951,21 @@ export const Tooltip = ({ content, children, position = "top" }) => {
       aria-describedby={isVisible ? tooltipId : undefined}
     >
       {children}
-      {isVisible && (
-        <div
-          id={tooltipId}
-          role="tooltip"
-          className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow-lg border border-gray-700 whitespace-nowrap ${positions[position]}`}
-        >
-          {content}
-        </div>
-      )}
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            id={tooltipId}
+            role="tooltip"
+            initial={{ opacity: 0, ...motionPositions[position] }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, ...motionPositions[position] }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow-lg border border-gray-700 whitespace-nowrap pointer-events-none ${positions[position]}`}
+          >
+            {content}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -1135,61 +1196,73 @@ export const ConfirmDialog = ({
   const canConfirm = requireTypeToConfirm ? typedText === confirmText : true;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-      onClick={onClose}
-    >
-      <div
-        className="bg-gray-900 border border-gray-700/50 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 id={titleId} className="text-lg font-semibold text-white mb-2">
-          {title}
-        </h3>
-        <p className="text-gray-400 text-sm mb-4">{message}</p>
-
-        {requireTypeToConfirm && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-400 mb-2">
-              Type{" "}
-              <span className="font-mono text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">
-                {confirmText}
-              </span>{" "}
-              to confirm:
-            </p>
-            <input
-              type="text"
-              value={typedText}
-              onChange={(e) => setTypedText(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              autoFocus
-            />
-          </div>
-        )}
-
-        <div className="flex items-center justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          <motion.div
+            className="bg-gray-900 border border-gray-700/50 rounded-2xl shadow-2xl max-w-md w-full p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.92, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: -10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            {cancelLabel}
-          </button>
-          <button
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-            disabled={!canConfirm}
-            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all disabled:opacity-50 ${buttonColors[variant]}`}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+            <h3 id={titleId} className="text-lg font-semibold text-white mb-2">
+              {title}
+            </h3>
+            <p className="text-gray-400 text-sm mb-4">{message}</p>
+
+            {requireTypeToConfirm && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-400 mb-2">
+                  Type{" "}
+                  <span className="font-mono text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">
+                    {confirmText}
+                  </span>{" "}
+                  to confirm:
+                </p>
+                <input
+                  type="text"
+                  value={typedText}
+                  onChange={(e) => setTypedText(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700/50 rounded-lg text-white text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  autoFocus
+                />
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                {cancelLabel}
+              </button>
+              <button
+                onClick={() => {
+                  onConfirm();
+                  onClose();
+                }}
+                disabled={!canConfirm}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all disabled:opacity-50 ${buttonColors[variant]}`}
+              >
+                {confirmLabel}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -1214,7 +1287,7 @@ export const MetricCard = React.memo(
       red: "from-red-500 to-rose-500",
       yellow: "from-yellow-500 to-amber-500",
       purple: "from-purple-500 to-violet-500",
-      indigo: "from-indigo-500 to-blue-500",
+      indigo: "from-indigo-500 to-cyan-500",
     };
 
     return (
@@ -1345,7 +1418,15 @@ FindingCard.displayName = "FindingCard";
 // =============================================================================
 
 export const PageTransition = ({ children, className = "" }) => (
-  <div className={`page-enter ${className}`}>{children}</div>
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -12 }}
+    transition={{ duration: 0.25, ease: "easeOut" }}
+    className={className}
+  >
+    {children}
+  </motion.div>
 );
 
 export default {

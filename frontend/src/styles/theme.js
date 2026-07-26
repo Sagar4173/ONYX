@@ -1,48 +1,48 @@
-/**
- * ONYX Platform - Centralized Styles System
- * This module provides consistent styling constants, themes, and utility classes
- * Import these in components for maintainable and consistent styling
- */
-
-// =============================================================================
-// COLOR PALETTE - Semantic color system
-// =============================================================================
-
 export const colors = {
-  // Primary brand colors
   primary: {
-    50: "#eff6ff",
-    100: "#dbeafe",
-    200: "#bfdbfe",
-    300: "#93c5fd",
-    400: "#60a5fa",
-    500: "#3b82f6",
-    600: "#2563eb",
-    700: "#1d4ed8",
-    800: "#1e40af",
-    900: "#1e3a8a",
-    950: "#172554",
+    50: "#ecfeff",
+    100: "#cffafe",
+    200: "#a5f3fc",
+    300: "#67e8f9",
+    400: "#22d3ee",
+    500: "#06b6d4",
+    600: "#0891b2",
+    700: "#0e7490",
+    800: "#155e75",
+    900: "#164e63",
+    950: "#083344",
   },
 
-  // Background colors (dark theme)
+  accent: {
+    50: "#f5f3ff",
+    100: "#ede9fe",
+    200: "#ddd6fe",
+    300: "#c4b5fd",
+    400: "#a78bfa",
+    500: "#8b5cf6",
+    600: "#7c3aed",
+    700: "#6d28d9",
+    800: "#5b21b6",
+    900: "#4c1d95",
+    950: "#2e1065",
+  },
+
   background: {
-    primary: "#0a0e1a",
-    secondary: "#111827",
-    tertiary: "#1f2937",
-    accent: "#374151",
-    card: "#111827",
-    cardHover: "#1f2937",
+    primary: "#05080f",
+    secondary: "#0a0318",
+    tertiary: "#0f0520",
+    accent: "#1a0a30",
+    card: "#0f0520",
+    cardHover: "#1a0a30",
   },
 
-  // Text colors
   text: {
     primary: "#f9fafb",
     secondary: "#d1d5db",
     muted: "#9ca3af",
-    accent: "#60a5fa",
+    accent: "#06b6d4",
   },
 
-  // Semantic colors
   success: {
     light: "#dcfce7",
     main: "#22c55e",
@@ -62,22 +62,20 @@ export const colors = {
     bg: "rgba(239, 68, 68, 0.1)",
   },
   info: {
-    light: "#dbeafe",
-    main: "#3b82f6",
-    dark: "#1d4ed8",
-    bg: "rgba(59, 130, 246, 0.1)",
+    light: "#cffafe",
+    main: "#06b6d4",
+    dark: "#0e7490",
+    bg: "rgba(6, 182, 212, 0.1)",
   },
 
-  // Severity colors for security findings
   severity: {
     critical: { bg: "#7f1d1d", text: "#fecaca", border: "#dc2626" },
     high: { bg: "#7c2d12", text: "#fed7aa", border: "#ea580c" },
     medium: { bg: "#78350f", text: "#fde68a", border: "#d97706" },
-    low: { bg: "#1e3a8a", text: "#bfdbfe", border: "#3b82f6" },
+    low: { bg: "#0e7490", text: "#67e8f9", border: "#06b6d4" },
     info: { bg: "#374151", text: "#d1d5db", border: "#6b7280" },
   },
 
-  // Border colors
   border: {
     primary: "#374151",
     secondary: "#4b5563",
@@ -85,37 +83,25 @@ export const colors = {
   },
 };
 
-// =============================================================================
-// GRADIENTS
-// =============================================================================
-
 export const gradients = {
-  primary: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-  secondary: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+  primary: "linear-gradient(135deg, #06b6d4, #7c3aed)",
+  secondary: "linear-gradient(135deg, #00e5ff, #06b6d4)",
   success: "linear-gradient(135deg, #10b981, #059669)",
   warning: "linear-gradient(135deg, #f59e0b, #d97706)",
   danger: "linear-gradient(135deg, #ef4444, #dc2626)",
-  dark: "linear-gradient(135deg, #1f2937, #111827)",
-  glow: "radial-gradient(ellipse at top, #1e3a8a 0%, #0a0e1a 70%)",
+  dark: "linear-gradient(135deg, #0f0520, #05080f)",
+  glow: "radial-gradient(ellipse at top, #0f0520 0%, #05080f 70%)",
 };
-
-// =============================================================================
-// SPACING SCALE
-// =============================================================================
 
 export const spacing = {
-  xs: "0.25rem", // 4px
-  sm: "0.5rem", // 8px
-  md: "1rem", // 16px
-  lg: "1.5rem", // 24px
-  xl: "2rem", // 32px
-  "2xl": "3rem", // 48px
-  "3xl": "4rem", // 64px
+  xs: "0.25rem",
+  sm: "0.5rem",
+  md: "1rem",
+  lg: "1.5rem",
+  xl: "2rem",
+  "2xl": "3rem",
+  "3xl": "4rem",
 };
-
-// =============================================================================
-// TYPOGRAPHY
-// =============================================================================
 
 export const typography = {
   fontFamily: {
@@ -140,23 +126,15 @@ export const typography = {
   },
 };
 
-// =============================================================================
-// SHADOWS
-// =============================================================================
-
 export const shadows = {
   sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
   md: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
   lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
   xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-  glow: "0 0 20px rgba(59, 130, 246, 0.3)",
+  glow: "0 0 20px rgba(6, 182, 212, 0.3)",
   glowSuccess: "0 0 20px rgba(34, 197, 94, 0.3)",
   glowDanger: "0 0 20px rgba(239, 68, 68, 0.3)",
 };
-
-// =============================================================================
-// BORDER RADIUS
-// =============================================================================
 
 export const borderRadius = {
   none: "0",
@@ -168,20 +146,12 @@ export const borderRadius = {
   full: "9999px",
 };
 
-// =============================================================================
-// TRANSITIONS
-// =============================================================================
-
 export const transitions = {
   fast: "all 0.15s ease",
   normal: "all 0.2s ease",
   slow: "all 0.3s ease",
   colors: "color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease",
 };
-
-// =============================================================================
-// Z-INDEX SCALE
-// =============================================================================
 
 export const zIndex = {
   dropdown: 1000,
@@ -194,69 +164,38 @@ export const zIndex = {
   toast: 1080,
 };
 
-// =============================================================================
-// ANIMATION HELPERS (for dynamic inline styles)
-// =============================================================================
-
 export const animations = {
-  // Get staggered animation delay for list items
   staggerDelay: (index, baseDelay = 0.1) => ({
     animationDelay: `${index * baseDelay}s`,
   }),
-
-  // Custom animation durations
   duration: (seconds) => ({
     animationDuration: `${seconds}s`,
   }),
-
-  // Combined animation timing
   timing: (delay, duration) => ({
     animationDelay: `${delay}s`,
     animationDuration: `${duration}s`,
   }),
 };
 
-// =============================================================================
-// DYNAMIC STYLE HELPERS (for values that must be inline)
-// =============================================================================
-
 export const dynamicStyles = {
-  // Progress bar width
   progressWidth: (percentage) => ({
     width: `${Math.min(Math.max(percentage, 0), 100)}%`,
   }),
-
-  // Dynamic sizing
   size: (width, height = width) => ({
     width: typeof width === "number" ? `${width}px` : width,
     height: typeof height === "number" ? `${height}px` : height,
   }),
-
-  // Chart/graph dimensions
-  chartDimensions: (width, height) => ({
-    width,
-    height,
-  }),
-
-  // Bar chart bar height based on value
+  chartDimensions: (width, height) => ({ width, height }),
   barHeight: (value, maxValue, maxHeight = 100) => ({
     height: `${(value / maxValue) * maxHeight}%`,
   }),
-
-  // Glow effect with custom color
   glow: (color, intensity = 6) => ({
     filter: `drop-shadow(0 0 ${intensity}px ${color}40)`,
   }),
-
-  // Custom box shadow
   boxGlow: (color, spread = 20, opacity = 0.3) => ({
     boxShadow: `0 0 ${spread}px rgba(${color}, ${opacity})`,
   }),
 };
-
-// =============================================================================
-// SEVERITY COLOR MAP (for dynamic styling)
-// =============================================================================
 
 export const severityColors = {
   critical: {
@@ -296,7 +235,6 @@ export const severityColors = {
   },
 };
 
-// Get severity styles by level
 export const getSeverityStyles = (severity) => {
   return severityColors[severity?.toLowerCase()] || severityColors.info;
 };

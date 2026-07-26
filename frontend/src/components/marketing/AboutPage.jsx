@@ -2,6 +2,7 @@
  * About Page - ONYX Security Platform
  * Company information and mission
  */
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShieldCheckIcon,
@@ -113,22 +114,37 @@ const AboutPage = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-full blur-3xl" />
 
         <div className="max-w-4xl mx-auto px-6 text-center relative">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-8"
+          >
             <SparklesIcon className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-cyan-400">About ONYX</span>
-          </div>
+          </motion.div>
 
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+            className="text-4xl md:text-6xl font-bold mb-6"
+          >
             Building the Future of{" "}
             <span className="bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
               Application Security
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+            className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed"
+          >
             We're on a mission to make world-class security accessible to every development team,
             empowering developers to build secure software without slowing down.
-          </p>
+          </motion.p>
         </div>
       </section>
 
@@ -166,18 +182,26 @@ const AboutPage = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+              className="grid grid-cols-2 gap-4"
+            >
               {stats.map((stat, i) => (
-                <div
+                <motion.div
                   key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.5 + i * 0.1, ease: "easeOut" }}
                   className="p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-cyan-500/30 transition-all group"
                 >
                   <stat.icon className="w-8 h-8 text-cyan-400 mb-4 group-hover:scale-110 transition-transform" />
                   <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
                   <div className="text-sm text-gray-400">{stat.label}</div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -185,17 +209,33 @@ const AboutPage = () => {
       {/* Values Section */}
       <section className="py-20 bg-gray-900/30">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-center mb-12"
+          >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Values</h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               The principles that guide everything we do
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
             {values.map((value, i) => (
-              <div
+              <motion.div
                 key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
                 className="p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50 transition-all group"
               >
                 <div
@@ -205,19 +245,25 @@ const AboutPage = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{value.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{value.description}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Timeline Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-center mb-12"
+          >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Journey</h2>
             <p className="text-gray-400 text-lg">Building security tools for the modern era</p>
-          </div>
+          </motion.div>
 
           <div className="relative">
             {/* Timeline line */}
@@ -225,7 +271,14 @@ const AboutPage = () => {
 
             <div className="space-y-8">
               {timeline.map((item, i) => (
-                <div key={i} className="flex gap-6 md:gap-8">
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.15, ease: "easeOut" }}
+                  className="flex gap-6 md:gap-8"
+                >
                   {/* Year bubble */}
                   <div className="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-white font-bold text-sm">
                     {item.year}
@@ -236,7 +289,7 @@ const AboutPage = () => {
                     <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
                     <p className="text-gray-400">{item.description}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -244,7 +297,13 @@ const AboutPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="py-20 relative overflow-hidden"
+      >
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-violet-500/10 to-purple-500/10" />
 
         <div className="max-w-4xl mx-auto px-6 text-center relative">
@@ -270,7 +329,7 @@ const AboutPage = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="border-t border-gray-800/50 py-8">

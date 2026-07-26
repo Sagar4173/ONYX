@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Tooltip } from "./components";
 
 describe("Tooltip", () => {
@@ -33,7 +33,7 @@ describe("Tooltip", () => {
     expect(screen.getByText("tooltip content")).toBeInTheDocument();
   });
 
-  it("on mouse leave, tooltip disappears", () => {
+  it("on mouse leave, tooltip disappears", async () => {
     render(
       <Tooltip content="tooltip content">
         <button>Hover me</button>
@@ -43,7 +43,9 @@ describe("Tooltip", () => {
     fireEvent.mouseEnter(wrapper);
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
     fireEvent.mouseLeave(wrapper);
-    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("tooltip")).not.toBeInTheDocument(), {
+      timeout: 1000,
+    });
   });
 
   it("position prop applies correct positioning classes", () => {

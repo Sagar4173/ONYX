@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ONYX — Wordmark</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #05080f;
+    min-height: 100vh;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #f9fafb;
+    padding: 3rem 2rem;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 0.25rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+  }
+  .section {
+    margin-bottom: 3rem;
+  }
+  .section-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.15);
+    margin-bottom: 1.25rem;
+  }
+
+  .showcase {
+    background: radial-gradient(ellipse at 50% 40%, #0a0318 0%, #05080f 70%);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 1.5rem;
+    padding: 4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .showcase::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    background: radial-gradient(circle at 50% 30%, rgba(0,229,255,0.03), transparent 60%);
+    pointer-events: none;
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .wordmark-gradient {
+    background: linear-gradient(135deg, #00e5ff 0%, #7c3aed 40%, #7c3aed 60%, #00e5ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .wordmark-white {
+    color: #f9fafb;
+  }
+
+  .wordmark-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.15em;
+  }
+
+  .sizes-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .size-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 1rem;
+    background: rgba(255,255,255,0.015);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.04);
+    text-align: center;
+  }
+  .size-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .variants-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .variant-card {
+    padding: 2rem 1rem;
+    background: rgba(255,255,255,0.015);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .variant-name {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* Dark showcase bg */
+  .dark-bg {
+    background: #ffffff;
+  }
+  .dark-bg .variant-name { color: rgba(0,0,0,0.3); }
+
+  .detail-row {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .detail-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.15);
+  }
+  .detail-value {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin: 2.5rem 0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ONYX Brand Identity</h1>
+  <h2>Primary Logo — Custom Wordmark</h2>
+
+  <!-- Primary showcase -->
+  <div class="section">
+    <div class="section-title">Primary Lockup — Gradient</div>
+    <div class="showcase">
+      <div class="wordmark" style="margin-bottom:0.5rem">
+        <!-- Custom faceted O icon -->
+        <svg width="64" height="64" viewBox="0 0 64 64" style="margin-right:12px;flex-shrink:0">
+          <defs>
+            <linearGradient id="og1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00e5ff"/>
+              <stop offset="50%" stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#00e5ff"/>
+            </linearGradient>
+            <linearGradient id="og2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0a0318"/>
+              <stop offset="100%" stop-color="#12062a"/>
+            </linearGradient>
+          </defs>
+          <!-- Outer ring -->
+          <circle cx="32" cy="32" r="30" fill="url(#og2)" stroke="url(#og1)" stroke-width="1.2"/>
+          <!-- Single facet cut - top right -->
+          <path d="M 48 16 L 52 20 L 46 26 Z" fill="rgba(0,229,255,0.08)" stroke="rgba(0,229,255,0.2)" stroke-width="0.5"/>
+          <!-- Inner ring -->
+          <circle cx="32" cy="32" r="22" fill="none" stroke="url(#og1)" stroke-width="0.3" opacity="0.15"/>
+          <!-- Subtle light rim top -->
+          <path d="M 10 22 A 26 26 0 0 1 54 22" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0.15"/>
+          <!-- Subtle violet rim bottom -->
+          <path d="M 14 42 A 26 26 0 0 0 50 42" fill="none" stroke="#7c3aed" stroke-width="0.8" opacity="0.1"/>
+          <!-- Core dot -->
+          <circle cx="32" cy="32" r="2" fill="#00e5ff" opacity="0.1"/>
+        </svg>
+        <span style="font-size:5rem;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.04em;background:linear-gradient(135deg,#00e5ff 0%,#7c3aed 40%,#7c3aed 60%,#00e5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ONYX</span>
+      </div>
+      <div style="font-size:0.7rem;font-weight:500;letter-spacing:0.3em;color:rgba(255,255,255,0.15);text-transform:uppercase;margin-top:0.25rem">Security Intelligence</div>
+    </div>
+  </div>
+
+  <!-- Variations -->
+  <div class="section">
+    <div class="section-title">Logo Variations</div>
+    <div class="variants-grid">
+      <div class="variant-card">
+        <div class="variant-name">Full Color / Icon + Wordmark</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="28" height="28" viewBox="0 0 64 64" style="flex-shrink:0">
+            <defs><linearGradient id="v1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
+            <circle cx="32" cy="32" r="30" fill="#0f0520" stroke="url(#v1)" stroke-width="1.2"/>
+            <path d="M 48 16 L 52 20 L 46 26 Z" fill="rgba(0,229,255,0.08)" stroke="rgba(0,229,255,0.2)" stroke-width="0.5"/>
+            <circle cx="32" cy="32" r="1.5" fill="#00e5ff" opacity="0.1"/>
+          </svg>
+          <span style="font-size:1.3rem;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.03em;background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ONYX</span>
+        </div>
+      </div>
+      <div class="variant-card">
+        <div class="variant-name">Icon Only / Favicon</div>
+        <svg width="40" height="40" viewBox="0 0 64 64">
+          <defs><linearGradient id="v2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
+          <circle cx="32" cy="32" r="30" fill="#0f0520" stroke="url(#v2)" stroke-width="1.2"/>
+          <path d="M 48 16 L 52 20 L 46 26 Z" fill="rgba(0,229,255,0.08)" stroke="rgba(0,229,255,0.2)" stroke-width="0.5"/>
+          <circle cx="32" cy="32" r="2" fill="#00e5ff" opacity="0.1"/>
+        </svg>
+      </div>
+      <div class="variant-card">
+        <div class="variant-name">Monochrome (White)</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="28" height="28" viewBox="0 0 64 64" style="flex-shrink:0">
+            <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.2"/>
+            <path d="M 48 16 L 52 20 L 46 26 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+            <circle cx="32" cy="32" r="1.5" fill="rgba(255,255,255,0.15)"/>
+          </svg>
+          <span style="font-size:1.3rem;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.03em;color:rgba(255,255,255,0.7)">ONYX</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scale test -->
+  <div class="section">
+    <div class="section-title">Scale Test</div>
+    <div class="sizes-grid">
+      <div class="size-card">
+        <div style="display:flex;align-items:center;gap:4px">
+          <svg width="12" height="12" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="30" fill="#0f0520" stroke="#00e5ff" stroke-width="1.5"/>
+          </svg>
+          <span style="font-size:0.6rem;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-0.02em;background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ONYX</span>
+        </div>
+        <span class="size-label">12px (Favicon)</span>
+      </div>
+      <div class="size-card">
+        <div style="display:flex;align-items:center;gap:5px">
+          <svg width="16" height="16" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="30" fill="#0f0520" stroke="#00e5ff" stroke-width="1.3"/>
+          </svg>
+          <span style="font-size:0.75rem;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-0.02em;background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ONYX</span>
+        </div>
+        <span class="size-label">16px (Tab)</span>
+      </div>
+      <div class="size-card">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="24" height="24" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="30" fill="#0f0520" stroke="#00e5ff" stroke-width="1.2"/>
+            <path d="M 48 16 L 52 20 L 46 26 Z" fill="rgba(0,229,255,0.08)" stroke="rgba(0,229,255,0.2)" stroke-width="0.5"/>
+          </svg>
+          <span style="font-size:1rem;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-0.03em;background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ONYX</span>
+        </div>
+        <span class="size-label">24px (Sidebar)</span>
+      </div>
+      <div class="size-card">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="32" height="32" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="30" fill="#0f0520" stroke="#00e5ff" stroke-width="1.2"/>
+            <path d="M 48 16 L 52 20 L 46 26 Z" fill="rgba(0,229,255,0.08)" stroke="rgba(0,229,255,0.2)" stroke-width="0.5"/>
+            <circle cx="32" cy="32" r="2" fill="#00e5ff" opacity="0.1"/>
+          </svg>
+          <span style="font-size:1.5rem;font-weight:700;font-family:'Inter',sans-serif;letter-spacing:-0.04em;background:linear-gradient(135deg,#00e5ff,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">ONYX</span>
+        </div>
+        <span class="size-label">32px (Header)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand details -->
+  <div class="section">
+    <div class="section-title">Brand Details</div>
+    <div class="detail-row">
+      <div class="detail-item">
+        <span class="detail-label">Logo</span>
+        <span class="detail-value">Custom wordmark + faceted ring icon</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Typography</span>
+        <span class="detail-value">Inter (system) — tight tracking</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Primary Gradient</span>
+        <span class="detail-value">#00e5ff → #7c3aed</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Signature</span>
+        <span class="detail-value">Single facet cut on top-right of O-ring</span>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Palette -->
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+      <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#05080f;border:1px solid rgba(255,255,255,0.08)"></div>
+      <span style="font-size:0.5rem;font-family:monospace;color:rgba(255,255,255,0.2)">#05080f</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+      <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#0a0318;border:1px solid rgba(255,255,255,0.08)"></div>
+      <span style="font-size:0.5rem;font-family:monospace;color:rgba(255,255,255,0.2)">#0a0318</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+      <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#0f0520;border:1px solid rgba(255,255,255,0.08)"></div>
+      <span style="font-size:0.5rem;font-family:monospace;color:rgba(255,255,255,0.2)">#0f0520</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+      <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#00e5ff;border:1px solid rgba(255,255,255,0.08)"></div>
+      <span style="font-size:0.5rem;font-family:monospace;color:rgba(255,255,255,0.2)">#00e5ff</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+      <div style="width:2.5rem;height:2.5rem;border-radius:0.5rem;background:#7c3aed;border:1px solid rgba(255,255,255,0.08)"></div>
+      <span style="font-size:0.5rem;font-family:monospace;color:rgba(255,255,255,0.2)">#7c3aed</span>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:1.5rem;font-size:0.7rem;color:rgba(255,255,255,0.15);line-height:1.6">
+    The logo is the wordmark ONYX in a custom gradient. The icon is a faceted ring — the "O" in ONYX — with a single precision cut.<br>
+    No shield. No hexagon. No cliché. Just the name, elevated.
+  </div>
+</div>
+</body>
+</html>
