@@ -4,6 +4,7 @@
  * Features: SPDX/CycloneDX support, vulnerability enrichment, export options
  */
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { FixedSizeList as List } from "react-window";
 import {
@@ -285,14 +286,28 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
   const vulnPackages = packages.filter((p) => p.vulnerabilities?.length > 0).length;
   const licenses = [...new Set(packages.map((p) => p.license).filter(Boolean))];
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.3 },
+    }),
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Software Bill of Materials</h2>
-          <p className="text-gray-400">Generate and view SBOM for your project</p>
-        </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Software Bill of Materials</h2>
+            <p className="text-gray-400">Generate and view SBOM for your project</p>
+          </div>
         <div className="flex items-center gap-2">
           {currentSBOM && (
             <>
@@ -319,12 +334,13 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
             </>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Generate Form */}
       {repositoryPath && (
-        <Card padding="lg">
-          <h3 className="font-medium text-white mb-4">Generate SBOM</h3>
+        <motion.div custom={1} variants={staggerVariants}>
+          <Card padding="lg">
+            <h3 className="font-medium text-white mb-4">Generate SBOM</h3>
           <div className="flex items-end gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -362,11 +378,13 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
             </button>
           </div>
         </Card>
+        </motion.div>
       )}
 
       {/* Format Info */}
       {formatsData?.formats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div custom={2} variants={staggerVariants}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {formatsData.formats.map((fmt) => (
             <div
               key={fmt.id}
@@ -397,17 +415,22 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
             </div>
           ))}
         </div>
+        </motion.div>
       )}
 
       {generateMutation.isError && (
-        <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400"
+        >
           <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
           Error generating SBOM: {generateMutation.error?.message}
         </div>
       )}
 
       {currentSBOM && (
-        <>
+        <motion.div custom={3} variants={staggerVariants}>
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
@@ -446,7 +469,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
                   <p className="text-sm text-gray-400">Unique Licenses</p>
                   <p className="text-2xl font-bold text-white">{licenses.length}</p>
                 </div>
-                <ShieldCheckIcon className="w-8 h-8 text-purple-500 opacity-50" />
+                <ShieldCheckIcon className="w-8 h-8 text-violet-500 opacity-50" />
               </div>
             </Card>
 
@@ -456,7 +479,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
                   <p className="text-sm text-gray-400">Format</p>
                   <p className="text-2xl font-bold text-white uppercase">{format}</p>
                 </div>
-                <CodeBracketIcon className="w-8 h-8 text-indigo-500 opacity-50" />
+                <CodeBracketIcon className="w-8 h-8 text-violet-500 opacity-50" />
               </div>
             </Card>
           </div>
@@ -578,19 +601,25 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
               </div>
             </div>
           </div>
-        </>
+        </motion.div>
       )}
 
       {!currentSBOM && !generateMutation.isPending && (
-        <div className="text-center py-12 bg-gray-800/30 rounded-xl">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          custom={4}
+          variants={staggerVariants}
+          className="text-center py-12 bg-gray-800/30 rounded-xl"
+        >
           <DocumentTextIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-400">No SBOM generated yet</p>
           {repositoryPath && (
             <p className="text-sm text-gray-400 mt-2">Click "Generate" to create an SBOM</p>
           )}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -4,6 +4,7 @@
  * Features: delta analysis, remediation tracking, regression detection
  */
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircleIcon,
@@ -147,7 +148,7 @@ const SummaryCard = ({ label, value, icon: Icon, color, description }) => {
   const colorClasses = {
     green: "bg-green-900/30 text-green-400 border-green-700/50",
     red: "bg-red-900/30 text-red-400 border-red-700/50",
-    purple: "bg-purple-900/30 text-purple-400 border-purple-700/50",
+    purple: "bg-violet-900/30 text-violet-400 border-violet-700/50",
     yellow: "bg-yellow-900/30 text-yellow-400 border-yellow-700/50",
     gray: "bg-gray-800/30 text-gray-400 border-gray-700/50",
     blue: "bg-cyan-900/30 text-cyan-400 border-cyan-700/50",
@@ -286,14 +287,28 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
 
   const filteredFindings = getFilteredFindings();
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.3 },
+    }),
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Scan Comparison</h2>
-          <p className="text-gray-400">Compare security scans to track remediation progress</p>
-        </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Scan Comparison</h2>
+            <p className="text-gray-400">Compare security scans to track remediation progress</p>
+          </div>
         <button
           onClick={() => refetch()}
           disabled={!selectedBaseScan || !selectedCompareScan}
@@ -303,10 +318,11 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
           Compare
         </button>
       </div>
+      </motion.div>
 
-      {/* Scan Selector */}
-      <Card padding="lg">
-        <div className="flex items-center gap-4">
+      <motion.div custom={1} variants={staggerVariants}>
+        <Card padding="lg">
+          <div className="flex items-center gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-200 mb-2">
               Base Scan (Older)
@@ -347,23 +363,38 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
             </select>
           </div>
         </div>
-      </Card>
+        </Card>
+      </motion.div>
 
-      {isLoading && (
-        <div className="flex items-center justify-center h-64">
-          <ArrowPathIcon className="w-8 h-8 text-cyan-500 animate-spin" />
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex items-center justify-center h-64"
+          >
+            <ArrowPathIcon className="w-8 h-8 text-cyan-500 animate-spin" />
+          </motion.div>
+        )}
 
-      {error && (
-        <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400">
+          {error && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400"
+          >
           <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
           Error comparing scans: {error.message}
-        </div>
-      )}
+        </motion.div>
+        )}
+      </AnimatePresence>
 
       {data.summary && (
-        <>
+        <motion.div custom={2} variants={staggerVariants}>
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <SummaryCard
@@ -582,16 +613,22 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
               Export Comparison Report
             </button>
           </div>
-        </>
+        </motion.div>
       )}
 
       {!data.summary && !isLoading && !error && (
-        <div className="text-center py-12 bg-gray-800/30 rounded-xl">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          custom={3}
+          variants={staggerVariants}
+          className="text-center py-12 bg-gray-800/30 rounded-xl"
+        >
           <ArrowsUpDownIcon className="w-12 h-12 text-gray-600 mx-auto mb-4" />
           <p className="text-gray-400">Select two scans to compare</p>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

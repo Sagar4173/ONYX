@@ -4,6 +4,7 @@
  * Features: severity trends, fix velocity, period comparison, projections
  */
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowTrendingUpIcon,
@@ -187,7 +188,7 @@ const SeverityTrendChart = ({ data }) => {
             <th className="pb-2 text-center text-yellow-600">Medium</th>
             <th className="pb-2 text-center text-cyan-600">Low</th>
             <th className="pb-2 text-center text-green-400">Fixed</th>
-            <th className="pb-2 text-center text-purple-600">New</th>
+            <th className="pb-2 text-center text-violet-400">New</th>
           </tr>
         </thead>
         <tbody>
@@ -220,7 +221,7 @@ const SeverityTrendChart = ({ data }) => {
                 {point.fixed > 0 && <span className="text-green-400">+{point.fixed}</span>}
               </td>
               <td className="py-2 text-center">
-                {point.new > 0 && <span className="text-purple-600">+{point.new}</span>}
+                {point.new > 0 && <span className="text-violet-400">+{point.new}</span>}
               </td>
             </tr>
           ))}
@@ -261,18 +262,26 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center h-64"
+      >
         <ArrowPathIcon className="w-8 h-8 text-cyan-500 animate-spin" />
-      </div>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400"
+      >
         <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
         Error loading trends data: {error.message}
-      </div>
+      </motion.div>
     );
   }
 
@@ -282,14 +291,28 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
   const charts = data.charts || {};
   const comparison = data.comparison || {};
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.3 },
+    }),
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Security Trends</h2>
-          <p className="text-gray-400">Track your security posture over time</p>
-        </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Security Trends</h2>
+            <p className="text-gray-400">Track your security posture over time</p>
+          </div>
         <div className="flex items-center gap-3">
           <select
             value={period}
@@ -308,9 +331,10 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           </button>
         </div>
       </div>
+      </motion.div>
 
-      {/* Score Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div custom={1} variants={staggerVariants}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-400">Security Score</p>
@@ -366,9 +390,10 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           trend={trends.fix_rate > 1 ? { direction: "improving" } : { direction: "degrading" }}
         />
       </div>
+      </motion.div>
 
-      {/* Severity Breakdown */}
-      <Card padding="lg">
+      <motion.div custom={2} variants={staggerVariants}>
+        <Card padding="lg">
         <h3 className="font-semibold text-white mb-4">Current Severity Breakdown</h3>
         <div className="grid grid-cols-5 gap-4">
           {[
@@ -413,9 +438,10 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           ))}
         </div>
       </Card>
+      </motion.div>
 
-      {/* Trend Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div custom={3} variants={staggerVariants}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Weekly Trends */}
         <Card padding="lg">
           <h3 className="font-semibold text-white mb-4">Weekly Severity Trends</h3>
@@ -448,7 +474,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
             <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <ShieldCheckIcon className="w-5 h-5 text-purple-500" />
+                <ShieldCheckIcon className="w-5 h-5 text-violet-500" />
                 <span className="text-gray-200">Coverage</span>
               </div>
               <span className="font-semibold">{((current.coverage || 0) * 100).toFixed(0)}%</span>
@@ -456,10 +482,10 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
 
             <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <ViewfinderCircleIcon className="w-5 h-5 text-indigo-500" />
+                <ViewfinderCircleIcon className="w-5 h-5 text-cyan-500" />
                 <span className="text-gray-200">Projected Score (30d)</span>
               </div>
-              <span className="font-semibold text-indigo-400">
+              <span className="font-semibold text-cyan-400">
                 {trends.projected_score_30d?.toFixed(0) || "N/A"}
               </span>
             </div>
@@ -476,10 +502,11 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
           </div>
         </Card>
       </div>
+      </motion.div>
 
-      {/* Period Comparison */}
       {comparison.current_period && (
-        <Card padding="lg">
+        <motion.div custom={4} variants={staggerVariants}>
+          <Card padding="lg">
           <h3 className="font-semibold text-white mb-4">Period-over-Period Comparison</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gray-800/30 rounded-lg">
@@ -534,11 +561,18 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             </div>
           )}
         </Card>
+        </motion.div>
       )}
 
       {/* Notable Changes */}
       {data.notable_changes && data.notable_changes.length > 0 && (
-        <div className="bg-cyan-900/30 border border-cyan-700/50 rounded-lg p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          custom={5}
+          variants={staggerVariants}
+          className="bg-cyan-900/30 border border-cyan-700/50 rounded-lg p-4"
+        >
           <h4 className="font-medium text-cyan-300 mb-2">Notable Changes</h4>
           <ul className="space-y-1">
             {data.notable_changes.map((change, index) => (
@@ -549,8 +583,9 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             ))}
           </ul>
         </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
