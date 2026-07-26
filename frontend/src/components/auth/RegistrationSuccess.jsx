@@ -201,7 +201,7 @@ export const RegistrationSuccess = ({ email, onSwitchToLogin, onResendVerificati
             Return to Login
           </button>
         </motion.div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
