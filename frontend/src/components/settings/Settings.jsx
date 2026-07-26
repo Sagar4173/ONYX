@@ -1,21 +1,37 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import {
   CogIcon,
   ShieldCheckIcon,
   BellIcon,
   ComputerDesktopIcon,
   DocumentTextIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth";
 import { Button } from "../../styles/components";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
+import ParticleBackground from "../projects/ParticleBackground";
 import SecurityTab from "./SecurityTab";
 import NotificationTab from "./NotificationTab";
 import ScanningTab from "./ScanningTab";
 import ApiTab from "./ApiTab";
 import SystemTab from "./SystemTab";
+
+const TABS = [
+  { key: "security", label: "Security", icon: ShieldCheckIcon },
+  { key: "notifications", label: "Notifications", icon: BellIcon },
+  { key: "scanning", label: "Scanning", icon: CogIcon },
+  { key: "api", label: "API & Integration", icon: DocumentTextIcon },
+  { key: "system", label: "System", icon: ComputerDesktopIcon },
+];
+
+const contentAnim = {
+  hidden: { opacity: 0, x: 10 },
+  show: { opacity: 1, x: 0 },
+};
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("security");
@@ -112,14 +128,6 @@ const Settings = () => {
     saveSettingsMutation.mutate(settings);
   };
 
-  const tabs = [
-    { key: "security", label: "Security", icon: ShieldCheckIcon },
-    { key: "notifications", label: "Notifications", icon: BellIcon },
-    { key: "scanning", label: "Scanning", icon: CogIcon },
-    { key: "api", label: "API & Integration", icon: DocumentTextIcon },
-    { key: "system", label: "System", icon: ComputerDesktopIcon },
-  ];
-
   const tabContent = {
     security: (
       <SecurityTab
@@ -137,52 +145,84 @@ const Settings = () => {
   };
 
   return (
-    <PageContainer>
-      <div className="max-w-7xl mx-auto">
-        <PageHeader
-          title="Settings"
-          description="Manage your account preferences and platform configuration"
-          icon={CogIcon}
-          breadcrumb={["Settings"]}
-        />
-
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="lg:w-64 flex-shrink-0">
-            <GlassCard noPadding className="p-2">
-              <nav className="space-y-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      activeTab === tab.key
-                        ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
-                        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </GlassCard>
-
-            <Button
-              onClick={handleSaveSettings}
-              disabled={saveSettingsMutation.isPending}
-              isLoading={saveSettingsMutation.isPending}
-              className="w-full mt-6 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200"
-            >
-              Save Settings
-            </Button>
-          </div>
-
-          <div className="flex-1">
-            <GlassCard>{tabContent[activeTab]}</GlassCard>
+    <div className="relative min-h-screen">
+      <ParticleBackground />
+      <PageContainer>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <PageHeader
+            title="Settings"
+            description="Manage your account preferences and platform configuration"
+            icon={CogIcon}
+            breadcrumb={["Settings"]}
+          />
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="lg:w-64 flex-shrink-0">
+              <GlassCard noPadding className="p-2 sticky top-8">
+                <nav className="space-y-1">
+                  {TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`relative w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+                          activeTab === tab.key
+                            ? "text-white"
+                            : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                        }`}
+                      >
+                        {activeTab === tab.key && (
+                          <motion.div
+                            layoutId="tab-indicator"
+                            className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-500 rounded-xl"
+                            initial={false}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                        <span className="relative z-10 flex items-center space-x-3">
+                          <Icon className="w-4 h-4" />
+                          <span>{tab.label}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </GlassCard>
+              <button
+                onClick={handleSaveSettings}
+                disabled={saveSettingsMutation.isPending}
+                className="w-full mt-6 inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+              >
+                {saveSettingsMutation.isPending ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" /> Saving...
+                  </>
+                ) : (
+                  "Save Settings"
+                )}
+              </button>
+            </div>
+            <div className="flex-1">
+              <GlassCard>
+                <motion.div
+                  key={activeTab}
+                  variants={contentAnim}
+                  initial="hidden"
+                  animate="show"
+                  transition={{ duration: 0.2 }}
+                >
+                  {tabContent[activeTab]}
+                </motion.div>
+              </GlassCard>
+            </div>
           </div>
         </div>
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </div>
   );
 };
 
