@@ -148,7 +148,7 @@ const SettingsTab = () => {
             Permanently remove this project and all associated scans, reports, and data.
           </p>
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-delete-modal"))}
+            onClick={() => document.dispatchEvent(new CustomEvent("open-delete-modal"))}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all"
           >
             Delete Project

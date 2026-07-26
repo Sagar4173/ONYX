@@ -5,21 +5,28 @@ import {
   ShieldCheckIcon,
   PlayIcon,
   StopIcon,
-  PencilIcon,
-  TrashIcon,
   ArrowPathIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { projectsAPI, reportsAPI } from "../../services/api";
 import { PageContainer, PageHeader } from "../../layouts";
-import ScanProgressBanner from "./ScanProgressBanner";
-import QuickStatsCards from "./QuickStatsCards";
-import ProjectOverviewTab from "./ProjectOverviewTab";
+import ProjectSidebar from "./ProjectSidebar";
+import ParticleBackground from "./ParticleBackground";
+import ScanPipeline from "./ScanPipeline";
+import LiveConsole from "./LiveConsole";
+import MetricsDashboard from "./MetricsDashboard";
+import OverviewTab from "./OverviewTab";
 import ScanHistoryTab from "./ScanHistoryTab";
-import ProjectSettingsTab from "./ProjectSettingsTab";
+import SettingsTab from "./SettingsTab";
 import EditProjectModal from "./EditProjectModal";
 import DeleteProjectModal from "./DeleteProjectModal";
+
+const TABS = [
+  { key: "overview", label: "Overview", icon: ShieldCheckIcon },
+  { key: "scans", label: "Scan History", icon: ArrowPathIcon },
+  { key: "settings", label: "Settings", icon: ArrowPathIcon },
+];
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
@@ -79,12 +86,16 @@ const ProjectDetails = () => {
     enabled: !!projectId,
   });
 
+  useEffect(() => {
+    const handler = () => setShowDeleteModal(true);
+    document.addEventListener("open-delete-modal", handler);
+    return () => document.removeEventListener("open-delete-modal", handler);
+  }, []);
+
   const pollScanStatus = useCallback(async () => {
     if (!activeScan?.scan_id || !isPolling) return;
-
     try {
       const status = await reportsAPI.getScanStatus(activeScan.scan_id);
-
       if (status) {
         setScanProgress(status.progress || 0);
         setActiveScan((prev) => ({
@@ -95,40 +106,35 @@ const ProjectDetails = () => {
           total_findings: status.total_findings,
           findings_by_severity: status.findings_by_severity,
         }));
-
         if (
           status.status === "completed" ||
           status.status === "failed" ||
           status.status === "cancelled"
         ) {
           setIsPolling(false);
-
           if (!hasShownCompletionToast.current) {
             hasShownCompletionToast.current = true;
             if (status.status === "completed") {
               const criticalHigh =
                 (status.findings_by_severity?.critical || 0) +
                 (status.findings_by_severity?.high || 0);
-              if (criticalHigh > 0) {
+              if (criticalHigh > 0)
                 toast.error(
-                  `🚨 Scan completed with ${criticalHigh} critical/high severity issues! Total: ${status.total_findings || 0} findings.`,
+                  `Scan completed with ${criticalHigh} critical/high severity issues! Total: ${status.total_findings || 0} findings.`,
                   { duration: 5000 }
                 );
-              } else if (status.total_findings > 0) {
+              else if (status.total_findings > 0)
                 toast.success(
-                  `✅ Scan completed! Found ${status.total_findings} findings (no critical/high issues).`,
+                  `Scan completed! Found ${status.total_findings} findings (no critical/high issues).`,
                   { duration: 4000 }
                 );
-              } else {
-                toast.success("🎉 Scan completed! No security issues found.", { duration: 4000 });
-              }
+              else toast.success("Scan completed! No security issues found.", { duration: 4000 });
             } else if (status.status === "cancelled") {
-              toast("Scan was cancelled.", { icon: "ℹ️" });
+              toast("Scan was cancelled.", { icon: "info" });
             } else {
               toast.error(status.error_message || "Scan failed.");
             }
           }
-
           const completedTime = new Date().toISOString();
           const finalProgress = status.status === "completed" ? 100 : status.progress || 0;
           setActiveScan((prev) => ({
@@ -145,7 +151,6 @@ const ProjectDetails = () => {
           }));
           setScanProgress(finalProgress);
           setScanCompleted(true);
-
           setTimeout(() => {
             queryClient.invalidateQueries({ queryKey: ["projectScans", projectId] });
             queryClient.invalidateQueries({ queryKey: ["project", projectId] });
@@ -198,24 +203,20 @@ const ProjectDetails = () => {
       setIsPolling(true);
       queryClient.invalidateQueries({ queryKey: ["projectScans", projectId] });
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to start scan");
-    },
+    onError: (error) => toast.error(error.message || "Failed to start scan"),
   });
 
   const stopScanMutation = useMutation({
     mutationFn: (scanId) => reportsAPI.stopScan(scanId),
     onSuccess: () => {
-      toast("Scan stopped.", { icon: "ℹ️" });
+      toast("Scan stopped.", { icon: "info" });
       setActiveScan(null);
       setScanProgress(0);
       setIsPolling(false);
       hasShownCompletionToast.current = false;
       queryClient.invalidateQueries({ queryKey: ["projectScans", projectId] });
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to stop scan");
-    },
+    onError: (error) => toast.error(error.message || "Failed to stop scan"),
   });
 
   const updateProjectMutation = useMutation({
@@ -225,9 +226,7 @@ const ProjectDetails = () => {
       queryClient.invalidateQueries({ queryKey: ["project", projectId] });
       setShowEditModal(false);
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to update project");
-    },
+    onError: (error) => toast.error(error.message || "Failed to update project"),
   });
 
   const deleteProjectMutation = useMutation({
@@ -238,9 +237,7 @@ const ProjectDetails = () => {
       queryClient.invalidateQueries({ queryKey: ["userProjects"] });
       navigate("/projects");
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to delete project");
-    },
+    onError: (error) => toast.error(error.message || "Failed to delete project"),
   });
 
   const handleStartScan = () => {
@@ -300,11 +297,9 @@ const ProjectDetails = () => {
       setTagInput("");
     }
   };
-
   const removeTag = (tagToRemove) => {
     setEditForm((prev) => ({ ...prev, tags: prev.tags.filter((tag) => tag !== tagToRemove) }));
   };
-
   const toggleScanner = (scanner) => {
     setEditForm((prev) => ({
       ...prev,
@@ -372,12 +367,12 @@ const ProjectDetails = () => {
             vulnCounts.low * 1)
       )
     : null;
+  const securityScore = liveSecurityScore ?? stats.security_score ?? 85;
 
   const runningScans =
     scanHistory?.reports?.filter(
       (r) => (r.status === "running" || r.status === "pending") && r.scan_id !== activeScan?.scan_id
     ) || [];
-
   const isScanActive =
     !scanCompleted &&
     ((activeScan &&
@@ -386,162 +381,165 @@ const ProjectDetails = () => {
       activeScan.status !== "cancelled") ||
       runningScans.length > 0);
 
-  const tabs = [
-    { key: "overview", label: "Overview", icon: ShieldCheckIcon },
-    { key: "scans", label: "Scan History", icon: ArrowPathIcon },
-    { key: "settings", label: "Settings", icon: PencilIcon },
-  ];
+  const liveScanData = {
+    activeScan,
+    scanProgress,
+    scanCompleted,
+    isScanActive,
+    isStopping: stopScanMutation.isPending,
+    isStarting: startScanMutation.isPending,
+    onStopScan: handleStopScan,
+    onStartScan: handleStartScan,
+    onDismiss: () => {
+      setActiveScan(null);
+      setScanCompleted(false);
+      setScanProgress(0);
+    },
+    onRunNewScan: () => {
+      setActiveScan(null);
+      setScanCompleted(false);
+      setScanProgress(0);
+      hasShownCompletionToast.current = false;
+      handleStartScan();
+    },
+  };
 
   return (
-    <PageContainer>
-      <div className="max-w-7xl mx-auto">
-        <PageHeader
-          title={project.name}
-          description={project.description || "No description provided"}
-          icon={ShieldCheckIcon}
-          breadcrumb={["Projects", project.name]}
-          actions={
-            <div className="flex items-center space-x-3">
-              {isScanActive ? (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleStopScan}
-                    disabled={stopScanMutation.isPending}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-rose-700 disabled:opacity-50 transition-all flex items-center space-x-2 animate-pulse focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                  >
-                    <StopIcon className="h-5 w-5" />
-                    <span>{stopScanMutation.isPending ? "Stopping..." : "Stop Scan"}</span>
-                  </button>
-                  <div className="px-4 py-2 bg-cyan-500/20 rounded-xl flex items-center space-x-2">
-                    <ArrowPathIcon className="h-4 w-4 text-cyan-400 animate-spin" />
-                    <span className="text-cyan-400 text-sm font-medium">
-                      {activeScan?.status === "running" ? "Scanning..." : "Pending..."}
-                    </span>
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+      <ParticleBackground />
+      <PageContainer>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <PageHeader
+            title={project.name}
+            description={project.description || "No description provided"}
+            icon={ShieldCheckIcon}
+            breadcrumb={["Projects", project.name]}
+            actions={
+              <div className="flex items-center space-x-3">
+                {isScanActive ? (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handleStopScan}
+                      disabled={stopScanMutation.isPending}
+                      className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-rose-700 disabled:opacity-50 transition-all flex items-center space-x-2 animate-pulse focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                    >
+                      <StopIcon className="h-5 w-5" />
+                      <span>{stopScanMutation.isPending ? "Stopping..." : "Stop Scan"}</span>
+                    </button>
+                    <div className="px-4 py-2 bg-cyan-500/20 rounded-xl flex items-center space-x-2">
+                      <ArrowPathIcon className="h-4 w-4 text-cyan-400 animate-spin" />
+                      <span className="text-cyan-400 text-sm font-medium">
+                        {activeScan?.status === "running" ? "Scanning..." : "Pending..."}
+                      </span>
+                    </div>
                   </div>
+                ) : (
+                  <button
+                    onClick={handleStartScan}
+                    disabled={startScanMutation.isPending}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center space-x-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                  >
+                    <PlayIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span>{startScanMutation.isPending ? "Starting..." : "Start Scan"}</span>
+                  </button>
+                )}
+              </div>
+            }
+          />
+
+          <ScanPipeline liveScanData={liveScanData} />
+
+          <MetricsDashboard
+            stats={stats}
+            vulnCounts={vulnCounts}
+            totalVulns={totalVulns}
+            liveSecurityScore={liveSecurityScore}
+            securityScore={securityScore}
+            scanCompleted={scanCompleted}
+          />
+
+          <LiveConsole liveScanData={liveScanData} />
+
+          <div className="flex space-x-6">
+            <ProjectSidebar
+              project={project}
+              vulnCounts={vulnCounts}
+              securityScore={securityScore}
+              isScanActive={isScanActive}
+              onEdit={openEditModal}
+              onDelete={() => setShowDeleteModal(true)}
+            />
+
+            <div className="flex-1 min-w-0">
+              <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl mb-6">
+                <div className="flex border-b border-gray-700/50">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                        activeTab === tab.key
+                          ? "text-cyan-400 border-b-2 border-cyan-400"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      <tab.icon className="h-4 w-4" />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <button
-                  onClick={handleStartScan}
-                  disabled={startScanMutation.isPending}
-                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all flex items-center space-x-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                >
-                  <PlayIcon className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                  <span>{startScanMutation.isPending ? "Starting..." : "Start Scan"}</span>
-                </button>
-              )}
-              <button
-                onClick={openEditModal}
-                className="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                title="Edit Project"
-              >
-                <PencilIcon className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="p-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/20 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-                title="Delete Project"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
+                <div className="p-6">
+                  {activeTab === "overview" && (
+                    <OverviewTab
+                      project={project}
+                      vulnCounts={vulnCounts}
+                      totalVulns={totalVulns}
+                      securityScore={securityScore}
+                    />
+                  )}
+                  {activeTab === "scans" && (
+                    <ScanHistoryTab
+                      scanHistory={scanHistory}
+                      scanHistoryLoading={scanHistoryLoading}
+                      onStartScan={handleStartScan}
+                      isStarting={startScanMutation.isPending}
+                    />
+                  )}
+                  {activeTab === "settings" && <SettingsTab />}
+                </div>
+              </div>
             </div>
-          }
-        />
-
-        <ScanProgressBanner
-          activeScan={activeScan}
-          scanCompleted={scanCompleted}
-          scanProgress={scanProgress}
-          projectName={project.name}
-          onStopScan={handleStopScan}
-          onDismiss={() => {
-            setActiveScan(null);
-            setScanCompleted(false);
-            setScanProgress(0);
-          }}
-          onRunNewScan={() => {
-            setActiveScan(null);
-            setScanCompleted(false);
-            setScanProgress(0);
-            hasShownCompletionToast.current = false;
-            handleStartScan();
-          }}
-          isStopping={stopScanMutation.isPending}
-          isStarting={startScanMutation.isPending}
-        />
-
-        <QuickStatsCards
-          stats={stats}
-          vulnCounts={vulnCounts}
-          totalVulns={totalVulns}
-          liveSecurityScore={liveSecurityScore}
-          scanCompleted={scanCompleted}
-          onStartScan={handleStartScan}
-          hasActiveScan={!!activeScan}
-          isStarting={startScanMutation.isPending}
-        />
-
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl mb-6">
-          <div className="flex border-b border-gray-700/50">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                  activeTab === tab.key
-                    ? "text-cyan-400 border-b-2 border-cyan-400"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                <tab.icon className="h-4 w-4" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
           </div>
-          <div className="p-6">
-            {activeTab === "overview" && (
-              <ProjectOverviewTab project={project} vulnCounts={vulnCounts} />
-            )}
-            {activeTab === "scans" && (
-              <ScanHistoryTab
-                scanHistory={scanHistory}
-                scanHistoryLoading={scanHistoryLoading}
-                onStartScan={handleStartScan}
-                isStarting={startScanMutation.isPending}
-              />
-            )}
-            {activeTab === "settings" && <ProjectSettingsTab />}
-          </div>
+
+          <EditProjectModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            editForm={editForm}
+            setEditForm={setEditForm}
+            tagInput={tagInput}
+            setTagInput={setTagInput}
+            onAddTag={addTag}
+            onRemoveTag={removeTag}
+            onToggleScanner={toggleScanner}
+            onSubmit={handleUpdateProject}
+            isPending={updateProjectMutation.isPending}
+          />
+          <DeleteProjectModal
+            isOpen={showDeleteModal}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setDeleteConfirmText("");
+            }}
+            projectName={project.name}
+            totalScans={stats.total_scans || 0}
+            deleteConfirmText={deleteConfirmText}
+            setDeleteConfirmText={setDeleteConfirmText}
+            onConfirm={handleDeleteProject}
+            isPending={deleteProjectMutation.isPending}
+          />
         </div>
-
-        <EditProjectModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          editForm={editForm}
-          setEditForm={setEditForm}
-          tagInput={tagInput}
-          setTagInput={setTagInput}
-          onAddTag={addTag}
-          onRemoveTag={removeTag}
-          onToggleScanner={toggleScanner}
-          onSubmit={handleUpdateProject}
-          isPending={updateProjectMutation.isPending}
-        />
-
-        <DeleteProjectModal
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setDeleteConfirmText("");
-          }}
-          projectName={project.name}
-          totalScans={stats.total_scans || 0}
-          deleteConfirmText={deleteConfirmText}
-          setDeleteConfirmText={setDeleteConfirmText}
-          onConfirm={handleDeleteProject}
-          isPending={deleteProjectMutation.isPending}
-        />
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </div>
   );
 };
 

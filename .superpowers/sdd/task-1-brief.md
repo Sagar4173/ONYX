@@ -1,60 +1,82 @@
-### Task 1: Clean up index.css — remove duplicate keyframes and CSS variables
+### Task 1: ParticleBackground.jsx
 
 **Files:**
-- Modify: `frontend/src/index.css:1-1097`
+- Create: `src/components/projects/ParticleBackground.jsx`
 
-- [ ] **Step 1: Remove CSS variable declarations from `:root` block**
+**Interface:**
+- Consumes: `isScanActive: boolean`
+- Produces: A CSS-only particle layer rendered as a fixed-position div behind all content
 
-In `frontend/src/index.css`, remove lines 6-20 (the `:root` block with CSS variables). These duplicate what's already in `tailwind.config.js` and `theme.js`.
+- [ ] **Step 1: Create the component**
 
-- [ ] **Step 2: Remove duplicate animation keyframes that exist in tailwind.config.js**
+```jsx
+const ParticleBackground = ({ isScanActive = false }) => {
+  const particleCount = 60;
+  const particles = useMemo(() => {
+    const p = [];
+    const isFast = isScanActive;
+    for (let i = 0; i < particleCount; i++) {
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const size = 1 + Math.random() * 2;
+      const drift = 8 + Math.random() * 12;
+      const sway = 12 + Math.random() * 8;
+      const delay = Math.random() * 10;
+      const isViolet = Math.random() > 0.6;
+      const color = isViolet ? 'rgba(139,92,246,0.12)' : 'rgba(6,182,212,0.15)';
+      p.push({ x, y, size, drift, sway, delay, color, isViolet });
+    }
+    return p;
+  }, [isScanActive]);
 
-In `frontend/src/index.css`, remove lines 128-218 (duplicate keyframes for `fadeInUp`, `slideInLeft`, `slideInRight`, `scaleIn`, `pulse`, `spin`, `bounce`, `shimmer`, `float`). These are already defined in `tailwind.config.js:108-161`.
-
-- [ ] **Step 3: Remove duplicate animation classes that duplicate tailwind config**
-
-In `frontend/src/index.css`, remove lines 220-276 (`.animate-fade-in-up`, `.animate-slide-in-left`, `.animate-scale-in`, `.animate-shimmer`, `.animate-glow`, `.animate-float` — these classes exist in tailwind's `extend.animation` already).
-
-Also remove lines 279-333 (the second set of keyframes: `fadeIn`, `bounce-subtle`, `pulse-subtle`, `shimmer-slide`, `float-gentle`).
-
-Also remove lines 475-484 (`.animate-fadeIn`, `.animate-bounce-subtle`, `.animate-pulse-subtle`).
-
-- [ ] **Step 4: Keep only these CSS-only utilities that have no JS counterpart**
-
-Keep:
-- `.glass` and `.glass-light` — these are global utility classes
-- `live-pulse`, `scanning-pulse` — status indicators
-- `status-dot`, `status-success`, `status-warning`, `status-error`, `status-info` — status indicators
-- `skeleton-card` — used in global context
-- `btn-primary`, `btn-secondary`, `btn-danger` — global button styles
-- `card`, `card-hover`, `card-glow` — global card styles
-- `progress-bar`, `progress-fill` — global progress styles
-- Loading states: `.skeleton`, `.loading-spinner`
-- Interactive: `.interactive`
-- Tooltip: `.tooltip` (CSS-only tooltip)
-- Scroll: `.scroll-smooth`, `.hide-scrollbar`
-- Focus: `.focus-ring`
-- All mobile/tablet responsive utilities
-- Print styles
-- Reduced motion
-- Page transition: `.page-enter`
-- Gradient text: `.gradient-text`
-
-Remove only these clearly duplicated classes:
-- `.animate-fade-in-up` — duplicate of tailwind `animate-fade-in-up`
-- `.animate-slide-in-left`, `.animate-scale-in`, `.animate-shimmer`, `.animate-glow`, `.animate-float` — duplicates
-- `.animate-stagger-1` through `.animate-stagger-8` — not used anywhere, duplicate concept
-- `.animate-fadeIn`, `.animate-bounce-subtle`, `.animate-pulse-subtle` — duplicates
-- All duplicate keyframes
-
-- [ ] **Step 5: Verify no breakage**
-
-Run: `cd frontend; npm run build`
-Expected: Build succeeds with no errors.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add frontend/src/index.css
-git commit -m "refactor: remove duplicate animations and CSS vars from index.css"
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+      {particles.map((p, i) => (
+        <div
+          key={i}
+          className={`absolute rounded-full ${isScanActive ? 'animate-particle-fast' : 'animate-particle-slow'}`}
+          style={{
+            left: `${p.x}%`, top: `${p.y}%`,
+            width: `${p.size}px`, height: `${p.size}px`,
+            backgroundColor: p.color,
+            animationDelay: `${p.delay}s`,
+            animationDuration: `${isScanActive ? p.drift * 0.5 : p.drift}s, ${isScanActive ? p.sway * 0.5 : p.sway}s`,
+            boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 ```
+
+- [ ] **Step 2: Add keyframe animations to index.css**
+
+```css
+/* In src/index.css */
+@keyframes particle-float-slow {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.4; }
+  25% { transform: translateY(-30px) translateX(15px); opacity: 0.8; }
+  50% { transform: translateY(-10px) translateX(-10px); opacity: 0.5; }
+  75% { transform: translateY(-40px) translateX(5px); opacity: 0.7; }
+}
+@keyframes particle-float-fast {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.6; }
+  25% { transform: translateY(-60px) translateX(30px); opacity: 1; }
+  50% { transform: translateY(-20px) translateX(-20px); opacity: 0.8; }
+  75% { transform: translateY(-80px) translateX(10px); opacity: 0.9; }
+}
+```
+
+```css
+.animate-particle-slow { animation: particle-float-slow var(--drift, 12s) ease-in-out infinite, particle-sway var(--sway, 15s) ease-in-out infinite; }
+.animate-particle-fast { animation: particle-float-fast calc(var(--drift, 12s) * 0.5) ease-in-out infinite, particle-sway calc(var(--sway, 15s) * 0.5) ease-in-out infinite; }
+```
+
+- [ ] **Step 3: Verify with lint**
+
+Run: `npx eslint src/components/projects/ParticleBackground.jsx`
+Expected: 0 errors, 0 warnings
+
+---
+

@@ -1,0 +1,138 @@
+4aa24be feat: add ParticleBackground CSS-only ambient particle effect
+
+ .../src/components/projects/ParticleBackground.jsx | 37 +++++++++++++
+ frontend/src/index.css                             | 64 ++++++++++++++++++++++
+ 2 files changed, 101 insertions(+)
+
+diff --git a/frontend/src/components/projects/ParticleBackground.jsx b/frontend/src/components/projects/ParticleBackground.jsx
+new file mode 100644
+index 0000000..9002692
+--- /dev/null
++++ b/frontend/src/components/projects/ParticleBackground.jsx
+@@ -0,0 +1,37 @@
++const PARTICLE_COUNT = 20;
++
++const ParticleBackground = ({ isScanActive }) => {
++  const particles = Array.from({ length: PARTICLE_COUNT }, (_, i) => {
++    const size = Math.random() * 4 + 2;
++    return {
++      id: i,
++      left: `${Math.random() * 100}%`,
++      top: `${Math.random() * 100}%`,
++      width: size,
++      height: size,
++      delay: `${Math.random() * 5}s`,
++      duration: `${Math.random() * 3 + (isScanActive ? 2 : 4)}s`,
++    };
++  });
++
++  return (
++    <div className="particle-bg" aria-hidden="true">
++      {particles.map((p) => (
++        <div
++          key={p.id}
++          className={`particle-dot ${isScanActive ? "particle-fast" : "particle-slow"}`}
++          style={{
++            left: p.left,
++            top: p.top,
++            width: `${p.width}px`,
++            height: `${p.height}px`,
++            animationDelay: p.delay,
++            animationDuration: p.duration,
++          }}
++        />
++      ))}
++    </div>
++  );
++};
++
++export default ParticleBackground;
+diff --git a/frontend/src/index.css b/frontend/src/index.css
+index 05a46ff..d7f8d67 100644
+--- a/frontend/src/index.css
++++ b/frontend/src/index.css
+@@ -602,20 +602,84 @@ body {
+ }
+ 
+ /* Dark mode enhancements */
+ @media (prefers-color-scheme: dark) {
+   .auto-dark {
+     background: #0a0e1a;
+     color: #f9fafb;
+   }
+ }
+ 
++/* =====================================================
++   PARTICLE BACKGROUND ANIMATIONS
++   ===================================================== */
++@keyframes particle-float-slow {
++  0%, 100% {
++    transform: translateY(0) translateX(0);
++    opacity: 0.3;
++  }
++  25% {
++    transform: translateY(-20px) translateX(10px);
++    opacity: 0.6;
++  }
++  50% {
++    transform: translateY(-10px) translateX(-10px);
++    opacity: 0.4;
++  }
++  75% {
++    transform: translateY(-30px) translateX(5px);
++    opacity: 0.7;
++  }
++}
++
++@keyframes particle-float-fast {
++  0%, 100% {
++    transform: translateY(0) translateX(0);
++    opacity: 0.4;
++  }
++  25% {
++    transform: translateY(-30px) translateX(15px);
++    opacity: 0.8;
++  }
++  50% {
++    transform: translateY(-15px) translateX(-15px);
++    opacity: 0.5;
++  }
++  75% {
++    transform: translateY(-40px) translateX(8px);
++    opacity: 0.9;
++  }
++}
++
++.particle-bg {
++  position: fixed;
++  inset: 0;
++  pointer-events: none;
++  overflow: hidden;
++  z-index: 0;
++}
++
++.particle-dot {
++  position: absolute;
++  border-radius: 50%;
++  background: radial-gradient(circle, rgba(6, 182, 212, 0.6), rgba(124, 58, 237, 0.3));
++  box-shadow: 0 0 6px rgba(6, 182, 212, 0.4), 0 0 12px rgba(124, 58, 237, 0.2);
++}
++
++.particle-slow {
++  animation: particle-float-slow ease-in-out infinite;
++}
++
++.particle-fast {
++  animation: particle-float-fast ease-in-out infinite;
++}
++
+ /* =====================================================
+    PRINT STYLES - Professional Report Output
+    ===================================================== */
+ @media print {
+   /* Reset backgrounds for printing */
+   * {
+     -webkit-print-color-adjust: exact !important;
+     print-color-adjust: exact !important;
+   }
+ 
