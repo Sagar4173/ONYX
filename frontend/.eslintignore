@@ -1,4 +1,4 @@
-dist/
-node_modules/
-*.md
+dist
+.eslintrc.cjs
+node_modules
 src/utils/pdfReportGenerator.js

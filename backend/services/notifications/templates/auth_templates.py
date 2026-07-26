@@ -116,7 +116,7 @@ def get_welcome_template() -> str:
         </h2>
         
         <p style="color: #94a3b8; font-size: 16px; line-height: 1.7; margin: 0 0 24px 0;">
-            Your account is now active and ready to secure your codebase. Let's explore what you can accomplish with ONYX Platform.
+            Your account is now active and ready to secure your codebase. Let's explore what you can accomplish with ONYX.
         </p>
         
         <!-- Get Started Button -->

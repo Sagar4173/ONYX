@@ -1,5 +1,5 @@
 /**
- * Enhanced Report Details Component - Comprehensive security report viewer
+ * Report Details Component - Comprehensive security report viewer
  * Unified Security Analysis & Compliance Report
  */
 import { useState, useRef } from "react";
@@ -34,7 +34,7 @@ import SecretDetectionSummary from "./SecretDetectionSummary";
 import FindingCard from "./FindingCard";
 import ScannerResultCard from "./ScannerResultCard";
 
-const EnhancedReportDetails = () => {
+const ReportDetails = () => {
   const { reportId } = useParams();
   const reportRef = useRef();
   const [_selectedFinding, _setSelectedFinding] = useState(null);
@@ -306,7 +306,11 @@ const EnhancedReportDetails = () => {
             breadcrumb={["Reports", report.project_name]}
             actions={
               <div className="flex items-center space-x-2">
-                <ExportDropdown reportId={reportId} />
+                <ExportDropdown
+                  reportId={reportId}
+                  onGeneratePDF={handleGenerateViewPDF}
+                  isGenerating={isGenerating}
+                />
 
                 {/* Primary PDF Download Button */}
                 <button
@@ -565,4 +569,4 @@ const EnhancedReportDetails = () => {
   );
 };
 
-export default EnhancedReportDetails;
+export default ReportDetails;

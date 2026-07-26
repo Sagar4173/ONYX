@@ -14,6 +14,11 @@ import {
   UserIcon,
   XMarkIcon,
   CommandLineIcon,
+  ShieldExclamationIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  BoltIcon,
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../components/auth";
 
@@ -48,7 +53,7 @@ const SearchBar = ({ onOpen }) => {
 /**
  * Notifications Dropdown
  */
-const NotificationsDropdown = ({ notifications = [], onClear }) => {
+const NotificationsDropdown = ({ notifications = [], onClear, onDismiss }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -62,7 +67,67 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Mark all as read when dropdown opens
+  useEffect(() => {
+    if (isOpen && notifications.length > 0) {
+      const hasUnread = notifications.some((n) => !n.read);
+      if (!hasUnread) return;
+      const markRead = setTimeout(() => {
+        notifications.forEach((n) => {
+          n.read = true;
+        });
+      }, 0);
+      return () => clearTimeout(markRead);
+    }
+  }, [isOpen, notifications]);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const relativeTime = (date) => {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(date).toLocaleDateString();
+  };
+
+  const getNotificationIcon = (notif) => {
+    if (notif.type === "security_alert") {
+      const sev = notif.severity;
+      if (sev === "critical" || sev === "high") {
+        return { icon: ShieldExclamationIcon, bg: "bg-red-500/20", color: "text-red-400" };
+      }
+      return { icon: ExclamationTriangleIcon, bg: "bg-amber-500/20", color: "text-amber-400" };
+    }
+    if (notif.type === "scan_update") {
+      const msg = notif.message || "";
+      if (msg.includes("completed"))
+        return { icon: CheckCircleIcon, bg: "bg-emerald-500/20", color: "text-emerald-400" };
+      if (msg.includes("failed"))
+        return { icon: XMarkIcon, bg: "bg-red-500/20", color: "text-red-400" };
+      if (msg.includes("started"))
+        return { icon: BoltIcon, bg: "bg-cyan-500/20", color: "text-cyan-400" };
+      return { icon: InformationCircleIcon, bg: "bg-blue-500/20", color: "text-blue-400" };
+    }
+    return { icon: InformationCircleIcon, bg: "bg-gray-500/20", color: "text-gray-400" };
+  };
+
+  const handleNotificationClick = (notif) => {
+    const { data } = notif;
+    const projectId = data?.project_id || data?.projectId;
+    const reportId = data?.report_id || data?.reportId;
+    if (projectId) {
+      window.location.href = `/project/${projectId}`;
+    } else if (reportId) {
+      window.location.href = `/report/${reportId}`;
+    }
+  };
+
+  const displayedNotifications = notifications.slice(0, 10);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -102,6 +167,11 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
                   <BellIcon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="font-semibold text-white text-base lg:text-lg">Notifications</h3>
+                {unreadCount > 0 && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
+                    {unreadCount}
+                  </span>
+                )}
               </div>
               {notifications.length > 0 && (
                 <button
@@ -113,30 +183,64 @@ const NotificationsDropdown = ({ notifications = [], onClear }) => {
               )}
             </div>
 
-            <div className="max-h-80 overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="px-5 py-12 text-center">
                   <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
                     <BellIcon className="w-8 h-8 text-gray-500" />
                   </div>
                   <p className="text-gray-400">No notifications yet</p>
+                  <p className="text-xs text-gray-600 mt-1">Real-time updates appear here</p>
                 </div>
               ) : (
-                <div className="p-2">
-                  {notifications.slice(0, 5).map((notif) => (
-                    <div
-                      key={notif.id}
-                      className="p-4 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer"
-                    >
-                      <p className="text-sm lg:text-base text-white">{notif.message}</p>
-                      <p className="text-xs lg:text-sm text-gray-500 mt-1">
-                        {new Date(notif.timestamp).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  ))}
+                <div className="py-1">
+                  {displayedNotifications.map((notif) => {
+                    const { icon: Icon, bg, color } = getNotificationIcon(notif);
+                    return (
+                      <div
+                        key={notif.id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`flex items-start gap-3 px-4 py-3 mx-1 rounded-xl transition-colors cursor-pointer
+                          ${notif.read ? "hover:bg-gray-800/30" : "bg-gray-800/20 hover:bg-gray-800/40"}
+                          ${notif.type === "security_alert" && !notif.read ? "border-l-2 border-red-500/50" : ""}`}
+                      >
+                        <div className={`p-2 rounded-lg shrink-0 ${bg} ${color}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm leading-snug ${notif.read ? "text-gray-400" : "text-white"}`}
+                          >
+                            {notif.message}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {relativeTime(notif.timestamp)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDismiss?.(notif.id);
+                          }}
+                          className="p-1 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-all shrink-0 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                          aria-label="Dismiss notification"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
+
+            {notifications.length > 10 && (
+              <div className="px-5 py-3 border-t border-gray-800/50 text-center">
+                <span className="text-xs text-gray-500">
+                  +{notifications.length - 10} more notifications
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -316,6 +420,7 @@ export default function Header({
   onMenuClick,
   notifications = [],
   onClearNotifications,
+  onDismissNotification = () => {},
   onProfileClick,
   onCommandPaletteOpen,
 }) {
@@ -343,7 +448,11 @@ export default function Header({
           <div className="hidden md:block">
             <SearchBar onOpen={onCommandPaletteOpen} />
           </div>
-          <NotificationsDropdown notifications={notifications} onClear={onClearNotifications} />
+          <NotificationsDropdown
+            notifications={notifications}
+            onClear={onClearNotifications}
+            onDismiss={onDismissNotification}
+          />
           <UserMenu onProfileClick={onProfileClick} />
         </div>
       </div>

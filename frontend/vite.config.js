@@ -73,7 +73,7 @@ export default defineConfig(({ mode }) => {
             if (id.includes("node_modules/framer-motion")) return "motion";
             if (id.includes("node_modules/@tanstack/react-query")) return "query";
             if (id.includes("node_modules/@headlessui") || id.includes("node_modules/@heroicons")) return "ui";
-            if (id.includes("EnhancedReportDetails") || id.includes("ReportCharts") || id.includes("AISection")) return "report-details";
+            if (id.includes("ReportDetails") || id.includes("ReportCharts") || id.includes("AISection")) return "report-details";
           },
         },
       },

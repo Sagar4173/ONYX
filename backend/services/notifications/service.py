@@ -143,7 +143,7 @@ class EmailService:
             message['Message-ID'] = make_msgid(domain=self.email_from.split('@')[-1] if '@' in self.email_from else 'onyx.local')
             message['Date'] = formatdate(localtime=True)
             message['Precedence'] = 'bulk'
-            message['X-Mailer'] = 'ONYX Platform'
+            message['X-Mailer'] = 'ONYX'
             message['Auto-Submitted'] = 'auto-generated'
             
             # List-Unsubscribe helps with Gmail spam classification
@@ -236,7 +236,7 @@ class EmailService:
             template = self.jinja_env.get_template('verification')
             html_body = template.render(
                 verification_url=verification_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(
@@ -257,7 +257,7 @@ class EmailService:
             template = self.jinja_env.get_template('password_reset')
             html_body = template.render(
                 reset_url=reset_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(
@@ -279,7 +279,7 @@ class EmailService:
             html_body = template.render(
                 user_name=user_name,
                 dashboard_url=dashboard_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(
@@ -611,7 +611,7 @@ class EmailService:
                 enabled_at=enabled_at,
                 device_info=device_info or "Unknown Device",
                 security_settings_url=security_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(
@@ -637,7 +637,7 @@ class EmailService:
                 ip_address=ip_address or "Unknown",
                 enable_2fa_url=enable_2fa_url,
                 secure_account_url=security_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(
@@ -662,7 +662,7 @@ class EmailService:
                 ip_address=ip_address or "Unknown",
                 remaining_codes=remaining_codes,
                 security_url=security_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(
@@ -687,7 +687,7 @@ class EmailService:
                 ip_address=ip_address or "Unknown",
                 device=device or "Unknown",
                 secure_account_url=security_url,
-                platform_name="ONYX Platform"
+                platform_name="ONYX"
             )
             
             return await self.send_email(

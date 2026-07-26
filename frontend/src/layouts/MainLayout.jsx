@@ -29,7 +29,7 @@ const NotFound = lazy(() => import("../pages/NotFound"));
 const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
 const ProjectManagement = lazy(() => import("../components/projects/ProjectManagement"));
 const ProjectDetails = lazy(() => import("../components/projects/ProjectDetails"));
-const EnhancedReportDetails = lazy(() => import("../components/reports/EnhancedReportDetails"));
+const ReportDetails = lazy(() => import("../components/reports/ReportDetails"));
 const AdvancedCompliance = lazy(() => import("../components/compliance/AdvancedCompliance"));
 const DataRetentionPolicies = lazy(() => import("../components/compliance/DataRetentionPolicies"));
 const UserManagement = lazy(() => import("../components/users/UserManagement"));
@@ -120,7 +120,7 @@ export const MainLayout = () => {
           timestamp: new Date(),
           data: scanData,
         },
-        ...prev.slice(0, 9),
+        ...prev.slice(0, 19),
       ]);
 
       // Toast for important updates
@@ -161,7 +161,7 @@ export const MainLayout = () => {
           data: alertData,
           severity: severity,
         },
-        ...prev.slice(0, 9),
+        ...prev.slice(0, 19),
       ]);
 
       // Show toast based on alert type
@@ -323,7 +323,7 @@ export const MainLayout = () => {
                   path="/report/:reportId"
                   element={
                     <ErrorBoundary>
-                      <EnhancedReportDetails />
+                      <ReportDetails />
                     </ErrorBoundary>
                   }
                 />

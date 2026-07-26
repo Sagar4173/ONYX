@@ -644,14 +644,14 @@ export const generatePDF = async (element, options = {}) => {
         align-items: center;
         padding: 20px;
         margin-bottom: 24px;
-        background: linear-gradient(135deg, #1e40af, #7c3aed);
+        background: linear-gradient(135deg, #00e5ff, #7c3aed);
         border-radius: 12px;
         color: white;
       `;
       header.innerHTML = `
         <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <span style="font-size: 24px;">🛡️</span>
+          <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #00e5ff, #7c3aed); border-radius: 12px; display: flex; align-items: center; justify-content: center; opacity: 0.9;">
+            <div style="width: 24px; height: 24px; border-radius: 50%; background: white; opacity: 0.3;"></div>
           </div>
           <div>
             <div style="font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">${title}</div>
@@ -728,7 +728,7 @@ export const generatePDF = async (element, options = {}) => {
           </div>
         </div>
         <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 10px; color: #94a3b8;">
-          <span>© ${new Date().getFullYear()} ONYX Security</span>
+          <span>© ${new Date().getFullYear()} ONYX Security Intelligence Platform</span>
           <span>|</span>
           <span>${confidential ? "🔒 Confidential Document" : "Security Report"}</span>
           <span>|</span>

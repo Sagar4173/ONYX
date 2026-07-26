@@ -59,12 +59,36 @@ def get_base_template(
                     
                     <!-- Header -->
                     <tr>
-                        <td style="background: {header_gradient}; background-color: #10b981; padding: 32px 24px; text-align: center; border-radius: 24px 24px 0 0;">
-                            <div style="font-size: 40px; margin-bottom: 12px;">{header_icon}</div>
-                            <h1 style="color: #ffffff; font-size: 24px; margin: 0; font-weight: 700; letter-spacing: -0.5px;">
-                                ONYX Platform
-                            </h1>
-                            <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 14px; font-weight: 500;">
+                        <td style="background: {header_gradient}; background-color: #0f172a; padding: 32px 24px; text-align: center; border-radius: 24px 24px 0 0;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto;">
+                                <tr>
+                                    <td style="padding-bottom: 12px;">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="width: 48px; height: 48px; background: linear-gradient(135deg, #00e5ff, #7c3aed); border-radius: 50%; text-align: center; vertical-align: middle;">
+                                                    <div style="width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.3); margin: 0 auto;"></div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <h1 style="color: #00e5ff; font-size: 26px; margin: 0; font-weight: 800; letter-spacing: 3px;">
+                                            ONYX
+                                        </h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 12px; font-weight: 500; letter-spacing: 1px;">
+                                            SECURITY INTELLIGENCE PLATFORM
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="font-size: 36px; margin-top: 16px;">{header_icon}</div>
+                            <p style="color: #cbd5e1; margin: 8px 0 0 0; font-size: 14px; font-weight: 500;">
                                 {header_subtitle}
                             </p>
                         </td>
@@ -82,7 +106,7 @@ def get_base_template(
                         <td style="background-color: #0f172a; padding: 32px; text-align: center; border-top: 1px solid #334155; border-radius: 0 0 24px 24px;">
                             {f'<p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">{footer_text}</p>' if footer_text else ''}
                             <p style="color: #64748b; font-size: 12px; margin: 0;">
-                                © {current_year} ONYX Platform. All rights reserved.
+                                © {current_year} ONYX Security Intelligence Platform. All rights reserved.
                             </p>
                             <p style="margin-top: 16px; margin-bottom: 0;">
                                 <a href="{base_url}/privacy-policy" style="color: #64748b; text-decoration: none; font-size: 12px;">Privacy Policy</a>
@@ -119,5 +143,6 @@ GRADIENTS = {
     "cyan": "linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)",
     "amber": "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
     "dark_red": "linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f97316 100%)",
-    "purple_blue": "linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%)"
+    "purple_blue": "linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%)",
+    "onyx": "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)"
 }
