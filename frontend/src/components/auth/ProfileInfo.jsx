@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   UserCircleIcon,
   EnvelopeIcon,
@@ -18,6 +19,15 @@ import {
   CommandLineIcon,
 } from "@heroicons/react/24/outline";
 
+const staggerVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.3 },
+  }),
+};
+
 export const ProfileInfo = ({
   user,
   securityScore,
@@ -35,13 +45,19 @@ export const ProfileInfo = ({
   timezones,
 }) => {
   return (
-    <div className="space-y-5 animate-fadeIn">
-      <div
-        className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-gray-700/50 group hover:border-indigo-500/20 transition-all duration-500"
-        onMouseEnter={() => setHoveredCard("security")}
-        onMouseLeave={() => setHoveredCard(null)}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-5"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div
+          className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-gray-800/40 to-gray-900/40 border border-gray-700/50 group hover:border-cyan-500/20 transition-all duration-500"
+          onMouseEnter={() => setHoveredCard("security")}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -68,9 +84,9 @@ export const ProfileInfo = ({
                 />
                 <defs>
                   <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="50%" stopColor="#a855f7" />
-                    <stop offset="100%" stopColor="#ec4899" />
+                    <stop offset="0%" stopColor="#22d3ee" />
+                    <stop offset="50%" stopColor="#8b5cf6" />
+                    <stop offset="100%" stopColor="#22d3ee" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -107,18 +123,19 @@ export const ProfileInfo = ({
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <motion.div custom={1} variants={staggerVariants}>
+        <div className="grid grid-cols-3 gap-3">
         {[
           {
             label: "Member Since",
             value: formatDate(user?.created_at)?.split(",")[0]?.split(" ")[0] || "N/A",
             icon: CalendarIcon,
-            gradient: "from-indigo-500/10 to-purple-500/10",
-            border: "border-indigo-500/20",
-            iconBg: "bg-indigo-500/20",
-            iconColor: "text-indigo-400",
+            gradient: "from-cyan-500/10 to-violet-500/10",
+            border: "border-cyan-500/20",
+            iconBg: "bg-cyan-500/20",
+            iconColor: "text-cyan-400",
           },
           {
             label: "Account Role",
@@ -155,12 +172,14 @@ export const ProfileInfo = ({
           </div>
         ))}
       </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="group bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-indigo-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-indigo-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
-              <UserCircleIcon className="h-4 w-4 text-indigo-400" />
+      <motion.div custom={2} variants={staggerVariants}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="group bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 bg-cyan-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <UserCircleIcon className="h-4 w-4 text-cyan-400" />
             </div>
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
               Username
@@ -195,18 +214,20 @@ export const ProfileInfo = ({
           <p className="text-white font-medium pl-9 truncate">{user?.email}</p>
         </div>
       </div>
+      </motion.div>
 
-      <div className="space-y-4">
-        <div className="group bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-purple-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5">
+      <motion.div custom={3} variants={staggerVariants}>
+        <div className="space-y-4">
+        <div className="group bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/5">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-purple-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
-              <UserCircleIcon className="h-4 w-4 text-purple-400" />
+            <div className="p-1.5 bg-cyan-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+              <UserCircleIcon className="h-4 w-4 text-cyan-400" />
             </div>
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
               Full Name
             </span>
             {isEditing && (
-              <span className="ml-auto text-xs text-indigo-400 animate-pulse">Editing...</span>
+              <span className="ml-auto text-xs text-cyan-400 animate-pulse">Editing...</span>
             )}
           </div>
           {isEditing ? (
@@ -215,7 +236,7 @@ export const ProfileInfo = ({
               name="full_name"
               value={formData.full_name}
               onChange={handleInputChange}
-              className="w-full pl-9 pr-4 py-2.5 bg-gray-900/70 border border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all duration-300"
+              className="w-full pl-9 pr-4 py-2.5 bg-gray-900/70 border border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30 transition-all duration-300"
               placeholder="Enter your full name"
             />
           ) : (
@@ -255,10 +276,10 @@ export const ProfileInfo = ({
             )}
           </div>
 
-          <div className="group bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-pink-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/5">
+          <div className="group bg-gray-800/30 hover:bg-gray-800/50 border border-gray-700/50 hover:border-violet-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5">
             <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 bg-pink-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                <CommandLineIcon className="h-4 w-4 text-pink-400" />
+              <div className="p-1.5 bg-violet-500/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <CommandLineIcon className="h-4 w-4 text-violet-400" />
               </div>
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                 Department
@@ -270,7 +291,7 @@ export const ProfileInfo = ({
                 name="department"
                 value={formData.department}
                 onChange={handleInputChange}
-                className="w-full pl-9 pr-4 py-2.5 bg-gray-900/70 border border-pink-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/30 transition-all duration-300"
+                className="w-full pl-9 pr-4 py-2.5 bg-gray-900/70 border border-violet-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 transition-all duration-300"
                 placeholder="Your department"
               />
             ) : (
@@ -345,14 +366,16 @@ export const ProfileInfo = ({
           </div>
         </div>
       </div>
+      </motion.div>
 
-      <div className="pt-5">
+      <motion.div custom={4} variants={staggerVariants}>
+        <div className="pt-5">
         {isEditing ? (
           <div className="flex gap-3">
             <button
               onClick={handleSaveProfile}
               disabled={isUpdating}
-              className="flex-1 py-3.5 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 group"
+              className="flex-1 py-3.5 px-6 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 group"
             >
               {isUpdating ? (
                 <>
@@ -376,7 +399,7 @@ export const ProfileInfo = ({
         ) : (
           <button
             onClick={() => setIsEditing(true)}
-            className="w-full py-4 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 flex items-center justify-center gap-3 group relative overflow-hidden"
+            className="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 flex items-center justify-center gap-3 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             <PencilIcon className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
@@ -385,6 +408,7 @@ export const ProfileInfo = ({
           </button>
         )}
       </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

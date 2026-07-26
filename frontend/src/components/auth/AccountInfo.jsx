@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -11,16 +12,31 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
+const staggerVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.3 },
+  }),
+};
+
 export const AccountInfo = ({ user, handleResendVerification, formatDate, formatDateTime }) => {
   return (
-    <div className="space-y-5 animate-fadeIn">
-      <div
-        className={`relative overflow-hidden rounded-2xl p-6 border transition-all duration-500 ${
-          user?.is_email_verified
-            ? "bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-teal-500/10 border-emerald-500/20"
-            : "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-yellow-500/10 border-amber-500/20"
-        }`}
-      >
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-5"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div
+          className={`relative overflow-hidden rounded-2xl p-6 border transition-all duration-500 ${
+            user?.is_email_verified
+              ? "bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-teal-500/10 border-emerald-500/20"
+              : "bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-yellow-500/10 border-amber-500/20"
+          }`}
+        >
         <div className="absolute inset-0 opacity-30">
           <div
             className={`absolute inset-0 ${user?.is_email_verified ? "bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.1),transparent_70%)]" : "bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.1),transparent_70%)]"}`}
@@ -62,9 +78,10 @@ export const AccountInfo = ({ user, handleResendVerification, formatDate, format
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <motion.div custom={1} variants={staggerVariants}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="group bg-gray-800/30 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-5 hover:bg-gray-800/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/5">
           <div className="flex items-center gap-3 mb-5">
             <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
@@ -84,19 +101,19 @@ export const AccountInfo = ({ user, handleResendVerification, formatDate, format
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-900/40 rounded-xl">
               <span className="text-gray-400 text-sm flex items-center gap-2">
-                <StarIcon className="h-4 w-4 text-indigo-400" /> Role
+                <StarIcon className="h-4 w-4 text-cyan-400" /> Role
               </span>
-              <span className="px-3 py-1.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-400 text-xs font-semibold rounded-lg border border-indigo-500/30 capitalize">
+              <span className="px-3 py-1.5 bg-gradient-to-r from-cyan-500/20 to-violet-500/20 text-cyan-400 text-xs font-semibold rounded-lg border border-cyan-500/30 capitalize">
                 {user?.role || "User"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="group bg-gray-800/30 border border-gray-700/50 hover:border-purple-500/30 rounded-2xl p-5 hover:bg-gray-800/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/5">
+        <div className="group bg-gray-800/30 border border-gray-700/50 hover:border-violet-500/30 rounded-2xl p-5 hover:bg-gray-800/50 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/5">
           <div className="flex items-center gap-3 mb-5">
-            <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
-              <ClockIcon className="h-6 w-6 text-purple-400" />
+            <div className="p-2.5 bg-gradient-to-br from-violet-500/20 to-cyan-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
+              <ClockIcon className="h-6 w-6 text-violet-400" />
             </div>
             <h4 className="text-white font-semibold text-lg">Activity</h4>
           </div>
@@ -118,6 +135,7 @@ export const AccountInfo = ({ user, handleResendVerification, formatDate, format
           </div>
         </div>
       </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
