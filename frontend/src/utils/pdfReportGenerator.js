@@ -618,8 +618,7 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
           `
           }
         </div>`;
-      `;
-
+    
     // ============ DETAILED FINDINGS ============
     const severityOrder = ["critical", "high", "medium", "low", "info"];
     const findingsBySeverity = {};
