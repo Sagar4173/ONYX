@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   LockClosedIcon,
   EyeIcon,
@@ -65,14 +66,42 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="p-10">
-      <div className="text-center mb-8">
+    <motion.div
+      className="p-10"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.04 } },
+      }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="text-center mb-8"
+      >
         <h2 className="text-3xl font-bold text-white mb-2">Create New Password</h2>
         <p className="text-sm text-gray-400">Enter a strong password for your account</p>
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
+      <motion.form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.04 } },
+        }}
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
             <LockClosedIcon className="w-4 h-4 text-cyan-400" />
             New Password
@@ -102,7 +131,11 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
             </button>
           </div>
           {formData.password && (
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-2 flex flex-wrap gap-x-4 gap-y-1"
+            >
               {[
                 { key: "length", label: "8+ characters" },
                 { key: "uppercase", label: "Uppercase" },
@@ -125,11 +158,16 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
                   </span>
                 </div>
               ))}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        <div>
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
             <LockClosedIcon className="w-4 h-4 text-violet-400" />
             Confirm New Password
@@ -166,21 +204,34 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
           {formData.confirm_password && formData.password !== formData.confirm_password && (
             <p className="mt-2 text-xs text-red-400">Passwords don't match</p>
           )}
-        </div>
+        </motion.div>
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          gradient
-          rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
-          isLoading={isLoading}
-          className="w-full"
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
         >
-          Reset Password
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            gradient
+            rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
+            isLoading={isLoading}
+            className="w-full"
+          >
+            Reset Password
+          </Button>
+        </motion.div>
+      </motion.form>
 
-      <div className="mt-8 text-center">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="mt-8 text-center"
+      >
         <button
           type="button"
           onClick={onSwitchToLogin}
@@ -188,7 +239,7 @@ export const ResetPasswordForm = ({ token, onSuccess, onSwitchToLogin }) => {
         >
           ← Back to sign in
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { EnvelopeIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { Button, Input } from "../../styles/components";
 import { useAuth } from "./AuthContext";
@@ -23,14 +24,42 @@ export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="p-10">
-      <div className="text-center mb-8">
+    <motion.div
+      className="p-10"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.04 } },
+      }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="text-center mb-8"
+      >
         <h2 className="text-3xl font-bold text-white mb-2">Reset Password</h2>
         <p className="text-sm text-gray-400">Enter your email to receive reset instructions</p>
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
+      <motion.form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.04 } },
+        }}
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
             <EnvelopeIcon className="w-4 h-4 text-cyan-400" />
             Email Address
@@ -44,21 +73,34 @@ export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {
             aria-required="true"
             autoComplete="email"
           />
-        </div>
+        </motion.div>
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          gradient
-          rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
-          isLoading={isLoading}
-          className="w-full"
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 8 },
+            visible: { opacity: 1, y: 0 },
+          }}
         >
-          Send Reset Link
-        </Button>
-      </form>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            gradient
+            rightIcon={isLoading ? undefined : <ArrowRightIcon className="w-5 h-5" />}
+            isLoading={isLoading}
+            className="w-full"
+          >
+            Send Reset Link
+          </Button>
+        </motion.div>
+      </motion.form>
 
-      <div className="mt-8 text-center">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 8 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="mt-8 text-center"
+      >
         <button
           type="button"
           onClick={onSwitchToLogin}
@@ -66,7 +108,7 @@ export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {
         >
           ← Back to sign in
         </button>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
