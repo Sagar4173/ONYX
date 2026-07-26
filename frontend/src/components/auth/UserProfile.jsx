@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ParticleBackground } from "../../styles/components";
 import {
   UserCircleIcon,
   PencilIcon,
@@ -107,7 +109,7 @@ export const UserProfile = ({ onClose }) => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
-    }, 200);
+    }, 300);
   };
 
   // ===== PROFILE HANDLERS =====
@@ -381,47 +383,35 @@ export const UserProfile = ({ onClose }) => {
   ];
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${isClosing ? "opacity-0" : "opacity-100"}`}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 backdrop-blur-xl"
-        onClick={handleClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <AnimatePresence>
+        {!isClosing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 backdrop-blur-xl"
+            onClick={handleClose}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full opacity-20 animate-float"
-            style={{
-              left: `${20 + i * 15}%`,
-              top: `${10 + i * 12}%`,
-              animationDelay: `${i * 0.5}s`,
-              animationDuration: `${4 + i}s`,
-            }}
-          />
-        ))}
-      </div>
+      <ParticleBackground />
 
       {/* Modal */}
-      <div
-        className={`relative w-full max-w-3xl max-h-[92vh] overflow-hidden bg-gradient-to-br from-gray-900/95 via-gray-900/98 to-gray-800/95 rounded-3xl shadow-2xl shadow-purple-500/10 border border-gray-700/50 transition-all duration-500 ${
-          isClosing ? "scale-95 opacity-0 translate-y-4" : "scale-100 opacity-100 translate-y-0"
-        }`}
-      >
+      <AnimatePresence>
+        {!isClosing && (
+          <motion.div
+            key="modal"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-3xl max-h-[92vh] overflow-hidden bg-gradient-to-br from-gray-900/95 via-gray-900/98 to-gray-800/95 rounded-3xl shadow-2xl shadow-cyan-500/10 border border-gray-700/50"
+          >
         {/* Animated Background Effects */}
-        <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-500/20 via-purple-500/15 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div
-            className="absolute -bottom-40 -right-40 w-80 h-80 bg-gradient-to-tl from-cyan-500/20 via-violet-500/15 to-transparent rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: "1s" }}
-          />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-radial from-purple-500/5 to-transparent rounded-full blur-3xl" />
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:60px_60px]" />
-        </div>
+        <ParticleBackground />
 
         {/* Header */}
         <div className="relative border-b border-gray-700/50 bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-sm">
@@ -530,17 +520,22 @@ export const UserProfile = ({ onClose }) => {
             {/* Tabs */}
             <div className="flex gap-1 mt-6 p-1.5 bg-gray-800/60 rounded-2xl backdrop-blur-sm border border-gray-700/50">
               {tabs.map((tab) => (
-                <button
+                <motion.button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 ${
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-colors duration-300 ${
                     activeTab === tab.key
                       ? "text-white"
                       : "text-gray-400 hover:text-gray-300 hover:bg-gray-700/50"
                   }`}
                 >
                   {activeTab === tab.key && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-xl border border-indigo-500/30 shadow-lg shadow-indigo-500/10" />
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-violet-500/20 to-pink-500/20 rounded-xl border border-cyan-500/30 shadow-lg shadow-violet-500/10"
+                    />
                   )}
                   <tab.icon
                     className={`h-4 w-4 relative z-10 transition-transform duration-300 ${activeTab === tab.key ? "scale-110" : ""}`}
@@ -549,57 +544,69 @@ export const UserProfile = ({ onClose }) => {
                   {tab.key === "security" && securityScore.score < 80 && (
                     <span className="relative z-10 w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                   )}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="relative overflow-y-auto max-h-[calc(92vh-220px)] p-6 scrollbar-thin scrollbar-thumb-indigo-500/30 scrollbar-track-transparent hover:scrollbar-thumb-indigo-500/50">
-          {/* Profile Tab */}
-          {activeTab === "profile" && (
-            <ProfileInfo
-              user={user}
-              securityScore={securityScore}
-              getSecurityScoreColor={getSecurityScoreColor}
-              setHoveredCard={_setHoveredCard}
-              isEditing={isEditing}
-              formData={formData}
-              handleInputChange={handleInputChange}
-              isUpdating={isUpdating}
-              handleSaveProfile={handleSaveProfile}
-              handleCancel={handleCancel}
-              setIsEditing={setIsEditing}
-              formatDate={formatDate}
-              formatDateTime={formatDateTime}
-              timezones={timezones}
-            />
-          )}
+        <div className="relative overflow-y-auto max-h-[calc(92vh-220px)] p-6 scrollbar-thin scrollbar-thumb-cyan-500/30 scrollbar-track-transparent hover:scrollbar-thumb-violet-500/50">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Profile Tab */}
+              {activeTab === "profile" && (
+                <ProfileInfo
+                  user={user}
+                  securityScore={securityScore}
+                  getSecurityScoreColor={getSecurityScoreColor}
+                  setHoveredCard={_setHoveredCard}
+                  isEditing={isEditing}
+                  formData={formData}
+                  handleInputChange={handleInputChange}
+                  isUpdating={isUpdating}
+                  handleSaveProfile={handleSaveProfile}
+                  handleCancel={handleCancel}
+                  setIsEditing={setIsEditing}
+                  formatDate={formatDate}
+                  formatDateTime={formatDateTime}
+                  timezones={timezones}
+                />
+              )}
 
-          {/* Account Tab */}
-          {activeTab === "account" && (
-            <AccountInfo
-              user={user}
-              handleResendVerification={handleResendVerification}
-              formatDate={formatDate}
-              formatDateTime={formatDateTime}
-            />
-          )}
+              {/* Account Tab */}
+              {activeTab === "account" && (
+                <AccountInfo
+                  user={user}
+                  handleResendVerification={handleResendVerification}
+                  formatDate={formatDate}
+                  formatDateTime={formatDateTime}
+                />
+              )}
 
-          {/* Security Tab */}
-          {activeTab === "security" && (
-            <SecuritySettings
-              securityScore={securityScore}
-              getSecurityScoreColor={getSecurityScoreColor}
-              onLogout={handleLogout}
-            />
-          )}
+              {/* Security Tab */}
+              {activeTab === "security" && (
+                <SecuritySettings
+                  securityScore={securityScore}
+                  getSecurityScoreColor={getSecurityScoreColor}
+                  onLogout={handleLogout}
+                />
+              )}
 
-          {/* Notifications Tab */}
-          {activeTab === "notifications" && <NotificationPreferences />}
+              {/* Notifications Tab */}
+              {activeTab === "notifications" && <NotificationPreferences />}
+            </motion.div>
+          </AnimatePresence>
         </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AvatarCropModal
         showAvatarModal={showAvatarModal}
