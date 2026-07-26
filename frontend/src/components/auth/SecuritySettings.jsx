@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   KeyIcon,
   ShieldCheckIcon,
@@ -243,10 +244,25 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
 
   const passwordStrength = getPasswordStrength(passwordData.new_password);
 
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.3 },
+    }),
+  };
+
   return (
-    <div className="space-y-5 animate-fadeIn">
-      <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5" />
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="space-y-5"
+      variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+    >
+      <motion.div custom={0} variants={staggerVariants}>
+        <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-cyan-500/5" />
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -279,13 +295,14 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-gray-800/30 border border-gray-700/50 hover:border-purple-500/30 rounded-2xl p-6 transition-all duration-300 group">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
-              <FingerPrintIcon className="h-6 w-6 text-purple-400" />
+      <motion.div custom={1} variants={staggerVariants}>
+        <div className="bg-gray-800/30 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-6 transition-all duration-300 group">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                <FingerPrintIcon className="h-6 w-6 text-cyan-400" />
             </div>
             <div>
               <h4 className="text-white font-semibold text-lg flex items-center gap-2">
@@ -332,19 +349,26 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             <button
               onClick={handleSetup2FA}
               disabled={processing2FA}
-              className="flex-shrink-0 px-4 py-2 text-sm text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50"
+              className="flex-shrink-0 px-4 py-2 text-sm text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50"
             >
               {processing2FA ? "Setting up..." : "Enable 2FA"}
             </button>
           )}
         </div>
 
-        {showTwoFactorSetup && twoFactorSetupData && (
-          <div className="mt-6 p-5 bg-gray-900/60 rounded-xl border border-purple-500/20">
-            <h5 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <QrCodeIcon className="h-5 w-5 text-purple-400" />
-              Setup Two-Factor Authentication
-            </h5>
+        <AnimatePresence>
+          {showTwoFactorSetup && twoFactorSetupData && (
+            <motion.div
+              key="2fa-setup"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-6 p-5 bg-gray-900/60 rounded-xl border border-cyan-500/20 overflow-hidden"
+            >
+              <h5 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <QrCodeIcon className="h-5 w-5 text-cyan-400" />
+                Setup Two-Factor Authentication
+              </h5>
             <div className="space-y-4">
               <div className="text-center">
                 <p className="text-gray-400 text-sm mb-3">
@@ -360,7 +384,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
               </div>
               <div className="text-center">
                 <p className="text-gray-400 text-xs mb-2">Or enter this secret manually:</p>
-                <code className="px-3 py-1.5 bg-gray-800 rounded text-sm text-purple-400 font-mono">
+                <code className="px-3 py-1.5 bg-gray-800 rounded text-sm text-cyan-400 font-mono">
                   {twoFactorSetupData.secret}
                 </code>
               </div>
@@ -386,7 +410,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-center text-2xl tracking-widest font-mono focus:outline-none focus:border-purple-500"
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-center text-2xl tracking-widest font-mono focus:outline-none focus:border-cyan-500"
                   maxLength={6}
                 />
               </div>
@@ -404,21 +428,29 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 <button
                   onClick={handleEnable2FA}
                   disabled={twoFactorCode.length !== 6 || processing2FA}
-                  className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-600 hover:to-violet-600 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processing2FA ? "Verifying..." : "Verify & Enable"}
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
-        {showTwoFactorDisable && (
-          <div className="mt-6 p-5 bg-gray-900/60 rounded-xl border border-red-500/20">
-            <h5 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <ShieldExclamationIcon className="h-5 w-5 text-red-400" />
-              Disable Two-Factor Authentication
-            </h5>
+        <AnimatePresence>
+          {showTwoFactorDisable && (
+            <motion.div
+              key="2fa-disable"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-6 p-5 bg-gray-900/60 rounded-xl border border-red-500/20 overflow-hidden"
+            >
+              <h5 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <ShieldExclamationIcon className="h-5 w-5 text-red-400" />
+                Disable Two-Factor Authentication
+              </h5>
             <div className="space-y-4">
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                 <p className="text-red-400 text-sm">
@@ -469,11 +501,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+        </AnimatePresence>
+      </motion.div>
 
-      <div className="bg-gray-800/30 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-6 transition-all duration-300">
+      <motion.div custom={2} variants={staggerVariants}>
+        <div className="bg-gray-800/30 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-6 transition-all duration-300">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl">
@@ -524,23 +558,23 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 key={session.id}
                 className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 ${
                   session.current
-                    ? "bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20"
+                    ? "bg-gradient-to-r from-cyan-500/10 to-violet-500/10 border border-cyan-500/20"
                     : "bg-gray-900/40 hover:bg-gray-900/60 border border-transparent"
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`p-2.5 rounded-xl ${session.current ? "bg-indigo-500/20" : "bg-gray-700/50"}`}
+                    className={`p-2.5 rounded-xl ${session.current ? "bg-cyan-500/20" : "bg-gray-700/50"}`}
                   >
                     {session.device?.toLowerCase().includes("iphone") ||
                     session.device?.toLowerCase().includes("android") ||
                     session.device?.toLowerCase().includes("mobile") ? (
                       <DevicePhoneMobileIcon
-                        className={`h-5 w-5 ${session.current ? "text-indigo-400" : "text-gray-400"}`}
+                        className={`h-5 w-5 ${session.current ? "text-cyan-400" : "text-gray-400"}`}
                       />
                     ) : (
                       <ComputerDesktopIcon
-                        className={`h-5 w-5 ${session.current ? "text-indigo-400" : "text-gray-400"}`}
+                        className={`h-5 w-5 ${session.current ? "text-cyan-400" : "text-gray-400"}`}
                       />
                     )}
                   </div>
@@ -585,12 +619,13 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             ))
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="bg-gray-800/30 border border-gray-700/50 hover:border-indigo-500/30 rounded-2xl p-6 transition-all duration-300">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl">
-            <LockClosedIcon className="h-6 w-6 text-indigo-400" />
+      <motion.div custom={3} variants={staggerVariants}>
+        <div className="bg-gray-800/30 border border-gray-700/50 hover:border-cyan-500/30 rounded-2xl p-6 transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl">
+              <LockClosedIcon className="h-6 w-6 text-cyan-400" />
           </div>
           <div>
             <h3 className="text-white font-semibold text-lg">Change Password</h3>
@@ -610,7 +645,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 name="current_password"
                 value={passwordData.current_password}
                 onChange={handlePasswordInputChange}
-                className="w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border border-gray-700 hover:border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
+                className="w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border border-gray-700 hover:border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
                 placeholder="Enter current password"
                 required
                 aria-required="true"
@@ -644,7 +679,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                 name="new_password"
                 value={passwordData.new_password}
                 onChange={handlePasswordInputChange}
-                className="w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border border-gray-700 hover:border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
+                className="w-full pl-4 pr-12 py-3.5 bg-gray-900/70 border border-gray-700 hover:border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
                 placeholder="Enter new password"
                 required
                 aria-required="true"
@@ -729,7 +764,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
                     : passwordData.confirm_password &&
                         passwordData.new_password === passwordData.confirm_password
                       ? "border-green-500 focus:border-green-500 focus:ring-green-500/20"
-                      : "border-gray-700 hover:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500/20"
+                      : "border-gray-700 hover:border-gray-600 focus:border-cyan-500 focus:ring-cyan-500/20"
                 }`}
                 placeholder="Confirm new password"
                 required
@@ -773,7 +808,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
               !passwordData.new_password ||
               passwordData.new_password !== passwordData.confirm_password
             }
-            className="w-full py-4 px-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 group relative overflow-hidden"
+            className="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 via-violet-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-cyan-600 hover:via-violet-600 hover:to-cyan-600 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             {isChangingPassword ? (
@@ -789,9 +824,10 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             )}
           </button>
         </form>
-      </div>
+      </motion.div>
 
-      <div className="bg-gradient-to-br from-red-500/10 via-rose-500/5 to-pink-500/10 border border-red-500/20 rounded-2xl p-6 group hover:border-red-500/40 transition-all duration-300">
+      <motion.div custom={4} variants={staggerVariants}>
+        <div className="bg-gradient-to-br from-red-500/10 via-rose-500/5 to-pink-500/10 border border-red-500/20 rounded-2xl p-6 group hover:border-red-500/40 transition-all duration-300">
         <div className="flex items-start gap-4">
           <div className="p-3 bg-gradient-to-br from-red-500/20 to-rose-500/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
             <ArrowRightOnRectangleIcon className="h-6 w-6 text-red-400" />
@@ -810,7 +846,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
