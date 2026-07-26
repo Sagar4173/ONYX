@@ -3,6 +3,7 @@
  * Authentication-related page components
  */
 import React from "react";
+import { motion } from "framer-motion";
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { PageTransition } from "../../styles/components";
@@ -74,19 +75,48 @@ export const PasswordResetPage = () => {
 
   if (!token) {
     return (
-      <div className="max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl mb-4">
-          <ExclamationTriangleIcon className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Invalid Reset Link</h2>
-        <p className="text-gray-400 mb-6">The password reset link is invalid or has expired.</p>
-        <button
-          onClick={handleSwitchToLogin}
-          className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-medium rounded-xl hover:from-cyan-600 hover:to-violet-700 transition-all"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md mx-auto bg-gray-800/50 backdrop-blur-xl rounded-2xl p-8 border border-gray-700/50 text-center"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl mb-4"
         >
-          Back to Login
-        </button>
-      </div>
+          <ExclamationTriangleIcon className="h-8 w-8 text-white" />
+        </motion.div>
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="text-2xl font-bold text-white mb-2"
+        >
+          Invalid Reset Link
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-gray-400 mb-6"
+        >
+          The password reset link is invalid or has expired.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <button
+            onClick={handleSwitchToLogin}
+            className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500 to-violet-600 text-white font-medium rounded-xl hover:from-cyan-600 hover:to-violet-700 transition-all"
+          >
+            Back to Login
+          </button>
+        </motion.div>
+      </motion.div>
     );
   }
 

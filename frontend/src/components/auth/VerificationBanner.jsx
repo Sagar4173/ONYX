@@ -3,6 +3,7 @@
  * Shows a persistent banner for unverified users prompting them to verify their email
  */
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ExclamationTriangleIcon,
   EnvelopeIcon,
@@ -19,8 +20,8 @@ export const VerificationBanner = () => {
   const [dismissed, setDismissed] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  // Don't show if user is verified or banner is dismissed
-  if (!user || user.is_email_verified || dismissed) {
+  // Don't show if user is verified
+  if (!user || user.is_email_verified) {
     return null;
   }
 
@@ -40,7 +41,16 @@ export const VerificationBanner = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-b border-amber-500/20">
+    <AnimatePresence>
+      {!dismissed && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
+        >
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-b border-amber-500/20">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -86,7 +96,9 @@ export const VerificationBanner = () => {
           </div>
         </div>
       </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
