@@ -16,8 +16,8 @@ Usage:
 """
 
 import logging
-from typing import Optional, Dict, Any
 from datetime import datetime, timezone
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -148,8 +148,8 @@ class ServiceRegistry:
         
         # Initialize Scan Orchestrator
         try:
-            from services.scanning.engine import ScanOrchestrator
             from services.scanning.base import ScanConfig
+            from services.scanning.engine import ScanOrchestrator
             config = ScanConfig(
                 max_concurrent_scans=3,
                 scan_timeout=1800,

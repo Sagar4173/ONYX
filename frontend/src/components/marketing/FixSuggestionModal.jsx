@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { ExclamationTriangleIcon, LockClosedIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { fixSuggestions } from "./landingPageData";
@@ -5,19 +6,27 @@ import { fixSuggestions } from "./landingPageData";
 const FixSuggestionModal = ({ type, onClose }) => {
   const navigate = useNavigate();
   const suggestion = fixSuggestions[type];
-  if (!suggestion) return null;
-
   const isSql = type === "sql";
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <AnimatePresence>
+      {suggestion && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -87,8 +96,10 @@ const FixSuggestionModal = ({ type, onClose }) => {
             Start Free Trial
           </button>
         </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

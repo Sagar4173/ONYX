@@ -6,29 +6,29 @@ Main orchestration engine for coordinating multiple security scanners.
 """
 
 import asyncio
-import uuid
-from typing import List, Dict, Any, Optional, Set
-from datetime import datetime, timezone
 import logging
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from utils.datetime_utils import utc_now
 
-from ..scanners import (
-    BaseScanner,
-    ZAPScanner,
-    NucleiScanner,
-    CodeQLScanner,
-    CheckovScanner,
-    BanditScanner,
-    SemgrepScanner,
-    TrivyScanner,
-    GitLeaksScanner,
-    SafetyScanner
-)
-from ..base.models import Finding, ScanResult, ScanMetrics, ScanType, Severity
 from ..base.config import ScanConfig
 from ..base.exceptions import ScannerError, ScanTimeoutError
+from ..base.models import Finding, ScanMetrics, ScanResult, ScanType, Severity
+from ..scanners import (
+    BanditScanner,
+    BaseScanner,
+    CheckovScanner,
+    CodeQLScanner,
+    GitLeaksScanner,
+    NucleiScanner,
+    SafetyScanner,
+    SemgrepScanner,
+    TrivyScanner,
+    ZAPScanner,
+)
 from .suppression import SuppressionEngine
 
 logger = logging.getLogger(__name__)

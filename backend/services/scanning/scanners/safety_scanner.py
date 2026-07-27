@@ -7,14 +7,13 @@ Python dependency vulnerability scanner using Safety.
 
 import asyncio
 import json
-from typing import List, Dict, Any, Optional
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from .base_scanner import BaseScanner
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import ScannerError
+from ..base.models import Finding, ScanType, Severity
+from .base_scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 

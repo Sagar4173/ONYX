@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useReducer, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
@@ -146,9 +147,22 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <motion.form
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.06 } },
+        }}
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
         {/* Basic Information */}
-        <fieldset>
+        <motion.fieldset
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <legend className="text-lg font-semibold text-white mb-4">Basic Information</legend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -213,10 +227,15 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
               ))}
             </select>
           </div>
-        </fieldset>
+        </motion.fieldset>
 
         {/* Repository Configuration */}
-        <fieldset>
+        <motion.fieldset
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <legend className="text-lg font-semibold text-white mb-4">Repository</legend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -262,10 +281,15 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
               />
             </div>
           </div>
-        </fieldset>
+        </motion.fieldset>
 
         {/* Security Scanners */}
-        <fieldset>
+        <motion.fieldset
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <legend className="text-lg font-semibold text-white mb-4">Security Scanners</legend>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {scanners.map((scanner) => {
@@ -287,10 +311,15 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
               );
             })}
           </div>
-        </fieldset>
+        </motion.fieldset>
 
         {/* Scan Config */}
-        <fieldset>
+        <motion.fieldset
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <legend className="text-lg font-semibold text-white mb-4">Scan Configuration</legend>
           <div className="space-y-4">
             <label className="flex items-center gap-3 cursor-pointer">
@@ -324,10 +353,15 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
               <span className="text-sm text-gray-300">Fail build on critical findings</span>
             </label>
           </div>
-        </fieldset>
+        </motion.fieldset>
 
         {/* Tags */}
-        <fieldset>
+        <motion.fieldset
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
           <legend className="text-lg font-semibold text-white mb-4">Tags</legend>
           <div className="flex items-center gap-2 mb-3">
             <input
@@ -366,7 +400,7 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
               ))}
             </div>
           )}
-        </fieldset>
+        </motion.fieldset>
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-700/50">
@@ -377,7 +411,7 @@ const ProjectForm = ({ isOpen, onClose, project, onSuccess }) => {
             {project ? "Save Changes" : "Create Project"}
           </Button>
         </div>
-      </form>
+      </motion.form>
     </Modal>
   );
 };

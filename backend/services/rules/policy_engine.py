@@ -1,26 +1,26 @@
 ﻿"""
 Policy as Code implementation for version-controlled security configurations
 """
-import os
-import yaml
 import json
-import asyncio
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
+
 
 # Helper function for timezone-aware UTC datetime
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
-from pydantic import BaseModel, Field, validator
-from git import Repo, InvalidGitRepositoryError
+from git import InvalidGitRepositoryError, Repo
 from motor.motor_asyncio import AsyncIOMotorCollection
+from pydantic import BaseModel, Field, validator
 
-from models.report import VulnerabilityFinding, SeverityLevel, ScanReport
 from database import db_manager
+from models.report import ScanReport, VulnerabilityFinding
 
 logger = logging.getLogger(__name__)
 
@@ -520,7 +520,7 @@ class PolicyAsCodeService:
                 'branch': branch,
                 'commit_hash': commit_hash,
                 'scan_id': scan_report.report_id,
-                'evaluated_at': utc_now()
+                'evaluated_at': _utc_now()
             })
         
         # Save violations
@@ -710,7 +710,7 @@ class PolicyAsCodeService:
             return {'error': 'Database not available'}
         
         # Get recent evaluations
-        since_date = utc_now() - timedelta(days=days)
+        since_date = _utc_now() - timedelta(days=days)
         cursor = self.evaluations_collection.find({
             'repository_url': repository_url,
             'branch': branch,

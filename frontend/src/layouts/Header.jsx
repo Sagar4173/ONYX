@@ -3,6 +3,7 @@
  * Matches the project's glass morphism and gradient design language
  */
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
   MagnifyingGlassIcon,
@@ -152,15 +153,19 @@ const NotificationsDropdown = ({ notifications = [], onClear, onDismiss }) => {
         )}
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-3 w-96">
-          {/* Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
-
-          <div
-            className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 
-                         rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up"
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute right-0 mt-3 w-96"
           >
+            {/* Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
+
+            <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800/50">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600">
@@ -242,8 +247,9 @@ const NotificationsDropdown = ({ notifications = [], onClear, onDismiss }) => {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -327,15 +333,19 @@ const UserMenu = ({ onProfileClick }) => {
         />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-3 w-72">
-          {/* Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
-
-          <div
-            className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 
-                         rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up"
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute right-0 mt-3 w-72"
           >
+            {/* Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
+
+            <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
             {/* User Info Header */}
             <div className="p-5 border-b border-gray-800/50">
               <div className="flex items-center gap-4">
@@ -407,8 +417,9 @@ const UserMenu = ({ onProfileClick }) => {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -425,7 +436,12 @@ export default function Header({
   onCommandPaletteOpen,
 }) {
   return (
-    <header className="sticky top-0 z-30">
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="sticky top-0 z-30"
+    >
       {/* Glass background */}
       <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50" />
 
@@ -456,6 +472,6 @@ export default function Header({
           <UserMenu onProfileClick={onProfileClick} />
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

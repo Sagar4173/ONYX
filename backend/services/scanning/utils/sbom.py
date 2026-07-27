@@ -3,17 +3,17 @@ SBOM (Software Bill of Materials) Generation Service
 Generates SPDX and CycloneDX format SBOMs for supply chain security
 Enterprise-grade compliance with industry standards
 """
-import asyncio
 import json
 import logging
-import hashlib
+import re
 import uuid
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field, asdict
 from enum import Enum
 from pathlib import Path
-import re
+from typing import Any, Dict, List, Optional
+
+from services.infrastructure.osv_nvd_integration import Ecosystem
 
 logger = logging.getLogger(__name__)
 
@@ -591,7 +591,7 @@ class SBOMGeneratorService:
     async def _enrich_vulnerabilities(self, components: List[Component]) -> List[Component]:
         """Enrich components with vulnerability data from OSV/NVD"""
         try:
-            from services.infrastructure.osv_nvd_integration import get_osv_nvd_service, PackageQuery, Ecosystem
+            from services.infrastructure.osv_nvd_integration import PackageQuery, get_osv_nvd_service
             
             service = await get_osv_nvd_service()
             
@@ -630,9 +630,8 @@ class SBOMGeneratorService:
         # For now, we'll leave licenses as parsed from lock files
         return components
 
-    def _purl_to_ecosystem(self, purl: Optional[str]) -> Optional["Ecosystem"]:
+    def _purl_to_ecosystem(self, purl: Optional[str]) -> Optional[Ecosystem]:
         """Convert Package URL to OSV ecosystem"""
-        from services.infrastructure.osv_nvd_integration import Ecosystem
         
         if not purl:
             return None

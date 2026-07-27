@@ -5,15 +5,14 @@ Base Scanner Abstract Class
 Defines the interface that all scanners must implement.
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
 import asyncio
 import logging
-import time
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List
 
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import ScannerError, ScanTimeoutError
+from ..base.exceptions import ScanTimeoutError
+from ..base.models import Finding, ScanType, Severity
 
 logger = logging.getLogger(__name__)
 

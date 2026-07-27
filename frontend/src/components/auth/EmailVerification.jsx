@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
-import { ParticleBackground } from "../../styles/components";
+import ParticleBackground from "../projects/ParticleBackground";
 import { authAPI } from "../../services/api";
 
 /**

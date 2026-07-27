@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SparklesIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { pricingPlans } from "../landingPageData";
@@ -6,7 +7,13 @@ const PricingSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="pricing" className="py-32 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      id="pricing"
+      className="py-32 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"
+    >
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
@@ -21,10 +28,21 @@ const PricingSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } },
+          }}
+          className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+        >
           {pricingPlans.map((plan) => (
-            <div
+            <motion.div
               key={plan.name}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
               className={`relative p-8 rounded-3xl transition-all ${
                 plan.popular
                   ? "bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-2 border-cyan-500/50 scale-105 shadow-2xl shadow-cyan-500/20"
@@ -64,11 +82,11 @@ const PricingSection = () => {
               >
                 {plan.cta}
               </button>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

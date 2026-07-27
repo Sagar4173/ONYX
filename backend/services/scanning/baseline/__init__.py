@@ -9,23 +9,22 @@ Components:
 - BaselineManager: Advanced baseline management with drift detection
 """
 
-from .scanner import (
-    BaselineScanningService,
-    BaselineFingerprint,
-    ScanBaseline,
-    SecurityDrift,
-    RegressionAlert,
-    ChangeType,
-    DriftSeverity,
-    baseline_service,
-)
-
 from .manager import (
+    BaselineDrift,
     BaselineManager,
+    BaselineStatus,
     SecurityBaseline,
     SecurityFinding,
-    BaselineDrift,
-    BaselineStatus,
+)
+from .scanner import (
+    BaselineFingerprint,
+    BaselineScanningService,
+    ChangeType,
+    DriftSeverity,
+    RegressionAlert,
+    ScanBaseline,
+    SecurityDrift,
+    baseline_service,
 )
 
 __all__ = [

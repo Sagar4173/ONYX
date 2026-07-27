@@ -9,15 +9,13 @@ Author: ONYX Platform
 Date: August 2025
 """
 
-import asyncio
-import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
 import statistics
 from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict
 
 from utils.datetime_utils import utc_now
 
@@ -340,7 +338,6 @@ class MetricsKPIEngine:
         metrics['sla_breach_rate'] = (breached / total * 100) if total > 0 else 0
         
         # Scan metrics (last 24 hours)
-        yesterday = target_date - timedelta(days=1)
         cursor.execute('''
             SELECT COUNT(*) FROM scan_metrics 
             WHERE DATE(created_date) = ?

@@ -5,20 +5,17 @@ Anomaly detection, behavioral analysis, threat hunting automation
 NOTE: This module uses SQLite for ML model storage.
 Future versions should migrate to MongoDB for consistency.
 """
-import asyncio
-import logging
 import json
-import sqlite3
-import numpy as np
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
-from pathlib import Path
-from dataclasses import dataclass, field
-import uuid
-import hashlib
+import logging
 import re
-from collections import defaultdict, Counter
+import sqlite3
 import statistics
+import uuid
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
 from models.base import AnomalyType, ThreatIndicator

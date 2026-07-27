@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ClockIcon, UserIcon, GlobeAltIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { EmptyState } from "../../layouts";
-import { getSeverityColor, getSeverityIcon, formatTimestamp } from "./auditHelpers";
+import { getSeverityColor, getSeverityIcon, formatTimestamp } from "./auditHelpers.jsx";
 import AuditPagination from "./AuditPagination";
 
 const AuditRow = ({ log, isExpanded, onToggle }) => (

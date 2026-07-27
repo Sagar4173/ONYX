@@ -7,14 +7,13 @@ Container and artifact vulnerability scanner using Trivy.
 
 import asyncio
 import json
-from typing import List, Dict, Any, Optional
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from .base_scanner import BaseScanner
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import ScannerError
+from ..base.models import Finding, ScanType, Severity
+from .base_scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 
@@ -362,7 +361,7 @@ class TrivyScanner(BaseScanner):
         if fixed_version:
             return f"Upgrade {pkg_name} to version {fixed_version} or later."
         else:
-            return f"No fix available yet. Consider using an alternative package or mitigating controls."
+            return "No fix available yet. Consider using an alternative package or mitigating controls."
     
     def _normalize_trivy_severity(self, trivy_severity: str) -> Severity:
         """Normalize Trivy severity to standard levels."""

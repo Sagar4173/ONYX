@@ -6,22 +6,21 @@ Handles email sending via SMTP with deliverability best practices:
 - DKIM/SPF aligned From address
 - Secure TLS connections
 """
-import asyncio
 import logging
-import smtplib
-import uuid
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
-from email.utils import formatdate, formataddr, make_msgid
-from typing import List, Optional, Dict, Any
-import ssl
 import re
-import aiosmtplib
+import ssl
 from datetime import datetime
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr, formatdate, make_msgid
+from typing import Any, Dict, List, Optional
+
+import aiosmtplib
 
 from config import settings
+
 from .templates import get_jinja_environment
 from .templates.base_template import SEVERITY_COLORS
 
@@ -214,8 +213,6 @@ class EmailService:
         try:
             filename = attachment.get('filename', 'attachment')
             content = attachment.get('content', b'')
-            content_type = attachment.get('content_type', 'application/octet-stream')
-            
             part = MIMEBase('application', 'octet-stream')
             part.set_payload(content)
             encoders.encode_base64(part)

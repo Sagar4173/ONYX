@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   ShieldCheckIcon,
   CheckCircleIcon,
@@ -13,8 +14,21 @@ export const ComplianceMapping = ({
   mapFindingToCompliance,
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-cyan-900/30 to-violet-900/30 border border-cyan-500/30">
+    <motion.div
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="glass-container rounded-xl p-6 bg-gradient-to-r from-cyan-900/30 to-violet-900/30 border border-cyan-500/30"
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -41,9 +55,15 @@ export const ComplianceMapping = ({
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div id="compliance-section">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        id="compliance-section"
+      >
         {selectedStandards.map((standardKey) => {
           const standard = COMPLIANCE_STANDARDS[standardKey];
           const allFindings = getFilteredFindings();
@@ -220,9 +240,15 @@ export const ComplianceMapping = ({
             </div>
           );
         })}
-      </div>
+      </motion.div>
 
-      <div className="glass-container rounded-xl p-6">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="glass-container rounded-xl p-6"
+      >
         <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <LightBulbIcon className="h-5 w-5 text-yellow-400" />
           Compliance Recommendations
@@ -293,7 +319,7 @@ export const ComplianceMapping = ({
             );
           })}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

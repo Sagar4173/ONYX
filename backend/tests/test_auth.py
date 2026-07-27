@@ -2,9 +2,9 @@
 Authentication Tests
 Tests for user authentication, registration, and token management
 """
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timezone
 
 
 class TestAuthEndpoints:
@@ -69,10 +69,10 @@ class TestAuthEndpoints:
         assert hashed != password
         
         # Should verify correctly
-        assert auth.verify_password(password, hashed) == True
+        assert auth.verify_password(password, hashed)
         
         # Wrong password should not verify
-        assert auth.verify_password("wrong_password", hashed) == False
+        assert not auth.verify_password("wrong_password", hashed)
 
 
 class TestUserRoles:

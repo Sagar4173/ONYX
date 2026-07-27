@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { GlassCard } from "../../layouts/UIComponents";
 
@@ -36,6 +37,11 @@ const ReportFilters = ({ filters, onFilterChange, sort, onSortChange, total }) =
   if (filters.status) activeFilters.push({ key: "status", label: `Status: ${filters.status}` });
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
     <GlassCard className="mb-6" noPadding>
       <div className="p-4 space-y-4">
         <div className="flex items-center gap-3">
@@ -117,6 +123,7 @@ const ReportFilters = ({ filters, onFilterChange, sort, onSortChange, total }) =
         )}
       </div>
     </GlassCard>
+    </motion.div>
   );
 };
 

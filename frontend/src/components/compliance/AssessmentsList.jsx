@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
@@ -12,7 +13,13 @@ const FrameworkResultCard = ({ result }) => {
   const isPassing = result.score >= 70;
 
   return (
-    <Card key={result.framework} className="bg-gray-800/30">
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, scale: 0.95 },
+        visible: { opacity: 1, scale: 1 },
+      }}
+    >
+      <Card className="bg-gray-800/30">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-xl">{frameworkInfo?.icon}</span>
         <span className="text-sm font-medium text-white">{frameworkInfo?.name}</span>
@@ -45,6 +52,7 @@ const FrameworkResultCard = ({ result }) => {
         </div>
       </div>
     </Card>
+    </motion.div>
   );
 };
 
@@ -58,7 +66,12 @@ const AssessmentsList = ({
 }) => {
   if (isError) {
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden"
+      >
         <div className="p-6 border-b border-gray-700/50">
           <h2 className="text-xl font-semibold text-white">Compliance Assessments</h2>
         </div>
@@ -75,27 +88,37 @@ const AssessmentsList = ({
             Try Again
           </button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden"
+      >
         <div className="p-6 border-b border-gray-700/50">
           <h2 className="text-xl font-semibold text-white">Compliance Assessments</h2>
         </div>
         <div className="p-12 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4" />
           <p className="text-gray-400">Loading assessments...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (!assessmentsData?.assessments?.length) {
     return (
-      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden"
+      >
         <div className="p-6 border-b border-gray-700/50">
           <h2 className="text-xl font-semibold text-white">Compliance Assessments</h2>
         </div>
@@ -104,18 +127,37 @@ const AssessmentsList = ({
           title="No assessments found"
           description="Create your first compliance assessment"
         />
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden"
+    >
       <div className="p-6 border-b border-gray-700/50">
         <h2 className="text-xl font-semibold text-white">Compliance Assessments</h2>
       </div>
-      <div className="divide-y divide-gray-700/50">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.06 } },
+        }}
+        className="divide-y divide-gray-700/50"
+      >
         {assessmentsData.assessments.map((assessment) => (
-          <div key={assessment.id} className="p-6 hover:bg-gray-800/30 transition-colors">
+          <motion.div
+            key={assessment.id}
+            variants={{
+              hidden: { opacity: 0, x: -10 },
+              visible: { opacity: 1, x: 0 },
+            }}
+            className="p-6 hover:bg-gray-800/30 transition-colors"
+          >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -159,10 +201,10 @@ const AssessmentsList = ({
                 <FrameworkResultCard key={result.framework} result={result} />
               ))}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

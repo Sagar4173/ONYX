@@ -2,21 +2,20 @@
 Rule Testing Framework with Mandatory Dry-Run Validation
 Tests security rules against known vulnerable repo corpus before production
 """
-import asyncio
-import logging
 import json
+import logging
 import sqlite3
-import git
-import tempfile
-import shutil
-import subprocess
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
-from pathlib import Path
-from dataclasses import dataclass, field
-import uuid
 import statistics
+import subprocess
+import tempfile
 import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import git
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
 from models.base import SeverityLevel, TestStatus

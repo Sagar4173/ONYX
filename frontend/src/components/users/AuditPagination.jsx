@@ -1,5 +1,12 @@
+import { motion } from "framer-motion";
+
 const AuditPagination = ({ page, setPage, limit, total }) => (
-  <div className="px-6 py-4 border-t border-gray-700/50 bg-gray-800/20 backdrop-blur-sm flex items-center justify-between">
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className="px-6 py-4 border-t border-gray-700/50 bg-gray-800/20 backdrop-blur-sm flex items-center justify-between"
+  >
     <p className="text-sm text-gray-400">
       Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} logs
     </p>
@@ -19,7 +26,7 @@ const AuditPagination = ({ page, setPage, limit, total }) => (
         Next
       </button>
     </div>
-  </div>
+  </motion.div>
 );
 
 export default AuditPagination;

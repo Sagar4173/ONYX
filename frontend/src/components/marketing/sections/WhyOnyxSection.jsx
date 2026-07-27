@@ -1,8 +1,15 @@
+import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/solid";
 import { platformHighlights } from "../landingPageData";
 
 const WhyOnyxSection = ({ currentTestimonial, setCurrentTestimonial }) => (
-  <section id="why-onyx" className="py-32 relative overflow-hidden">
+  <motion.section
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4 }}
+    id="why-onyx"
+    className="py-32 relative overflow-hidden"
+  >
     <div className="absolute inset-0 bg-gradient-to-b from-gray-950 via-gray-900/50 to-gray-950" />
     <div className="max-w-7xl mx-auto px-6 relative">
       <div className="text-center mb-16">
@@ -18,10 +25,21 @@ const WhyOnyxSection = ({ currentTestimonial, setCurrentTestimonial }) => (
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.1 } },
+        }}
+        className="grid md:grid-cols-3 gap-8"
+      >
         {platformHighlights.map((highlight, index) => (
-          <div
+          <motion.div
             key={highlight.title}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0 },
+            }}
             onClick={() => setCurrentTestimonial(index)}
             className={`relative p-8 rounded-3xl transition-all duration-500 cursor-pointer ${
               currentTestimonial === index
@@ -40,9 +58,9 @@ const WhyOnyxSection = ({ currentTestimonial, setCurrentTestimonial }) => (
             {currentTestimonial === index && (
               <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
             )}
-          </div>
+            </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <div className="flex justify-center gap-2 mt-8">
         {platformHighlights.map((_, index) => (
@@ -55,7 +73,7 @@ const WhyOnyxSection = ({ currentTestimonial, setCurrentTestimonial }) => (
         ))}
       </div>
     </div>
-  </section>
+  </motion.section>
 );
 
 export default WhyOnyxSection;

@@ -5,10 +5,9 @@ Installs and imports scipy and docker on-demand to save memory on free-tier host
 These packages are only loaded when specific features are requested by users.
 """
 
-import subprocess
-import logging
 import asyncio
-from typing import Optional, Any
+import logging
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -447,20 +448,54 @@ const ProjectDetails = () => {
             }
           />
 
-          <ScanPipeline liveScanData={liveScanData} />
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.08 } },
+            }}
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <ScanPipeline liveScanData={liveScanData} />
+            </motion.div>
 
-          <MetricsDashboard
-            stats={stats}
-            vulnCounts={vulnCounts}
-            totalVulns={totalVulns}
-            liveSecurityScore={liveSecurityScore}
-            securityScore={securityScore}
-            scanCompleted={scanCompleted}
-          />
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <MetricsDashboard
+                stats={stats}
+                vulnCounts={vulnCounts}
+                totalVulns={totalVulns}
+                liveSecurityScore={liveSecurityScore}
+                securityScore={securityScore}
+                scanCompleted={scanCompleted}
+              />
+            </motion.div>
 
-          <LiveConsole liveScanData={liveScanData} />
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <LiveConsole liveScanData={liveScanData} />
+            </motion.div>
 
-          <div className="flex space-x-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
+              <div className="flex space-x-6">
             <ProjectSidebar
               project={project}
               vulnCounts={vulnCounts}
@@ -510,6 +545,8 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
+            </motion.div>
+          </motion.div>
 
           <EditProjectModal
             isOpen={showEditModal}

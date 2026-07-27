@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Button, Modal } from "../../styles/components";
 import { frameworks } from "./complianceHelpers";
 
@@ -33,12 +34,16 @@ const CreateAssessmentModal = ({
     }
   >
     <form id="assessment-form" onSubmit={onSubmit} className="space-y-6">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <label className="block text-sm font-medium text-gray-300 mb-2">Select Project *</label>
         <select
           value={formData.project_id}
           onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
-          className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none cursor-pointer"
+          className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 appearance-none cursor-pointer"
           required
         >
           <option value="" disabled>
@@ -56,37 +61,55 @@ const CreateAssessmentModal = ({
             No projects found. Create a project first to run compliance assessments.
           </p>
         )}
-      </div>
+      </motion.div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.1 }}
+      >
         <label className="block text-sm font-medium text-gray-300 mb-3">Select Frameworks *</label>
-        <div className="grid grid-cols-2 gap-3">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.04 } },
+          }}
+          className="grid grid-cols-2 gap-3"
+        >
           {frameworks.map((framework) => (
-            <button
+            <motion.div
               key={framework.id}
-              type="button"
-              onClick={() => {
-                const newFrameworks = formData.frameworks.includes(framework.id)
-                  ? formData.frameworks.filter((f) => f !== framework.id)
-                  : [...formData.frameworks, framework.id];
-                setFormData({ ...formData, frameworks: newFrameworks });
+              variants={{
+                hidden: { opacity: 0, scale: 0.95 },
+                visible: { opacity: 1, scale: 1 },
               }}
-              className={`p-4 border rounded-xl text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                formData.frameworks.includes(framework.id)
-                  ? `bg-gradient-to-r ${framework.color} border-transparent`
-                  : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
-              }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{framework.icon}</span>
-                <span className="font-medium text-white">{framework.name}</span>
-              </div>
-              <p className="text-xs text-gray-300 opacity-80">{framework.description}</p>
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const newFrameworks = formData.frameworks.includes(framework.id)
+                    ? formData.frameworks.filter((f) => f !== framework.id)
+                    : [...formData.frameworks, framework.id];
+                  setFormData({ ...formData, frameworks: newFrameworks });
+                }}
+                className={`w-full p-4 border rounded-xl text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                  formData.frameworks.includes(framework.id)
+                    ? `bg-gradient-to-r ${framework.color} border-transparent`
+                    : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">{framework.icon}</span>
+                  <span className="font-medium text-white">{framework.name}</span>
+                </div>
+                <p className="text-xs text-gray-300 opacity-80">{framework.description}</p>
+              </button>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         <p className="mt-2 text-sm text-gray-400">Select at least one framework for assessment</p>
-      </div>
+      </motion.div>
     </form>
   </Modal>
 );

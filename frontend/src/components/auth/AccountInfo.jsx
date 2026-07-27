@@ -78,6 +78,7 @@ export const AccountInfo = ({ user, handleResendVerification, formatDate, format
             )}
           </div>
         </div>
+      </div>
       </motion.div>
 
       <motion.div custom={1} variants={staggerVariants}>

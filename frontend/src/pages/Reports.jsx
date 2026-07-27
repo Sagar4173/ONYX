@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -95,24 +96,46 @@ const Reports = () => {
         }
       />
 
-      <ReportFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        sort={sort}
-        onSortChange={handleSortChange}
-        total={paginationInfo.total}
-      />
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.08 } },
+        }}
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <ReportFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            sort={sort}
+            onSortChange={handleSortChange}
+            total={paginationInfo.total}
+          />
+        </motion.div>
 
-      <ReportList
-        reports={reports}
-        pagination={paginationInfo}
-        onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
-        onPerPageChange={(perPage) => setPagination((prev) => ({ ...prev, perPage, page: 1 }))}
-        isLoading={isLoading}
-        error={error}
-        onRetry={refetch}
-        viewMode={viewMode}
-      />
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <ReportList
+            reports={reports}
+            pagination={paginationInfo}
+            onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+            onPerPageChange={(perPage) => setPagination((prev) => ({ ...prev, perPage, page: 1 }))}
+            isLoading={isLoading}
+            error={error}
+            onRetry={refetch}
+            viewMode={viewMode}
+          />
+        </motion.div>
+      </motion.div>
     </PageContainer>
   );
 };

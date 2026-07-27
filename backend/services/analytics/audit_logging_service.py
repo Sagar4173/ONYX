@@ -2,13 +2,14 @@
 Audit Logging Service
 Comprehensive audit trail for user actions, system events, and compliance reporting
 """
-import structlog
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional
-from enum import Enum
-from pymongo import ASCENDING, DESCENDING
 import hashlib
 import json
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import structlog
+from pymongo import ASCENDING, DESCENDING
 
 from utils.datetime_utils import utc_now
 

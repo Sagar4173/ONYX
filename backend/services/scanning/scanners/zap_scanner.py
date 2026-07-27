@@ -16,18 +16,15 @@ To implement full DAST support:
 """
 
 import asyncio
-import json
-import uuid
-from typing import List, Dict, Any, Optional
-from urllib.parse import urlparse
-from pathlib import Path
-import tempfile
 import logging
+import uuid
+from typing import List
+from urllib.parse import urlparse
 
-from .base_scanner import BaseScanner
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import TargetNotAllowedError, ScannerError
+from ..base.exceptions import TargetNotAllowedError
+from ..base.models import Finding, ScanType, Severity
+from .base_scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 
@@ -157,18 +154,7 @@ class ZAPScanner(BaseScanner):
     
     async def _configure_zap(self):
         """Configure ZAP scanning options."""
-        base_url = f"http://localhost:{self.proxy_port}"
-        
         # Set global exclusions
-        excluded_urls = [
-            ".*logout.*",
-            ".*\\.css",
-            ".*\\.js",
-            ".*\\.gif",
-            ".*\\.jpg",
-            ".*\\.png",
-            ".*\\.ico"
-        ]
         
         # FUTURE: Configure via ZAP API (requires ZAP installation and API integration)
         logger.debug("ZAP configured (placeholder)")

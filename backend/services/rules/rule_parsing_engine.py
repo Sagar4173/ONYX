@@ -2,25 +2,24 @@
 Advanced Rule Parsing Engine with Schema Validation and Safety Checks
 Validates custom security rules with strict schema enforcement and regex safety analysis
 """
-import json
-import yaml
-import re
-import logging
-import sqlite3
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Set, Tuple
-from pathlib import Path
-from dataclasses import dataclass, field
-import uuid
-import hashlib
-import jsonschema
 import ast
-import subprocess
+import json
+import logging
+import re
+import sqlite3
 import time
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import jsonschema
+import yaml
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
-from models.base import RuleFormat, ValidationSeverity, RuleStatus
-from services.security.security_boundary_engine import SecurityBoundaryEngine, ResourceLimits
+from models.base import RuleFormat, RuleStatus, ValidationSeverity
+from services.security.security_boundary_engine import ResourceLimits, SecurityBoundaryEngine
 
 logger = logging.getLogger(__name__)
 

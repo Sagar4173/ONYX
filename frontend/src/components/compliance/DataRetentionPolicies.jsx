@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, ArchiveBoxIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
@@ -149,9 +150,22 @@ const DataRetentionPolicies = () => {
           }
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.06 } },
+          }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
+        >
           {isError ? (
-            <div className="col-span-2 p-12 text-center">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1 },
+              }}
+              className="col-span-2 p-12 text-center"
+            >
               <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20 mb-4">
                 <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
               </div>
@@ -163,34 +177,53 @@ const DataRetentionPolicies = () => {
               >
                 Try Again
               </button>
-            </div>
+            </motion.div>
           ) : isLoading ? (
-            <div className="col-span-2 p-12 text-center">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1 },
+              }}
+              className="col-span-2 p-12 text-center"
+            >
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4" />
               <p className="text-gray-400">Loading retention policies...</p>
-            </div>
+            </motion.div>
           ) : !policiesData?.policies?.length ? (
-            <div className="col-span-2">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1 },
+              }}
+              className="col-span-2"
+            >
               <EmptyState
                 icon={<ArchiveBoxIcon className="h-12 w-12" />}
                 title="No retention policies found"
                 description="Create your first policy to get started"
               />
-            </div>
+            </motion.div>
           ) : (
             policiesData.policies.map((policy) => (
-              <RetentionPolicyCard
+              <motion.div
                 key={policy.id}
-                policy={policy}
-                onExecute={handleExecute}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                isExecuting={executePolicyMutation.isPending}
-                isDeleting={deletePolicyMutation.isPending}
-              />
+                variants={{
+                  hidden: { opacity: 0, y: 15 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
+                <RetentionPolicyCard
+                  policy={policy}
+                  onExecute={handleExecute}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  isExecuting={executePolicyMutation.isPending}
+                  isDeleting={deletePolicyMutation.isPending}
+                />
+              </motion.div>
             ))
           )}
-        </div>
+        </motion.div>
 
         <RetentionFormModal
           isOpen={showCreateModal}

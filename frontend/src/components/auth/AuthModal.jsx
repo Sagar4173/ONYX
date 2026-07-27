@@ -14,7 +14,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthContext";
 import { OnyxLogo } from "../common";
-import { ParticleBackground } from "../../styles/components";
+import ParticleBackground from "../projects/ParticleBackground";
 import { LoginForm } from "./LoginForm";
 import { RegisterForm } from "./RegisterForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";

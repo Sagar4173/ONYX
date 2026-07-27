@@ -3,9 +3,8 @@ Notification Service for Security Scanning Platform
 Handles sending notifications for scan events and security alerts
 """
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from utils.datetime_utils import utc_now
 

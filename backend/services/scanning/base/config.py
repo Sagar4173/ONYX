@@ -5,12 +5,12 @@ Configuration Classes for Security Scanning
 Contains configuration dataclasses and Pydantic models for scanner settings.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 from .models import ScannerType, ScanSeverity
-
 
 # =============================================================================
 # Dataclass Configuration (for internal use)

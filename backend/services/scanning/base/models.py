@@ -9,20 +9,24 @@ IMPORTANT: The canonical enum definitions are in models.base.
 This file re-exports them for convenience within the scanning package.
 """
 
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, field, asdict
-from pydantic import BaseModel, Field
 import logging
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 # Import canonical enums from models.base (single source of truth)
 from models.base import (
     ScannerType,
-    SeverityLevel as ScanSeverity,
-    SeverityLevel as Severity,  # Alias for backward compatibility
-    ScanStatus,
     ScanType,
     utc_now,
+)
+from models.base import (
+    SeverityLevel as ScanSeverity,
+)
+from models.base import (
+    SeverityLevel as Severity,  # Alias for backward compatibility
 )
 
 logger = logging.getLogger(__name__)

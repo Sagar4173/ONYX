@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
   XMarkIcon,
@@ -396,7 +397,17 @@ const EditProjectModal = ({
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
           <form id="edit-project-form" onSubmit={onSubmit} className="space-y-8">
-            {renderTab()}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15 }}
+              >
+                {renderTab()}
+              </motion.div>
+            </AnimatePresence>
           </form>
         </div>
         <div className="lg:col-span-2">

@@ -18,17 +18,17 @@ Available Scanners:
 - SafetyScanner: Safety Python dependency vulnerability scanner
 """
 
-from .base_scanner import BaseScanner
-from .real_scanner import RealSecurityScanner
-from .zap_scanner import ZAPScanner
-from .nuclei_scanner import NucleiScanner
-from .codeql_scanner import CodeQLScanner
-from .checkov_scanner import CheckovScanner
 from .bandit_scanner import BanditScanner
+from .base_scanner import BaseScanner
+from .checkov_scanner import CheckovScanner
+from .codeql_scanner import CodeQLScanner
+from .gitleaks_scanner import GitLeaksScanner
+from .nuclei_scanner import NucleiScanner
+from .real_scanner import RealSecurityScanner
+from .safety_scanner import SafetyScanner
 from .semgrep_scanner import SemgrepScanner
 from .trivy_scanner import TrivyScanner
-from .gitleaks_scanner import GitLeaksScanner
-from .safety_scanner import SafetyScanner
+from .zap_scanner import ZAPScanner
 
 __all__ = [
     # Base class

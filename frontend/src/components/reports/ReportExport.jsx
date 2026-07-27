@@ -1,8 +1,11 @@
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowDownTrayIcon,
   PrinterIcon,
   DocumentTextIcon,
   ChevronDownIcon,
+  DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
@@ -44,7 +47,6 @@ export const downloadReport = async (format = "json", reportId) => {
     toast.error(error.message || "Failed to download report. Please try again.", {
       id: "download",
     });
-    console.error("Download error:", error);
   }
 };
 
@@ -53,52 +55,103 @@ export const printReport = () => {
   window.print();
 };
 
+const menuItems = [
+  { label: "PDF Report", icon: DocumentArrowDownIcon, action: "pdf", shortcut: "⌘P" },
+  { label: "JSON Data", icon: DocumentTextIcon, action: "json", shortcut: "⌘J" },
+  { label: "CSV Spreadsheet", icon: DocumentTextIcon, action: "csv", shortcut: "⌘C" },
+  { label: "Print Report", icon: PrinterIcon, action: "print", shortcut: "⌘↑" },
+];
+
 export const ExportDropdown = ({ reportId, onGeneratePDF, isGenerating }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAction = (action) => {
+    setIsOpen(false);
+    if (action === "print") {
+      printReport();
+    } else if (action === "pdf") {
+      onGeneratePDF();
+    } else {
+      downloadReport(action, reportId);
+    }
+  };
+
   return (
-    <div className="relative group" role="menu" aria-label="Export options">
-      <button
+    <div className="relative" ref={dropdownRef}>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="true"
-        aria-expanded="false"
-        className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm flex items-center gap-2 transition-all border border-gray-700/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+        aria-expanded={isOpen}
+        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold text-sm shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
       >
-        <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
+        <ArrowDownTrayIcon className="h-4 w-4" />
         Export
-        <ChevronDownIcon className="h-3 w-3" aria-hidden="true" />
-      </button>
-      <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700/50 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-10">
-        <div className="p-2">
-          <button
-            onClick={onGeneratePDF}
-            disabled={isGenerating}
-            role="menuitem"
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-50"
+        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDownIcon className="h-3 w-3" />
+        </motion.span>
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-gray-700/50 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50"
           >
-            <DocumentTextIcon className="h-4 w-4" aria-hidden="true" />{" "}
-            {isGenerating ? "Generating..." : "PDF Report"}
-          </button>
-          <button
-            onClick={() => downloadReport("json", reportId)}
-            role="menuitem"
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-          >
-            <DocumentTextIcon className="h-4 w-4" aria-hidden="true" /> JSON Data
-          </button>
-          <button
-            onClick={() => downloadReport("csv", reportId)}
-            role="menuitem"
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-          >
-            <DocumentTextIcon className="h-4 w-4" aria-hidden="true" /> CSV Spreadsheet
-          </button>
-          <button
-            onClick={printReport}
-            role="menuitem"
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-          >
-            <PrinterIcon className="h-4 w-4" aria-hidden="true" /> Print Report
-          </button>
-        </div>
-      </div>
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: { transition: { staggerChildren: 0.03 } },
+              }}
+              className="p-1.5"
+            >
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isPDF = item.action === "pdf";
+                return (
+                  <motion.button
+                    key={item.action}
+                    variants={{
+                      hidden: { opacity: 0, x: -8 },
+                      visible: { opacity: 1, x: 0 },
+                    }}
+                    onClick={() => handleAction(item.action)}
+                    disabled={isPDF && isGenerating}
+                    role="menuitem"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-cyan-500/10 hover:via-violet-500/10 hover:to-cyan-500/10 rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <div className="p-1 rounded-md bg-gray-800/50">
+                      <Icon className="h-4 w-4 text-cyan-400" />
+                    </div>
+                    <span className="flex-1 text-left">
+                      {isPDF && isGenerating ? "Generating..." : item.label}
+                    </span>
+                    {item.shortcut && (
+                      <span className="text-[10px] text-gray-600 font-mono">{item.shortcut}</span>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

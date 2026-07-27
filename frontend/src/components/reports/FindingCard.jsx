@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   InformationCircleIcon,
   ExclamationTriangleIcon,
@@ -16,8 +17,11 @@ const FindingCard = ({ finding, index }) => {
     finding.title?.toLowerCase().includes("credential");
 
   return (
-    <div
+    <motion.div
       key={index}
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.3 }}
       className={`glass-container rounded-xl p-6 ${
         isSecretFinding && !isLikelyReal
           ? "border-l-4 border-l-cyan-500 bg-cyan-900/10"
@@ -124,7 +128,7 @@ const FindingCard = ({ finding, index }) => {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { CommandLineIcon } from "@heroicons/react/24/outline";
 import { scanners } from "../landingPageData";
@@ -22,7 +23,10 @@ const ScannersSection = ({ activeTab, setActiveTab }) => {
   );
 
   return (
-    <section
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
       id="scanners"
       className="py-32 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950"
     >
@@ -40,30 +44,55 @@ const ScannersSection = ({ activeTab, setActiveTab }) => {
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.04 } },
+          }}
+          className="flex flex-wrap justify-center gap-3 mb-12"
+        >
           {tabs.map((tab) => (
-            <button
+            <motion.div
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                activeTab === tab.id
-                  ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
-                  : "bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-800 hover:text-white"
-              }`}
+              variants={{
+                hidden: { opacity: 0, y: -5 },
+                visible: { opacity: 1, y: 0 },
+              }}
             >
-              {tab.label} <span className="ml-1 text-xs opacity-60">({tab.count})</span>
-            </button>
+              <button
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                  activeTab === tab.id
+                    ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
+                    : "bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-800 hover:text-white"
+                }`}
+              >
+                {tab.label} <span className="ml-1 text-xs opacity-60">({tab.count})</span>
+              </button>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.06 } },
+          }}
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {filteredScanners.map((scanner) => (
-            <div
+            <motion.div
               key={scanner.name}
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
               className="group p-6 rounded-2xl bg-gray-900/50 border border-gray-800/50 hover:border-violet-500/30 hover:bg-gray-800/50 transition-all hover:transform hover:-translate-y-1"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center text-3xl">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 flex items-center justify-center text-3xl">
                   {scanner.icon}
                 </div>
                 <div>
@@ -75,9 +104,9 @@ const ScannersSection = ({ activeTab, setActiveTab }) => {
               </div>
               <p className="text-sm text-gray-300 font-medium mb-2">{scanner.description}</p>
               <p className="text-sm text-gray-500 leading-relaxed">{scanner.what}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {activeTab === "all" && (
           <div className="text-center mt-8">
@@ -87,7 +116,7 @@ const ScannersSection = ({ activeTab, setActiveTab }) => {
           </div>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 };
 

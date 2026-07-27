@@ -2,6 +2,7 @@
  * Privacy Policy Page - ONYX Security Platform
  * Professional privacy policy with real content
  */
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShieldCheckIcon,
@@ -159,7 +160,12 @@ We comply with GDPR, CCPA, and other applicable privacy regulations.`,
       </header>
 
       {/* Content */}
-      <main className="pt-24 pb-16">
+      <motion.main
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="pt-24 pb-16"
+      >
         <div className="max-w-4xl mx-auto px-6">
           {/* Title */}
           <div className="text-center mb-12">
@@ -172,7 +178,12 @@ We comply with GDPR, CCPA, and other applicable privacy regulations.`,
           </div>
 
           {/* Table of Contents */}
-          <div className="bg-gray-900/50 border border-gray-800/50 rounded-2xl p-6 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="bg-gray-900/50 border border-gray-800/50 rounded-2xl p-6 mb-12"
+          >
             <h2 className="text-lg font-semibold mb-4">Table of Contents</h2>
             <ul className="grid md:grid-cols-2 gap-2">
               {sections.map((section, i) => (
@@ -187,12 +198,27 @@ We comply with GDPR, CCPA, and other applicable privacy regulations.`,
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Sections */}
-          <div className="space-y-12">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.08 } },
+            }}
+            className="space-y-12"
+          >
             {sections.map((section, index) => (
-              <section key={section.id} id={section.id} className="scroll-mt-24">
+              <motion.section
+                key={section.id}
+                variants={{
+                  hidden: { opacity: 0, y: 15 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                id={section.id}
+                className="scroll-mt-24"
+              >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20">
                     <section.icon className="w-5 h-5 text-cyan-400" />
@@ -214,12 +240,17 @@ We comply with GDPR, CCPA, and other applicable privacy regulations.`,
                     />
                   ))}
                 </div>
-              </section>
+              </motion.section>
             ))}
-          </div>
+          </motion.div>
 
           {/* Contact */}
-          <div className="mt-16 p-8 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-2xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="mt-16 p-8 bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 rounded-2xl text-center"
+          >
             <h3 className="text-xl font-bold mb-2">Questions About Privacy?</h3>
             <p className="text-gray-400 mb-6">
               Contact our Data Protection Officer for any privacy-related inquiries.
@@ -238,12 +269,17 @@ We comply with GDPR, CCPA, and other applicable privacy regulations.`,
                 Back to Home
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </main>
+      </motion.main>
 
       {/* Simple Footer */}
-      <footer className="border-t border-gray-800/50 py-8">
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+        className="border-t border-gray-800/50 py-8"
+      >
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">
             © {new Date().getFullYear()} ONYX Security Intelligence
@@ -257,7 +293,7 @@ We comply with GDPR, CCPA, and other applicable privacy regulations.`,
             </Link>
           </div>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 };

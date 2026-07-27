@@ -27,12 +27,12 @@ Import from subpackages:
 """
 
 # Re-exports for convenience (optional - allows `from services import auth_service`)
+from services.ai.ai_processor import AIProcessorError, get_ai_processor
 from services.auth.auth_service import AuthService, auth_service
 from services.auth.user_service import UserService, user_service
-from services.scanning.scanners.real_scanner import RealSecurityScanner
-from services.ai.ai_processor import get_ai_processor, AIProcessorError
-from services.notifications.websocket_manager import ConnectionManager, ws_manager
 from services.notifications.service import EmailService, email_service
+from services.notifications.websocket_manager import ConnectionManager, ws_manager
+from services.scanning.scanners.real_scanner import RealSecurityScanner
 
 __all__ = [
     "AuthService", "auth_service",

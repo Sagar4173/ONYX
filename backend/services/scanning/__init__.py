@@ -46,41 +46,37 @@ RECOMMENDED USAGE:
 # BASE - Core models, configuration, exceptions
 # ============================================================================
 from .base import (
+    AdvancedScannerConfig,
     # Models
     Finding,
-    ScanFinding,
-    ScanResult,
-    ScanMetrics,
-    ScanType,
-    Severity,
-    ScanSeverity,
-    ScannerType,
-    
     # Configuration
     ScanConfig,
-    AdvancedScannerConfig,
-    
+    ScanConfigurationError,
+    ScanFinding,
+    ScanMetrics,
     # Exceptions
     ScannerError,
+    ScannerType,
+    ScanResult,
+    ScanSeverity,
     ScanTimeoutError,
-    ScanConfigurationError,
+    ScanType,
+    Severity,
 )
 
 # ============================================================================
-# SCANNERS - Individual scanner implementations
+# BASELINE - Baseline tracking and drift detection
 # ============================================================================
-from .scanners import (
-    BaseScanner,
-    RealSecurityScanner,
-    ZAPScanner,
-    NucleiScanner,
-    CodeQLScanner,
-    CheckovScanner,
-    BanditScanner,
-    SemgrepScanner,
-    TrivyScanner,
-    GitLeaksScanner,
-    SafetyScanner,
+from .baseline import (
+    BaselineDrift,
+    BaselineFingerprint,
+    BaselineManager,
+    BaselineScanningService,
+    RegressionAlert,
+    ScanBaseline,
+    SecurityBaseline,
+    SecurityDrift,
+    SecurityFinding,
 )
 
 # ============================================================================
@@ -88,33 +84,35 @@ from .scanners import (
 # ============================================================================
 from .engine import (
     ScanOrchestrator,
-    SuppressionEngine,
     ScanWorkflow,
+    SuppressionEngine,
 )
 
 # ============================================================================
-# BASELINE - Baseline tracking and drift detection
+# SCANNERS - Individual scanner implementations
 # ============================================================================
-from .baseline import (
-    BaselineScanningService,
-    BaselineFingerprint,
-    ScanBaseline,
-    SecurityDrift,
-    RegressionAlert,
-    BaselineManager,
-    SecurityBaseline,
-    SecurityFinding,
-    BaselineDrift,
+from .scanners import (
+    BanditScanner,
+    BaseScanner,
+    CheckovScanner,
+    CodeQLScanner,
+    GitLeaksScanner,
+    NucleiScanner,
+    RealSecurityScanner,
+    SafetyScanner,
+    SemgrepScanner,
+    TrivyScanner,
+    ZAPScanner,
 )
 
 # ============================================================================
 # VULNERABILITY - Vulnerability lifecycle management
 # ============================================================================
 from .vulnerability import (
-    VulnerabilityManager,
     RiskMetrics,
-    VulnerabilityStatus,
+    VulnerabilityManager,
     VulnerabilityPriority,
+    VulnerabilityStatus,
 )
 
 # ============================================================================

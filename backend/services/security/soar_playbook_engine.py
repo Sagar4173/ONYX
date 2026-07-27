@@ -25,16 +25,11 @@ import asyncio
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import yaml
-import subprocess
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import requests
 
 from utils.datetime_utils import utc_now
 
@@ -474,11 +469,7 @@ class SOARPlaybookEngine:
         try:
             recipients = action.parameters.get('recipients', [])
             subject = action.parameters.get('subject', 'Security Alert')
-            template = action.parameters.get('template', 'basic_alert')
-            
             # Generate email content
-            content = self._generate_email_content(template, event, execution)
-            
             # Simulate email sending (replace with actual SMTP in production)
             logger.info(f"📧 Sending email to {len(recipients)} recipients: {subject}")
             
@@ -497,7 +488,6 @@ class SOARPlaybookEngine:
                                         execution: PlaybookExecution) -> Dict[str, Any]:
         """Handle Slack notification action"""
         try:
-            webhook_url = action.parameters.get('webhook_url')
             channel = action.parameters.get('channel', '#security-alerts')
             message = action.parameters.get('message', 'Security incident detected')
             
@@ -518,7 +508,6 @@ class SOARPlaybookEngine:
                                         execution: PlaybookExecution) -> Dict[str, Any]:
         """Handle Microsoft Teams notification action"""
         try:
-            webhook_url = action.parameters.get('webhook_url')
             message = action.parameters.get('message', 'Security incident detected')
             
             # Simulate Teams notification
@@ -538,12 +527,6 @@ class SOARPlaybookEngine:
         """Handle webhook notification action"""
         try:
             webhook_url = action.parameters.get('webhook_url')
-            payload = {
-                "event": event,
-                "execution_id": execution.execution_id,
-                "timestamp": utc_now().isoformat()
-            }
-            
             # Simulate webhook call
             logger.info(f"🔗 Sending webhook notification to {webhook_url}")
             
@@ -626,8 +609,6 @@ class SOARPlaybookEngine:
         try:
             ticket_system = action.parameters.get('ticket_system', 'jira')
             priority = action.parameters.get('priority', 'high')
-            assignee = action.parameters.get('assignee', 'security-team')
-            
             # Generate ticket details
             ticket_id = f"SEC-{utc_now().strftime('%Y%m%d%H%M%S')}"
             

@@ -4,19 +4,24 @@ Handles project CRUD operations, team management, and business logic
 """
 import logging
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+from beanie.operators import And, In, Or
 from bson import ObjectId
-from beanie import PydanticObjectId
-from beanie.operators import In, And, Or
 from fastapi import HTTPException, status
 
 from models.project import (
-    Project, ProjectCreateRequest, ProjectUpdateRequest, 
-    TeamMemberRequest, ProjectStatus, ProjectCategory, ProjectPriority,
-    ProjectMember, ScanConfiguration
+    Project,
+    ProjectCategory,
+    ProjectCreateRequest,
+    ProjectPriority,
+    ProjectStatus,
+    ProjectUpdateRequest,
+    ScanConfiguration,
+    TeamMemberRequest,
 )
-from models.user import User, UserRole
 from models.report import ScanReport, WebhookEvent
+from models.user import User
 
 logger = logging.getLogger(__name__)
 class ProjectService:
@@ -459,7 +464,6 @@ class ProjectService:
         2. Project name
         3. Repository URL
         """
-        from bson import ObjectId
         
         project = None
         
@@ -467,7 +471,7 @@ class ProjectService:
         if project_name and len(project_name) == 24:
             try:
                 project = await Project.get(ObjectId(project_name))
-            except:
+            except Exception:
                 pass
         
         # If not found, try by project name

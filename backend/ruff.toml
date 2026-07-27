@@ -1,0 +1,32 @@
+target-version = "py314"
+line-length = 120
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes (unused imports, undefined names)
+    "W",    # pycodestyle warnings (real ones like ambiguous indent)
+    "I",    # isort (import ordering)
+]
+
+ignore = [
+    "E501", # line too long (cosmetic)
+    "W291", # trailing whitespace (cosmetic)
+    "W293", # blank line contains whitespace (cosmetic)
+    "E302", # expected 2 blank lines (cosmetic style)
+    "E303", # too many blank lines (cosmetic)
+    "E305", # expected 2 blank lines after class/function (cosmetic)
+]
+
+per-file-ignores = {
+    "__init__.py" = ["F401"],  # unused import OK in __init__.py re-exports
+    "models/report.py" = ["F401"],  # re-exports from models.base
+    "tests/*" = ["E402"],      # module-level import order OK in tests
+}
+
+exclude = [
+    ".git",
+    "__pycache__",
+    "*.egg-info",
+    ".pytest_cache",
+]

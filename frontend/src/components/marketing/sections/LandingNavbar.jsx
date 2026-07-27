@@ -1,3 +1,4 @@
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { OnyxLogo } from "../../common";
@@ -28,7 +29,7 @@ const LandingNavbar = ({ scrollY, isNavOpen, setIsNavOpen, scrollToSection }) =>
               <OnyxLogo variant="glow" className="w-10 h-10 relative" />
             </div>
             <div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 ONYX
               </span>
               <span className="hidden sm:block text-[10px] text-gray-500 uppercase tracking-[0.2em] -mt-1">
@@ -95,8 +96,16 @@ const LandingNavbar = ({ scrollY, isNavOpen, setIsNavOpen, scrollToSection }) =>
           </div>
         </div>
 
-        {isNavOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-800/50 pt-4">
+        <AnimatePresence>
+          {isNavOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="md:hidden overflow-hidden"
+            >
+              <div className="mt-4 pb-4 border-t border-gray-800/50 pt-4">
             <div className="flex flex-col space-y-3">
               {navLinks.map((item) => (
                 <button
@@ -123,7 +132,9 @@ const LandingNavbar = ({ scrollY, isNavOpen, setIsNavOpen, scrollToSection }) =>
               </div>
             </div>
           </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </nav>
   );

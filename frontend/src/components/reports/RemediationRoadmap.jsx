@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   RocketLaunchIcon,
   SparklesIcon,
@@ -254,8 +255,21 @@ const RemediationRoadmap = ({ aiAnalysis, getFilteredFindings }) => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="glass-container rounded-xl p-6 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30">
+    <motion.div
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="glass-container rounded-xl p-6 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30"
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -281,17 +295,30 @@ const RemediationRoadmap = ({ aiAnalysis, getFilteredFindings }) => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {aiAnalysis?.remediation_roadmap?.length > 0
-        ? aiRemediationPlan(aiAnalysis)
-        : staticTimeline({ getFilteredFindings })}
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+      >
+        {aiAnalysis?.remediation_roadmap?.length > 0
+          ? aiRemediationPlan(aiAnalysis)
+          : staticTimeline({ getFilteredFindings })}
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
         {quickWins}
         {bestPractices}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

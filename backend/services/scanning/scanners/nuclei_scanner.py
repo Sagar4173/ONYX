@@ -7,17 +7,16 @@ Penetration testing using Nuclei vulnerability scanner with templates.
 
 import asyncio
 import json
-import uuid
-from typing import List, Dict, Any, Optional
-from urllib.parse import urlparse
-from pathlib import Path
-import tempfile
 import logging
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
-from .base_scanner import BaseScanner
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import TargetNotAllowedError, ScannerError
+from ..base.exceptions import TargetNotAllowedError
+from ..base.models import Finding, ScanType, Severity
+from .base_scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 

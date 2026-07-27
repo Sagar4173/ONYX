@@ -2,16 +2,16 @@
 Data Retention Policy Service
 Automated data cleanup, configurable retention periods, and compliance-driven archiving
 """
+import base64
+import gzip
+import json
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict
+
 import structlog
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional
 
 from utils.datetime_utils import utc_now
-from enum import Enum
-from pymongo import ASCENDING, DESCENDING
-import json
-import gzip
-import base64
 
 logger = structlog.get_logger()
 

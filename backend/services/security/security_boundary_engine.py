@@ -3,23 +3,18 @@ Security Boundaries for Custom Rules
 Provides sandboxed execution, resource limits, and adversarial testing protection
 """
 import asyncio
+import json
 import logging
-import subprocess
-import psutil
-import signal
-import time
+import sys
+
 # docker - Lazy-loaded on-demand for container scanning
 import tempfile
-import os
-import threading
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Tuple
-from pathlib import Path
-from dataclasses import dataclass
-import json
+import time
 import uuid
-import contextlib
-import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 # Conditional import for Unix-specific resource module
 try:

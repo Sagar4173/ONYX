@@ -128,9 +128,9 @@ const AdminDashboard = () => {
               Your current role:{" "}
               <span className="text-cyan-400 font-medium">{user?.role || "Unknown"}</span>
             </p>
-          </div>
-        </div>
-      </motion.div>
+            </div>
+            </div>
+            </motion.div>
     );
   }
 
@@ -462,6 +462,7 @@ const AdminDashboard = () => {
               )}
             </div>
             </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -549,6 +550,7 @@ const AdminDashboard = () => {
               )}
             </div>
             </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -586,6 +588,7 @@ const AdminDashboard = () => {
                   <ActivityItem key={activity.id || activity.timestamp} activity={activity} />
                 ))
               )}
+            </div>
             </div>
             </div>
             </motion.div>

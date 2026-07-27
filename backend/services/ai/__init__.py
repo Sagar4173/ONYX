@@ -1,7 +1,7 @@
 """
 AI & Machine Learning Services
 """
-from .ai_processor import get_ai_processor, AIProcessorError
+from .ai_processor import AIProcessorError, get_ai_processor
 from .gemini_ai_processor import *
 from .ml_anomaly_detection_engine import *
 

@@ -5,12 +5,10 @@ Installs and runs semgrep on-demand to save memory on free-tier hosting (512MB).
 Semgrep is only loaded when a user requests a scan that requires it.
 """
 
-import subprocess
-import shutil
-import logging
 import asyncio
-from typing import Optional, Dict, Any, List
-from pathlib import Path
+import logging
+import shutil
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

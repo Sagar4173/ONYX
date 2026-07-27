@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ParticleBackground } from "../../styles/components";
+import ParticleBackground from "../projects/ParticleBackground";
 import {
   UserCircleIcon,
   PencilIcon,

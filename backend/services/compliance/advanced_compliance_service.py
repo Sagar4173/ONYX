@@ -2,11 +2,11 @@
 Advanced Compliance Reporting Service
 SOX, HIPAA, ISO 27001, and custom compliance framework support
 """
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import structlog
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional
 from pymongo import ASCENDING, DESCENDING
-import json
 
 # Import from canonical source
 from models.base import ComplianceFramework, ComplianceStatus, utc_now

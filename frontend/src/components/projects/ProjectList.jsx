@@ -2,6 +2,7 @@
  * ProjectList Component - Security scan reports dashboard
  * Lists all security scan reports with filtering and search
  */
+import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -330,7 +331,20 @@ const ProjectList = () => {
 
         {/* Quick Stats */}
         {analytics && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.06 } },
+            }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8"
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
             <Card
               className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
               padding="lg"
@@ -346,8 +360,14 @@ const ProjectList = () => {
                   <p className="text-xs lg:text-sm text-gray-400 truncate">Total Scans</p>
                 </div>
               </div>
-            </Card>
+            </motion.div>
 
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
             <Card
               className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
               padding="lg"
@@ -364,7 +384,14 @@ const ProjectList = () => {
                 </div>
               </div>
             </Card>
+            </motion.div>
 
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
             <Card
               className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
               padding="lg"
@@ -381,7 +408,14 @@ const ProjectList = () => {
                 </div>
               </div>
             </Card>
+            </motion.div>
 
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+            >
             <Card
               className="lg:rounded-2xl hover:bg-gray-800/70 transition-all duration-300"
               padding="lg"
@@ -398,7 +432,8 @@ const ProjectList = () => {
                 </div>
               </div>
             </Card>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* Filters and Search */}
@@ -485,7 +520,14 @@ const ProjectList = () => {
         </Card>
 
         {/* Reports List */}
-        <div className="space-y-3 lg:space-y-4">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.04 } },
+          }}
+          className="space-y-3 lg:space-y-4"
+        >
           {isLoading ? (
             <div className="space-y-3 lg:space-y-4">
               {[...Array(5)].map((_, index) => (
@@ -524,6 +566,13 @@ const ProjectList = () => {
             />
           ) : (
             reports.map((report) => (
+              <motion.div
+                key={report.id}
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+              >
               <Card
                 key={report.id}
                 className="group lg:rounded-2xl hover:bg-gray-800/70 hover:border-gray-600/50 transition-all duration-300"
@@ -583,9 +632,10 @@ const ProjectList = () => {
                   </div>
                 </div>
               </Card>
+              </motion.div>
             ))
           )}
-        </div>
+        </motion.div>
 
         {/* Pagination */}
         {reports.length > 0 && <Pagination />}

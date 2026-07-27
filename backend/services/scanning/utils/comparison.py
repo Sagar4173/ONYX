@@ -3,15 +3,13 @@ Scan Comparison Service
 Compare security scans to track fixed vulnerabilities, new issues, and regressions
 Provides delta analysis between scans for tracking remediation progress
 """
-import asyncio
-import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Set, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-from collections import defaultdict
 import hashlib
-import json
+import logging
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 

@@ -21,9 +21,9 @@ Testing strategy:
   Additionally, explicit assertions verify the expected number of captured
   bound methods were found.
 """
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -115,9 +115,11 @@ def _setup_client(user_role=None):
     were found, so changes to the dependency structure cause test setup
     failure rather than silent false passes.
     """
-    from app import app
     from fastapi.testclient import TestClient
-    from routes.enterprise import get_database, get_current_user as _local_get_current_user
+
+    from app import app
+    from routes.enterprise import get_current_user as _local_get_current_user
+    from routes.enterprise import get_database
 
     app.dependency_overrides.clear()
 
@@ -238,7 +240,7 @@ class TestReadOnlyAuth:
     @pytest.mark.parametrize("role", ["developer", "viewer"])
     def test_get_statistics(self, role, mock_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_retention_service",
+        with patch("routes.enterprise.retention.get_retention_service",
                    return_value=mock_service):
             resp = client.get("/api/enterprise/retention/statistics",
                               headers={"Authorization": "Bearer t"})
@@ -308,7 +310,7 @@ class TestAdminAccess:
 
     def test_get_statistics(self, mock_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_retention_service",
+        with patch("routes.enterprise.retention.get_retention_service",
                    return_value=mock_service):
             resp = client.get("/api/enterprise/retention/statistics",
                               headers={"Authorization": "Bearer t"})
@@ -319,7 +321,7 @@ class TestAdminAccess:
         kw = {"headers": {"Authorization": "Bearer t"}}
         if json_data is not None:
             kw["json"] = json_data
-        with patch("routes.enterprise.get_retention_service",
+        with patch("routes.enterprise.retention.get_retention_service",
                    return_value=mock_service):
             resp = client.post(url, **kw)
             assert resp.status_code == 200

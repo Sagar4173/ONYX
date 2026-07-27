@@ -2,18 +2,17 @@
 Security boundaries and validation for custom rules
 This module provides comprehensive security controls for user-defined rules
 """
+import json
 import re
-import time
-import threading
 import subprocess
 import tempfile
-import hashlib
-from pathlib import Path
-from typing import Dict, List, Set, Optional, Any, Tuple
+import time
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
 import yaml
-import json
-from pydantic import BaseModel, Field, validator
+
 
 class AllowedLanguage(str, Enum):
     """Supported languages for custom rules"""
@@ -500,7 +499,7 @@ class RuleTestingFramework:
                     if len(matches) >= RuleExecutionLimits.MAX_MATCHES_PER_RULE:
                         break
         
-        except Exception as e:
+        except Exception:
             # Log error but don't fail the test
             pass
         
@@ -541,7 +540,7 @@ class RuleTestingFramework:
                 # Invalid JSON output
                 pass
             
-        except Exception as e:
+        except Exception:
             # Log error but don't fail the test
             pass
         

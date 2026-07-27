@@ -2,20 +2,18 @@
 Real Security Scanner Implementation
 Integrates actual security tools to perform genuine vulnerability scanning
 """
-import os
+import asyncio
 import json
-import tempfile
+import logging
+import os
 import shutil
 import subprocess
-import logging
-import asyncio
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from datetime import datetime
-import git
+from typing import Any, Dict, List, Optional
+
 from git import Repo
-import requests
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +110,7 @@ class RealSecurityScanner:
         try:
             logger.info(f"📥 Cloning repository to {clone_path}")
             Repo.clone_from(repository_url, clone_path, branch=branch, depth=1)
-            logger.info(f"✅ Repository cloned successfully")
+            logger.info("✅ Repository cloned successfully")
             return clone_path
         except Exception as e:
             logger.error(f"❌ Failed to clone repository: {e}")
@@ -474,7 +472,7 @@ class RealSecurityScanner:
         """Get relative path from repository root"""
         try:
             return os.path.relpath(full_path, repo_path)
-        except:
+        except Exception:
             return full_path
     
     def _map_bandit_severity(self, bandit_severity: str) -> str:

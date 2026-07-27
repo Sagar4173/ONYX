@@ -1,16 +1,14 @@
 """
 Git repository cloning utilities
 """
-import os
-import shutil
 import asyncio
 import logging
-from typing import Optional, Dict, Any
-from pathlib import Path
+import shutil
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Optional
 
-import git
-from git import Repo, InvalidGitRepositoryError, GitCommandError
+from git import GitCommandError, InvalidGitRepositoryError, Repo
 
 from config import settings
 from utils.datetime_utils import utc_now

@@ -12,14 +12,13 @@ Usage:
     )
 """
 
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Any, Optional
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 # Import from central utility - re-export for backward compatibility
 from utils.datetime_utils import utc_now
-
 
 # =============================================================================
 # Scanner Enums

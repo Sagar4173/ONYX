@@ -1,9 +1,15 @@
+import { motion } from "framer-motion";
 import { FolderIcon, ArrowPathIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Card } from "../../styles/components";
 import { getActionColor, formatDate } from "./retentionHelpers";
 
 const RetentionPolicyCard = ({ policy, onExecute, onEdit, onDelete, isExecuting, isDeleting }) => (
-  <Card padding="lg" className="shadow-xl hover:shadow-2xl transition-all">
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3, ease: "easeOut" }}
+  >
+    <Card padding="lg" className="shadow-xl hover:shadow-2xl transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-cyan-500/20 rounded-lg">
@@ -78,6 +84,7 @@ const RetentionPolicyCard = ({ policy, onExecute, onEdit, onDelete, isExecuting,
       </button>
     </div>
   </Card>
+  </motion.div>
 );
 
 export default RetentionPolicyCard;

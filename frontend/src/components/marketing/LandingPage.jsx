@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import AnimatedBackground from "./AnimatedBackground";
 import FixSuggestionModal from "./FixSuggestionModal";
@@ -110,7 +111,12 @@ const LandingPage = () => {
 
       <ComplianceSection />
 
-      <section className="py-24 border-b border-gray-800/50 bg-gray-900/30">
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="py-24 border-b border-gray-800/50 bg-gray-900/30"
+      >
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
@@ -123,14 +129,28 @@ const LandingPage = () => {
               From zero to protected in just a few simple steps
             </p>
           </div>
-          <div className="grid md:grid-cols-4 gap-8">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.1 } },
+            }}
+            className="grid md:grid-cols-4 gap-8"
+          >
             {[
               { step: 1, title: "Connect", desc: "Link your repository" },
               { step: 2, title: "Scan", desc: "AI analyzes your code" },
               { step: 3, title: "Fix", desc: "Get remediation steps" },
               { step: 4, title: "Protect", desc: "Continuous monitoring" },
             ].map((item, i) => (
-              <div key={item.title} className="relative group">
+              <motion.div
+                key={item.title}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                className="relative group"
+              >
                 {i < 3 && (
                   <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-cyan-500/50 to-transparent z-0" />
                 )}
@@ -141,11 +161,11 @@ const LandingPage = () => {
                   <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
                   <p className="text-gray-400 text-sm">{item.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       <FeaturesSection
         activeFeature={activeFeature}

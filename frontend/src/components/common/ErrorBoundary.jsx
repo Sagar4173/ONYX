@@ -3,6 +3,7 @@
  * Catches JavaScript errors anywhere in the component tree and displays a fallback UI
  */
 import React from "react";
+import { motion } from "framer-motion";
 import { ExclamationTriangleIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 class ErrorBoundary extends React.Component {
@@ -43,8 +44,18 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       // Fallback UI
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-8 text-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
+            className="max-w-md w-full bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-700/50 p-8 text-center"
+          >
             {/* Error Icon */}
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-6">
               <ExclamationTriangleIcon className="h-8 w-8 text-red-400" />
@@ -101,8 +112,8 @@ class ErrorBoundary extends React.Component {
                 contact support
               </a>
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       );
     }
 

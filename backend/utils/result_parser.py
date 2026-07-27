@@ -3,14 +3,14 @@ Enhanced result parsing utilities for normalizing scanner outputs
 with compliance mapping and threat analysis
 """
 import json
-import re
 import logging
-from typing import Dict, List, Any, Optional
+import re
 from pathlib import Path
-from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from models.report import VulnerabilityFinding, ScannerType, SeverityLevel
 from services.compliance_analyzer import compliance_service
+
+from models.report import ScannerType, SeverityLevel, VulnerabilityFinding
 
 logger = logging.getLogger(__name__)
 

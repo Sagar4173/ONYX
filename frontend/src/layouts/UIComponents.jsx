@@ -8,6 +8,7 @@
  * - EmptyState, LoadingState, ErrorState: State indicators
  */
 import React from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   HomeIcon,
@@ -112,43 +113,83 @@ export const Breadcrumb = ({ items = [] }) => {
 // Page Header Component
 export const PageHeader = ({ title, description, icon: Icon, actions, breadcrumb = [] }) => {
   return (
-    <div className="mb-6 lg:mb-8">
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="mb-6 lg:mb-8"
+    >
       <Breadcrumb items={breadcrumb} />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.08 } },
+          }}
+          className="flex items-center space-x-4"
+        >
           {Icon && (
-            <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 shadow-lg">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1 },
+              }}
+              className="p-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 shadow-lg"
+            >
               <Icon className="h-6 w-6 text-white" />
-            </div>
+            </motion.div>
           )}
-          <div>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, x: -10 },
+              visible: { opacity: 1, x: 0 },
+            }}
+          >
             <h1 className="text-2xl sm:text-3xl font-bold text-white">{title}</h1>
             {description && (
               <p className="text-gray-400 mt-1 text-sm sm:text-base">{description}</p>
             )}
-          </div>
-        </div>
-        {actions && <div className="flex items-center gap-3">{actions}</div>}
+          </motion.div>
+        </motion.div>
+        {actions && (
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="flex items-center gap-3"
+          >
+            {actions}
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // Page Container Component - Wraps page content with consistent styling and entrance animation
 export const PageContainer = ({ children, className = "" }) => {
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8 page-enter ${className}`}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className={`min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black p-4 sm:p-6 lg:p-8 ${className}`}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
 
 // Glass Card Component - Consistent card styling
 export const GlassCard = ({ children, className = "", noPadding = false }) => {
   return (
-    <div className="relative">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="relative"
+    >
       <div className="absolute inset-0 bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-2xl lg:rounded-3xl blur-xl" />
       <div
         className={`relative ${
@@ -157,27 +198,37 @@ export const GlassCard = ({ children, className = "", noPadding = false }) => {
       >
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // Section Header Component
 export const SectionHeader = ({ title, description, action }) => {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <motion.div
+      initial={{ opacity: 0, y: -5 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6"
+    >
       <div>
         <h2 className="text-lg lg:text-xl font-bold text-white">{title}</h2>
         {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
       </div>
       {action}
-    </div>
+    </motion.div>
   );
 };
 
 // Empty State Component — Enhanced with gradient icon and entrance animation
 export const EmptyState = ({ icon: Icon, title, description, action }) => {
   return (
-    <div className="text-center py-12 lg:py-16 animate-fade-in-up">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="text-center py-12 lg:py-16"
+    >
       {Icon && (
         <div className="inline-flex p-5 rounded-2xl bg-gradient-to-br from-gray-800/80 to-gray-700/40 border border-gray-700/30 mb-5 shadow-lg shadow-black/20">
           <Icon className="h-12 w-12 text-gray-300" />
@@ -186,7 +237,7 @@ export const EmptyState = ({ icon: Icon, title, description, action }) => {
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
       <p className="text-gray-400 max-w-sm mx-auto mb-6 leading-relaxed">{description}</p>
       {action}
-    </div>
+    </motion.div>
   );
 };
 
@@ -208,10 +259,21 @@ export const SkeletonCard = ({ className = "", lines = 3 }) => {
 // Loading State Component — Branded skeleton shimmer
 export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
   return (
-    <div className="animate-fade-in-up">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {Array.from({ length: cards }).map((_, i) => (
-          <SkeletonCard key={i} style={{ animationDelay: `${i * 0.1}s` }} />
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: i * 0.08 }}
+          >
+            <SkeletonCard />
+          </motion.div>
         ))}
       </div>
       <div className="flex items-center justify-center py-6 gap-3">
@@ -224,7 +286,7 @@ export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
         </div>
         <p className="text-gray-400 text-sm">{message}</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -278,7 +340,12 @@ export const LiveIndicator = ({ status = "connected", label }) => {
 // Error State Component — Enhanced with gradient background
 export const ErrorState = ({ title = "Error", message, onRetry }) => {
   return (
-    <div className="text-center py-12 animate-fade-in-up">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="text-center py-12"
+    >
       <div className="inline-flex p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-900/10 border border-red-500/20 mb-5">
         <ShieldCheckIcon className="h-12 w-12 text-red-400" />
       </div>
@@ -293,7 +360,7 @@ export const ErrorState = ({ title = "Error", message, onRetry }) => {
           Try Again
         </button>
       )}
-    </div>
+    </motion.div>
   );
 };
 

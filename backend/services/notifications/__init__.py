@@ -11,9 +11,9 @@ Structure:
 - templates/ - Modular email template components
 """
 
-from .service import EmailService, email_service
 from .notification_service import NotificationService, notification_service
 from .notifier import notification_service as notifier_service
+from .service import EmailService, email_service
 from .websocket_manager import ConnectionManager, ws_manager
 
 __all__ = [

@@ -2,19 +2,20 @@
 MongoDB Database Connection and Models
 Handles connection to MongoDB Atlas and data operations
 """
-import os
-import asyncio
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timezone
-from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.errors import ServerSelectionTimeoutError, DuplicateKeyError
-from beanie import init_beanie
 import logging
+import os
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from beanie import init_beanie
+from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import ServerSelectionTimeoutError
+
+from models.project import Project
 
 # Import all models
-from models.report import ScanReport, WebhookEvent, ScannerHealth
-from models.user import User, UserSession, APIToken
-from models.project import Project
+from models.report import ScannerHealth
+from models.user import APIToken, User, UserSession
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ class DatabaseManager:
             return False
         except Exception as e:
             logger.error(f"❌ MongoDB connection error: {type(e).__name__}: {e}")
-            logger.error(f"❌ Database will not be available - login and Beanie features disabled")
+            logger.error("❌ Database will not be available - login and Beanie features disabled")
             self.connected = False
             return False
     

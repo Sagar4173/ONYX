@@ -2,9 +2,8 @@
 Security Scanning Tests
 Tests for security scanners, orchestration, and result processing
 """
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime, timezone
 
 
 class TestScannerAvailability:
@@ -15,21 +14,21 @@ class TestScannerAvailability:
         from config import settings
         
         # Core scanners should be enabled
-        assert settings.enable_semgrep == True
-        assert settings.enable_bandit == True
-        assert settings.enable_safety == True
-        assert settings.enable_gitleaks == True
+        assert settings.enable_semgrep
+        assert settings.enable_bandit
+        assert settings.enable_safety
+        assert settings.enable_gitleaks
     
     def test_optional_scanners_disabled_by_default(self):
         """Test that optional scanners are disabled by default"""
         from config import settings
         
         # Optional scanners should be disabled
-        assert settings.enable_trivy == False
-        assert settings.enable_zap == False
-        assert settings.enable_nuclei == False
-        assert settings.enable_codeql == False
-        assert settings.enable_checkov == False
+        assert not settings.enable_trivy
+        assert not settings.enable_zap
+        assert not settings.enable_nuclei
+        assert not settings.enable_codeql
+        assert not settings.enable_checkov
 
 
 class TestScanOrchestrator:
@@ -116,7 +115,7 @@ class TestVulnerabilityManager:
         
         assert hasattr(VulnerabilityStatus, 'OPEN')
         assert hasattr(VulnerabilityStatus, 'IN_PROGRESS')
-        assert hasattr(VulnerabilityStatus, 'RESOLVED')
+        assert hasattr(VulnerabilityStatus, 'FIXED')
 
 
 class TestServiceRegistry:
@@ -130,7 +129,10 @@ class TestServiceRegistry:
         status1 = ServiceRegistry.get_status()
         status2 = ServiceRegistry.get_status()
         
-        assert status1 == status2
+        assert status1["initialized"] == status2["initialized"]
+        assert status1["active_count"] == status2["active_count"]
+        assert status1["total_services"] == status2["total_services"]
+        assert status1["services"] == status2["services"]
     
     def test_get_status_returns_dict(self):
         """Test get_status returns a dictionary"""

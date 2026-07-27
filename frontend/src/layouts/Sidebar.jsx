@@ -3,6 +3,7 @@
  * Matches the project's glass morphism and gradient design language
  */
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   XMarkIcon,
@@ -36,7 +37,7 @@ const getNavigation = (user) => {
       name: "Projects",
       path: "/projects",
       icon: FolderIcon,
-      gradient: "from-violet-500 to-purple-500",
+      gradient: "from-cyan-500 to-violet-500",
     },
     {
       name: "Reports",
@@ -54,7 +55,7 @@ const getNavigation = (user) => {
       name: "Compliance",
       path: "/compliance",
       icon: ShieldCheckIcon,
-      gradient: "from-pink-500 to-rose-500",
+      gradient: "from-violet-500 to-cyan-500",
     },
   ];
 
@@ -71,7 +72,7 @@ const getNavigation = (user) => {
       name: "Users",
       path: "/users",
       icon: UsersIcon,
-      gradient: "from-indigo-500 to-blue-500",
+      gradient: "from-cyan-500 to-violet-500",
     },
     {
       name: "Audit Logs",
@@ -227,9 +228,21 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-[3px]">
+        <motion.nav
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.03 } },
+          }}
+          className="flex-1 overflow-y-auto py-6 flex flex-col gap-[3px]"
+        >
           {navigation.map((item, _index) => (
-            <div key={item.path}>
+            <motion.div
+              key={item.path}
+              variants={{
+                hidden: { opacity: 0, x: -15 },
+                visible: { opacity: 1, x: 0 },
+              }}>
               {item.separator && !collapsed && (
                 <div className="px-4 pt-4 pb-2">
                   <div className="border-t border-gray-700/50" />
@@ -244,9 +257,9 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
                 </div>
               )}
               <NavItem item={item} collapsed={collapsed} />
-            </div>
+            </motion.div>
           ))}
-        </nav>
+        </motion.nav>
 
         {/* Collapse Toggle */}
         <div className="p-4 border-t border-gray-800/50">
@@ -299,67 +312,101 @@ const MobileSidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const navigation = getNavigation(user);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="lg:hidden fixed inset-0 z-50">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="lg:hidden fixed inset-0 z-50"
+        >
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-[280px]">
-        {/* Glass background */}
-        <div className="absolute inset-0 bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl" />
+          {/* Sidebar */}
+          <motion.aside
+            initial={{ x: -320 }}
+            animate={{ x: 0 }}
+            exit={{ x: -320 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed left-0 top-0 h-full w-[280px]"
+          >
+            {/* Glass background */}
+            <div className="absolute inset-0 bg-gray-900/95 backdrop-blur-xl border-r border-gray-800/50 shadow-2xl" />
 
-        {/* Content */}
-        <div className="relative flex flex-col h-full">
-          {/* Header */}
-          <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800/50">
-            <Logo collapsed={false} />
-            <button
-              onClick={onClose}
-              aria-label="Close navigation menu"
-              className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
+            {/* Content */}
+            <div className="relative flex flex-col h-full">
+              {/* Header */}
+              <div className="h-16 flex items-center justify-between px-4 border-b border-gray-800/50">
+                <Logo collapsed={false} />
+                <button
+                  onClick={onClose}
+                  aria-label="Close navigation menu"
+                  className="lg:hidden p-2.5 text-gray-400 hover:text-white bg-gray-800/50
                      hover:bg-gray-700/50 border border-gray-700/50 rounded-xl transition-all
                      focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-            >
-              <XMarkIcon className="w-5 h-5 lg:w-6 lg:h-6" />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 flex flex-col gap-[3px]">
-            {navigation.map((item) => (
-              <div key={item.path}>
-                {item.separator && (
-                  <div className="px-4 pt-4 pb-2">
-                    <div className="border-t border-gray-700/50" />
-                    <span className="text-xs text-gray-500 uppercase tracking-wider mt-2 block">
-                      Administration
-                    </span>
-                  </div>
-                )}
-                <NavItem item={item} collapsed={false} onClick={onClose} />
+                >
+                  <XMarkIcon className="w-5 h-5 lg:w-6 lg:h-6" />
+                </button>
               </div>
-            ))}
-          </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-800/50">
-            <div
-              className="px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500/5 to-violet-500/5 
+              {/* Navigation */}
+              <motion.nav
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  visible: { transition: { staggerChildren: 0.04 } },
+                }}
+                className="flex-1 overflow-y-auto py-6 flex flex-col gap-[3px]"
+              >
+                {navigation.map((item) => (
+                  <motion.div
+                    key={item.path}
+                    variants={{
+                      hidden: { opacity: 0, x: -20 },
+                      visible: { opacity: 1, x: 0 },
+                    }}
+                  >
+                    {item.separator && (
+                      <div className="px-4 pt-4 pb-2">
+                        <div className="border-t border-gray-700/50" />
+                        <span className="text-xs text-gray-500 uppercase tracking-wider mt-2 block">
+                          Administration
+                        </span>
+                      </div>
+                    )}
+                    <NavItem item={item} collapsed={false} onClick={onClose} />
+                  </motion.div>
+                ))}
+              </motion.nav>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-gray-800/50">
+                <div
+                  className="px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500/5 to-violet-500/5 
                           border border-cyan-500/20"
-            >
-              <p className="text-xs text-gray-400">
-                <span className="text-cyan-400 font-semibold tracking-wide">ONYX</span>
-                <span className="text-gray-500"> • </span>
-                <span className="text-gray-500">v1.0</span>
-              </p>
+                >
+                  <p className="text-xs text-gray-400">
+                    <span className="text-cyan-400 font-semibold tracking-wide">ONYX</span>
+                    <span className="text-gray-500"> • </span>
+                    <span className="text-gray-500">v1.0</span>
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </aside>
-    </div>
+          </motion.aside>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

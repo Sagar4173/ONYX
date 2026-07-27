@@ -295,6 +295,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             ))}
           </div>
         </div>
+      </div>
       </motion.div>
 
       <motion.div custom={1} variants={staggerVariants}>
@@ -504,6 +505,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
           </motion.div>
         )}
         </AnimatePresence>
+      </div>
       </motion.div>
 
       <motion.div custom={2} variants={staggerVariants}>
@@ -619,6 +621,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             ))
           )}
         </div>
+      </div>
       </motion.div>
 
       <motion.div custom={3} variants={staggerVariants}>
@@ -824,6 +827,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             )}
           </button>
         </form>
+      </div>
       </motion.div>
 
       <motion.div custom={4} variants={staggerVariants}>
@@ -846,6 +850,7 @@ export const SecuritySettings = ({ securityScore, getSecurityScoreColor, onLogou
             </button>
           </div>
         </div>
+      </div>
       </motion.div>
     </motion.div>
   );

@@ -2,24 +2,24 @@
 MongoDB models for ONYX Platform - Scan Reports and Findings
 """
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any, Dict, List, Optional
+
 from beanie import Document
-from bson import ObjectId
+from pydantic import BaseModel, ConfigDict, Field
 
 # Import shared enums and base models from the single source of truth
 from .base import (
+    BusinessImpact,
+    ComplianceFramework,
+    ComplianceMapping,
+    ComplianceStatus,
+    CVSSScore,
+    RiskLevel,
+    ScannerType,
     ScanStatus,
     SeverityLevel,
-    ScannerType,
-    ComplianceFramework,
-    ThreatCategory,
-    RiskLevel,
-    BusinessImpact,
-    CVSSScore,
-    ComplianceMapping,
     ThreatAnalysis,
-    utc_now,
+    ThreatCategory,
 )
 
 

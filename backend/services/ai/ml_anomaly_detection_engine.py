@@ -9,18 +9,18 @@ Author: ONYX Platform
 Date: August 2025
 """
 
-import asyncio
 import json
 import logging
-import numpy as np
-import sqlite3
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
-from pathlib import Path
 import pickle
-from collections import defaultdict, Counter
+import sqlite3
 import statistics
+from collections import Counter
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
 
 from utils.datetime_utils import utc_now
 
@@ -201,7 +201,7 @@ class MLAnomalyDetectionEngine:
             try:
                 ts = datetime.fromisoformat(finding.get('discovered_time', finding.get('timestamp', '')))
                 timestamps.append(ts)
-            except:
+            except Exception:
                 continue
         
         if not timestamps:
@@ -357,7 +357,6 @@ class MLAnomalyDetectionEngine:
         # Train isolation forest for anomaly detection
         from sklearn.ensemble import IsolationForest
         from sklearn.preprocessing import StandardScaler
-        from sklearn.metrics import classification_report
         
         # Scale features
         scaler = StandardScaler()
@@ -368,7 +367,6 @@ class MLAnomalyDetectionEngine:
         predictions = model.fit_predict(scaled_features)
         
         # Calculate metrics (using synthetic labels for demo)
-        anomaly_labels = (predictions == -1).astype(int)
         normal_count = np.sum(predictions == 1)
         anomaly_count = np.sum(predictions == -1)
         

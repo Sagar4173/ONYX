@@ -6,7 +6,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { getRoleColor, getStatusColor, getStatusIcon } from "./userHelpers";
+import { getRoleColor, getStatusColor, getStatusIcon } from "./userHelpers.jsx";
 import { LoadingState, EmptyState, ErrorState } from "../../layouts";
 
 const rowAnim = {

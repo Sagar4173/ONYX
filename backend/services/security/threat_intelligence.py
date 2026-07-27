@@ -6,21 +6,20 @@ NOTE: This module uses SQLite for CVE/threat caching.
 Future versions should migrate to MongoDB for consistency.
 """
 import asyncio
-import aiohttp
+import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Set
-from pathlib import Path
-from dataclasses import dataclass, field
-import hashlib
-import gzip
 import sqlite3
-from urllib.parse import urljoin
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import aiohttp
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
-from models.base import ThreatSeverity, ThreatType, ThreatSource
+from models.base import ThreatSeverity, ThreatSource, ThreatType
 
 logger = logging.getLogger(__name__)
 
@@ -1023,65 +1022,6 @@ class ThreatIntelligenceEngine:
             logger.error(f"Failed to search CVEs: {e}")
             return []
     
-    async def get_active_alerts(
-        self,
-        threat_type: Optional[ThreatType] = None,
-        severity: Optional[ThreatSeverity] = None,
-        limit: int = 100
-    ) -> List[ThreatAlert]:
-        """Get active threat alerts"""
-        try:
-            conditions = ["resolved = 0"]
-            params = []
-            
-            if threat_type:
-                conditions.append("threat_type = ?")
-                params.append(threat_type.value)
-            
-            if severity:
-                conditions.append("severity = ?")
-                params.append(severity.value)
-            
-            where_clause = f"WHERE {' AND '.join(conditions)}"
-            
-            query_sql = f"""
-            SELECT alert_id, threat_type, severity, title, description, source,
-                   indicators, matched_patterns, affected_repositories,
-                   created_at, expires_at, actionable, metadata FROM threat_alerts
-            {where_clause}
-            ORDER BY created_at DESC
-            LIMIT ?
-            """
-            params.append(limit)
-            
-            alerts = []
-            with sqlite3.connect(self.threat_db_path) as conn:
-                cursor = conn.execute(query_sql, params)
-                
-                for row in cursor.fetchall():
-                    alert = ThreatAlert(
-                        alert_id=row[0],
-                        threat_type=ThreatType(row[1]),
-                        severity=ThreatSeverity(row[2]),
-                        title=row[3],
-                        description=row[4],
-                        source=ThreatSource(row[5]),
-                        indicators=json.loads(row[6]),
-                        matched_patterns=json.loads(row[7]),
-                        affected_repositories=json.loads(row[8]),
-                        created_at=datetime.fromisoformat(row[9]),
-                        expires_at=datetime.fromisoformat(row[10]) if row[10] else None,
-                        actionable=bool(row[11]),
-                        metadata=json.loads(row[12])
-                    )
-                    alerts.append(alert)
-            
-            return alerts
-            
-        except Exception as e:
-            logger.error(f"Failed to get active alerts: {e}")
-            return []
-    
     async def resolve_alert(self, alert_id: str) -> bool:
         """Mark alert as resolved"""
         try:
@@ -1247,7 +1187,7 @@ class ThreatIntelligenceEngine:
         """Store individual CVE data record"""
         try:
             with sqlite3.connect(self.cve_db_path) as conn:
-                cursor = conn.execute("""
+                _cursor = conn.execute("""
                 INSERT OR REPLACE INTO cves (
                     cve_id, description, severity, cvss_score, cvss_vector,
                     published_date, modified_date, affected_products, reference_urls,

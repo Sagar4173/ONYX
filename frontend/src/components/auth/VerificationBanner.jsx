@@ -96,7 +96,8 @@ export const VerificationBanner = () => {
           </div>
         </div>
       </div>
-        </motion.div>
+      </div>
+    </motion.div>
       )}
     </AnimatePresence>
   );

@@ -2,6 +2,7 @@
  * Footer Component - Enterprise Grade
  * Professional footer for ONYX Security Platform
  */
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   DocumentTextIcon,
@@ -22,7 +23,12 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative">
+    <motion.footer
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="relative"
+    >
       {/* Glass background */}
       <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-xl border-t border-gray-800/50" />
 
@@ -74,6 +80,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

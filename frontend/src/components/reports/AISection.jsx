@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   SparklesIcon,
   ExclamationTriangleIcon,
@@ -38,9 +39,21 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
           <p className="text-gray-400">Loading AI analysis...</p>
         </div>
       ) : aiAnalysis && aiAnalysis.has_analysis ? (
-        <>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.05 } },
+          }}
+        >
           {/* Security Score Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
             {/* Security Score */}
             <div className="glass-container rounded-xl p-6 text-center">
               <h4 className="text-sm font-medium text-gray-400 mb-3">Security Score</h4>
@@ -123,11 +136,17 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                 {aiAnalysis.estimated_fix_time || "N/A"}
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Executive Summary */}
           {aiAnalysis.executive_summary && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <SparklesIcon className="h-5 w-5 mr-2 text-cyan-400" />
                 Executive Summary
@@ -135,23 +154,35 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
               <p className="text-gray-300 leading-relaxed whitespace-pre-line">
                 {aiAnalysis.executive_summary}
               </p>
-            </div>
+            </motion.div>
           )}
 
           {/* Risk Assessment */}
           {aiAnalysis.overall_risk_assessment && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <ExclamationTriangleIcon className="h-5 w-5 mr-2 text-amber-400" />
                 Risk Assessment
               </h3>
               <p className="text-gray-300 leading-relaxed">{aiAnalysis.overall_risk_assessment}</p>
-            </div>
+            </motion.div>
           )}
 
           {/* Priority Findings */}
           {aiAnalysis.priority_findings?.length > 0 && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <FireIcon className="h-5 w-5 mr-2 text-red-400" />
                 Priority Findings
@@ -166,12 +197,18 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           )}
 
           {/* Recommendations */}
           {aiAnalysis.priority_recommendations?.length > 0 && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <LightBulbIcon className="h-5 w-5 mr-2 text-yellow-400" />
                 Recommendations
@@ -184,13 +221,19 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           )}
 
           {/* Secure Code Examples */}
           {aiAnalysis.secure_code_examples &&
             Object.keys(aiAnalysis.secure_code_examples).length > 0 && (
-              <div className="glass-container rounded-xl p-6">
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 15 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                className="glass-container rounded-xl p-6"
+              >
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                   <CodeIcon className="h-5 w-5 mr-2 text-green-400" />
                   Secure Code Examples
@@ -205,12 +248,18 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
           {/* Compliance Impact */}
           {aiAnalysis.compliance_impact && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <DocumentTextIcon className="h-5 w-5 mr-2 text-purple-400" />
                 Compliance Impact
@@ -229,8 +278,8 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                             : aiAnalysis.compliance_impact.overall_impact
                                   .toLowerCase()
                                   .includes("medium")
-                              ? "bg-yellow-500/20 text-yellow-400"
-                              : "bg-green-500/20 text-green-400"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : "bg-green-500/20 text-green-400"
                         }`}
                       >
                         {aiAnalysis.compliance_impact.overall_impact}
@@ -263,12 +312,18 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
           {/* Threat Categories */}
           {aiAnalysis.threat_categories && Object.keys(aiAnalysis.threat_categories).length > 0 && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <ChartBarIcon className="h-5 w-5 mr-2 text-orange-400" />
                 Threat Categories Breakdown
@@ -281,12 +336,18 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Attack Vectors */}
           {aiAnalysis.attack_vectors?.length > 0 && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <BoltIcon className="h-5 w-5 mr-2 text-red-400" />
                 Potential Attack Vectors
@@ -302,12 +363,18 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Remediation Roadmap */}
           {aiAnalysis.remediation_roadmap?.length > 0 && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <DocumentTextIcon className="h-5 w-5 mr-2 text-green-400" />
                 Remediation Roadmap
@@ -357,21 +424,27 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Model Info */}
           {aiAnalysis.model_used && (
-            <div className="glass-container rounded-xl p-4 bg-gray-800/30">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-4 bg-gray-800/30"
+            >
               <p className="text-xs text-gray-500 text-center">
                 🤖 Analysis generated by{" "}
                 <span className="text-cyan-400">{aiAnalysis.model_used}</span>
                 {aiAnalysis.generated_at &&
                   ` on ${new Date(aiAnalysis.generated_at).toLocaleString()}`}
               </p>
-            </div>
+            </motion.div>
           )}
-        </>
+        </motion.div>
       ) : (
         <div className="glass-container rounded-xl p-8 text-center">
           <SparklesIcon className="h-12 w-12 text-gray-600 mx-auto mb-4" />

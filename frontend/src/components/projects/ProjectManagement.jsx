@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -155,38 +156,67 @@ const ProjectManagement = () => {
         }
       />
 
-      <ProjectStatsBar analytics={analytics} isLoading={analyticsLoading} />
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.08 } },
+        }}
+      >
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <ProjectStatsBar analytics={analytics} isLoading={analyticsLoading} />
+        </motion.div>
 
-      <ProjectFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        sort={sort}
-        onSortChange={handleSortChange}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        categories={templates?.categories}
-        priorities={templates?.priorities}
-        total={paginationInfo.total}
-      />
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <ProjectFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            sort={sort}
+            onSortChange={handleSortChange}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            categories={templates?.categories}
+            priorities={templates?.priorities}
+            total={paginationInfo.total}
+          />
+        </motion.div>
 
-      <ProjectGrid
-        projects={projects}
-        viewMode={viewMode}
-        pagination={paginationInfo}
-        onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
-        onPerPageChange={(perPage) => setPagination((prev) => ({ ...prev, perPage, page: 1 }))}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onBulkArchive={(ids) => bulkArchiveMutation.mutate([...ids])}
-        onBulkDelete={handleBulkDelete}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        error={error}
-        onRetry={refetch}
-      />
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <ProjectGrid
+            projects={projects}
+            viewMode={viewMode}
+            pagination={paginationInfo}
+            onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+            onPerPageChange={(perPage) => setPagination((prev) => ({ ...prev, perPage, page: 1 }))}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onBulkArchive={(ids) => bulkArchiveMutation.mutate([...ids])}
+            onBulkDelete={handleBulkDelete}
+            isLoading={isLoading}
+            isFetching={isFetching}
+            error={error}
+            onRetry={refetch}
+          />
+        </motion.div>
+      </motion.div>
 
       <ProjectForm
         isOpen={showCreateModal}

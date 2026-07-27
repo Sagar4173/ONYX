@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { GlassCard } from "../../layouts/UIComponents";
@@ -60,8 +61,13 @@ const ProjectFilters = ({
   };
 
   return (
-    <GlassCard className="mb-6" noPadding>
-      <div className="p-4 space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <GlassCard className="mb-6" noPadding>
+        <div className="p-4 space-y-4">
         {/* Search + view toggle row */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
@@ -207,7 +213,8 @@ const ProjectFilters = ({
           </p>
         )}
       </div>
-    </GlassCard>
+      </GlassCard>
+    </motion.div>
   );
 };
 

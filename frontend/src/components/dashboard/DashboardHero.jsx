@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import SecurityScoreGlobe from "../projects/SecurityScoreGlobe";
 import { AnimatedCounter } from "../../styles/components";
 
@@ -7,7 +8,12 @@ const DashboardHero = ({ securityScore, scoreTrend }) => {
   const trendArrow = scoreTrend > 0 ? "↑" : scoreTrend < 0 ? "↓" : "→";
 
   return (
-    <div className="bg-gray-800/40 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 mb-6">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="bg-gray-800/40 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 mb-6"
+    >
       <div className="flex items-center gap-8">
         <div className="flex-shrink-0">
           <SecurityScoreGlobe score={securityScore || 0} isScanActive={false} />
@@ -31,7 +37,7 @@ const DashboardHero = ({ securityScore, scoreTrend }) => {
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

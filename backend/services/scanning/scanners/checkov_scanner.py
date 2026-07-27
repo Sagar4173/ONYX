@@ -7,15 +7,14 @@ Infrastructure as Code security scanning using Checkov.
 
 import asyncio
 import json
-from typing import List, Dict, Any, Optional
-from pathlib import Path
-import tempfile
 import logging
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from .base_scanner import BaseScanner
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import ScannerError
+from ..base.models import Finding, ScanType, Severity
+from .base_scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +147,7 @@ class CheckovScanner(BaseScanner):
                 results_file = Path(output_file)
             
             if not results_file.exists():
-                logger.warning(f"Checkov output file not found")
+                logger.warning("Checkov output file not found")
                 return findings
             
             with open(results_file, 'r') as f:

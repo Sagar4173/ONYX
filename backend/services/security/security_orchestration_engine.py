@@ -10,23 +10,18 @@ Date: August 2025
 """
 
 import asyncio
-import json
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, TYPE_CHECKING
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from utils.datetime_utils import utc_now
 
 # Import threat intelligence from same package (safe)
-from .threat_intelligence import ThreatAlert, CVEData
 
 # Lazy imports to avoid circular dependencies
 if TYPE_CHECKING:
-    from services.scanning.vulnerability import VulnerabilityManager, Asset, Vulnerability
-    from services.analytics.metrics_kpi_engine import MetricsKPIEngine
-    from services.scanning.engine import ScanOrchestrator
+    pass
 
 # Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)
@@ -59,9 +54,9 @@ class SecurityOrchestrationEngine:
     
     def __init__(self):
         # Lazy imports to avoid circular dependencies
-        from services.scanning.vulnerability import VulnerabilityManager
         from services.analytics.metrics_kpi_engine import MetricsKPIEngine
         from services.scanning.engine import ScanOrchestrator
+        from services.scanning.vulnerability import VulnerabilityManager
         from services.service_registry import ServiceRegistry
         
         # Initialize component engines (use singleton from registry)

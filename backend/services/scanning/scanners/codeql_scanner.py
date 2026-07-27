@@ -7,16 +7,15 @@ Static Application Security Testing using GitHub CodeQL.
 
 import asyncio
 import json
-import shutil
-from typing import List, Dict, Any, Optional
-from pathlib import Path
-import tempfile
 import logging
+import shutil
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from .base_scanner import BaseScanner
-from ..base.models import Finding, ScanType, Severity
 from ..base.config import ScanConfig
-from ..base.exceptions import ScannerError
+from ..base.models import Finding, ScanType, Severity
+from .base_scanner import BaseScanner
 
 logger = logging.getLogger(__name__)
 

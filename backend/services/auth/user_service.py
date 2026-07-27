@@ -2,22 +2,28 @@
 User Management Service for ONYX Security Intelligence Platform
 Comprehensive user administration and profile management
 """
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Dict, Any
+import hashlib
+import secrets
+from datetime import timedelta
+from typing import Any, Dict, List, Optional
+
 from fastapi import HTTPException, status
 from pymongo import DESCENDING
 
-from utils.datetime_utils import utc_now
-import hashlib
-import secrets
-
 from models.user import (
-    User, UserRole, UserStatus, UserSession, APIToken,
-    UserCreate, UserUpdate, UserPasswordChange, UserResponse,
-    APITokenCreate, APITokenResponse
+    APIToken,
+    APITokenCreate,
+    APITokenResponse,
+    User,
+    UserPasswordChange,
+    UserResponse,
+    UserRole,
+    UserSession,
+    UserStatus,
+    UserUpdate,
 )
 from services.auth.auth_service import auth_service
-from config import settings
+from utils.datetime_utils import utc_now
 
 
 class UserService:
@@ -194,7 +200,7 @@ class UserService:
         """Get all active sessions for a user"""
         sessions = await UserSession.find(
             UserSession.user_id == user_id,
-            UserSession.is_active == True
+            UserSession.is_active
         ).sort([("last_activity", DESCENDING)]).to_list()
         
         return [
@@ -221,7 +227,7 @@ class UserService:
         session = await UserSession.find_one(
             UserSession.user_id == user_id,
             UserSession.session_id == session_id,
-            UserSession.is_active == True
+            UserSession.is_active
         )
         
         if not session:
@@ -240,7 +246,7 @@ class UserService:
         """Get all API tokens for a user"""
         tokens = await APIToken.find(
             APIToken.user_id == user_id,
-            APIToken.is_active == True
+            APIToken.is_active
         ).sort([("created_at", DESCENDING)]).to_list()
         
         return [
@@ -315,7 +321,7 @@ class UserService:
         token = await APIToken.find_one(
             APIToken.user_id == user_id,
             APIToken.token_id == token_id,
-            APIToken.is_active == True
+            APIToken.is_active
         )
         
         if not token:
@@ -352,7 +358,7 @@ class UserService:
         
         # Active sessions
         active_sessions = await UserSession.find(
-            UserSession.is_active == True,
+            UserSession.is_active,
             UserSession.expires_at > utc_now()
         ).count()
         

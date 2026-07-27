@@ -2,29 +2,36 @@
 Authentication Service for ONYX Security Intelligence Platform
 Handles JWT token generation, validation, password management, and user sessions
 """
-import secrets
 import hashlib
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any, Tuple
+import secrets
 import uuid
-import jwt
-import bcrypt
-import pyotp
-from fastapi import HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
 
-# Import timezone-aware UTC datetime helper
-from utils.datetime_utils import utc_now
-from fastapi import Request, Depends
+import bcrypt
+import jwt
+import pyotp
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from config import settings
 from models.user import (
-    User, UserSession, APIToken, UserRole, UserStatus,
-    LoginRequest, LoginResponse, UserResponse, 
-    PasswordResetRequest, PasswordResetConfirm,
-    UserCreate, UserPasswordChange
+    APIToken,
+    LoginRequest,
+    LoginResponse,
+    PasswordResetConfirm,
+    User,
+    UserCreate,
+    UserPasswordChange,
+    UserResponse,
+    UserRole,
+    UserSession,
+    UserStatus,
 )
+
+# Import timezone-aware UTC datetime helper
+from utils.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 

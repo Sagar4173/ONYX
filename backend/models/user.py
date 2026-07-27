@@ -2,9 +2,9 @@
 User Models for ONYX Security Intelligence Platform
 Handles user authentication, roles, and profile management
 """
-from datetime import datetime, timedelta, timezone
-from typing import Optional, List
 import uuid
+from datetime import datetime, timezone
+from typing import List, Optional
 
 from beanie import Document, Indexed
 from pydantic import BaseModel, EmailStr, Field, validator

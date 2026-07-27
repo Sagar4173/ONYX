@@ -2,17 +2,16 @@
 Notification service for sending alerts via Slack, Teams, and other channels
 """
 import asyncio
-import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 import httpx
 from slack_sdk.webhook.async_client import AsyncWebhookClient
 
-from models.report import ScanReport, AIAnalysis, NotificationStatus
 from config import settings
+from models.report import NotificationStatus, ScanReport
 
 logger = logging.getLogger(__name__)
 

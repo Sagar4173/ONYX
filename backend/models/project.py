@@ -3,13 +3,14 @@ Project Management Models for ONYX Platform
 Handles project creation, management, and organization
 """
 from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
-from beanie import Document, Indexed
+from typing import Any, Dict, List, Optional
+
+from beanie import Document
 from pydantic import BaseModel, Field
 from pymongo import IndexModel
 
 # Import shared enums from the single source of truth
-from .base import ProjectStatus, ProjectCategory, ProjectPriority, utc_now
+from .base import ProjectCategory, ProjectPriority, ProjectStatus
 
 
 class RepositoryConfig(BaseModel):
@@ -273,6 +274,24 @@ class TeamMemberRequest(BaseModel):
         }
 
 
+class RepositoryConfigResponse(BaseModel):
+    """Repository configuration for API responses (excludes sensitive fields)"""
+    url: str
+    branch: str
+    scan_paths: List[str]
+    exclude_paths: List[str]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "url": "https://github.com/user/repo",
+                "branch": "main",
+                "scan_paths": ["/src", "/api"],
+                "exclude_paths": ["/tests", "/docs"]
+            }
+        }
+
+
 class ProjectResponse(BaseModel):
     """Response model for project data"""
     id: str
@@ -281,7 +300,7 @@ class ProjectResponse(BaseModel):
     category: ProjectCategory
     priority: ProjectPriority
     status: ProjectStatus
-    repository: RepositoryConfig
+    repository: RepositoryConfigResponse
     scan_config: ScanConfiguration
     owner_id: str
     team_members: List[ProjectMember]

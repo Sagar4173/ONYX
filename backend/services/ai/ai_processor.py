@@ -5,13 +5,12 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
-import openai
 from openai import AsyncOpenAI
 
-from models.report import VulnerabilityFinding, AIAnalysis, ScanResult
 from config import settings
+from models.report import AIAnalysis, ScanResult
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +200,7 @@ Return ONLY a JSON object in this exact format:
                         finding['remediation_code'] = secure_code if secure_code else None
                         
                 except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse AI remediation response as JSON")
+                    logger.warning("Failed to parse AI remediation response as JSON")
                     continue
                     
             except Exception as e:
@@ -331,9 +330,6 @@ Return ONLY a JSON object in this exact format:
         for finding in findings_data.get('findings', []):
             title = finding.get('title', '').lower()
             desc = finding.get('description', '').lower()
-            owasp = finding.get('owasp_category', '').lower()
-            cwe = finding.get('cwe_id', '').lower()
-            
             # Categorize based on keywords
             if any(k in title + desc for k in ['sql', 'injection', 'sqli', 'command injection', 'ldap', 'xpath']):
                 categories["Injection"] += 1
@@ -376,7 +372,7 @@ Return ONLY a JSON object in this exact format:
         try:
             response = await self._call_openai(prompt)
             return json.loads(response.strip())[:7]
-        except:
+        except Exception:
             # Generate based on findings
             vectors = []
             severity_counts = findings_data['severity_counts']

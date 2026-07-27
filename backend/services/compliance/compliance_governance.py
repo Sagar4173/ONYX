@@ -5,22 +5,18 @@ NIST, ISO 27001 mapping, policy enforcement, audit trails, incident response
 DEPRECATED: This module uses SQLite for storage.
 Use governance_engine_mongodb.py instead for production.
 """
-import asyncio
-import logging
 import json
+import logging
 import sqlite3
-import warnings
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
-from pathlib import Path
-from dataclasses import dataclass, field
 import uuid
-import hashlib
+import warnings
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
-from models.base import (
-    ComplianceFramework, PolicySeverity, IncidentStatus, utc_now
-)
+from models.base import ComplianceFramework, IncidentStatus, PolicySeverity
 
 logger = logging.getLogger(__name__)
 

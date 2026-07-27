@@ -2,23 +2,20 @@
 Advanced Baseline Management with Drift Detection
 Stores baseline findings per repo+branch and detects security regressions/improvements
 """
-import asyncio
-import logging
-import json
-import sqlite3
 import hashlib
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
-from pathlib import Path
-from dataclasses import dataclass, field
-from enum import Enum
-import uuid
-import deepdiff
+import json
+import logging
+import sqlite3
 import statistics
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-from models.base import SeverityLevel
 
 
 class ChangeType(Enum):

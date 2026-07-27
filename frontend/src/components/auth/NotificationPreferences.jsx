@@ -159,6 +159,7 @@ export const NotificationPreferences = () => {
             </div>
           )}
         </div>
+      </div>
       </motion.div>
 
       <motion.div custom={1} variants={staggerVariants}>

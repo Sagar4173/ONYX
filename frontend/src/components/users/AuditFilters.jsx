@@ -6,7 +6,7 @@ import {
   ChevronUpIcon,
 } from "@heroicons/react/24/outline";
 import { GlassCard } from "../../layouts";
-import { eventTypes, severityLevels } from "./auditHelpers";
+import { eventTypes, severityLevels } from "./auditHelpers.jsx";
 
 const sectionAnim = {
   hidden: { opacity: 0 },

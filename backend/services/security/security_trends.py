@@ -3,16 +3,15 @@ Security Trends Analytics Service
 Track security posture over time, visualize trends, and measure improvement
 Provides data for severity trends dashboard and security KPIs
 """
-import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field
-from collections import defaultdict
 import statistics
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
-from models.base import TrendPeriod, TrendDirection
+from models.base import TrendDirection, TrendPeriod
 
 logger = logging.getLogger(__name__)
 

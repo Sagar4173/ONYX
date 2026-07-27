@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheckIcon, PlusIcon } from "@heroicons/react/24/outline";
@@ -75,7 +76,12 @@ const AdvancedCompliance = () => {
 
   return (
     <PageContainer>
-      <div className="max-w-7xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="max-w-7xl mx-auto"
+      >
         <PageHeader
           title="Advanced Compliance"
           description="Multi-framework compliance assessments and reporting"
@@ -84,7 +90,7 @@ const AdvancedCompliance = () => {
           actions={
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+              className="flex items-center gap-2 px-4 lg:px-6 py-2.5 lg:py-3 bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-600 hover:to-violet-600 rounded-xl text-white text-sm lg:text-base font-semibold shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
             >
               <PlusIcon className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>New Assessment</span>
@@ -128,7 +134,7 @@ const AdvancedCompliance = () => {
           }}
           isPending={createAssessmentMutation.isPending}
         />
-      </div>
+      </motion.div>
     </PageContainer>
   );
 };

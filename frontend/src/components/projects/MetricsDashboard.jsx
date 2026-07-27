@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   ChartBarIcon,
   ExclamationTriangleIcon,
@@ -44,11 +45,26 @@ const MetricsDashboard = ({
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+    >
       {metrics.map((m, i) => (
-        <MetricCard key={i} {...m} />
+        <motion.div
+          key={i}
+          variants={{
+            hidden: { opacity: 0, y: 15 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <MetricCard {...m} />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
 

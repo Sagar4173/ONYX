@@ -3,24 +3,25 @@ Email Template Registry
 Centralized template management for all email templates
 """
 
-from jinja2 import Environment, BaseLoader, TemplateNotFound
+from jinja2 import BaseLoader, Environment, TemplateNotFound
+
 from .auth_templates import (
-    get_verification_template,
-    get_password_reset_template,
-    get_welcome_template,
-    get_login_alert_template,
-    get_2fa_enabled_template,
     get_2fa_disabled_template,
+    get_2fa_enabled_template,
     get_2fa_recovery_used_template,
-    get_password_changed_template
+    get_login_alert_template,
+    get_password_changed_template,
+    get_password_reset_template,
+    get_verification_template,
+    get_welcome_template,
 )
 from .security_templates import (
-    get_scan_completed_template,
-    get_security_alert_template,
     get_new_vulnerability_template,
-    get_weekly_digest_template,
+    get_scan_completed_template,
     get_scan_report_attachment_template,
-    get_scan_report_email_template
+    get_scan_report_email_template,
+    get_security_alert_template,
+    get_weekly_digest_template,
 )
 
 

@@ -30,22 +30,25 @@ async def generate_report_pdf(report_id: str) -> Optional[bytes]:
     """
     try:
         from bson import ObjectId
-        from models.report import ScanReport
+        from reportlab.lib import colors as reportlab_colors
+        from reportlab.lib.colors import black, white
+        from reportlab.lib.enums import TA_CENTER
 
         # Reportlab imports
         from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.colors import red, green, orange, black, blue, white
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
         from reportlab.lib.units import inch
-        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-        from reportlab.graphics.shapes import Drawing, Rect, Line, Circle
-        from reportlab.graphics.charts.piecharts import Pie
-        from reportlab.graphics.charts.barcharts import VerticalBarChart
-        from reportlab.lib import colors as reportlab_colors
-        from reportlab.platypus import ListFlowable, ListItem, KeepTogether, HRFlowable
-        from reportlab.platypus.tableofcontents import TableOfContents
-        from reportlab.pdfbase import pdfmetrics
+        from reportlab.platypus import (
+            HRFlowable,
+            PageBreak,
+            Paragraph,
+            SimpleDocTemplate,
+            Spacer,
+            Table,
+            TableStyle,
+        )
+
+        from models.report import ScanReport
 
         # ---- Fetch report from database ----
         report = None
@@ -175,10 +178,6 @@ async def generate_report_pdf(report_id: str) -> Optional[bytes]:
         border_color = reportlab_colors.HexColor('#e2e8f0')
 
         # Styles
-        title_style = ParagraphStyle(
-            'CustomTitle', parent=styles['Heading1'], fontSize=28, spaceAfter=10,
-            spaceBefore=0, alignment=TA_CENTER, textColor=primary_color, fontName='Helvetica-Bold'
-        )
         subtitle_style = ParagraphStyle(
             'CustomSubtitle', parent=styles['Heading2'], fontSize=14, spaceAfter=25,
             alignment=TA_CENTER, textColor=reportlab_colors.grey
@@ -202,10 +201,6 @@ async def generate_report_pdf(report_id: str) -> Optional[bytes]:
             'Callout', parent=styles['Normal'], fontSize=10, spaceAfter=10,
             leftIndent=10, backColor=reportlab_colors.HexColor('#fef3c7'),
             borderWidth=2, borderColor=warning_color, borderPadding=10, leading=14
-        )
-        action_style = ParagraphStyle(
-            'ActionItem', parent=styles['Normal'], fontSize=10, spaceAfter=6,
-            leftIndent=20, textColor=danger_color, fontName='Helvetica-Bold', leading=13
         )
         info_style = ParagraphStyle(
             'InfoBox', parent=styles['Normal'], fontSize=10, spaceAfter=10,

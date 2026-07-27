@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldCheckIcon, BoltIcon, PlusIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -61,7 +62,14 @@ const Dashboard = ({ notifications = [] }) => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+      className="relative min-h-screen"
+    >
       <ParticleBackground />
       <PageContainer>
         <PageHeader
@@ -92,13 +100,25 @@ const Dashboard = ({ notifications = [] }) => {
         <DashboardHero securityScore={score} scoreTrend={scoreTrend} />
 
         {statsLoading ? (
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="grid grid-cols-4 gap-4 mb-6"
+          >
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-[120px] bg-gray-800/30 rounded-xl animate-pulse" />
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+          >
             <MetricCard
               title="Projects"
               value={stats?.totalProjects ?? 0}
@@ -133,10 +153,16 @@ const Dashboard = ({ notifications = [] }) => {
                     : "from-red-400 to-rose-500"
               }
             />
-          </div>
+          </motion.div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 15 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"
+        >
           <GlassCard>
             <SectionHeader title="Security Overview" description="Score trend over time" />
             <ScoreTrendChart reports={recentReports} />
@@ -197,56 +223,69 @@ const Dashboard = ({ notifications = [] }) => {
               onRetry={refetchReports}
             />
           </GlassCard>
-        </div>
+        </motion.div>
 
-        <GlassCard>
-          <SectionHeader title="Live Activity" description="Real-time notifications and updates" />
-          <div className="max-h-[200px] overflow-y-auto space-y-2">
-            {notifications.length === 0 ? (
-              <EmptyState
-                icon={BoltIcon}
-                title="No recent activity"
-                description="Updates will appear here in real-time"
-              />
-            ) : (
-              notifications.slice(0, 6).map((notif) => {
-                const typeStyle =
-                  notif.type === "scan_completed"
-                    ? "text-emerald-400 bg-emerald-500/10"
-                    : notif.type === "scan_error"
-                      ? "text-red-400 bg-red-500/10"
-                      : notif.type === "scan_started"
-                        ? "text-blue-400 bg-blue-500/10"
-                        : "text-cyan-400 bg-cyan-500/10";
-                const IconComponent =
-                  notif.type === "scan_completed"
-                    ? ShieldCheckIcon
-                    : notif.type === "scan_error"
-                      ? ArrowPathIcon
-                      : BoltIcon;
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 15 },
+            visible: { opacity: 1, y: 0 },
+          }}
+        >
+          <GlassCard>
+            <SectionHeader
+              title="Live Activity"
+              description="Real-time notifications and updates"
+            />
+            <div className="max-h-[200px] overflow-y-auto space-y-2">
+              {notifications.length === 0 ? (
+                <EmptyState
+                  icon={BoltIcon}
+                  title="No recent activity"
+                  description="Updates will appear here in real-time"
+                />
+              ) : (
+                notifications.slice(0, 6).map((notif) => {
+                  const typeStyle =
+                    notif.type === "scan_completed"
+                      ? "text-emerald-400 bg-emerald-500/10"
+                      : notif.type === "scan_error"
+                        ? "text-red-400 bg-red-500/10"
+                        : notif.type === "scan_started"
+                          ? "text-blue-400 bg-blue-500/10"
+                          : "text-cyan-400 bg-cyan-500/10";
+                  const IconComponent =
+                    notif.type === "scan_completed"
+                      ? ShieldCheckIcon
+                      : notif.type === "scan_error"
+                        ? ArrowPathIcon
+                        : BoltIcon;
 
-                return (
-                  <div
-                    key={notif.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-colors"
-                  >
-                    <div className={`p-2 rounded-lg ${typeStyle} flex-shrink-0`}>
-                      <IconComponent className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{notif.message}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(notif.timestamp).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </GlassCard>
+                  return (
+                    <motion.div
+                      key={notif.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/30 hover:bg-gray-800/50 transition-colors"
+                    >
+                      <div className={`p-2 rounded-lg ${typeStyle} flex-shrink-0`}>
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{notif.message}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(notif.timestamp).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
+          </GlassCard>
+        </motion.div>
       </PageContainer>
-    </div>
+    </motion.div>
   );
 };
 

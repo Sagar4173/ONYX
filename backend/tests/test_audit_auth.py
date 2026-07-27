@@ -16,9 +16,9 @@ Testing strategy:
   assertion, not silently hidden.  Explicit assertions verify the expected number
   of captured bound methods were found.
 """
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -120,8 +120,9 @@ def _setup_client(user_role=None):
     captures a bound-method callable at route-registration time.  Override
     each captured callable via route.dependant introspection.
     """
-    from app import app
     from fastapi.testclient import TestClient
+
+    from app import app
     from routes.enterprise import get_database
 
     app.dependency_overrides.clear()
@@ -260,7 +261,7 @@ class TestNonSecurityManagerRejected:
     @pytest.mark.parametrize("role", ["viewer", "developer"])
     def test_query_audit_logs(self, role, mock_audit_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/query",
@@ -271,7 +272,7 @@ class TestNonSecurityManagerRejected:
     @pytest.mark.parametrize("role", ["viewer", "developer"])
     def test_get_user_activity(self, role, mock_audit_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/user/u1",
@@ -282,7 +283,7 @@ class TestNonSecurityManagerRejected:
     @pytest.mark.parametrize("role", ["viewer", "developer"])
     def test_get_resource_history(self, role, mock_audit_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/resource/project/p1",
@@ -293,7 +294,7 @@ class TestNonSecurityManagerRejected:
     @pytest.mark.parametrize("role", ["viewer", "developer"])
     def test_generate_compliance_report(self, role, mock_audit_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.post(
                 "/api/enterprise/audit-logs/compliance-report",
@@ -306,7 +307,7 @@ class TestNonSecurityManagerRejected:
     @pytest.mark.parametrize("role", ["viewer", "developer"])
     def test_export_audit_logs(self, role, mock_audit_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/export",
@@ -319,7 +320,7 @@ class TestNonSecurityManagerRejected:
     @pytest.mark.parametrize("role", ["viewer", "developer"])
     def test_verify_audit_log_integrity(self, role, mock_audit_service):
         client, _, _ = _setup_client(role)
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/verify/e1",
@@ -351,7 +352,7 @@ class TestSecurityManagerAccess:
 
     def test_query_audit_logs(self, mock_audit_service):
         client, _, _ = _setup_client("security_manager")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/query",
@@ -362,7 +363,7 @@ class TestSecurityManagerAccess:
 
     def test_get_user_activity(self, mock_audit_service):
         client, _, _ = _setup_client("security_manager")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/user/u1",
@@ -373,7 +374,7 @@ class TestSecurityManagerAccess:
 
     def test_get_resource_history(self, mock_audit_service):
         client, _, _ = _setup_client("security_manager")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/resource/project/p1",
@@ -384,7 +385,7 @@ class TestSecurityManagerAccess:
 
     def test_generate_compliance_report(self, mock_audit_service):
         client, _, _ = _setup_client("security_manager")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.post(
                 "/api/enterprise/audit-logs/compliance-report",
@@ -397,7 +398,7 @@ class TestSecurityManagerAccess:
 
     def test_export_audit_logs(self, mock_audit_service):
         client, _, _ = _setup_client("security_manager")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/export",
@@ -410,7 +411,7 @@ class TestSecurityManagerAccess:
 
     def test_verify_audit_log_integrity(self, mock_audit_service):
         client, _, _ = _setup_client("security_manager")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/verify/e1",
@@ -443,7 +444,7 @@ class TestAdminAccess:
 
     def test_query_audit_logs(self, mock_audit_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/query",
@@ -454,7 +455,7 @@ class TestAdminAccess:
 
     def test_get_user_activity(self, mock_audit_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/user/u1",
@@ -465,7 +466,7 @@ class TestAdminAccess:
 
     def test_get_resource_history(self, mock_audit_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/resource/project/p1",
@@ -476,7 +477,7 @@ class TestAdminAccess:
 
     def test_generate_compliance_report(self, mock_audit_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.post(
                 "/api/enterprise/audit-logs/compliance-report",
@@ -489,7 +490,7 @@ class TestAdminAccess:
 
     def test_export_audit_logs(self, mock_audit_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/export",
@@ -502,7 +503,7 @@ class TestAdminAccess:
 
     def test_verify_audit_log_integrity(self, mock_audit_service):
         client, _, _ = _setup_client("admin")
-        with patch("routes.enterprise.get_audit_service",
+        with patch("routes.enterprise.audit_logs.get_audit_service",
                    return_value=mock_audit_service):
             resp = client.get(
                 "/api/enterprise/audit-logs/verify/e1",

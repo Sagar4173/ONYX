@@ -8,16 +8,13 @@ Enterprise governance framework mapping findings to compliance standards
 IMPORTANT: This is the MongoDB-based implementation replacing the SQLite version.
 """
 
-import asyncio
-import json
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
-from pathlib import Path
 import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 # Import from canonical source
-from models.base import ComplianceFramework as ComplianceFrameworkEnum, utc_now
+from models.base import utc_now
 
 # Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)

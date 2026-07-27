@@ -12,8 +12,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 if __name__ == "__main__":
     try:
         # Import the FastAPI app
-        from app import app
         import uvicorn
+
+        from app import app
         
         port = int(os.environ.get("PORT", 8000))
         host = "0.0.0.0"

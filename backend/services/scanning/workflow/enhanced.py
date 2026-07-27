@@ -2,19 +2,19 @@
 Enhanced Scanning Workflow Service
 Ensures complete scanning with AI analysis and proper error handling
 """
-import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from models.report import ScanReport, ScanStatus, ScanResult
+from models.report import ScanReport, ScanResult, ScanStatus
+from services.ai.ai_processor import get_ai_processor
+from services.notifications.notification_service import NotificationService
+from services.scanning.base import ScanConfig
+
 # Use new scanner architecture instead of legacy
 from services.scanning.engine import ScanOrchestrator
-from services.scanning.base import ScanConfig
-from services.ai.ai_processor import get_ai_processor
 from services.scanning.vulnerability.manager import VulnerabilityManager
-from services.notifications.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 

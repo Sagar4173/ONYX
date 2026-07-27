@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { SeverityBadge } from "./ReportBadges";
 import {
   ClockIcon,
@@ -19,8 +20,20 @@ const StatusBadgeInline = ({ status, utils }) => {
 
 export const ReportSummary = ({ report, utils }) => {
   return (
-    <>
-      <div className="glass-container rounded-2xl p-6 mb-8 print:bg-white print:shadow-none print:border print:border-gray-200">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="glass-container rounded-2xl p-6 mb-8 print:bg-white print:shadow-none print:border print:border-gray-200"
+      >
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center space-x-6 text-sm text-gray-400 print:text-gray-600">
@@ -51,9 +64,15 @@ export const ReportSummary = ({ report, utils }) => {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-6">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="space-y-6"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="glass-container rounded-xl p-6">
             <div className="flex items-center">
@@ -82,7 +101,13 @@ export const ReportSummary = ({ report, utils }) => {
         </div>
 
         {/* Severity Summary */}
-        <div className="glass-container rounded-xl p-6">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 15 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="glass-container rounded-xl p-6"
+        >
           <h3 className="text-lg font-semibold text-white mb-4">Severity Breakdown</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {["critical", "high", "medium", "low", "info"].map((severity) => {
@@ -99,8 +124,8 @@ export const ReportSummary = ({ report, utils }) => {
               );
             })}
           </div>
-        </div>
-      </div>
-    </>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };

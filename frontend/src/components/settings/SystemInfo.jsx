@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const statusDot = {
@@ -81,27 +82,64 @@ const SystemInfo = () => {
   const dbLabel = statusLabel[systemInfo.database.status] || "Unknown";
 
   return (
-    <div className="mt-3 space-y-2 text-sm">
-      <div className="flex justify-between items-center">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.05 } },
+      }}
+      className="mt-3 space-y-2 text-sm"
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: -10 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        className="flex justify-between items-center"
+      >
         <span className="text-gray-400">Version</span>
         <span className="text-white font-mono text-xs">{systemInfo.version}</span>
-      </div>
-      <div className="flex justify-between items-center">
+      </motion.div>
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: -10 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        className="flex justify-between items-center"
+      >
         <span className="text-gray-400">Build</span>
         <span className="text-white font-mono text-xs">{systemInfo.build}</span>
-      </div>
-      <div className="flex justify-between items-center">
+      </motion.div>
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: -10 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        className="flex justify-between items-center"
+      >
         <span className="text-gray-400">Environment</span>
         <span className="text-white">{systemInfo.environment}</span>
-      </div>
-      <div className="flex justify-between items-center">
+      </motion.div>
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: -10 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        className="flex justify-between items-center"
+      >
         <span className="text-gray-400">Database</span>
         <span className="flex items-center gap-2">
           <span className={`inline-block w-2 h-2 rounded-full ${dbDot}`} />
           <span className="text-gray-300">{dbLabel}</span>
         </span>
-      </div>
-      <div className="flex justify-between items-center">
+      </motion.div>
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, x: -10 },
+          visible: { opacity: 1, x: 0 },
+        }}
+        className="flex justify-between items-center"
+      >
         <span className="text-gray-400">Scanners</span>
         <span className="flex items-center gap-2">
           <div className="h-1.5 w-16 bg-gray-700/50 rounded-full overflow-hidden">
@@ -116,16 +154,12 @@ const SystemInfo = () => {
               }}
             />
           </div>
-          <span
-            className={
-              systemInfo.scanners.active > 0 ? "text-green-400" : "text-yellow-400"
-            }
-          >
+          <span className={systemInfo.scanners.active > 0 ? "text-green-400" : "text-yellow-400"}>
             {systemInfo.scanners.active}/{systemInfo.scanners.total}
           </span>
         </span>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

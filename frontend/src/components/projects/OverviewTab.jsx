@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { getPriorityColor, getStatusColor } from "./projectHelpers";
 import SecurityRadar from "./SecurityRadar";
@@ -15,15 +16,34 @@ const OverviewTab = ({ project, vulnCounts, events = [] }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="lg:col-span-2 space-y-6"
+      >
         <div className="bg-gray-900/50 rounded-xl p-5 border border-gray-700/50 flex items-center justify-center">
           <SecurityRadar data={radarData} />
         </div>
         <VulnerabilityMatrix vulnCounts={vulnCounts} />
-      </div>
+      </motion.div>
 
-      <div className="space-y-6">
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 15 },
+          visible: { opacity: 1, y: 0 },
+        }}
+        className="space-y-6"
+      >
         <div className="bg-gray-900/50 rounded-xl p-5 border border-gray-700/50">
           <h3 className="text-lg font-semibold text-white mb-4">Project Info</h3>
           <div className="space-y-3">
@@ -89,8 +109,8 @@ const OverviewTab = ({ project, vulnCounts, events = [] }) => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

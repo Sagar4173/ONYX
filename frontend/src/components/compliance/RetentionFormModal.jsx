@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Button, Modal } from "../../styles/components";
 import { policyTypes, retentionActions } from "./retentionHelpers";
 
@@ -27,7 +28,11 @@ const RetentionFormModal = ({
     }
   >
     <form id="retention-form" onSubmit={onSubmit} className="space-y-6">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+      >
         <label className="block text-sm font-medium text-gray-300 mb-2">Policy Type *</label>
         <select
           value={formData.policy_type}
@@ -41,9 +46,13 @@ const RetentionFormModal = ({
             </option>
           ))}
         </select>
-      </div>
+      </motion.div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+      >
         <label className="block text-sm font-medium text-gray-300 mb-2">
           Retention Period (Days) *
         </label>
@@ -59,30 +68,52 @@ const RetentionFormModal = ({
         <p className="mt-2 text-sm text-gray-400">
           Common periods: 30 days, 90 days, 1 year (365), 7 years (2555)
         </p>
-      </div>
+      </motion.div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
         <label className="block text-sm font-medium text-gray-300 mb-2">Retention Action *</label>
-        <div className="grid grid-cols-2 gap-3">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.05 } },
+          }}
+          className="grid grid-cols-2 gap-3"
+        >
           {retentionActions.map((action) => (
-            <button
+            <motion.div
               key={action.value}
-              type="button"
-              onClick={() => setFormData({ ...formData, action: action.value })}
-              className={`p-4 border rounded-xl text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                formData.action === action.value
-                  ? "bg-cyan-500/20 border-cyan-500/50"
-                  : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
-              }`}
+              variants={{
+                hidden: { opacity: 0, scale: 0.95 },
+                visible: { opacity: 1, scale: 1 },
+              }}
             >
-              <p className={`font-medium ${action.color}`}>{action.label}</p>
-              <p className="text-xs text-gray-400 mt-1">{action.description}</p>
-            </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, action: action.value })}
+                className={`w-full p-4 border rounded-xl text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                  formData.action === action.value
+                    ? "bg-cyan-500/20 border-cyan-500/50"
+                    : "bg-gray-800/30 border-gray-700/50 hover:bg-gray-700/50"
+                }`}
+              >
+                <p className={`font-medium ${action.color}`}>{action.label}</p>
+                <p className="text-xs text-gray-400 mt-1">{action.description}</p>
+              </button>
+            </motion.div>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+      >
         <label className="block text-sm font-medium text-gray-300 mb-2">
           Compliance Requirement (Optional)
         </label>
@@ -93,9 +124,14 @@ const RetentionFormModal = ({
           placeholder="e.g., SOX, HIPAA, GDPR"
           className="w-full px-4 py-3 bg-gray-800/30 border border-gray-700/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
         />
-      </div>
+      </motion.div>
 
-      <div className="flex items-center justify-between p-4 bg-gray-800/30 border border-gray-700/50 rounded-xl">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.2 }}
+        className="flex items-center justify-between p-4 bg-gray-800/30 border border-gray-700/50 rounded-xl"
+      >
         <div>
           <p className="font-medium text-white">Enable Policy</p>
           <p className="text-sm text-gray-400">Activate this retention policy immediately</p>
@@ -109,7 +145,7 @@ const RetentionFormModal = ({
           />
           <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-cyan-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500" />
         </label>
-      </div>
+      </motion.div>
     </form>
   </Modal>
 );

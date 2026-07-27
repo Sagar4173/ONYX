@@ -4,6 +4,7 @@
  */
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { PageTransition } from "../styles/components";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
@@ -190,7 +191,12 @@ export const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-slate-950 flex"
+    >
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2 focus:bg-gray-900 focus:text-cyan-400 focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -377,7 +383,7 @@ export const MainLayout = () => {
 
       {/* Command Palette */}
       <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
-    </div>
+    </motion.div>
   );
 };
 

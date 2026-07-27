@@ -1,11 +1,11 @@
 """
 Configuration settings for ONYX Security Intelligence Platform
 """
-import os
 import logging
 from typing import Optional
-from pydantic_settings import BaseSettings
+
 from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     mongo_password: Optional[str] = Field(default=None, env="MONGO_PASSWORD")
     
     # Security
-    secret_key: str = Field(..., env="SECRET_KEY")
+    secret_key: str = Field(..., env="SECRET_KEY", min_length=32)
     algorithm: str = Field(default="HS256", env="ALGORITHM")
     access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=30, env="REFRESH_TOKEN_EXPIRE_DAYS")

@@ -5,24 +5,20 @@ Posture scoring, compliance readiness, and risk trend analysis
 NOTE: This module uses SQLite for metrics storage.
 Future versions should migrate to MongoDB for consistency.
 """
-import asyncio
-import logging
 import json
+import logging
 import sqlite3
 import statistics
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Tuple
-from pathlib import Path
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from collections import defaultdict
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
-from models.base import (
-    MetricType, TrendDirection, ComplianceFramework, ThreatSeverity,
-    VulnerabilityStatus, VulnerabilityPriority
-)
-from services.scanning.vulnerability import VulnerabilityManager, RiskMetrics
+from models.base import ComplianceFramework, MetricType, ThreatSeverity, TrendDirection
+from services.scanning.vulnerability import VulnerabilityManager
 from services.security.threat_intelligence import ThreatIntelligenceEngine
 
 logger = logging.getLogger(__name__)
@@ -475,7 +471,6 @@ class SecurityMetricsEngine:
                 return TrendDirection.UNKNOWN
             
             # Calculate trend using linear regression
-            timestamps = [(s[1] - scores[-1][1]).total_seconds() for s in scores]
             values = [s[0] for s in scores]
             
             if len(set(values)) == 1:
@@ -1152,8 +1147,8 @@ class SecurityMetricsEngine:
             
             # Calculate overall risk (weighted sum)
             overall_values = [
-                c * 4 + h * 3 + m * 2 + l * 1
-                for c, h, m, l in zip(critical_values, high_values, medium_values, low_values)
+                c * 4 + h * 3 + m * 2 + low * 1
+                for c, h, m, low in zip(critical_values, high_values, medium_values, low_values)
             ]
             
             # New/resolved vulnerability trends

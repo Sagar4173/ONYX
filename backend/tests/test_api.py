@@ -2,8 +2,6 @@
 API Endpoint Tests
 Tests for FastAPI routes and responses
 """
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 
 class TestHealthEndpoints:

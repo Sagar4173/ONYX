@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { OnyxLogo } from "../../common";
 
@@ -45,13 +46,18 @@ const LandingFooter = () => {
   };
 
   return (
-    <footer className="border-t border-gray-800/50 bg-gray-950">
+    <motion.footer
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="border-t border-gray-800/50 bg-gray-950"
+    >
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
             <Link to="/" className="flex items-center space-x-3 group mb-4">
               <OnyxLogo variant="glow" className="w-8 h-8" />
-              <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
                 ONYX
               </span>
             </Link>
@@ -107,7 +113,7 @@ const LandingFooter = () => {
           </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 };
 

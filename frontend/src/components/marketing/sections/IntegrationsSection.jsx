@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { ServerStackIcon } from "@heroicons/react/24/outline";
 
 const integrations = [
@@ -28,7 +29,12 @@ const capabilities = [
 ];
 
 const IntegrationsSection = () => (
-  <section className="py-24 bg-gray-900/30">
+  <motion.section
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4 }}
+    className="py-24 bg-gray-900/30"
+  >
     <div className="max-w-7xl mx-auto px-6">
       <div className="text-center mb-16">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
@@ -43,10 +49,21 @@ const IntegrationsSection = () => (
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.08 } },
+        }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+      >
         {integrations.map((item) => (
-          <div
+          <motion.div
             key={item.name}
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0 },
+            }}
             className="group p-6 rounded-2xl bg-gray-800/30 border border-gray-800/50 hover:border-cyan-500/30 hover:bg-gray-800/50 transition-all text-center"
           >
             <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
@@ -55,11 +72,16 @@ const IntegrationsSection = () => (
             <div className="font-bold text-white text-lg mb-1">{item.name}</div>
             <div className="text-xs text-cyan-400 font-medium mb-3">{item.category}</div>
             <p className="text-sm text-gray-400">{item.desc}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="text-center mt-12 p-6 rounded-2xl bg-gray-800/20 border border-gray-700/30 max-w-2xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="text-center mt-12 p-6 rounded-2xl bg-gray-800/20 border border-gray-700/30 max-w-2xl mx-auto"
+      >
         <h4 className="text-lg font-semibold text-white mb-2">Additional Capabilities</h4>
         <div className="flex flex-wrap justify-center gap-3">
           {capabilities.map((cap) => (
@@ -72,9 +94,9 @@ const IntegrationsSection = () => (
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
-  </section>
+  </motion.section>
 );
 
 export default IntegrationsSection;

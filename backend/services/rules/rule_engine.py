@@ -2,32 +2,32 @@
 Enhanced Custom Rule Engine with Security Boundaries
 This module provides secure rule management with comprehensive validation
 """
-import os
-import yaml
-import json
-import re
 import hashlib
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-from datetime import datetime, timezone
+import json
 import logging
+import re
+from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
+
 
 # Helper function for timezone-aware UTC datetime
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 from pydantic import BaseModel, Field, validator
-from git import Repo
 
 from .rule_security import (
-    SecureRuleValidator, 
-    RuleTestingFramework,
-    RuleSecurityError,
     AllowedLanguage,
-    AllowedRuleType, 
+    AllowedRuleType,
+    RuleExecutionLimits,
+    RuleSecurityError,
+    RuleTestingFramework,
+    SecureRuleValidator,
     SeverityLevel,
-    RuleExecutionLimits
 )
 
 logger = logging.getLogger(__name__)
@@ -294,9 +294,9 @@ class CustomRuleEngine:
             # Step 3: Update rule with validation and test results
             rule.security_validated = True
             rule.validation_errors = []
-            rule.tested_at = utc_now()
+            rule.tested_at = _utc_now()
             rule.test_results = test_results
-            rule.updated_at = utc_now()
+            rule.updated_at = _utc_now()
             
             # Step 4: Save to disk
             rule_file = self.rules_directory / f"{rule.id}.yaml"
@@ -355,7 +355,7 @@ class CustomRuleEngine:
             
             # Validate languages
             for lang in rule.languages:
-                if lang not in [l.value for l in AllowedLanguage]:
+                if lang not in [al.value for al in AllowedLanguage]:
                     errors.append(f"Unsupported language: {lang}")
             
             # Performance metrics (placeholder)
@@ -391,7 +391,7 @@ class CustomRuleEngine:
             'warnings': []
         }
         
-        start_time = utc_now()
+        start_time = _utc_now()
         
         try:
             # Use testing framework for safe execution
@@ -420,7 +420,7 @@ class CustomRuleEngine:
             })
         
         finally:
-            execution_time = (utc_now() - start_time).total_seconds()
+            execution_time = (_utc_now() - start_time).total_seconds()
             test_results['total_execution_time'] = execution_time
         
         return test_results

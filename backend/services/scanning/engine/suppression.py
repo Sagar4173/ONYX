@@ -5,16 +5,18 @@ Suppression Engine
 Engine for suppressing and filtering security findings.
 """
 
-import re
-from typing import List, Dict, Any, Optional, Set
-from datetime import datetime, timedelta, timezone
-from dataclasses import dataclass, field
-from pathlib import Path
-import yaml
 import json
 import logging
+import re
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 from utils.datetime_utils import utc_now
+
 from ..base.models import Finding, Severity
 
 logger = logging.getLogger(__name__)

@@ -4,15 +4,14 @@ Enhanced vulnerability database integration with Google OSV and NIST NVD APIs
 Provides comprehensive vulnerability lookup, enrichment, and real-time updates
 """
 import asyncio
-import aiohttp
-import json
 import logging
-import hashlib
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field
-from enum import Enum
 import re
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -428,9 +427,9 @@ class OSVNVDIntegrationService:
         cve_ids = []
         
         # Check common fields
-        for field in ["cve_id", "cve", "vulnerability_id", "id"]:
-            if field in finding:
-                value = finding[field]
+        for key in ["cve_id", "cve", "vulnerability_id", "id"]:
+            if key in finding:
+                value = finding[key]
                 if isinstance(value, str) and value.upper().startswith("CVE-"):
                     cve_ids.append(value.upper())
         

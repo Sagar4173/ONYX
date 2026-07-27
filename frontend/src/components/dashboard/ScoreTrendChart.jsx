@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import { ChartBarIcon } from "@heroicons/react/24/outline";
 import { EmptyState } from "../../layouts";
 
@@ -91,20 +92,29 @@ const ScoreTrendChart = ({ reports = [] }) => {
 
   if (dataPoints.length < 2) {
     return (
-      <div className="flex items-center justify-center h-[220px]">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-center h-[220px]"
+      >
         <EmptyState
           icon={ChartBarIcon}
           title="No trend data"
           description="Run scans to see your security score trend over time"
         />
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       <canvas ref={canvasRef} className="w-full h-[220px]" />
-    </div>
+    </motion.div>
   );
 };
 

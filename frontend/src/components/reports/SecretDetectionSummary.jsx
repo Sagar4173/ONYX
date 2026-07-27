@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { ShieldCheckIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
 
 const SecretDetectionSummary = ({ filteredFindings }) => {
@@ -16,7 +17,12 @@ const SecretDetectionSummary = ({ filteredFindings }) => {
   if (secretFindings.length === 0) return null;
 
   return (
-    <div className="glass-container rounded-xl p-4 border border-gray-700">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="glass-container rounded-xl p-4 border border-gray-700"
+    >
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold text-white flex items-center">
           <ShieldCheckIcon className="h-4 w-4 mr-2 text-purple-400" />
@@ -60,7 +66,7 @@ const SecretDetectionSummary = ({ filteredFindings }) => {
           </span>
         </p>
       ) : null}
-    </div>
+    </motion.div>
   );
 };
 

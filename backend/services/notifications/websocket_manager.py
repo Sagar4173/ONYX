@@ -5,9 +5,9 @@ Handles real-time notifications and broadcast messages to connected clients
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Set, Optional, Any
-from fastapi import WebSocket, WebSocketDisconnect
-import json
+from typing import Any, Dict, Optional, Set
+
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 

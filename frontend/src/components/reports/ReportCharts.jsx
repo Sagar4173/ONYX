@@ -1,11 +1,25 @@
+import { motion } from "framer-motion";
 import { ShieldCheckIcon, FireIcon, ChartBarIcon } from "@heroicons/react/24/outline";
 import { utils } from "../../services/api";
 
 export const ReportCharts = ({ report, aiAnalysis }) => {
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.08 } },
+      }}
+    >
       {report && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 15 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
           <div className="glass-container rounded-xl p-6">
             <div className="flex items-center">
               <div className="p-2 rounded-lg bg-cyan-500/20">
@@ -31,13 +45,19 @@ export const ReportCharts = ({ report, aiAnalysis }) => {
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {aiAnalysis && (
         <>
           {/* Security Score Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 15 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
             <div className="glass-container rounded-xl p-6 text-center">
               <h4 className="text-sm font-medium text-gray-400 mb-3">Security Score</h4>
               <div className="relative inline-flex items-center justify-center">
@@ -97,11 +117,17 @@ export const ReportCharts = ({ report, aiAnalysis }) => {
                 <p className="text-xs text-gray-500 mt-2">Risk Score: {aiAnalysis.risk_score}</p>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Threat Categories */}
           {aiAnalysis.threat_categories && Object.keys(aiAnalysis.threat_categories).length > 0 && (
-            <div className="glass-container rounded-xl p-6">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="glass-container rounded-xl p-6"
+            >
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <ChartBarIcon className="h-5 w-5 mr-2 text-orange-400" />
                 Threat Categories
@@ -119,10 +145,10 @@ export const ReportCharts = ({ report, aiAnalysis }) => {
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 };

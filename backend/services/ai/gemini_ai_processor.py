@@ -5,13 +5,13 @@ import asyncio
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from google.generativeai.types import HarmBlockThreshold, HarmCategory
 
-from models.report import VulnerabilityFinding, AIAnalysis, ScanResult
 from config import settings
+from models.report import AIAnalysis, ScanResult
 
 logger = logging.getLogger(__name__)
 
