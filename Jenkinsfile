@@ -108,16 +108,32 @@ pipeline {
 
                     if [ ! -f "$OLLAMA_BIN" ]; then
                         echo "Downloading Ollama..."
-                        # Try ollama.com first, fall back to GitHub releases
-                        OLLAMA_URL="https://ollama.com/download/ollama-linux-amd64.tgz"
-                        echo "Fetching from $OLLAMA_URL ..."
-                        curl -fsSL --connect-timeout 10 -o /tmp/ollama.tgz "$OLLAMA_URL" || \
-                            curl -fsSL --connect-timeout 10 -o /tmp/ollama.tgz \
-                                "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tgz" || \
-                            echo "ERROR: Failed to download Ollama from both URLs"
-                        if [ -f /tmp/ollama.tgz ] && [ -s /tmp/ollama.tgz ]; then
+                        ARCH="ollama-linux-amd64"
+                        BASE_URL="https://ollama.com/download"
+
+                        # Try .tar.zst first, fall back to .tgz
+                        if curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tar.zst" > /dev/null 2>&1; then
+                            echo "Downloading ${ARCH}.tar.zst ..."
+                            curl -fsSL --connect-timeout 30 "${BASE_URL}/${ARCH}.tar.zst" > /tmp/ollama.tar.zst
+                            if command -v zstd > /dev/null 2>&1; then
+                                zstd -d /tmp/ollama.tar.zst -o /tmp/ollama.tar
+                                tar -xf /tmp/ollama.tar -C "$HOME/ollama/"
+                                rm -f /tmp/ollama.tar /tmp/ollama.tar.zst
+                            else
+                                echo "zstd not available, trying tgz fallback..."
+                                rm -f /tmp/ollama.tar.zst
+                                curl -fsSL --connect-timeout 30 "${BASE_URL}/${ARCH}.tgz" -o /tmp/ollama.tgz
+                                tar -xzf /tmp/ollama.tgz -C "$HOME/ollama/"
+                                rm -f /tmp/ollama.tgz
+                            fi
+                        else
+                            echo "Downloading ${ARCH}.tgz ..."
+                            curl -fsSL --connect-timeout 30 "${BASE_URL}/${ARCH}.tgz" -o /tmp/ollama.tgz
                             tar -xzf /tmp/ollama.tgz -C "$HOME/ollama/"
                             rm -f /tmp/ollama.tgz
+                        fi
+
+                        if [ -f "$OLLAMA_BIN" ]; then
                             chmod +x "$OLLAMA_BIN"
                             echo "Ollama installed to $OLLAMA_BIN"
                         else
