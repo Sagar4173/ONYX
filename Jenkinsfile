@@ -20,8 +20,9 @@ pipeline {
     options {
         timeout(time: 15, unit: 'MINUTES')
         disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        buildDiscarder(logRotator(numToKeepStr: '5'))
         timestamps()
+        skipDefaultCheckout()
     }
 
     triggers {
@@ -31,11 +32,43 @@ pipeline {
     stages {
 
         // =====================================================================
-        // Stage 1: Pull Latest Code
+        // Stage 1: Clean Up Disk Space (runs BEFORE git checkout)
+        // =====================================================================
+        stage('Clean Disk') {
+            steps {
+                echo '🧹 Cleaning disk space...'
+                sh '''
+                    echo "=== Disk BEFORE cleanup ==="
+                    df -h "$HOME" | tail -1
+
+                    # Remove old workspaces
+                    rm -rf "$HOME/workspace/"*/workspace/* 2>/dev/null || true
+                    rm -rf "$HOME/ollama" 2>/dev/null || true
+
+                    # Clear caches
+                    rm -rf "$HOME/.cache/pip" 2>/dev/null || true
+                    rm -rf "$HOME/.npm/_cacache" 2>/dev/null || true
+                    rm -rf /tmp/* 2>/dev/null || true
+
+                    # Clear journal logs
+                    sudo journalctl --vacuum-time=1d 2>/dev/null || true
+
+                    # Remove old onyx deploy artifacts (keep only 2 newest)
+                    ls -dt "$HOME"/ONYX_bak_* 2>/dev/null | tail -n +3 | xargs rm -rf 2>/dev/null || true
+
+                    echo "=== Disk AFTER cleanup ==="
+                    df -h "$HOME" | tail -1
+                '''
+            }
+        }
+
+        // =====================================================================
+        // Stage 2: Pull Latest Code
         // =====================================================================
         stage('Pull Code') {
             steps {
                 echo '📥 Pulling latest code from GitHub...'
+                checkout scm
                 sh '''
                     cd /home/ec2-user/ONYX
 
@@ -57,7 +90,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 2: Verify .env Files
+        // Stage 3: Verify .env Files
         // =====================================================================
         stage('Verify Config') {
             steps {
@@ -78,7 +111,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 3: Install Backend Dependencies
+        // Stage 4: Install Backend Dependencies
         // =====================================================================
         stage('Backend Deps') {
             steps {
@@ -94,7 +127,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 4: Setup Ollama (local AI, zero-cost)
+        // Stage 5: Setup Ollama (local AI, zero-cost)
         // =====================================================================
         stage('Setup Ollama') {
             steps {
@@ -189,7 +222,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 5: Build Frontend
+        // Stage 6: Build Frontend
         // =====================================================================
         stage('Build Frontend') {
             steps {
@@ -204,7 +237,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 6: Restart Services
+        // Stage 7: Restart Services
         // =====================================================================
         stage('Restart Services') {
             steps {
@@ -237,7 +270,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 7: Health Check
+        // Stage 8: Health Check
         // =====================================================================
         stage('Health Check') {
             steps {
