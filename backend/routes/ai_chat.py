@@ -118,9 +118,33 @@ The user's scan results and AI analysis context are provided below. Use them to 
 
     messages.append({"role": "user", "content": message})
 
-    provider = settings.ai_provider.lower() if settings.ai_provider else "gemini"
+    provider = settings.ai_provider.lower() if settings.ai_provider else "auto"
 
-    if provider == "gemini" and settings.gemini_api_key:
+    if provider in ("auto", "ollama"):
+        try:
+            from openai import AsyncOpenAI as OllamaClient
+
+            client = OllamaClient(
+                base_url=settings.ai_local_base_url,
+                api_key="ollama",
+                max_retries=0,
+            )
+            response = await client.chat.completions.create(
+                model=settings.ai_local_model,
+                messages=messages,
+                max_tokens=1500,
+                temperature=0.3,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.warning(f"Ollama chat failed ({e}), trying fallback")
+            if provider == "ollama":
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"Ollama AI chat error: {get_safe_error_detail(e)}",
+                )
+
+    if provider in ("auto", "gemini") and settings.gemini_api_key:
         try:
             from google import genai
             from google.genai import types
@@ -140,7 +164,7 @@ The user's scan results and AI analysis context are provided below. Use them to 
             return response.text
         except Exception as e:
             logger.error(f"Gemini chat failed: {e}")
-            if not settings.openai_api_key:
+            if provider == "gemini" and not settings.openai_api_key:
                 raise
 
     if settings.openai_api_key:
@@ -164,8 +188,17 @@ The user's scan results and AI analysis context are provided below. Use them to 
 
     raise HTTPException(
         status_code=503,
-        detail="No AI provider configured. Set OPENAI_API_KEY or GEMINI_API_KEY.",
+        detail="No AI provider available. Configure Ollama, OPENAI_API_KEY, or GEMINI_API_KEY.",
     )
+
+
+def _get_active_model() -> str:
+    provider = settings.ai_provider.lower() if settings.ai_provider else "auto"
+    if provider in ("auto", "ollama"):
+        return f"ollama/{settings.ai_local_model}"
+    if provider == "gemini":
+        return settings.gemini_model or "gemini-1.5-flash"
+    return settings.openai_model or "gpt-4"
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -199,5 +232,4 @@ async def ai_chat(
             detail=f"AI chat service error: {get_safe_error_detail(e)}",
         )
 
-    model_used = settings.ai_provider or "gemini"
-    return ChatResponse(reply=reply, model_used=model_used)
+    return ChatResponse(reply=reply, model_used=_get_active_model())

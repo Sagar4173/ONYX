@@ -58,8 +58,10 @@
 - Deduplication across scanners
 
 ### AI-Powered Analysis
-- OpenAI GPT-4 integration
-- Google Gemini integration (primary)
+- Ollama local LLM integration (primary, zero-cost, self-hosted with Qwen2.5-Coder:7B)
+- OpenAI GPT-4 integration (fallback)
+- Google Gemini integration (fallback)
+- Automatic provider fallback chain: Ollama → Gemini → OpenAI
 - Vulnerability explanation and risk assessment
 - Automated remediation suggestions
 - Code fix generation
@@ -150,7 +152,7 @@ OWASP, NIST, ISO 27001, PCI-DSS, HIPAA, SOC2, GDPR, CIS, SOX, MITRE ATT&CK
 | Database | MongoDB 7+ |
 | ODM | Beanie |
 | Auth | JWT (PyJWT) |
-| AI | OpenAI GPT-4 / Google Gemini 1.5 |
+| AI | Ollama (local) / OpenAI GPT-4 / Google Gemini 1.5 |
 | Monitoring | Sentry SDK / Prometheus |
 | Notifications | Slack, Teams, Email, WebSocket |
 

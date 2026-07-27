@@ -15,7 +15,7 @@ AI-Powered Security Scanning Free & Self-Hosted Enterprise-Ready.
 
 | Feature | ONYX | GHAS | Snyk |
 |---|---|---|---|
-| AI Analysis | GPT-4 + Gemini | None | Basic |
+| AI Analysis | Ollama (local) + GPT-4 + Gemini | None | Basic |
 | Cost | Free & Open Source | $49/user/mo | $52/user/mo |
 | Self-Hosted | Full control | SaaS only | Enterprise only |
 | Multi-SCM | GitHub, GitLab, Bitbucket | GitHub only | Yes |
@@ -71,7 +71,7 @@ AI-Powered Security Scanning Free & Self-Hosted Enterprise-Ready.
 | Frontend | React 18, Vite 5, Tailwind CSS |
 | Backend | FastAPI, Python 3.13 |
 | Database | MongoDB 7+ (via Beanie ODM) |
-| AI | OpenAI GPT-4, Google Gemini |
+| AI | Ollama (local), OpenAI GPT-4, Google Gemini |
 | Monitoring | Sentry, Prometheus |
 | Infra | Docker, GitHub Actions CI |
 
@@ -99,7 +99,9 @@ npm run dev
 **API Docs:** http://localhost:8000/docs
 
 For detailed setup, see [Installation Guide](docs/INSTALLATION.md).  
-For Docker deployment, see [Deployment Guide](docs/DEPLOYMENT.md).
+For Docker deployment, see [Deployment Guide](docs/DEPLOYMENT.md).  
+
+> **Zero-cost AI**: Set `AI_PROVIDER=auto` and run Ollama alongside ONYX. All AI features run locally with no API fees.
 
 ---
 
@@ -114,7 +116,7 @@ ONYX/
 │   ├── models/               # Beanie documents + Pydantic schemas
 │   ├── routes/               # API endpoints (auth, reports, scanning, admin, ...)
 │   ├── services/             # Business logic
-│   │   ├── ai/               # AI processors (OpenAI + Gemini)
+│   │   ├── ai/               # AI processors (Ollama + OpenAI + Gemini)
 │   │   ├── scanning/         # Scanner orchestrator + all scanners
 │   │   ├── compliance/       # Compliance engine
 │   │   ├── notifications/    # Slack, Teams, Email, WebSocket

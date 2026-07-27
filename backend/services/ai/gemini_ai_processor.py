@@ -771,32 +771,65 @@ SECURE_CODE:
 
 # Factory function to create the appropriate AI processor
 def create_ai_processor():
-    """Create AI processor based on configuration"""
-    provider = settings.ai_provider.lower() if settings.ai_provider else "gemini"
+    """Create AI processor based on configuration.
+    
+    Provider priority:
+      auto    → ollama → gemini → openai
+      ollama  → ollama (no fallback)
+      gemini  → gemini → openai
+      openai  → openai → gemini
+    """
+    provider = settings.ai_provider.lower() if settings.ai_provider else "auto"
     
     logger.info(f"Creating AI processor with provider: {provider}")
     
-    if provider == "gemini":
-        if not settings.gemini_api_key:
+    if provider == "ollama":
+        return _create_ollama_or_raise()
+    
+    if provider == "auto":
+        processor = _try_ollama()
+        if processor:
+            return processor
+    
+    if provider in ("auto", "gemini"):
+        if settings.gemini_api_key:
+            logger.info("Using Gemini AI processor")
+            return GeminiVulnerabilityAIProcessor()
+        if provider == "gemini":
             logger.warning("Gemini API key not configured, falling back to OpenAI")
-            if settings.openai_api_key:
-                from .ai_processor import VulnerabilityAIProcessor
-                logger.info("Using OpenAI as fallback AI processor")
-                return VulnerabilityAIProcessor()
-            else:
-                logger.error("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
-                raise ValueError("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
-        logger.info("Using Gemini AI processor")
-        return GeminiVulnerabilityAIProcessor()
-    else:
-        if not settings.openai_api_key:
-            logger.warning("OpenAI API key not configured, trying Gemini")
+    
+    if provider in ("auto", "gemini", "openai"):
+        if settings.openai_api_key:
+            from .ai_processor import VulnerabilityAIProcessor
+            logger.info("Using OpenAI AI processor")
+            return VulnerabilityAIProcessor()
+        if provider == "openai":
+            logger.warning("OpenAI API key not configured, falling back to Gemini")
             if settings.gemini_api_key:
                 logger.info("Using Gemini as fallback AI processor")
                 return GeminiVulnerabilityAIProcessor()
-            else:
-                logger.error("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
-                raise ValueError("No AI provider API key configured. Please set OPENAI_API_KEY or GEMINI_API_KEY in your environment.")
-        logger.info("Using OpenAI AI processor")
-        from .ai_processor import VulnerabilityAIProcessor
-        return VulnerabilityAIProcessor()
+    
+    raise ValueError(
+        "No AI provider available. Configure at least one of:\n"
+        "  - AI_PROVIDER=ollama (with AI_LOCAL_BASE_URL pointing to running Ollama)\n"
+        "  - OPENAI_API_KEY\n"
+        "  - GEMINI_API_KEY"
+    )
+
+
+def _create_ollama_or_raise():
+    """Create Ollama processor or raise"""
+    from .ollama_ai_processor import OllamaVulnerabilityAIProcessor
+    logger.info("Using Ollama local AI processor")
+    return OllamaVulnerabilityAIProcessor()
+
+
+def _try_ollama() -> object | None:
+    """Try to create an Ollama processor. Returns None if unavailable."""
+    try:
+        processor = _create_ollama_or_raise()
+        logger.info("Ollama local AI configured - will use for analysis")
+        return processor
+    except Exception as e:
+        logger.warning(f"Ollama not available ({e}), trying next provider")
+        return None

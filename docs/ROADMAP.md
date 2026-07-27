@@ -22,6 +22,10 @@
 
 ### Phase 1: AI Advantages (Q1-Q2 2026)
 
+- Ollama local LLM integration — zero-cost self-hosted AI (Qwen2.5-Coder:7B)
+- Automatic provider fallback: Ollama → Gemini → OpenAI
+- All AI features run fully offline when Ollama is available
+
 - AI Chat Assistant - Natural-language vulnerability Q&A
 - Auto-Fix PRs - AI generates and submits fix PRs
 - Intelligent Triage - AI prioritizes by business impact

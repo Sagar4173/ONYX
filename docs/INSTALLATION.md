@@ -53,8 +53,18 @@ Key variables in `backend/.env`:
 MONGODB_URI=mongodb://localhost:27017/onyx
 SECRET_KEY=your-32-char-min-secret-key
 
-# AI (at least one)
+# AI - Option A: Self-hosted (zero cost, recommended)
+AI_PROVIDER=auto
+# Default uses Ollama - install and run separately:
+#   docker run -d -p 11434:11434 ollama/ollama
+#   docker exec -it <container> ollama pull qwen2.5-coder:7b
+AI_LOCAL_BASE_URL=http://localhost:11434/v1
+AI_LOCAL_MODEL=qwen2.5-coder:7b
+
+# AI - Option B: OpenAI (fallback)
 OPENAI_API_KEY=sk-...
+
+# AI - Option C: Google Gemini (fallback)
 GEMINI_API_KEY=...
 
 # Optional
@@ -106,6 +116,16 @@ Services:
 | Backend | 8000 | http://localhost:8000 |
 | API Docs | - | http://localhost:8000/docs |
 | MongoDB | 27017 | Internal |
+| Ollama | 11434 | Internal |
+
+### Pull Ollama Model (once)
+
+```bash
+# Pull the AI model for zero-cost local inference
+docker compose exec ollama ollama pull qwen2.5-coder:7b
+```
+
+This downloads ~4.5GB. After this, all AI features run locally with no API fees.
 
 ### Verify
 

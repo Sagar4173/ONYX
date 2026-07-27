@@ -20,20 +20,20 @@ ONYX is designed as a modern, scalable security scanning platform. Architecture 
               +-------------+-------------+
               |             |             |
        Scan Engine    AI Analysis    Notification
-       Orchestrator   (GPT-4/Gemini)  (Slack/Teams/
-              |             |          Email/WS)
-              |             |             |
-      +-------+-------+    |    +--------+--------+
-      |       |       |    |    |        |        |
-   Semgrep  Bandit  Safety  |  Webhook  Scheduler SCM
-   GitLeaks Trivy   ZAP    |  Handler  (cron)   (auto-fix)
-   Lynis    SOPS    ...    |    |        |        |
-      |       |       |    |    |        |        |
-      +-------+-------+    +----+--------+--------+
+       Orchestrator   (Local/Ollama)  (Slack/Teams/
+              |        GPT-4/Gemini   Email/WS)
+              |        (fallback)        |
+      +-------+-------+  |     +--------+--------+
+      |       |       |  |     |        |        |
+   Semgrep  Bandit  Safety |  Webhook  Scheduler SCM
+   GitLeaks Trivy   ZAP   |  Handler  (cron)   (auto-fix)
+   Lynis    SOPS    ...   |    |        |        |
+      |       |       |   |    |        |        |
+      +-------+-------+   +----+--------+--------+
               |                   |
-         MongoDB 7+          External APIs
-         (Beanie ODM)        (GitHub, GitLab,
-              |               OpenAI, NVD, OSV)
+         MongoDB 7+      Ollama (local LLM)
+         (Beanie ODM)    Qwen2.5-Coder:7b
+              |          (zero-cost inference)
         Monitoring
         Sentry + Prometheus
 ```
@@ -47,7 +47,7 @@ ONYX is designed as a modern, scalable security scanning platform. Architecture 
 | Frontend | React 18, Vite 5, Tailwind CSS, React Query 5 |
 | Backend | FastAPI, Python 3.13, Pydantic v2 |
 | Database | MongoDB 7+, Beanie ODM |
-| AI | OpenAI GPT-4, Google Gemini 1.5 |
+| AI | Ollama (local, zero-cost), OpenAI GPT-4, Google Gemini 1.5 |
 | Auth | JWT (PyJWT) |
 | Monitoring | Sentry SDK, Prometheus (prometheus-fastapi-instrumentator) |
 | Real-time | WebSocket (FastAPI native) |

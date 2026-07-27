@@ -45,7 +45,9 @@ class Settings(BaseSettings):
     account_lockout_duration_minutes: int = Field(default=30, env="ACCOUNT_LOCKOUT_DURATION_MINUTES")
     
     # AI Configuration
-    ai_provider: str = Field(default="gemini", env="AI_PROVIDER")  # openai or gemini
+    # Supported providers: auto, ollama, openai, gemini
+    # auto = tries ollama → gemini → openai in order
+    ai_provider: str = Field(default="auto", env="AI_PROVIDER")
     
     # OpenAI
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
@@ -56,6 +58,11 @@ class Settings(BaseSettings):
     gemini_api_key: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
     gemini_model: str = Field(default="gemini-1.5-flash", env="GEMINI_MODEL")
     gemini_max_tokens: int = Field(default=2000, env="GEMINI_MAX_TOKENS")
+
+    # Ollama (self-hosted local LLM)
+    ai_local_base_url: str = Field(default="http://ollama:11434/v1", env="AI_LOCAL_BASE_URL")
+    ai_local_model: str = Field(default="qwen2.5-coder:7b", env="AI_LOCAL_MODEL")
+    ai_local_timeout: int = Field(default=120, env="AI_LOCAL_TIMEOUT")
     
     # Notifications
     slack_webhook_url: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
@@ -191,12 +198,18 @@ class Settings(BaseSettings):
             if len(self.gemini_api_key) > 10:
                 return True, "Gemini configuration valid"
             return False, "GEMINI_API_KEY appears to be invalid format"
+        elif self.ai_provider == "ollama":
+            return True, "Ollama local AI configured"
+        elif self.ai_provider == "auto":
+            return True, "Auto-detecting AI provider (ollama → gemini → openai)"
         else:
-            return False, f"Unknown AI provider: {self.ai_provider}. Use 'openai' or 'gemini'"
+            return False, f"Unknown AI provider: {self.ai_provider}. Use 'auto', 'ollama', 'openai', or 'gemini'"
     
     @property
     def ai_available(self) -> bool:
         """Check if AI functionality is properly configured"""
+        if self.ai_provider in ("auto", "ollama"):
+            return True
         is_valid, _ = self.validate_ai_config()
         return is_valid
     
@@ -234,11 +247,13 @@ def validate_settings_on_startup():
     has_openai = settings.openai_api_key and len(settings.openai_api_key) > 10
     has_gemini = settings.gemini_api_key and len(settings.gemini_api_key) > 10
     
+    if settings.ai_provider in ("auto", "ollama"):
+        logger.info(f"✅ Ollama local AI configured at {settings.ai_local_base_url} (model: {settings.ai_local_model})")
     if has_openai and has_gemini:
-        logger.info("✅ Both OpenAI and Gemini configured - fallback available")
+        logger.info("ℹ️ Both OpenAI and Gemini available as fallback")
     elif has_openai or has_gemini:
-        logger.info("ℹ️ Only one AI provider configured - no fallback available")
-    else:
+        logger.info("ℹ️ One API-based fallback provider available")
+    if not has_openai and not has_gemini and settings.ai_provider not in ("auto", "ollama"):
         logger.warning("⚠️ No AI provider configured - AI features disabled")
     
     # Check email configuration
