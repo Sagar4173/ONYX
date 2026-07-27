@@ -135,7 +135,7 @@ pipeline {
                 sh '''
                     OLLAMA_BIN="$HOME/ollama/bin/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
-                    MODEL="qwen2.5-coder:7b"
+                    MODEL="qwen2.5-coder:1.5b"
 
                     mkdir -p "$HOME/ollama"
 
