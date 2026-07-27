@@ -103,17 +103,26 @@ pipeline {
                     OLLAMA_BIN="$HOME/ollama/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
                     MODEL="qwen2.5-coder:7b"
-                    OLLAMA_PORT=11434
 
                     mkdir -p "$HOME/ollama"
 
                     if [ ! -f "$OLLAMA_BIN" ]; then
                         echo "Downloading Ollama..."
-                        curl -fsSL -o /tmp/ollama.tgz "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tgz"
-                        tar -xzf /tmp/ollama.tgz -C "$HOME/ollama/"
-                        rm -f /tmp/ollama.tgz
-                        chmod +x "$OLLAMA_BIN"
-                        echo "Ollama installed to $OLLAMA_BIN"
+                        # Try ollama.com first, fall back to GitHub releases
+                        OLLAMA_URL="https://ollama.com/download/ollama-linux-amd64.tgz"
+                        echo "Fetching from $OLLAMA_URL ..."
+                        curl -fsSL --connect-timeout 10 -o /tmp/ollama.tgz "$OLLAMA_URL" || \
+                            curl -fsSL --connect-timeout 10 -o /tmp/ollama.tgz \
+                                "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tgz" || \
+                            echo "ERROR: Failed to download Ollama from both URLs"
+                        if [ -f /tmp/ollama.tgz ] && [ -s /tmp/ollama.tgz ]; then
+                            tar -xzf /tmp/ollama.tgz -C "$HOME/ollama/"
+                            rm -f /tmp/ollama.tgz
+                            chmod +x "$OLLAMA_BIN"
+                            echo "Ollama installed to $OLLAMA_BIN"
+                        else
+                            echo "WARNING: Ollama download failed. AI will use Gemini/OpenAI fallback."
+                        fi
                     else
                         echo "Ollama binary already exists"
                     fi
