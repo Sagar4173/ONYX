@@ -111,29 +111,33 @@ pipeline {
                         ARCH="ollama-linux-amd64"
                         BASE_URL="https://ollama.com/download"
 
-                        # Try .tar.zst first (stream directly, no tmp files)
                         if curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tar.zst" > /dev/null 2>&1; then
-                            if command -v zstd > /dev/null 2>&1; then
-                                echo "Downloading and extracting ${ARCH}.tar.zst (streaming)..."
-                                curl -fsSL --connect-timeout 30 "${BASE_URL}/${ARCH}.tar.zst" | zstd -d | tar -xf - -C "$HOME/ollama/"
-                            else
-                                echo "zstd not available, trying tgz fallback..."
-                                echo "Downloading and extracting ${ARCH}.tgz (streaming)..."
-                                curl -fsSL --connect-timeout 30 "${BASE_URL}/${ARCH}.tgz" | tar -xzf - -C "$HOME/ollama/"
-                            fi
+                            # Download .tar.zst to home dir (not /tmp), extract, clean up
+                            echo "Downloading ${ARCH}.tar.zst..."
+                            curl -fsSL --connect-timeout 60 -o "$HOME/ollama/${ARCH}.tar.zst" "${BASE_URL}/${ARCH}.tar.zst"
+                            echo "Extracting..."
+                            zstd -d "$HOME/ollama/${ARCH}.tar.zst" -o "$HOME/ollama/${ARCH}.tar"
+                            tar -xf "$HOME/ollama/${ARCH}.tar" -C "$HOME/ollama/"
+                            rm -f "$HOME/ollama/${ARCH}.tar" "$HOME/ollama/${ARCH}.tar.zst"
+                        elif curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tgz" > /dev/null 2>&1; then
+                            echo "Downloading ${ARCH}.tgz..."
+                            curl -fsSL --connect-timeout 60 -o "/tmp/${ARCH}.tgz" "${BASE_URL}/${ARCH}.tgz"
+                            tar -xzf "/tmp/${ARCH}.tgz" -C "$HOME/ollama/"
+                            rm -f "/tmp/${ARCH}.tgz"
                         else
-                            echo "Downloading and extracting ${ARCH}.tgz (streaming)..."
-                            curl -fsSL --connect-timeout 30 "${BASE_URL}/${ARCH}.tgz" | tar -xzf - -C "$HOME/ollama/"
+                            echo "ERROR: No Ollama download format available"
                         fi
 
                         if [ -f "$OLLAMA_BIN" ]; then
                             chmod +x "$OLLAMA_BIN"
-                            echo "Ollama installed to $OLLAMA_BIN"
+                            echo "Ollama installed to $OLLAMA_BIN ($(du -sh "$OLLAMA_BIN" | cut -f1))"
                         else
-                            echo "WARNING: Ollama download failed. AI will use Gemini/OpenAI fallback."
+                            echo "=== Debug: Contents of $HOME/ollama/ ==="
+                            ls -la "$HOME/ollama/"
+                            echo "WARNING: Ollama binary not found at $OLLAMA_BIN. AI will use Gemini/OpenAI fallback."
                         fi
                     else
-                        echo "Ollama binary already exists"
+                        echo "Ollama binary already exists ($(du -sh "$OLLAMA_BIN" | cut -f1))"
                     fi
 
                     if [ -f "$OLLAMA_PID_FILE" ]; then
