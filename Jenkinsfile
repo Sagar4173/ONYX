@@ -107,34 +107,48 @@ pipeline {
                     mkdir -p "$HOME/ollama"
 
                     if [ ! -f "$OLLAMA_BIN" ]; then
-                        echo "Downloading Ollama..."
-                        ARCH="ollama-linux-amd64"
-                        BASE_URL="https://ollama.com/download"
+                        echo "Checking disk space..."
+                        AVAIL_KB=$(df "$HOME" | awk 'NR==2 {print $4}')
+                        AVAIL_MB=$((AVAIL_KB / 1024))
+                        echo "Available disk space: ${AVAIL_MB}MB"
 
-                        if curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tar.zst" > /dev/null 2>&1; then
-                            # Download .tar.zst to home dir (not /tmp), extract, clean up
-                            echo "Downloading ${ARCH}.tar.zst..."
-                            curl -fsSL --connect-timeout 60 -o "$HOME/ollama/${ARCH}.tar.zst" "${BASE_URL}/${ARCH}.tar.zst"
-                            echo "Extracting..."
-                            zstd -d "$HOME/ollama/${ARCH}.tar.zst" -o "$HOME/ollama/${ARCH}.tar"
-                            tar -xf "$HOME/ollama/${ARCH}.tar" -C "$HOME/ollama/"
-                            rm -f "$HOME/ollama/${ARCH}.tar" "$HOME/ollama/${ARCH}.tar.zst"
-                        elif curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tgz" > /dev/null 2>&1; then
-                            echo "Downloading ${ARCH}.tgz..."
-                            curl -fsSL --connect-timeout 60 -o "/tmp/${ARCH}.tgz" "${BASE_URL}/${ARCH}.tgz"
-                            tar -xzf "/tmp/${ARCH}.tgz" -C "$HOME/ollama/"
-                            rm -f "/tmp/${ARCH}.tgz"
+                        if [ "$AVAIL_MB" -lt 1500 ]; then
+                            echo "WARNING: Insufficient disk space (${AVAIL_MB}MB < 1500MB needed)."
+                            echo "Skipping Ollama install. AI will use Gemini/OpenAI fallback."
                         else
-                            echo "ERROR: No Ollama download format available"
-                        fi
+                            echo "Downloading Ollama... (need ~800MB)"
+                            ARCH="ollama-linux-amd64"
+                            BASE_URL="https://ollama.com/download"
 
-                        if [ -f "$OLLAMA_BIN" ]; then
-                            chmod +x "$OLLAMA_BIN"
-                            echo "Ollama installed to $OLLAMA_BIN ($(du -sh "$OLLAMA_BIN" | cut -f1))"
-                        else
-                            echo "=== Debug: Contents of $HOME/ollama/ ==="
-                            ls -la "$HOME/ollama/"
-                            echo "WARNING: Ollama binary not found at $OLLAMA_BIN. AI will use Gemini/OpenAI fallback."
+                            if curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tar.zst" > /dev/null 2>&1; then
+                                echo "Downloading ${ARCH}.tar.zst..."
+                                curl -fsSL --connect-timeout 120 -o "$HOME/ollama/${ARCH}.tar.zst" "${BASE_URL}/${ARCH}.tar.zst" && \
+                                echo "Extracting..." && \
+                                zstd -d "$HOME/ollama/${ARCH}.tar.zst" -o "$HOME/ollama/${ARCH}.tar" && \
+                                tar -xf "$HOME/ollama/${ARCH}.tar" -C "$HOME/ollama/" && \
+                                rm -f "$HOME/ollama/${ARCH}.tar" "$HOME/ollama/${ARCH}.tar.zst" && \
+                                echo "Ollama extracted successfully" || \
+                                echo "Extraction failed, cleaning up..."
+                                rm -f "$HOME/ollama/${ARCH}.tar" "$HOME/ollama/${ARCH}.tar.zst"
+                            elif curl -fsSLI --connect-timeout 10 "${BASE_URL}/${ARCH}.tgz" > /dev/null 2>&1; then
+                                echo "Downloading ${ARCH}.tgz..."
+                                curl -fsSL --connect-timeout 120 -o "/tmp/${ARCH}.tgz" "${BASE_URL}/${ARCH}.tgz" && \
+                                tar -xzf "/tmp/${ARCH}.tgz" -C "$HOME/ollama/" && \
+                                rm -f "/tmp/${ARCH}.tgz" && \
+                                echo "Ollama extracted successfully" || \
+                                echo "Extraction failed"
+                            else
+                                echo "ERROR: No Ollama download format available"
+                            fi
+
+                            if [ -f "$OLLAMA_BIN" ]; then
+                                chmod +x "$OLLAMA_BIN"
+                                echo "Ollama installed ($(du -sh "$OLLAMA_BIN" | cut -f1))"
+                            else
+                                echo "=== $HOME/ollama/ contents ==="
+                                ls -la "$HOME/ollama/" 2>/dev/null || echo "(empty)"
+                                echo "Ollama binary not found. AI will use Gemini/OpenAI fallback."
+                            fi
                         fi
                     else
                         echo "Ollama binary already exists ($(du -sh "$OLLAMA_BIN" | cut -f1))"
