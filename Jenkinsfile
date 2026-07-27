@@ -86,6 +86,7 @@ pipeline {
                 sh '''
                     cd /home/ec2-user/ONYX/backend
                     source venv/bin/activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt --quiet --no-cache-dir
                     echo "✅ Backend dependencies installed"
                 '''
@@ -93,7 +94,37 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 4: Build Frontend
+        // Stage 4: Setup Ollama (local AI, zero-cost)
+        // =====================================================================
+        stage('Setup Ollama') {
+            steps {
+                echo '🤖 Setting up Ollama local AI...'
+                sh '''
+                    if ! command -v ollama &> /dev/null; then
+                        echo "Installing Ollama..."
+                        curl -fsSL https://ollama.com/install.sh | sh
+                    else
+                        echo "Ollama already installed"
+                    fi
+
+                    sudo systemctl start ollama 2>/dev/null || true
+                    sleep 3
+
+                    # Pull model if not already present
+                    if ! ollama list 2>/dev/null | grep -q "qwen2.5-coder"; then
+                        echo "Pulling qwen2.5-coder:7b model (this may take a few minutes)..."
+                        ollama pull qwen2.5-coder:7b
+                    else
+                        echo "Model qwen2.5-coder:7b already available"
+                    fi
+
+                    echo "✅ Ollama ready"
+                '''
+            }
+        }
+
+        // =====================================================================
+        // Stage 5: Build Frontend
         // =====================================================================
         stage('Build Frontend') {
             steps {
@@ -108,15 +139,18 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 5: Restart Services
+        // Stage 6: Restart Services
         // =====================================================================
         stage('Restart Services') {
             steps {
                 echo '🔄 Restarting services...'
                 sh '''
+                    sudo systemctl restart ollama 2>/dev/null || true
+                    sleep 2
                     sudo systemctl restart onyx-backend
                     sleep 3
                     sudo systemctl reload nginx
+                    echo "✅ Ollama restarted"
                     echo "✅ Backend restarted"
                     echo "✅ Nginx reloaded"
                 '''
@@ -124,7 +158,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 6: Health Check
+        // Stage 7: Health Check
         // =====================================================================
         stage('Health Check') {
             steps {
@@ -138,9 +172,13 @@ pipeline {
                     echo "--- Nginx ---"
                     curl -sf -o /dev/null -w "HTTP %{http_code}" http://localhost/ && echo "" || echo "❌ Nginx not responding"
 
+                    echo "--- Ollama ---"
+                    curl -sf http://localhost:11434/api/tags > /dev/null && echo "✅ Ollama responding" || echo "❌ Ollama not responding"
+
                     echo "--- Service Status ---"
                     systemctl is-active onyx-backend
                     systemctl is-active nginx
+                    systemctl is-active ollama 2>/dev/null || echo "ollama service status unknown"
 
                     echo "✅ All health checks passed"
                 '''
