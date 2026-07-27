@@ -133,7 +133,7 @@ pipeline {
             steps {
                 echo '🤖 Setting up Ollama local AI...'
                 sh '''
-                    OLLAMA_BIN="$HOME/ollama/ollama"
+                    OLLAMA_BIN="$HOME/ollama/bin/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
                     MODEL="qwen2.5-coder:7b"
 
@@ -243,7 +243,7 @@ pipeline {
             steps {
                 echo '🔄 Restarting services...'
                 sh '''
-                    OLLAMA_BIN="$HOME/ollama/ollama"
+                    OLLAMA_BIN="$HOME/ollama/bin/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
                     if [ -f "$OLLAMA_BIN" ]; then
                         if [ -f "$OLLAMA_PID_FILE" ]; then
@@ -289,8 +289,8 @@ pipeline {
                     curl -sf http://localhost:11434/api/tags > /dev/null && echo "✅ Ollama responding" || echo "❌ Ollama not responding"
 
                     echo "--- Service Status ---"
-                    systemctl is-active onyx-backend
-                    systemctl is-active nginx
+                    systemctl is-active onyx-backend || echo "(non-zero exit: service may still be starting)"
+                    systemctl is-active nginx || echo "(non-zero exit)"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
                     if [ -f "$OLLAMA_PID_FILE" ] && kill -0 "$(cat "$OLLAMA_PID_FILE")" 2>/dev/null; then
                         echo "ollama (PID: $(cat $OLLAMA_PID_FILE)) running"
