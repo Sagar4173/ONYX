@@ -100,22 +100,51 @@ pipeline {
             steps {
                 echo '🤖 Setting up Ollama local AI...'
                 sh '''
-                    if ! command -v ollama &> /dev/null; then
-                        echo "Installing Ollama..."
-                        curl -fsSL https://ollama.com/install.sh | sh
+                    OLLAMA_BIN="$HOME/ollama/ollama"
+                    OLLAMA_PID_FILE="/tmp/ollama.pid"
+                    MODEL="qwen2.5-coder:7b"
+                    OLLAMA_PORT=11434
+
+                    mkdir -p "$HOME/ollama"
+
+                    if [ ! -f "$OLLAMA_BIN" ]; then
+                        echo "Downloading Ollama..."
+                        curl -fsSL -o /tmp/ollama.tgz "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tgz"
+                        tar -xzf /tmp/ollama.tgz -C "$HOME/ollama/"
+                        rm -f /tmp/ollama.tgz
+                        chmod +x "$OLLAMA_BIN"
+                        echo "Ollama installed to $OLLAMA_BIN"
                     else
-                        echo "Ollama already installed"
+                        echo "Ollama binary already exists"
                     fi
 
-                    sudo systemctl start ollama 2>/dev/null || true
-                    sleep 3
+                    if [ -f "$OLLAMA_PID_FILE" ]; then
+                        OLD_PID=$(cat "$OLLAMA_PID_FILE")
+                        if kill -0 "$OLD_PID" 2>/dev/null; then
+                            echo "Ollama already running (PID: $OLD_PID)"
+                        else
+                            echo "Removing stale PID file"
+                            rm -f "$OLLAMA_PID_FILE"
+                        fi
+                    fi
+
+                    # Start Ollama if not running
+                    if [ ! -f "$OLLAMA_PID_FILE" ]; then
+                        echo "Starting Ollama..."
+                        nohup "$OLLAMA_BIN" serve > "$HOME/ollama/ollama.log" 2>&1 &
+                        echo $! > "$OLLAMA_PID_FILE"
+                        sleep 3
+                        echo "Ollama started (PID: $(cat $OLLAMA_PID_FILE))"
+                    fi
 
                     # Pull model if not already present
-                    if ! ollama list 2>/dev/null | grep -q "qwen2.5-coder"; then
-                        echo "Pulling qwen2.5-coder:7b model (this may take a few minutes)..."
-                        ollama pull qwen2.5-coder:7b
+                    echo "Checking for model $MODEL..."
+                    if "$OLLAMA_BIN" list 2>/dev/null | grep -q "qwen2.5-coder"; then
+                        echo "Model $MODEL already available"
                     else
-                        echo "Model qwen2.5-coder:7b already available"
+                        echo "Pulling $MODEL (this may take a few minutes)..."
+                        "$OLLAMA_BIN" pull "$MODEL"
+                        echo "Model $MODEL ready"
                     fi
 
                     echo "✅ Ollama ready"
@@ -145,12 +174,26 @@ pipeline {
             steps {
                 echo '🔄 Restarting services...'
                 sh '''
-                    sudo systemctl restart ollama 2>/dev/null || true
+                    # Restart Ollama (user-mode process)
+                    OLLAMA_BIN="$HOME/ollama/ollama"
+                    OLLAMA_PID_FILE="/tmp/ollama.pid"
+                    if [ -f "$OLLAMA_PID_FILE" ]; then
+                        OLD_PID=$(cat "$OLLAMA_PID_FILE")
+                        kill "$OLD_PID" 2>/dev/null || true
+                        sleep 2
+                        rm -f "$OLLAMA_PID_FILE"
+                    fi
+                    if [ -f "$OLLAMA_BIN" ]; then
+                        nohup "$OLLAMA_BIN" serve > "$HOME/ollama/ollama.log" 2>&1 &
+                        echo $! > "$OLLAMA_PID_FILE"
+                        echo "Ollama restarted"
+                    fi
+
                     sleep 2
+
                     sudo systemctl restart onyx-backend
                     sleep 3
                     sudo systemctl reload nginx
-                    echo "✅ Ollama restarted"
                     echo "✅ Backend restarted"
                     echo "✅ Nginx reloaded"
                 '''
@@ -178,7 +221,12 @@ pipeline {
                     echo "--- Service Status ---"
                     systemctl is-active onyx-backend
                     systemctl is-active nginx
-                    systemctl is-active ollama 2>/dev/null || echo "ollama service status unknown"
+                    OLLAMA_PID_FILE="/tmp/ollama.pid"
+                    if [ -f "$OLLAMA_PID_FILE" ] && kill -0 "$(cat "$OLLAMA_PID_FILE")" 2>/dev/null; then
+                        echo "ollama (PID: $(cat $OLLAMA_PID_FILE)) running"
+                    else
+                        echo "⚠️ ollama not running"
+                    fi
 
                     echo "✅ All health checks passed"
                 '''
