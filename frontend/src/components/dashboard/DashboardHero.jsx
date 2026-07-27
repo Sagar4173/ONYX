@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import SecurityScoreGlobe from "../projects/SecurityScoreGlobe";
-import { AnimatedCounter } from "../../styles/components";
+import { AnimatedCounter } from "../ui/StyleComponents";
 
 const DashboardHero = ({ securityScore, scoreTrend }) => {
   const trendColor =

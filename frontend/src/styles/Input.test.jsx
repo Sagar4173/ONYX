@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Input } from "./components";
+import { Input } from "../components/ui/StyleComponents";
 
 describe("Input", () => {
   it("renders an input element", () => {

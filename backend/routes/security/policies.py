@@ -16,7 +16,7 @@ from utils.error_handling import get_safe_error_detail
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["security - policies"])
+router = APIRouter(tags=["Security - Policies"])
 
 
 @router.get("/policies")

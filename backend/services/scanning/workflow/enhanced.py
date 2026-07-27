@@ -107,13 +107,21 @@ class EnhancedScanningWorkflow:
                 "scan_workflow_version": "2.0",
                 "ai_analysis_generated": True,
                 "compliance_analyzed": bool(compliance_analysis),
-                "total_scan_phases": 6
+                "total_scan_phases": 8
             })
             
             await scan_report.save()
             
-            # Phase 7: Notifications
-            logger.info("Phase 7: Sending notifications...")
+            # Phase 7: Secret History Tracking
+            logger.info("Phase 7: Updating secret history...")
+            try:
+                from services.scanning.secrets.secret_history_service import SecretHistoryService
+                await SecretHistoryService().update_from_scan(scan_report)
+            except Exception as e:
+                logger.warning("Secret history update failed: %s", e)
+
+            # Phase 8: Notifications
+            logger.info("Phase 8: Sending notifications...")
             try:
                 await self.notification_service.send_scan_notification(scan_report)
             except Exception as e:

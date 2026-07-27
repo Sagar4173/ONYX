@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { Tooltip } from "./components";
+import { Tooltip } from "../components/ui/StyleComponents";
 
 describe("Tooltip", () => {
   it("children are rendered", () => {

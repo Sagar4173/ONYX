@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { EnvelopeIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import { Button, Input } from "../../styles/components";
+import { Button, Input } from "../ui/StyleComponents";
 import { useAuth } from "./AuthContext";
 
 export const ForgotPasswordForm = ({ onSuccess, onSwitchToLogin }) => {

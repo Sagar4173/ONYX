@@ -454,6 +454,362 @@
           ]
         }
       }
+    },
+    "HIPAA": {
+      "framework_info": {
+        "name": "Health Insurance Portability and Accountability Act",
+        "version": "2013",
+        "description": "US federal law protecting sensitive patient health information from being disclosed without consent"
+      },
+      "controls": {
+        "164.306": {
+          "title": "General Security Standards",
+          "description": "Covered entities must ensure confidentiality, integrity, and availability of ePHI",
+          "category": "data_protection",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["sensitive-data-exposure", "data-validation"]},
+            {"scanner": "bandit", "rules": ["B501", "B502", "B506"]},
+            {"scanner": "gitleaks", "rules": ["pii", "sensitive-info", "phi"]}
+          ]
+        },
+        "164.308.a.1": {
+          "title": "Security Management Process",
+          "description": "Implement policies and procedures to prevent, detect, contain, and correct security violations",
+          "category": "security_management",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["missing-security-control", "insecure-default"]},
+            {"scanner": "lynis", "rules": ["HRDN-7222", "AUTH-9204"]}
+          ]
+        },
+        "164.312.a.1": {
+          "title": "Access Control",
+          "description": "Implement technical policies that allow only authorized persons access to ePHI",
+          "category": "access_control",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["broken-access-control", "authorization-bypass", "privilege-escalation"]},
+            {"scanner": "bandit", "rules": ["B101", "B102"]}
+          ]
+        },
+        "164.312.b": {
+          "title": "Audit Controls",
+          "description": "Hardware, software, and procedural mechanisms that record and examine access to ePHI",
+          "category": "logging",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["missing-security-logging", "log-injection"]},
+            {"scanner": "lynis", "rules": ["LOGG-2154", "LOGG-2190"]}
+          ]
+        },
+        "164.312.c.1": {
+          "title": "Integrity Controls",
+          "description": "Policies and procedures to protect ePHI from improper alteration or destruction",
+          "category": "data_protection",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["integrity-check-missing", "tamper-detection"]},
+            {"scanner": "trivy", "rules": ["INTEGRITY-CHECK", "CHECKSUM-VERIFICATION"]}
+          ]
+        },
+        "164.312.e.1": {
+          "title": "Transmission Security",
+          "description": "Implement technical security measures to guard against unauthorized access to ePHI transmitted over networks",
+          "category": "data_transmission",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["cleartext-transmission", "weak-ssl-config", "http-without-ssl"]},
+            {"scanner": "bandit", "rules": ["B303", "B304", "B501"]},
+            {"scanner": "lynis", "rules": ["CRYP-7902", "CRYP-7930"]}
+          ]
+        },
+        "164.312.d": {
+          "title": "Person or Entity Authentication",
+          "description": "Implement procedures to verify that a person or entity seeking access to ePHI is the one claimed",
+          "category": "authentication",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["weak-authentication", "authentication-bypass", "session-fixation"]},
+            {"scanner": "bandit", "rules": ["B106", "B107"]}
+          ]
+        }
+      }
+    },
+    "ISO_27001": {
+      "framework_info": {
+        "name": "ISO/IEC 27001 - Information Security Management",
+        "version": "2022",
+        "description": "International standard for information security management systems (ISMS)"
+      },
+      "controls": {
+        "A.5.1": {
+          "title": "Information Security Policies",
+          "description": "Management direction and support for information security",
+          "category": "governance",
+          "scanner_mappings": [
+            {"scanner": "lynis", "rules": ["HRDN-7222", "AUTH-9204"]}
+          ]
+        },
+        "A.8.1": {
+          "title": "Asset Management",
+          "description": "Identify organizational assets and define appropriate protection responsibilities",
+          "category": "asset_management",
+          "scanner_mappings": [
+            {"scanner": "trivy", "rules": ["ASSET-INVENTORY", "CONTAINER-INVENTORY"]}
+          ]
+        },
+        "A.8.24": {
+          "title": "Use of Cryptography",
+          "description": "Rules for the effective use of cryptography for protection of information",
+          "category": "cryptography",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["weak-crypto", "crypto-failure", "insecure-random"]},
+            {"scanner": "bandit", "rules": ["B303", "B304", "B305", "B501"]}
+          ]
+        },
+        "A.9.4": {
+          "title": "System and Application Access Control",
+          "description": "Restrict access to information and application system functions",
+          "category": "access_control",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["broken-access-control", "authorization-bypass", "sql-injection"]},
+            {"scanner": "bandit", "rules": ["B101", "B102", "B608"]}
+          ]
+        },
+        "A.12.4": {
+          "title": "Logging and Monitoring",
+          "description": "Record events and generate evidence for investigation",
+          "category": "logging",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["missing-security-logging", "log-injection", "error-disclosure"]},
+            {"scanner": "lynis", "rules": ["LOGG-2154", "LOGG-2190", "LOGG-2210"]}
+          ]
+        },
+        "A.12.6": {
+          "title": "Technical Vulnerability Management",
+          "description": "Prevent exploitation of technical vulnerabilities",
+          "category": "vulnerability_management",
+          "scanner_mappings": [
+            {"scanner": "safety", "rules": ["known-vulnerability", "cve-found", "outdated-package"]},
+            {"scanner": "trivy", "rules": ["CVE-HIGH", "CVE-CRITICAL", "OUTDATED-PACKAGE"]},
+            {"scanner": "semgrep", "rules": ["sql-injection", "command-injection", "xss"]}
+          ]
+        },
+        "A.14.2": {
+          "title": "Security in Development and Support",
+          "description": "Ensure information security is designed and implemented within the development lifecycle",
+          "category": "secure_development",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["xss", "sql-injection", "command-injection", "path-traversal"]},
+            {"scanner": "bandit", "rules": ["B201", "B602", "B605", "B608", "B609"]}
+          ]
+        },
+        "A.16.1": {
+          "title": "Incident Management",
+          "description": "Ensure consistent and effective approach to management of information security incidents",
+          "category": "incident_response",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["error-disclosure", "stack-trace-exposure"]},
+            {"scanner": "lynis", "rules": ["LOGG-2154", "LOGG-2190"]}
+          ]
+        }
+      }
+    },
+    "SOX": {
+      "framework_info": {
+        "name": "Sarbanes-Oxley Act",
+        "version": "2002",
+        "description": "US federal law focused on corporate governance, financial disclosure, and internal controls"
+      },
+      "controls": {
+        "302": {
+          "title": "Corporate Responsibility for Financial Reports",
+          "description": "Certifying officers must review and certify financial reports for accuracy",
+          "category": "governance",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["data-validation", "integrity-check-missing"]},
+            {"scanner": "bandit", "rules": ["B501", "B502"]}
+          ]
+        },
+        "404": {
+          "title": "Internal Controls Assessment",
+          "description": "Management must assess and report on internal controls over financial reporting",
+          "category": "access_control",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["broken-access-control", "authorization-bypass", "weak-authentication"]},
+            {"scanner": "bandit", "rules": ["B101", "B102", "B106"]},
+            {"scanner": "lynis", "rules": ["AUTH-9204", "AUTH-9208"]}
+          ]
+        },
+        "409": {
+          "title": "Real-time Disclosure",
+          "description": "Issuers must disclose material changes in financial condition in real-time",
+          "category": "logging",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["log-injection", "error-disclosure"]},
+            {"scanner": "lynis", "rules": ["LOGG-2154", "LOGG-2190"]}
+          ]
+        }
+      }
+    },
+    "NIST": {
+      "framework_info": {
+        "name": "NIST SP 800-53",
+        "version": "Rev. 5",
+        "description": "National Institute of Standards and Technology security and privacy controls for information systems"
+      },
+      "controls": {
+        "AC-1": {
+          "title": "Access Control Policy and Procedures",
+          "description": "Establish and maintain access control policies and procedures",
+          "category": "access_control",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["broken-access-control", "authorization-bypass"]},
+            {"scanner": "lynis", "rules": ["AUTH-9204", "AUTH-9208"]}
+          ]
+        },
+        "AC-3": {
+          "title": "Access Enforcement",
+          "description": "Enforce approved authorizations for logical access to information and system resources",
+          "category": "access_control",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["authorization-bypass", "privilege-escalation", "missing-authorization"]},
+            {"scanner": "bandit", "rules": ["B101", "B102"]}
+          ]
+        },
+        "AU-3": {
+          "title": "Content of Audit Records",
+          "description": "Audit records containing sufficient information to establish what events occurred",
+          "category": "logging",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["missing-security-logging", "log-injection"]},
+            {"scanner": "lynis", "rules": ["LOGG-2154", "LOGG-2190", "LOGG-2210"]}
+          ]
+        },
+        "IA-2": {
+          "title": "Identification and Authentication",
+          "description": "Uniquely identify and authenticate users and processes",
+          "category": "authentication",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["weak-authentication", "authentication-bypass", "session-fixation"]},
+            {"scanner": "bandit", "rules": ["B106", "B107"]}
+          ]
+        },
+        "RA-5": {
+          "title": "Vulnerability Scanning",
+          "description": "Scan for vulnerabilities in systems and applications",
+          "category": "vulnerability_management",
+          "scanner_mappings": [
+            {"scanner": "safety", "rules": ["known-vulnerability", "cve-found"]},
+            {"scanner": "trivy", "rules": ["CVE-HIGH", "CVE-CRITICAL"]},
+            {"scanner": "semgrep", "rules": ["sql-injection", "command-injection", "xss"]}
+          ]
+        },
+        "SC-8": {
+          "title": "Transmission Confidentiality and Integrity",
+          "description": "Protect the confidentiality and integrity of transmitted information",
+          "category": "data_transmission",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["cleartext-transmission", "weak-ssl-config", "http-without-ssl"]},
+            {"scanner": "bandit", "rules": ["B303", "B304", "B501"]}
+          ]
+        },
+        "SC-12": {
+          "title": "Cryptographic Key Establishment and Management",
+          "description": "Establish and manage cryptographic keys when cryptography is employed",
+          "category": "cryptography",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["weak-crypto", "hardcoded-crypto-key", "insecure-random"]},
+            {"scanner": "bandit", "rules": ["B303", "B304", "B305"]},
+            {"scanner": "gitleaks", "rules": ["private-key", "encryption-key"]}
+          ]
+        },
+        "SI-2": {
+          "title": "Flaw Remediation",
+          "description": "Identify, report, and correct information system flaws",
+          "category": "vulnerability_management",
+          "scanner_mappings": [
+            {"scanner": "safety", "rules": ["known-vulnerability", "cve-found", "outdated-package"]},
+            {"scanner": "trivy", "rules": ["CVE-HIGH", "CVE-CRITICAL", "OUTDATED-PACKAGE"]}
+          ]
+        },
+        "SI-4": {
+          "title": "System Monitoring",
+          "description": "Monitor the information system to detect attacks and unauthorized connections",
+          "category": "system_monitoring",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["missing-security-logging", "debug-info-leak"]},
+            {"scanner": "lynis", "rules": ["FIRE-4512", "FIRE-4513", "LOGG-2154"]}
+          ]
+        }
+      }
+    },
+    "CIS": {
+      "framework_info": {
+        "name": "CIS Critical Security Controls",
+        "version": "v8",
+        "description": "Center for Internet Security prioritized set of actions to protect organizations from cyber threats"
+      },
+      "controls": {
+        "4.1": {
+          "title": "Secure Configuration of Enterprise Assets",
+          "description": "Establish and maintain secure configurations of enterprise assets",
+          "category": "configuration",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["debug-mode", "default-config", "insecure-config"]},
+            {"scanner": "lynis", "rules": ["HRDN-7222", "HRDN-7230"]}
+          ]
+        },
+        "7.1": {
+          "title": "Continuous Vulnerability Management",
+          "description": "Perform automated vulnerability scans of internal enterprise assets",
+          "category": "vulnerability_management",
+          "scanner_mappings": [
+            {"scanner": "safety", "rules": ["known-vulnerability", "cve-found"]},
+            {"scanner": "trivy", "rules": ["CVE-HIGH", "CVE-CRITICAL"]}
+          ]
+        },
+        "8.1": {
+          "title": "Audit Log Management",
+          "description": "Collect and maintain audit logs for enterprise assets",
+          "category": "logging",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["missing-security-logging", "log-injection"]},
+            {"scanner": "lynis", "rules": ["LOGG-2154", "LOGG-2190", "LOGG-2210"]}
+          ]
+        },
+        "10.1": {
+          "title": "Malware Defenses",
+          "description": "Deploy and maintain anti-malware software and scanning",
+          "category": "defense",
+          "scanner_mappings": [
+            {"scanner": "trivy", "rules": ["MALWARE-SCAN", "CONTAINER-SECURITY"]},
+            {"scanner": "lynis", "rules": ["HRDN-7222", "FIRE-4512"]}
+          ]
+        },
+        "13.1": {
+          "title": "Network Monitoring and Defense",
+          "description": "Monitor and defend the enterprise network",
+          "category": "system_monitoring",
+          "scanner_mappings": [
+            {"scanner": "lynis", "rules": ["FIRE-4512", "FIRE-4513", "NETW-4514"]},
+            {"scanner": "trivy", "rules": ["NETWORK-SECURITY"]}
+          ]
+        },
+        "16.1": {
+          "title": "Application Software Security",
+          "description": "Secure development and deployment of application software",
+          "category": "secure_development",
+          "scanner_mappings": [
+            {"scanner": "semgrep", "rules": ["sql-injection", "xss", "command-injection", "path-traversal"]},
+            {"scanner": "bandit", "rules": ["B201", "B602", "B605", "B608", "B609"]},
+            {"scanner": "codeql", "rules": ["java/sql-injection", "js/xss", "py/path-injection"]}
+          ]
+        },
+        "18.1": {
+          "title": "Penetration Testing",
+          "description": "Conduct regular penetration testing of enterprise assets",
+          "category": "testing",
+          "scanner_mappings": [
+            {"scanner": "nuclei", "rules": ["critical-severity", "high-severity"]},
+            {"scanner": "zap", "rules": ["passive-scan", "active-scan"]}
+          ]
+        }
+      }
     }
   },
   "cwe_mappings": {
@@ -463,7 +819,7 @@
       "owasp_mapping": "A03",
       "threat_categories": ["injection", "data_exposure"],
       "default_severity": "medium",
-      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10"]
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10", "HIPAA", "ISO_27001", "NIST", "CIS"]
     },
     "CWE-89": {
       "name": "SQL Injection",
@@ -471,7 +827,7 @@
       "owasp_mapping": "A03",
       "threat_categories": ["injection", "data_exposure"],
       "default_severity": "high",
-      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10"]
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10", "HIPAA", "ISO_27001", "NIST", "CIS", "SOX"]
     },
     "CWE-78": {
       "name": "OS Command Injection",
@@ -479,7 +835,7 @@
       "owasp_mapping": "A03",
       "threat_categories": ["injection", "code_quality"],
       "default_severity": "high",
-      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10"]
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10", "HIPAA", "ISO_27001", "NIST", "CIS"]
     },
     "CWE-798": {
       "name": "Use of Hard-coded Credentials",
@@ -487,7 +843,7 @@
       "owasp_mapping": "A07",
       "threat_categories": ["authentication", "secrets"],
       "default_severity": "high",
-      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR"]
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR", "HIPAA", "ISO_27001", "NIST", "CIS", "SOX"]
     },
     "CWE-327": {
       "name": "Use of a Broken or Risky Cryptographic Algorithm",
@@ -495,7 +851,7 @@
       "owasp_mapping": "A02",
       "threat_categories": ["cryptography"],
       "default_severity": "medium",
-      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR"]
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR", "HIPAA", "ISO_27001", "NIST", "CIS"]
     },
     "CWE-22": {
       "name": "Path Traversal",
@@ -503,7 +859,7 @@
       "owasp_mapping": "A01",
       "threat_categories": ["data_exposure", "authorization"],
       "default_severity": "medium",
-      "compliance_frameworks": ["SOC2", "GDPR"]
+      "compliance_frameworks": ["SOC2", "GDPR", "HIPAA", "ISO_27001", "NIST", "CIS"]
     },
     "CWE-319": {
       "name": "Cleartext Transmission of Sensitive Information",
@@ -511,7 +867,7 @@
       "owasp_mapping": "A02",
       "threat_categories": ["cryptography", "data_exposure"],
       "default_severity": "medium",
-      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR"]
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR", "HIPAA", "ISO_27001", "NIST", "CIS"]
     },
     "CWE-200": {
       "name": "Information Exposure",
@@ -519,7 +875,127 @@
       "owasp_mapping": "A02",
       "threat_categories": ["data_exposure"],
       "default_severity": "low",
-      "compliance_frameworks": ["GDPR", "SOC2"]
+      "compliance_frameworks": ["GDPR", "SOC2", "HIPAA", "ISO_27001", "NIST"]
+    },
+    "CWE-287": {
+      "name": "Improper Authentication",
+      "category": "authentication",
+      "owasp_mapping": "A07",
+      "threat_categories": ["authentication"],
+      "default_severity": "high",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10", "HIPAA", "ISO_27001", "NIST", "CIS", "SOX"]
+    },
+    "CWE-862": {
+      "name": "Missing Authorization",
+      "category": "authorization",
+      "owasp_mapping": "A01",
+      "threat_categories": ["authorization"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10", "HIPAA", "ISO_27001", "NIST", "SOX"]
+    },
+    "CWE-295": {
+      "name": "Improper Certificate Validation",
+      "category": "cryptography",
+      "owasp_mapping": "A02",
+      "threat_categories": ["cryptography", "authentication"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["PCI_DSS", "GDPR", "HIPAA", "NIST", "ISO_27001"]
+    },
+    "CWE-312": {
+      "name": "Cleartext Storage of Sensitive Information",
+      "category": "data_exposure",
+      "owasp_mapping": "A02",
+      "threat_categories": ["data_exposure", "cryptography"],
+      "default_severity": "high",
+      "compliance_frameworks": ["GDPR", "HIPAA", "PCI_DSS", "SOC2", "ISO_27001", "NIST", "CIS"]
+    },
+    "CWE-352": {
+      "name": "Cross-Site Request Forgery (CSRF)",
+      "category": "authnz",
+      "owasp_mapping": "A01",
+      "threat_categories": ["authentication", "authorization"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["OWASP_TOP_10", "PCI_DSS", "SOC2", "ISO_27001", "NIST"]
+    },
+    "CWE-611": {
+      "name": "Improper Restriction of XML External Entity Reference (XXE)",
+      "category": "injection",
+      "owasp_mapping": "A03",
+      "threat_categories": ["injection", "data_exposure"],
+      "default_severity": "high",
+      "compliance_frameworks": ["OWASP_TOP_10", "SOC2", "PCI_DSS", "ISO_27001", "NIST"]
+    },
+    "CWE-502": {
+      "name": "Deserialization of Untrusted Data",
+      "category": "injection",
+      "owasp_mapping": "A03",
+      "threat_categories": ["injection", "code_quality"],
+      "default_severity": "high",
+      "compliance_frameworks": ["OWASP_TOP_10", "SOC2", "PCI_DSS", "ISO_27001", "NIST"]
+    },
+    "CWE-918": {
+      "name": "Server-Side Request Forgery (SSRF)",
+      "category": "network",
+      "owasp_mapping": "A10",
+      "threat_categories": ["injection", "data_exposure"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["OWASP_TOP_10", "SOC2", "PCI_DSS", "ISO_27001", "NIST"]
+    },
+    "CWE-276": {
+      "name": "Incorrect Default Permissions",
+      "category": "configuration",
+      "owasp_mapping": "A01",
+      "threat_categories": ["configuration", "authorization"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "ISO_27001", "NIST", "CIS", "SOX"]
+    },
+    "CWE-532": {
+      "name": "Insertion of Sensitive Information into Log Files",
+      "category": "data_exposure",
+      "owasp_mapping": "A09",
+      "threat_categories": ["data_exposure", "logging"],
+      "default_severity": "low",
+      "compliance_frameworks": ["GDPR", "HIPAA", "SOC2", "PCI_DSS", "ISO_27001", "NIST"]
+    },
+    "CWE-306": {
+      "name": "Missing Authentication for Critical Function",
+      "category": "authentication",
+      "owasp_mapping": "A07",
+      "threat_categories": ["authentication", "authorization"],
+      "default_severity": "high",
+      "compliance_frameworks": ["SOC2", "OWASP_TOP_10", "PCI_DSS", "HIPAA", "ISO_27001", "NIST", "CIS"]
+    },
+    "CWE-269": {
+      "name": "Improper Privilege Management",
+      "category": "authorization",
+      "owasp_mapping": "A01",
+      "threat_categories": ["authorization"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "OWASP_TOP_10", "ISO_27001", "NIST", "SOX"]
+    },
+    "CWE-779": {
+      "name": "Logging of Excessive Data",
+      "category": "logging",
+      "owasp_mapping": "A09",
+      "threat_categories": ["logging", "data_exposure"],
+      "default_severity": "low",
+      "compliance_frameworks": ["GDPR", "HIPAA", "PCI_DSS", "ISO_27001"]
+    },
+    "CWE-521": {
+      "name": "Weak Password Requirements",
+      "category": "authentication",
+      "owasp_mapping": "A07",
+      "threat_categories": ["authentication"],
+      "default_severity": "medium",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "GDPR", "HIPAA", "ISO_27001", "NIST", "CIS"]
+    },
+    "CWE-494": {
+      "name": "Download of Code Without Integrity Check",
+      "category": "dependency",
+      "owasp_mapping": "A08",
+      "threat_categories": ["dependency", "integrity"],
+      "default_severity": "high",
+      "compliance_frameworks": ["SOC2", "PCI_DSS", "ISO_27001", "NIST", "CIS"]
     }
   },
   "threat_categories": {
@@ -570,6 +1046,112 @@
       "typical_severity": "high",
       "remediation_priority": "critical",
       "examples": ["API Keys", "Passwords", "Private Keys", "Tokens"]
+    }
+  },
+  "MITRE_ATTACK": {
+    "framework_info": {
+      "name": "MITRE ATT&CK",
+      "version": "v14.1",
+      "description": "MITRE ATT&CK is a globally accessible knowledge base of adversary tactics and techniques based on real-world observations"
+    },
+    "controls": {
+      "TA0006": {
+        "title": "Credential Access",
+        "description": "Techniques for stealing credentials like account names and passwords",
+        "category": "credential_access",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["hardcoded-password", "hardcoded-secret", "weak-authentication", "sql-injection"]},
+          {"scanner": "gitleaks", "rules": ["password", "api-key", "private-key", "aws-access-key"]},
+          {"scanner": "detect-secrets", "rules": ["High Entropy String", "Private Key"]},
+          {"scanner": "bandit", "rules": ["B105", "B106", "B107", "B108"]}
+        ]
+      },
+      "TA0001": {
+        "title": "Initial Access",
+        "description": "Techniques that use various entry vectors to gain initial foothold",
+        "category": "initial_access",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["sql-injection", "command-injection", "path-traversal", "ssrf"]},
+          {"scanner": "nuclei", "rules": ["cve", "misconfiguration"]},
+          {"scanner": "zap", "rules": ["sql-injection", "xss", "path-traversal"]}
+        ]
+      },
+      "TA0002": {
+        "title": "Execution",
+        "description": "Techniques that result in adversary-controlled code execution",
+        "category": "execution",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["command-injection", "deserialization", "code-execution"]},
+          {"scanner": "bandit", "rules": ["B602", "B603", "B604"]},
+          {"scanner": "nuclei", "rules": ["rce", "code-execution"]}
+        ]
+      },
+      "TA0005": {
+        "title": "Defense Evasion",
+        "description": "Techniques adversaries use to avoid detection",
+        "category": "defense_evasion",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["improper-certificate-validation", "disabled-security-feature"]},
+          {"scanner": "lynis", "rules": ["FILE-6310", "KRNL-5788"]},
+          {"scanner": "checkov", "rules": ["CKV_AWS_1", "CKV_AWS_2"]}
+        ]
+      },
+      "TA0040": {
+        "title": "Impact",
+        "description": "Techniques that manipulate, interrupt, or destroy systems and data",
+        "category": "impact",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["insecure-deserialization", "path-traversal"]},
+          {"scanner": "nuclei", "rules": ["denial-of-service", "misconfiguration"]}
+        ]
+      },
+      "TA0007": {
+        "title": "Discovery",
+        "description": "Techniques adversaries use to gain knowledge about the system",
+        "category": "discovery",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["information-disclosure", "debug-enabled"]},
+          {"scanner": "bandit", "rules": ["B201"]},
+          {"scanner": "lynis", "rules": ["LOGG-2108", "LOGG-2130"]}
+        ]
+      },
+      "TA0009": {
+        "title": "Collection",
+        "description": "Techniques used to gather information before exfiltration",
+        "category": "collection",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["information-disclosure", "pii-leakage"]},
+          {"scanner": "bandit", "rules": ["B108"]}
+        ]
+      },
+      "TA0010": {
+        "title": "Exfiltration",
+        "description": "Techniques adversaries use to steal data from the network",
+        "category": "exfiltration",
+        "scanner_mappings": [
+          {"scanner": "semgrep", "rules": ["information-disclosure", "ssrf"]},
+          {"scanner": "trivy", "rules": ["vulnerable-package"]}
+        ]
+      },
+      "T1190": {
+        "title": "Exploit Public-Facing Application",
+        "description": "Adversaries exploit weaknesses in public-facing applications",
+        "category": "initial_access",
+        "scanner_mappings": [
+          {"scanner": "nuclei", "rules": ["cve", "vulnerability"]},
+          {"scanner": "zap", "rules": ["sql-injection", "xss"]},
+          {"scanner": "semgrep", "rules": ["sql-injection", "command-injection"]}
+        ]
+      },
+      "T1568": {
+        "title": "Dynamic Resolution",
+        "description": "Adversaries use dynamic DNS and other techniques to resolve connections",
+        "category": "command_and_control",
+        "scanner_mappings": [
+          {"scanner": "nuclei", "rules": ["dns", "misconfiguration"]},
+          {"scanner": "lynis", "rules": ["DNS-1602", "DNS-1642"]}
+        ]
+      }
     }
   }
 }

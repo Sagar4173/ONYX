@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Select } from "./components";
+import { Select } from "../components/ui/StyleComponents";
 
 const options = [
   { value: "option1", label: "Option One" },

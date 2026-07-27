@@ -11,7 +11,7 @@ from .dependencies import get_database
 from .health import router as health_router
 from .retention import router as retention_router
 
-router = APIRouter(prefix="/api/enterprise", tags=["Enterprise Features"])
+router = APIRouter(prefix="/enterprise", tags=["Enterprise Features"])
 router.include_router(audit_logs_router)
 router.include_router(retention_router)
 router.include_router(compliance_router)

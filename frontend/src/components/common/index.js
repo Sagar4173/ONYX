@@ -49,4 +49,4 @@ export {
   FindingCard,
   StatusBadge,
   PageTransition,
-} from "../../styles/components";
+} from "../ui/StyleComponents";

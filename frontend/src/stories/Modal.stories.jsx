@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Button } from "../styles/components";
+import { Modal, Button } from "../components/ui/StyleComponents";
 
 export default {
   title: "Components/Modal",

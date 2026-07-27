@@ -148,9 +148,18 @@ class Settings(BaseSettings):
     git_clone_timeout: int = Field(default=300, env="GIT_CLONE_TIMEOUT")  # 5 minutes
     git_scan_timeout: int = Field(default=600, env="GIT_SCAN_TIMEOUT")   # 10 minutes
     
+    # Auto-Fix PRs
+    auto_fix_branch_prefix: str = Field(default="onyx-auto-fix/", env="AUTO_FIX_BRANCH_PREFIX")
+    auto_fix_pr_title_prefix: str = Field(default="[ONYX Auto-Fix] ", env="AUTO_FIX_PR_TITLE_PREFIX")
+    auto_fix_token: Optional[str] = Field(default=None, env="AUTO_FIX_TOKEN")
+    
     # WebSocket
     websocket_heartbeat_interval: int = Field(default=30, env="WEBSOCKET_HEARTBEAT_INTERVAL")
     
+    # Monitoring
+    sentry_dsn: str = Field(default="", env="SENTRY_DSN")
+    enable_prometheus: bool = Field(default=True, env="ENABLE_PROMETHEUS")
+
     # Storage
     temp_dir: str = Field(default="/tmp/onyx", env="TEMP_DIR")
     cleanup_after_scan: bool = Field(default=True, env="CLEANUP_AFTER_SCAN")

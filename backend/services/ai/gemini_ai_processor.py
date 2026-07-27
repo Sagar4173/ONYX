@@ -7,8 +7,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import google.generativeai as genai
-from google.generativeai.types import HarmBlockThreshold, HarmCategory
+from google import genai
+from google.genai import types
 
 from config import settings
 from models.report import AIAnalysis, ScanResult
@@ -26,25 +26,45 @@ class GeminiVulnerabilityAIProcessor:
     
     def __init__(self):
         try:
-            # Configure Gemini API
-            genai.configure(api_key=settings.gemini_api_key)
+            # Initialize Gemini API client
+            self.client = genai.Client(api_key=settings.gemini_api_key)
             
-            # Initialize the model with safety settings for security analysis
-            self.model = genai.GenerativeModel(
-                model_name=settings.gemini_model,
-                safety_settings={
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                }
-            )
+            # Safety settings for security analysis (allow all content)
+            self.safety_settings = [
+                types.SafetySetting(
+                    category="HARM_CATEGORY_HARASSMENT",
+                    threshold="BLOCK_NONE",
+                ),
+                types.SafetySetting(
+                    category="HARM_CATEGORY_HATE_SPEECH",
+                    threshold="BLOCK_NONE",
+                ),
+                types.SafetySetting(
+                    category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold="BLOCK_NONE",
+                ),
+                types.SafetySetting(
+                    category="HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold="BLOCK_NONE",
+                ),
+            ]
             
             self.max_tokens = settings.gemini_max_tokens
             
         except Exception as e:
             logger.error(f"Failed to initialize Gemini AI processor: {e}")
             raise GeminiAIProcessorError(f"Gemini initialization failed: {e}")
+
+    async def _generate(self, prompt: str) -> str:
+        response = await self.client.aio.models.generate_content(
+            model=settings.gemini_model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                safety_settings=self.safety_settings,
+                max_output_tokens=self.max_tokens,
+            ),
+        )
+        return response.text
     
     async def analyze_scan_results(
         self,
@@ -191,7 +211,7 @@ SECURE_CODE:
 [If applicable, provide a brief secure code example. If not applicable, write "N/A"]
 """
                 
-                response = await asyncio.to_thread(self.model.generate_content, prompt)
+                response = await self._generate(prompt)
                 response_text = response.text.strip()
                 
                 # Parse the response
@@ -302,7 +322,7 @@ SECURE_CODE:
             Focus on business impact and urgency. Be professional and actionable.
             """
             
-            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            response = await self._generate(prompt)
             return response.text.strip()
             
         except Exception as e:
@@ -340,7 +360,7 @@ SECURE_CODE:
             Be specific and actionable. Focus on real-world security implications.
             """
             
-            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            response = await self._generate(prompt)
             return response.text.strip()
             
         except Exception as e:
@@ -383,7 +403,7 @@ SECURE_CODE:
             Format as clear, actionable bullet points. Be specific and practical.
             """
             
-            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            response = await self._generate(prompt)
             
             # Parse response into list
             priority_items = []
@@ -427,7 +447,7 @@ SECURE_CODE:
             Make recommendations specific, measurable, and implementable. Focus on both quick wins and long-term security posture improvement.
             """
             
-            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            response = await self._generate(prompt)
             
             # Parse response into list
             recommendations = []
@@ -462,7 +482,7 @@ SECURE_CODE:
                     """
                     
                     try:
-                        response = await asyncio.to_thread(self.model.generate_content, prompt)
+                        response = await self._generate(prompt)
                         examples[finding.title] = response.text.strip()
                     except Exception as e:
                         logger.warning(f"Error generating example for {finding.title}: {e}")
@@ -497,7 +517,7 @@ SECURE_CODE:
             Format as a structured assessment with specific compliance considerations and required actions.
             """
             
-            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            response = await self._generate(prompt)
             
             return {
                 "overall_impact": "Medium to High" if high_risk_count > 0 else "Low to Medium",
@@ -632,7 +652,7 @@ SECURE_CODE:
             Focus on real-world exploitation paths. Format as a brief list.
             """
             
-            response = await asyncio.to_thread(self.model.generate_content, prompt)
+            response = await self._generate(prompt)
             
             for line in response.text.strip().split('\n'):
                 line = line.strip()

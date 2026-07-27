@@ -10,11 +10,11 @@ from routes.dependencies import get_current_user
 from services.scanning.baseline import baseline_service
 from utils.error_handling import get_safe_error_detail
 
-from .models import BaselineCreateRequest
+from .schemas import BaselineCreateRequest
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["security - baselines"])
+router = APIRouter(tags=["Security - Baselines"])
 
 
 @router.post("/baselines")

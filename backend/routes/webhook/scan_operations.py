@@ -20,7 +20,7 @@ from models.report import (
 )
 from models.user import User
 from routes.dependencies import get_current_user
-from routes.webhook.models import ScanRequest
+from routes.webhook.schemas import ScanRequest
 from services.infrastructure.project_service import ProjectService
 from services.notifications.websocket_manager import ws_manager
 from services.scanning.scanners import RealSecurityScanner

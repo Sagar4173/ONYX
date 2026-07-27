@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "./components";
+} from "../components/ui/StyleComponents";
 
 describe("Card", () => {
   it("renders children", () => {

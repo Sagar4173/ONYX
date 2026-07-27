@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { FolderIcon, ArrowPathIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Card } from "../../styles/components";
+import { Card } from "../ui/StyleComponents";
 import { getActionColor, formatDate } from "./retentionHelpers";
 
 const RetentionPolicyCard = ({ policy, onExecute, onEdit, onDelete, isExecuting, isDeleting }) => (

@@ -13,7 +13,7 @@ from utils.error_handling import get_safe_error_detail
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["security - combined"])
+router = APIRouter(tags=["Security - Combined"])
 
 
 @router.post("/full-security-analysis")

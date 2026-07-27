@@ -82,14 +82,14 @@ class NotificationService:
                 "message": f"Security scan started for project '{project_name}'"
             }
             
-            logger.info(f"📬 Scan started notification: {notification_data}")
+            logger.info(f"Scan started notification: {notification_data}")
+
+            await self._send_slack_teams(scan_id)
             
-            # For now, just log the notification
-            # In production, you would integrate with actual notification services
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send scan started notification: {e}")
+            logger.error(f"Failed to send scan started notification: {e}")
             return False
     
     async def send_scan_completed(
@@ -165,6 +165,9 @@ class NotificationService:
                         except Exception as email_error:
                             logger.warning(f"Failed to send scan email: {email_error}")
             
+            # Send Slack/Teams notification
+            await self._send_slack_teams(scan_id)
+            
             # For critical findings, also send alert
             if critical_count > 0:
                 await self.send_critical_vulnerability_alert(
@@ -196,11 +199,14 @@ class NotificationService:
                 "message": f"Security scan failed for project '{project_name}'"
             }
             
-            logger.error(f"💥 Scan failed notification: {notification_data}")
+            logger.error(f"Scan failed notification: {notification_data}")
+
+            await self._send_slack_teams(scan_id)
+            
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send scan failed notification: {e}")
+            logger.error(f"Failed to send scan failed notification: {e}")
             return False
     
     async def send_critical_vulnerability_alert(
@@ -223,7 +229,9 @@ class NotificationService:
                 "message": f"🚨 CRITICAL ALERT: {critical_count} critical vulnerabilities found in '{project_name}'"
             }
             
-            logger.warning(f"🚨 Critical vulnerability alert: {notification_data}")
+            logger.warning(f"Critical vulnerability alert: {notification_data}")
+
+            await self._send_slack_teams(scan_id)
             
             # Send email alert for critical vulnerabilities
             if NotificationChannel.EMAIL in self.enabled_channels:
@@ -444,6 +452,38 @@ class NotificationService:
             logger.error(f"❌ Failed to send vulnerability notification: {e}")
             return False
     
+    async def _load_scan_report(self, scan_id: str):
+        """Load ScanReport from database by scan_id"""
+        try:
+            from models.report import ScanReport
+            return await ScanReport.find_one(ScanReport.scan_id == scan_id)
+        except Exception as e:
+            logger.warning(f"Could not load scan report {scan_id}: {e}")
+            return None
+
+    async def _send_slack_teams(self, scan_id: str):
+        """Send notification to Slack and Teams channels if configured"""
+        try:
+            from services.notifications.notifier import notification_service as notifier_svc
+            report = await self._load_scan_report(scan_id)
+            if report:
+                await notifier_svc.send_scan_notification(report)
+        except Exception as e:
+            logger.warning(f"Slack/Teams notification failed: {e}")
+
+    async def send_scan_notification(self, scan_report) -> bool:
+        """Send notification for a completed scan report via all configured channels.
+        
+        Delegates to notifier_service for Slack/Teams dispatch.
+        """
+        try:
+            from services.notifications.notifier import notification_service as notifier_svc
+            status = await notifier_svc.send_scan_notification(scan_report)
+            return status.slack_sent or status.teams_sent
+        except Exception as e:
+            logger.error(f"Failed to send scan notification: {e}")
+            return False
+
     def configure_channels(self, channels: List[NotificationChannel]):
         """Configure enabled notification channels"""
         self.enabled_channels = channels

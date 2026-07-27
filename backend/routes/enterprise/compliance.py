@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from routes.enterprise.dependencies import get_database
-from routes.enterprise.models import (
+from routes.enterprise.schemas import (
     ComplianceAssessmentRequest,
     ComplianceReportRequest,
     CreateComplianceAssessmentRequest,
@@ -165,22 +165,12 @@ async def get_compliance_assessments(
                 "skip": skip,
                 "limit": limit
             }
-        except Exception:
-            return {
-                "success": True,
-                "assessments": [],
-                "total": 0,
-                "skip": skip,
-                "limit": limit
-            }
-    except Exception:
-        return {
-            "success": True,
-            "assessments": [],
-            "total": 0,
-            "skip": skip,
-            "limit": limit
-        }
+        except Exception as e:
+            logger.error("Failed to query compliance assessments: %s", e, exc_info=True)
+            raise HTTPException(status_code=500, detail=get_safe_error_detail(e))
+    except Exception as e:
+        logger.error("Failed to query compliance assessments (outer): %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=get_safe_error_detail(e))
 
 
 @router.post("/compliance/assessments")
@@ -284,8 +274,8 @@ async def create_compliance_assessment(
         try:
             result = await db["compliance_assessments"].insert_one(assessment_doc)
             assessment_doc["id"] = str(result.inserted_id)
-        except Exception:
-            assessment_doc["id"] = str(uuid.uuid4())
+        except Exception as e:
+            logger.warning("Failed to persist compliance assessment, using UUID fallback: %s", e)
 
         assessment_doc.pop("_id", None)
         if "assessed_at" in assessment_doc and hasattr(assessment_doc["assessed_at"], "isoformat"):
@@ -342,7 +332,8 @@ async def get_compliance_framework_summary(
                         "controls_failed": 0,
                         "controls_total": 0
                     })
-            except Exception:
+            except Exception as e:
+                logger.warning("Failed to fetch summary for framework %s: %s", framework, e)
                 summary.append({
                     "framework": framework,
                     "name": framework.upper(),
@@ -359,25 +350,9 @@ async def get_compliance_framework_summary(
             "frameworks": summary,
             "total_frameworks": len(frameworks)
         }
-    except Exception:
-        frameworks = [f.value for f in ComplianceFramework]
-        return {
-            "success": True,
-            "frameworks": [
-                {
-                    "framework": f,
-                    "name": f.upper(),
-                    "status": "not_assessed",
-                    "score": 0,
-                    "last_assessed": None,
-                    "controls_passed": 0,
-                    "controls_failed": 0,
-                    "controls_total": 0
-                }
-                for f in frameworks
-            ],
-            "total_frameworks": len(frameworks)
-        }
+    except Exception as e:
+        logger.error("Failed to generate compliance framework summary: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail=get_safe_error_detail(e))
 
 
 @router.get("/compliance/project/{project_id}/assessments")

@@ -8,7 +8,7 @@ from .policies import router as policies_router
 from .rules import router as rules_router
 from .scanning import router as scanning_router
 
-router = APIRouter(prefix="/api/advanced-security", tags=["Advanced Security"])
+router = APIRouter(prefix="/advanced-security", tags=["Advanced Security"])
 router.include_router(health_router)
 router.include_router(intelligence_router)
 router.include_router(metrics_router)

@@ -49,6 +49,7 @@ class ScannerType(str, Enum):
     
     # SCA (Dependency) Scanners
     SAFETY = "safety"
+    DEPENDENCY_GOVERNANCE = "dependency-governance"
     
     # IaC Scanners
     CHECKOV = "checkov"
@@ -56,6 +57,7 @@ class ScannerType(str, Enum):
     # Secret Detection
     GITLEAKS = "gitleaks"
     DETECT_SECRETS = "detect_secrets"
+    SOPS = "sops"
     
     # Infrastructure Scanners
     LYNIS = "lynis"
@@ -132,6 +134,9 @@ class ComplianceFramework(str, Enum):
     # Application Security
     OWASP = "owasp"             # Open Web Application Security Project
     OWASP_TOP_10 = "owasp_top_10"  # OWASP Top 10
+    
+    # Threat Intelligence
+    MITRE_ATTACK = "mitre_attack"  # MITRE ATT&CK Framework
     
     # Custom
     CUSTOM = "custom"           # Custom compliance framework

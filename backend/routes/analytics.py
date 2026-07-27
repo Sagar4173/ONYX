@@ -8,7 +8,7 @@ from models.report import ScanReport, ScanStatus
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["analytics"])
+router = APIRouter(tags=["Analytics"])
 
 
 @router.get("/analytics/overview")

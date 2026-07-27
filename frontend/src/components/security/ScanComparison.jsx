@@ -14,7 +14,7 @@ import {
   ArrowsUpDownIcon,
   ArrowPathIcon,
   DocumentTextIcon,
-  ArrowRightLeftIcon,
+  ArrowsRightLeftIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   MinusIcon,
@@ -25,11 +25,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Card } from "@styles";
-
-// API Configuration - Production ready with environment variable support
-const API_BASE_URL = import.meta.env.DEV
-  ? "http://127.0.0.1:8000"
-  : import.meta.env.VITE_API_URL || "/api";
+import { enterpriseAPI, reportsAPI } from "@services/api";
 
 // Severity badge component
 const SeverityBadge = ({ severity }) => {
@@ -169,7 +165,7 @@ const SummaryCard = ({ label, value, icon: Icon, color, description }) => {
 };
 
 // Main component
-const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = null }) => {
+const ScanComparison = ({ baseScanId = null, compareScanId = null, projectName = null }) => {
   const [selectedBaseScan, setSelectedBaseScan] = useState(baseScanId);
   const [selectedCompareScan, setSelectedCompareScan] = useState(compareScanId);
   const [activeTab, setActiveTab] = useState("all");
@@ -185,48 +181,29 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
     queryKey: ["scan-comparison", selectedBaseScan, selectedCompareScan],
     queryFn: async () => {
       if (!selectedBaseScan || !selectedCompareScan) return null;
-
-      const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/api/enterprise/scans/compare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-        body: JSON.stringify({
-          base_scan_id: selectedBaseScan,
-          compare_scan_id: selectedCompareScan,
-          include_unchanged: false,
-        }),
+      const response = await enterpriseAPI.compareScans({
+        baseScanId: selectedBaseScan,
+        compareScanId: selectedCompareScan,
       });
-      if (!response.ok) throw new Error("Failed to compare scans");
-      return response.json();
+      return response;
     },
     enabled: !!selectedBaseScan && !!selectedCompareScan,
   });
 
   // Fetch available scans for selection from real API
   const { data: scansData } = useQuery({
-    queryKey: ["available-scans", projectId],
+    queryKey: ["available-scans", projectName],
     queryFn: async () => {
-      const token = localStorage.getItem("access_token");
-      // Fetch real scan history from reports API
-      const response = await fetch(
-        `${API_BASE_URL}/api/reports?project_id=${
-          projectId || ""
-        }&limit=50&sort_by=created_at&sort_order=desc`,
-        {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch scans");
-      }
-      const data = await response.json();
+      const response = projectName
+        ? await reportsAPI.getProjectReports(projectName, {
+            limit: 50,
+            sort_by: "created_at",
+            sort_order: "desc",
+          })
+        : await reportsAPI.getReports({ limit: 50, sort_by: "created_at", sort_order: "desc" });
       // Transform reports to scan format
-      const scans = (data.reports || []).map((report) => ({
+      const reports = response?.reports || response || [];
+      const scans = (Array.isArray(reports) ? reports : []).map((report) => ({
         id: report.id || report._id,
         timestamp: report.created_at,
         branch: report.branch || report.repository_branch || "main",
@@ -239,7 +216,7 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
       }));
       return { scans };
     },
-    enabled: true, // Always try to fetch
+    enabled: true,
   });
 
   const data = comparisonData?.data || {};
@@ -460,7 +437,7 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
                 <div className="flex justify-between">
                   <span className="text-gray-400">Branch:</span>
                   <span className="flex items-center gap-1">
-                    <ArrowRightLeftIcon className="w-3 h-3" />
+                    <ArrowsRightLeftIcon className="w-3 h-3" />
                     {data.base_scan?.branch || "N/A"}
                   </span>
                 </div>
@@ -488,7 +465,7 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectId = n
                 <div className="flex justify-between">
                   <span className="text-gray-400">Branch:</span>
                   <span className="flex items-center gap-1">
-                    <ArrowRightLeftIcon className="w-3 h-3" />
+                    <ArrowsRightLeftIcon className="w-3 h-3" />
                     {data.compare_scan?.branch || "N/A"}
                   </span>
                 </div>

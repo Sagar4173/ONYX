@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Tabs } from "./components";
+import { Tabs } from "../components/ui/StyleComponents";
 
 const tabs = [
   { id: "tab1", label: "Tab One" },

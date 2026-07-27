@@ -1,5 +1,5 @@
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { Modal, Button } from "../../styles/components";
+import { Modal, Button } from "../ui/StyleComponents";
 
 const ProjectDeleteDialog = ({ project, isOpen, onClose, onConfirm, isLoading }) => {
   return (

@@ -42,6 +42,7 @@ class ServiceRegistry:
     _policy_engine = None
     _security_scanner = None
     _scan_orchestrator = None
+    _scan_scheduler = None
     
     @classmethod
     def initialize(cls) -> Dict[str, bool]:
@@ -167,6 +168,17 @@ class ServiceRegistry:
             logger.warning(f"⚠️ Scan Orchestrator failed: {e}")
             status["scan_orchestrator"] = False
         
+        # Initialize Scan Scheduler
+        try:
+            from services.scheduling.scheduler_service import ScanSchedulerService
+            cls._scan_scheduler = ScanSchedulerService()
+            cls._scan_scheduler.initialize()
+            status["scan_scheduler"] = True
+            logger.info("✅ Scan Scheduler initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Scan Scheduler failed: {e}")
+            status["scan_scheduler"] = False
+        
         cls._initialized = True
         cls._services = status
         
@@ -193,6 +205,7 @@ class ServiceRegistry:
                 "policy_engine": cls._policy_engine is not None,
                 "security_scanner": cls._security_scanner is not None,
                 "scan_orchestrator": cls._scan_orchestrator is not None,
+            "scan_scheduler": cls._scan_scheduler is not None,
             },
             "active_count": sum([
                 cls._threat_intel_engine is not None,
@@ -205,8 +218,9 @@ class ServiceRegistry:
                 cls._policy_engine is not None,
                 cls._security_scanner is not None,
                 cls._scan_orchestrator is not None,
+                cls._scan_scheduler is not None,
             ]),
-            "total_services": 10
+            "total_services": 11
         }
     
     # Service getters
@@ -261,6 +275,11 @@ class ServiceRegistry:
         return cls._scan_orchestrator
     
     @classmethod
+    def get_scan_scheduler(cls):
+        """Get Scan Scheduler instance"""
+        return cls._scan_scheduler
+    
+    @classmethod
     async def shutdown(cls):
         """Gracefully shutdown all services"""
         logger.info("🛑 Shutting down Service Registry...")
@@ -272,6 +291,14 @@ class ServiceRegistry:
                 logger.info("✅ Threat Intelligence Engine stopped")
             except Exception as e:
                 logger.warning(f"⚠️ Error stopping Threat Intelligence Engine: {e}")
+        
+        # Stop scan scheduler
+        if cls._scan_scheduler:
+            try:
+                await cls._scan_scheduler.stop()
+                logger.info("✅ Scan Scheduler stopped")
+            except Exception as e:
+                logger.warning(f"⚠️ Error stopping Scan Scheduler: {e}")
         
         cls._initialized = False
         logger.info("🛑 Service Registry shutdown complete")

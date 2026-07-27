@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button, Modal } from "../../styles/components";
+import { Button, Modal } from "../ui/StyleComponents";
 import { policyTypes, retentionActions } from "./retentionHelpers";
 
 const RetentionFormModal = ({

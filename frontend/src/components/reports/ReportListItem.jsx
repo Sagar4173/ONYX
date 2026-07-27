@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from "@heroicons/react/24/outline";
-import { Badge } from "../../styles/components";
+import { Badge } from "../ui/StyleComponents";
 
 const statusConfig = {
   completed: {

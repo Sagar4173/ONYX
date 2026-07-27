@@ -1,749 +1,192 @@
-# 🏗️ Architecture & Design
+# Architecture & Design
 
 ## Overview
 
-ONYX - Security Intelligence Platform is designed as a modern, scalable, and enterprise-ready security scanning platform that rivals GitHub Advanced Security (GHAS) and Snyk. The architecture follows microservices principles with clear separation of concerns.
+ONYX is designed as a modern, scalable security scanning platform. Architecture follows a modular monolith pattern with clear separation of concerns, running as a single FastAPI application with async workers.
+
+---
 
 ## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     ONYX - Security Intelligence               │
-├─────────────────────────────────────────────────────────────────┤
-│  🌐 Frontend Layer (React 18 + Vite)                          │
-│  ├── Modern Dark UI with Glassmorphism                         │
-│  ├── Real-time WebSocket Updates                               │
-│  ├── Interactive Charts & Analytics                            │
-│  └── Mobile-Responsive Design                                  │
-├─────────────────────────────────────────────────────────────────┤
-│  🔌 API Gateway Layer                                          │
-│  ├── FastAPI with OpenAPI Documentation                        │
-│  ├── JWT Authentication & Authorization                        │
-│  ├── Rate Limiting & CORS                                      │
-│  ├── Request/Response Validation                               │
-│  └── API Versioning Support                                    │
-├─────────────────────────────────────────────────────────────────┤
-│  ⚙️ Business Logic Layer                                        │
-│  ├── 🔍 Scan Orchestrator                                      │
-│  ├── 🤖 AI Analysis Engine                                     │
-│  ├── 📊 Report Generator                                       │
-│  ├── 🔔 Notification Service                                   │
-│  └── 📁 Repository Manager                                     │
-├─────────────────────────────────────────────────────────────────┤
-│  🛡️ Security Engine Layer                                      │
-│  ├── 🔬 Semgrep (SAST)           ├── 📦 Trivy (Container)     │
-│  ├── 🔐 GitLeaks (Secrets)       ├── 🏗️ Lynis (Infrastructure)│
-│  ├── 🔍 Safety (Dependencies)    ├── 🎯 Bandit (Python SAST)  │
-│  └── 🤖 AI Processor (GPT-4 Analysis & Recommendations)        │
-├─────────────────────────────────────────────────────────────────┤
-│  💾 Data Layer                                                 │
-│  ├── MongoDB Atlas (Primary Database)                          │
-│  ├── Redis (Caching & Sessions) [Planned]                      │
-│  ├── File Storage (Local/S3/Azure Blob)                        │
-│  └── Search Engine (Elasticsearch) [Planned]                   │
-├─────────────────────────────────────────────────────────────────┤
-│  🔗 Integration Layer                                           │
-│  ├── Git Providers (GitHub, GitLab, Bitbucket)                 │
-│  ├── Notification Systems (Slack, Teams, Email)                │
-│  ├── CI/CD Systems (Jenkins, GitHub Actions, Azure DevOps)     │
-│  └── External APIs (OpenAI, Security Feeds)                    │
-└─────────────────────────────────────────────────────────────────┘
+                    Frontend (React 18 + Vite)
+                    Dark UI + Glassmorphism
+                    Real-time WebSocket Updates
+                            |
+                    API Gateway (FastAPI)
+                    JWT Auth, Rate Limiting, CORS
+                    OpenAPI docs at /docs
+                            |
+              +-------------+-------------+
+              |             |             |
+       Scan Engine    AI Analysis    Notification
+       Orchestrator   (GPT-4/Gemini)  (Slack/Teams/
+              |             |          Email/WS)
+              |             |             |
+      +-------+-------+    |    +--------+--------+
+      |       |       |    |    |        |        |
+   Semgrep  Bandit  Safety  |  Webhook  Scheduler SCM
+   GitLeaks Trivy   ZAP    |  Handler  (cron)   (auto-fix)
+   Lynis    SOPS    ...    |    |        |        |
+      |       |       |    |    |        |        |
+      +-------+-------+    +----+--------+--------+
+              |                   |
+         MongoDB 7+          External APIs
+         (Beanie ODM)        (GitHub, GitLab,
+              |               OpenAI, NVD, OSV)
+        Monitoring
+        Sentry + Prometheus
 ```
 
-## Component Details
+---
 
-### Frontend Architecture
+## Tech Stack
 
-**Technology Stack:**
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite 5, Tailwind CSS, React Query 5 |
+| Backend | FastAPI, Python 3.13, Pydantic v2 |
+| Database | MongoDB 7+, Beanie ODM |
+| AI | OpenAI GPT-4, Google Gemini 1.5 |
+| Auth | JWT (PyJWT) |
+| Monitoring | Sentry SDK, Prometheus (prometheus-fastapi-instrumentator) |
+| Real-time | WebSocket (FastAPI native) |
+| Container | Docker + Docker Compose |
 
-- **React 18** with Concurrent Features
-- **Vite** for fast development and building
-- **Tailwind CSS** for utility-first styling
-- **React Query** for state management and caching
-- **WebSocket** for real-time updates
-- **Chart.js/Recharts** for data visualization
+---
 
-**Key Components:**
-
-```
-frontend/src/
-├── components/
-│   ├── Dashboard/           # Main dashboard components
-│   ├── Reports/             # Report viewing and analysis
-│   ├── Settings/            # Configuration management
-│   ├── Charts/              # Data visualization
-│   └── Common/              # Reusable UI components
-├── services/
-│   ├── api.js              # API client configuration
-│   ├── websocket.js        # Real-time communication
-│   └── auth.js             # Authentication service
-├── hooks/
-│   ├── useAuth.js          # Authentication hooks
-│   ├── useScanData.js      # Scan data management
-│   └── useWebSocket.js     # WebSocket hooks
-└── utils/
-    ├── formatters.js       # Data formatting utilities
-    ├── validators.js       # Input validation
-    └── constants.js        # Application constants
-```
-
-### Backend Architecture
-
-**Technology Stack:**
-
-- **FastAPI** with async/await support
-- **Python 3.11+** with type hints
-- **Pydantic** for data validation
-- **Motor** for async MongoDB operations
-- **Beanie** ODM for document modeling
-- **Structlog** for structured logging
-
-**Service Architecture:**
+## Backend Structure
 
 ```
 backend/
-├── app.py                  # FastAPI application entry point
-├── config.py               # Configuration management
-├── database.py             # Database connection and setup
-├── models/
-│   ├── report.py           # Scan report data models
-│   ├── user.py             # User and authentication
-│   ├── project.py          # Project, vulnerability, and issue
-│   └── webhook.py          # Webhook event models
-├── routes/
-│   ├── auth.py             # Authentication endpoints
-│   ├── users.py            # User management APIs
-│   ├── projects.py         # Project management APIs
-│   ├── reports.py          # Report management APIs
-│   ├── webhook.py          # Webhook handlers
-│   └── admin.py            # Administrative functions
+├── app.py              # FastAPI app, lifespan, middleware, router includes
+├── config.py           # pydantic-settings (all env vars documented)
+├── database.py         # MongoDB + Beanie initialization
+├── main.py             # Uvicorn runner
+├── models/             # Beanie documents + Pydantic schemas
+│   ├── report.py       # ScanReport, VulnerabilityFinding, ScanResult, ...
+│   ├── user.py         # User, UserRole, ...
+│   ├── project.py      # Project, ProjectMember, ...
+│   ├── secret_history.py # SecretRecord, SecretTrendPoint
+│   ├── schedule.py     # ScanSchedule
+│   ├── triage.py       # TriageResult, BusinessContext
+│   └── base.py         # Shared enums (ScannerType, SeverityLevel, ...)
+├── routes/             # 30+ route modules organized by domain
+│   ├── auth/           # login, register, refresh, password, api_tokens
+│   ├── reports/        # listing, detail, analytics, export, ai_analysis
+│   ├── security/       # combined, baselines, policies
+│   ├── compliance/     # frameworks, reports, helpers
+│   ├── admin/          # dashboard, users, projects, reports, activity
+│   ├── advanced_security/ # scanning, rules, policies, baselines, metrics
+│   ├── enterprise/     # audit_logs, compliance, sbom, trends, comparison
+│   ├── webhook/        # processor, events, scan_operations
+│   └── ...
+├── services/           # Business logic
+│   ├── ai/             # AI processors (OpenAI + Gemini)
+│   ├── scanning/       # Orchestrator, 11 scanners, vulnerability manager
+│   ├── compliance/     # Compliance analysis service
+│   ├── notifications/  # Slack, Teams, Email, WebSocket
+│   ├── infrastructure/ # EncryptionService, MonitoringService
+│   ├── scheduling/     # ScanSchedulerService (cron)
+│   ├── scm/            # AutoFixService (GitHub/GitLab PRs)
+│   ├── auth/           # AuthService
+│   ├── triage/         # TriageService
+│   └── service_registry.py
+├── tests/              # 347 tests
+└── Dockerfile
+```
+
+### Route Prefix Convention
+
+All routers define their prefix without `/api`:
+```python
+router = APIRouter(prefix="/security", tags=["Security"])
+```
+
+`app.py` adds `/api` consistently:
+```python
+app.include_router(security_router, prefix="/api")
+```
+
+---
+
+## Frontend Structure
+
+```
+frontend/src/
+├── App.jsx               # ErrorBoundary > QueryClient > AuthProvider > Router
+├── main.jsx              # React entry point
+├── components/
+│   ├── auth/             # LoginForm, RegisterForm, AuthModal, AuthContext
+│   ├── compliance/       # ComplianceDashboard, DataRetentionPolicies
+│   ├── reports/          # ReportDetails, ReportList
+│   ├── security/         # SBOMViewer, SecurityTrendsDashboard, SecretHistoryPanel
+│   ├── schedules/        # ScheduledScansPage, ScheduleCard, ScheduleForm
+│   ├── triage/           # TriageDashboard
+│   ├── users/            # UserManagement, AuditLogs
+│   ├── admin/            # AdminDashboard
+│   └── ui/               # StyleComponents (shared)
+├── layouts/
+│   ├── MainLayout.jsx    # Authenticated layout with routes
+│   ├── Sidebar.jsx       # Navigation
+│   └── Header.jsx        # Top header
 ├── services/
-│   ├── scanner.py          # Security scanner orchestrator
-│   ├── ai_processor.py     # OpenAI GPT-4 analysis engine
-│   ├── gemini_ai_processor.py  # Google Gemini AI analysis engine
-│   ├── notifier.py         # Notification service
-│   ├── real_scanner.py     # Real security tool integration
-│   ├── auth_service.py     # Authentication and session logic
-│   ├── user_service.py     # User management business logic
-│   └── project_service.py  # Project management business logic
-├── utils/
-│   ├── repo_clone.py       # Repository management
-│   ├── result_parser.py    # Scan result processing
-│   └── validators.py       # Data validation utilities
-└── middleware/
-    ├── auth.py             # Authentication middleware
-    ├── rate_limit.py       # Rate limiting
-    └── cors.py             # CORS configuration
+│   └── api.js            # Axios client + all API modules
+├── styles/
+│   └── index.js          # Re-exports + theme
+└── hooks/                # Custom hooks
 ```
 
-### Security Engine
-
-**Scanner Integration:**
-
-```python
-class SecurityScanner:
-    """Main security scanner orchestrator"""
-
-    def __init__(self):
-        self.scanners = {
-            ScannerType.SEMGREP: SemgrepScanner(),      # SAST
-            ScannerType.TRIVY: TrivyScanner(),          # Container
-            ScannerType.GITLEAKS: GitLeaksScanner(),    # Secrets
-            ScannerType.LYNIS: LynisScanner(),          # Infrastructure
-            ScannerType.SAFETY: SafetyScanner(),        # Dependencies
-            ScannerType.BANDIT: BanditScanner()         # Python SAST
-        }
-
-    async def run_all_scans(self, repo_path: str) -> List[ScanResult]:
-        """Execute all security scanners in parallel"""
-        tasks = [
-            scanner.scan(repo_path)
-            for scanner in self.scanners.values()
-        ]
-        return await asyncio.gather(*tasks)
-```
-
-**AI Analysis Engine:**
-
-```python
-class VulnerabilityAIProcessor:
-    """AI processor for vulnerability analysis"""
-
-    async def analyze_scan_results(
-        self,
-        scan_results: List[ScanResult]
-    ) -> AIAnalysis:
-        """Generate comprehensive AI analysis"""
-
-        # Parallel AI analysis tasks
-        analysis_tasks = [
-            self._generate_executive_summary(findings_data),
-            self._generate_risk_assessment(findings_data),
-            self._generate_priority_findings(findings_data),
-            self._generate_recommendations(findings_data),
-            self._generate_secure_code_examples(findings_data),
-            self._generate_compliance_impact(findings_data)
-        ]
-
-        results = await asyncio.gather(*analysis_tasks)
-
-        return AIAnalysis(
-            model_used="gpt-4",
-            executive_summary=results[0],
-            risk_assessment=results[1],
-            priority_findings=results[2],
-            recommendations=results[3],
-            secure_code_examples=results[4],
-            compliance_impact=results[5]
-        )
-```
-
-### Data Models
-
-**Scan Report Model:**
-
-```python
-class ScanReport(Document):
-    """Comprehensive scan report document"""
-
-    # Basic Information
-    scan_id: str = Field(..., unique=True)
-    project_name: str
-    status: ScanStatus
-
-    # Timestamps
-    created_at: datetime
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
-    duration_seconds: Optional[float]
-
-    # Git Information
-    git_metadata: GitMetadata
-
-    # Scan Results
-    scan_results: List[ScanResult] = []
-    total_findings: int = 0
-    findings_by_severity: Dict[str, int] = {}
-
-    # AI Analysis
-    ai_analysis: Optional[AIAnalysis]
-
-    # Metadata
-    tags: List[str] = []
-    metadata: Dict[str, Any] = {}
-
-    class Settings:
-        name = "scan_reports"
-        indexes = [
-            "scan_id",
-            "project_name",
-            "status",
-            "created_at",
-            [("project_name", 1), ("created_at", -1)]
-        ]
-```
-
-**AI Analysis Model:**
-
-```python
-class AIAnalysis(BaseModel):
-    """AI-generated analysis and recommendations"""
-
-    model_used: str  # "gpt-4" or "gemini-pro"
-    generated_at: datetime
-
-    # Analysis Results
-    executive_summary: str
-    risk_assessment: str
-    risk_score: Optional[int]            # AI-calculated 0-100 score
-    security_score: Optional[int]        # Security posture 0-100
-    threat_categories: Optional[List[str]]  # Categorized threats
-    attack_vectors: Optional[List[str]]     # Potential exploitation paths
-    priority_findings: List[str]
-    recommendations: List[str]
-    remediation_roadmap: Optional[List[Dict]]  # Prioritized action plan
-    secure_code_examples: Dict[str, str]
-    compliance_impact: Dict[str, str]    # OWASP/NIST/ISO27001/PCI-DSS mapping
-    estimated_fix_time: str
-
-    # Quality Metrics
-    confidence_score: Optional[float]
-    analysis_duration: Optional[float]
-```
-
-**Dual AI Provider Support:**
-
-```python
-# AI Provider Factory Pattern
-class AIProviderFactory:
-    @staticmethod
-    def get_processor(provider: str = "openai"):
-        if provider == "gemini":
-            from services.gemini_ai_processor import GeminiAIProcessor
-            return GeminiAIProcessor()
-        else:
-            from services.ai_processor import AIProcessor
-            return AIProcessor()
-```
-
-### User Management & Access Control
-
-**User Management Architecture:**
-
-```python
-class User(Document):
-    """User document with role-based access control"""
-
-    # Basic Information
-    email: Indexed(EmailStr, unique=True)
-    username: Indexed(str, unique=True)
-    full_name: str
-
-    # Authentication
-    hashed_password: str
-    role: UserRole = UserRole.VIEWER
-    status: UserStatus = UserStatus.PENDING_VERIFICATION
-
-    # Profile & Preferences
-    organization: Optional[str]
-    timezone: str = "UTC"
-    notification_preferences: UserNotificationPreferences
-
-    # Security Tracking
-    last_login: Optional[datetime]
-    failed_login_attempts: int = 0
-    email_verified: bool = False
-
-    # Audit
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
-```
-
-**Role-Based Access Control:**
-
-```python
-class UserRole(str, Enum):
-    """Hierarchical user roles"""
-    ADMIN = "admin"                    # Full system access
-    SECURITY_MANAGER = "security_manager"  # Security operations
-    DEVELOPER = "developer"            # Development access
-    VIEWER = "viewer"                  # Read-only access
-
-@require_role([UserRole.ADMIN, UserRole.SECURITY_MANAGER])
-async def list_users():
-    """Admin/Security Manager only endpoint"""
-    pass
-```
-
-**Project Management Architecture:**
-
-```python
-class Project(Document):
-    """Project with team collaboration"""
-
-    # Basic Information
-    name: Indexed(str)
-    description: Optional[str]
-    category: ProjectCategory
-
-    # Repository Integration
-    repository_url: Optional[str]
-    default_branch: str = "main"
-
-    # Team Management
-    owner_id: str
-    team_members: List[ProjectMember]
-
-    # Scan Configuration
-    scan_configuration: ProjectScanConfig
-
-    # Analytics
-    total_scans: int = 0
-    last_scan_at: Optional[datetime]
-
-class ProjectMember(BaseModel):
-    """Project team member with role-based permissions"""
-    user_id: str
-    role: ProjectRole
-    joined_at: datetime
-    permissions: List[ProjectPermission]
-```
-
-## Security Architecture
-
-### Authentication & Authorization
-
-```python
-class AuthenticationService:
-    """JWT-based authentication service"""
-
-    async def authenticate_user(
-        self,
-        token: str
-    ) -> Optional[User]:
-        """Validate JWT token and return user"""
-        try:
-            payload = jwt.decode(
-                token,
-                settings.secret_key,
-                algorithms=[settings.algorithm]
-            )
-            user_id = payload.get("sub")
-            if user_id:
-                return await User.get(user_id)
-        except JWTError:
-            return None
-```
-
-### Rate Limiting
-
-```python
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    """Rate limiting middleware"""
-
-    client_ip = request.client.host
-
-    # Check rate limit
-    if await rate_limiter.is_rate_limited(client_ip):
-        raise HTTPException(
-            status_code=429,
-            detail="Rate limit exceeded"
-        )
-
-    response = await call_next(request)
-    return response
-```
-
-### Data Encryption
-
-```python
-class EncryptionService:
-    """Data encryption and decryption service"""
-
-    def encrypt_sensitive_data(self, data: str) -> str:
-        """Encrypt sensitive data before storage"""
-        cipher = Fernet(settings.encryption_key)
-        return cipher.encrypt(data.encode()).decode()
-
-    def decrypt_sensitive_data(self, encrypted_data: str) -> str:
-        """Decrypt sensitive data after retrieval"""
-        cipher = Fernet(settings.encryption_key)
-        return cipher.decrypt(encrypted_data.encode()).decode()
-```
-
-## Scalability & Performance
-
-### Async Processing
-
-```python
-@app.post("/webhook/scan")
-async def submit_scan(scan_request: ScanRequest):
-    """Async scan submission"""
-
-    # Create scan record immediately
-    scan_report = await ScanReport.create(scan_request)
-
-    # Process scan in background
-    asyncio.create_task(
-        process_scan_background(scan_report.scan_id)
-    )
-
-    return {"scan_id": scan_report.scan_id, "status": "submitted"}
-
-async def process_scan_background(scan_id: str):
-    """Background scan processing"""
-    try:
-        # Run security scanners
-        scan_results = await security_scanner.run_all_scans(repo_path)
-
-        # Generate AI analysis
-        ai_analysis = await ai_processor.analyze_scan_results(scan_results)
-
-        # Update scan report
-        await ScanReport.find_one(
-            ScanReport.scan_id == scan_id
-        ).update({"$set": {
-            "scan_results": scan_results,
-            "ai_analysis": ai_analysis,
-            "status": ScanStatus.COMPLETED
-        }})
-
-    except Exception as e:
-        logger.error(f"Scan failed: {e}")
-        await mark_scan_failed(scan_id, str(e))
-```
-
-### Database Optimization
-
-```python
-# MongoDB Indexes for Performance
-class ScanReport(Document):
-    class Settings:
-        indexes = [
-            # Single field indexes
-            "scan_id",
-            "project_name",
-            "status",
-            "created_at",
-
-            # Compound indexes
-            [("project_name", 1), ("created_at", -1)],
-            [("status", 1), ("created_at", -1)],
-            [("total_findings", -1), ("created_at", -1)],
-
-            # Text search index
-            [("project_name", "text"), ("git_metadata.commit_message", "text")]
-        ]
-```
-
-### Caching Strategy
-
-```python
-from redis import asyncio as aioredis
-
-class CacheService:
-    """Redis-based caching service"""
-
-    async def get_scan_cache(self, cache_key: str) -> Optional[dict]:
-        """Get cached scan results"""
-        cached_data = await self.redis.get(cache_key)
-        if cached_data:
-            return json.loads(cached_data)
-        return None
-
-    async def set_scan_cache(
-        self,
-        cache_key: str,
-        data: dict,
-        expire: int = 3600
-    ):
-        """Cache scan results"""
-        await self.redis.setex(
-            cache_key,
-            expire,
-            json.dumps(data, default=str)
-        )
-```
-
-## Deployment Architecture
-
-### Container Architecture
-
-```dockerfile
-# Multi-stage Docker build
-FROM python:3.11-slim as backend-builder
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-FROM node:18-alpine as frontend-builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-
-FROM python:3.11-slim as production
-# Copy backend and frontend builds
-COPY --from=backend-builder /app /app
-COPY --from=frontend-builder /app/dist /app/static
-EXPOSE 8000
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app"]
-```
-
-### Kubernetes Deployment
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: onyx-platform
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: onyx
-  template:
-    metadata:
-      labels:
-        app: onyx
-    spec:
-      containers:
-        - name: backend
-          image: onyx/platform:latest
-          env:
-            - name: MONGODB_URI
-              valueFrom:
-                secretKeyRef:
-                  name: onyx-secrets
-                  key: mongodb-uri
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: onyx-secrets
-                  key: openai-api-key
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 5
-```
-
-## Monitoring & Observability
-
-### Health Checks
-
-```python
-@app.get("/health")
-async def health_check():
-    """Comprehensive health check endpoint"""
-
-    health_status = {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "services": {}
-    }
-
-    # Database connectivity
-    try:
-        await db_manager.ping()
-        health_status["services"]["database"] = "healthy"
-    except Exception as e:
-        health_status["services"]["database"] = f"unhealthy: {e}"
-        health_status["status"] = "unhealthy"
-
-    # Security scanners
-    for scanner_type, scanner in security_scanner.scanners.items():
-        try:
-            is_available = await scanner.is_available()
-            health_status["services"][scanner_type.value] = (
-                "healthy" if is_available else "unavailable"
-            )
-        except Exception as e:
-            health_status["services"][scanner_type.value] = f"error: {e}"
-
-    # AI service
-    try:
-        await ai_processor.health_check()
-        health_status["services"]["ai_processor"] = "healthy"
-    except Exception as e:
-        health_status["services"]["ai_processor"] = f"unhealthy: {e}"
-
-    return health_status
-```
-
-### Logging & Metrics
-
-```python
-import structlog
-
-# Structured logging configuration
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
-
-logger = structlog.get_logger(__name__)
-
-# Usage in application
-@app.middleware("http")
-async def logging_middleware(request: Request, call_next):
-    """Request logging middleware"""
-
-    start_time = time.time()
-
-    logger.info(
-        "request_started",
-        method=request.method,
-        url=str(request.url),
-        client_ip=request.client.host
-    )
-
-    response = await call_next(request)
-
-    process_time = time.time() - start_time
-
-    logger.info(
-        "request_completed",
-        method=request.method,
-        url=str(request.url),
-        status_code=response.status_code,
-        process_time=process_time
-    )
-
-    return response
-```
-
-## Future Architecture Enhancements
-
-### Microservices Migration
+---
+
+## Security Scanner Architecture
+
+### Scanner Types
+
+| Type | Scanners |
+|---|---|
+| SAST | Semgrep, Bandit, CodeQL |
+| DAST | ZAP, Nuclei |
+| SECRETS | GitLeaks, Detect-Secrets, SOPS |
+| SCA | Safety, Dependency Governance |
+| IAC | Checkov |
+| INFRASTRUCTURE | Lynis |
+| CONTAINER | Trivy |
+
+### Orchestrator Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Future Microservices Architecture            │
-├─────────────────────────────────────────────────────────────────┤
-│  🌐 API Gateway (Kong/AWS API Gateway)                         │
-├─────────────────────────────────────────────────────────────────┤
-│  🔍 Scan Service    │  🤖 AI Service     │  📊 Report Service   │
-│  ├── Scanner Mgmt   │  ├── Analysis      │  ├── Generation      │
-│  ├── Queue Mgmt     │  ├── ML Models     │  ├── Export          │
-│  └── Result Proc    │  └── Recommendations│  └── Templates       │
-├─────────────────────────────────────────────────────────────────┤
-│  👤 Auth Service    │  🔔 Notification   │  📁 File Service     │
-│  ├── JWT Mgmt       │  ├── Slack/Teams   │  ├── Storage         │
-│  ├── RBAC           │  ├── Email         │  ├── Backup          │
-│  └── SSO            │  └── Webhooks      │  └── Archive         │
-├─────────────────────────────────────────────────────────────────┤
-│  📨 Message Queue (RabbitMQ/Kafka)                             │
-│  📊 Monitoring (Prometheus + Grafana)                          │
-│  📋 Service Mesh (Istio)                                       │
-└─────────────────────────────────────────────────────────────────┘
+ScanRequest
+  -> ScanOrchestrator.run_scan()
+     -> parallel scanner execution
+     -> deduplication by (rule_id, file, line)
+     -> ScanResult with findings
+  -> EnhancedScanningWorkflow
+     -> AI analysis (GPT-4 or Gemini)
+     -> Compliance analysis
+     -> Vulnerability management
+     -> Secret history tracking
+     -> Notifications (Slack/Teams/Email)
 ```
 
-### Event-Driven Architecture
+---
 
-```python
-# Event-driven scan processing
-class ScanEventHandler:
-    """Event-driven scan processing"""
+## Security
 
-    async def handle_scan_submitted(self, event: ScanSubmittedEvent):
-        """Handle scan submission event"""
-        await self.queue_scan_job(event.scan_id)
-        await self.notify_scan_started(event.scan_id)
+- JWT authentication (access + refresh tokens)
+- Role-based access control (Admin > Security Manager > Developer > Viewer)
+- Password hashing via bcrypt
+- Rate limiting via slowapi
+- NoSQL injection prevention via Beanie ODM
+- Data encryption via EncryptionService (Fernet)
+- Sentry error tracking (no PII)
+- Prometheus metrics
 
-    async def handle_scan_completed(self, event: ScanCompletedEvent):
-        """Handle scan completion event"""
-        await self.generate_ai_analysis(event.scan_results)
-        await self.send_notifications(event.scan_id)
-        await self.update_security_metrics(event.scan_results)
-```
+---
 
-This architecture provides a solid foundation for a production-ready security scanning platform that can compete with enterprise solutions while maintaining the flexibility and cost-effectiveness of open-source software.
+## Scalability
+
+- Stateless backend (horizontal scaling behind load balancer)
+- Async/await throughout for I/O-bound operations
+- Database indexes on common query patterns
+- Graceful degradation for optional scanners

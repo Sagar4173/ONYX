@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse
 from models.report import ScanReport
 from models.user import User
 from routes.dependencies import get_current_user
-from routes.reports.dependencies import get_user_project_ids
+from routes.reports.report_dependencies import get_user_project_ids
 from utils.error_handling import get_safe_error_detail
 
 logger = logging.getLogger(__name__)

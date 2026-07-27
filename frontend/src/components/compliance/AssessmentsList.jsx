@@ -5,7 +5,7 @@ import {
   EyeIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-import { Card, EmptyState } from "../../styles/components";
+import { Card, EmptyState } from "../ui/StyleComponents";
 import { formatDate, getFrameworkInfo } from "./complianceHelpers";
 
 const FrameworkResultCard = ({ result }) => {

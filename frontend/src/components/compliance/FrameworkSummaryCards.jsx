@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Card } from "../../styles/components";
+import { Card } from "../ui/StyleComponents";
 import { frameworks, getScoreGradient } from "./complianceHelpers";
 
 const FrameworkSummaryCards = ({ summaryData }) => {

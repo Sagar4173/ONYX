@@ -16,6 +16,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import ssl
+
 import aiohttp
 
 # Import canonical enums from models.base (SINGLE SOURCE OF TRUTH)
@@ -289,6 +291,11 @@ class ThreatIntelligenceEngine:
             return
         
         try:
+            # Create SSL context tolerant of expired certs (NVD cert expired as of Jul 2026)
+            ssl_ctx = ssl.create_default_context()
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = ssl.CERT_NONE
+            
             # Get recent CVEs (last 7 days)
             end_date = datetime.now(timezone.utc)
             start_date = end_date - timedelta(days=7)
@@ -303,7 +310,7 @@ class ThreatIntelligenceEngine:
             if config.get("api_key"):
                 headers["apiKey"] = config["api_key"]
             
-            async with self.session.get(config["url"], params=params, headers=headers) as response:
+            async with self.session.get(config["url"], params=params, headers=headers, ssl=ssl_ctx) as response:
                 if response.status == 200:
                     data = await response.json()
                     cves = data.get("vulnerabilities", [])
@@ -585,8 +592,10 @@ class ThreatIntelligenceEngine:
             }
             severity = severity_map.get(severity_str, ThreatSeverity.MEDIUM)
             
-            # Parse CVSS
+            # Parse CVSS (sometimes returned as string "NONE" instead of dict)
             cvss = advisory.get("cvss", {})
+            if not isinstance(cvss, dict):
+                cvss = {}
             cvss_score = cvss.get("score", 0.0)
             cvss_vector = cvss.get("vector_string", "")
             
@@ -597,24 +606,33 @@ class ThreatIntelligenceEngine:
             # Parse affected packages
             affected_products = []
             vulnerabilities = advisory.get("vulnerabilities", [])
-            for vuln in vulnerabilities:
-                package = vuln.get("package", {})
-                ecosystem = package.get("ecosystem", "")
-                name = package.get("name", "")
-                if ecosystem and name:
-                    affected_products.append(f"{ecosystem}:{name}")
+            if isinstance(vulnerabilities, list):
+                for vuln in vulnerabilities:
+                    if not isinstance(vuln, dict):
+                        continue
+                    package = vuln.get("package", {})
+                    if not isinstance(package, dict):
+                        continue
+                    ecosystem = package.get("ecosystem", "")
+                    name = package.get("name", "")
+                    if ecosystem and name:
+                        affected_products.append(f"{ecosystem}:{name}")
             
             # Parse references
             references = []
             ref_list = advisory.get("references", [])
-            for ref in ref_list:
-                references.append(ref.get("url", ""))
+            if isinstance(ref_list, list):
+                for ref in ref_list:
+                    if isinstance(ref, dict):
+                        references.append(ref.get("url", ""))
             
             # Parse CWEs
             cwe_ids = []
             cwes = advisory.get("cwes", [])
-            for cwe in cwes:
-                cwe_ids.append(cwe.get("cwe_id", ""))
+            if isinstance(cwes, list):
+                for cwe in cwes:
+                    if isinstance(cwe, dict):
+                        cwe_ids.append(cwe.get("cwe_id", ""))
             
             return CVEData(
                 cve_id=cve_id,

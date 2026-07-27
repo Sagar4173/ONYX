@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import { Button } from "../../styles/components";
+import { Button } from "../ui/StyleComponents";
 import { PageContainer, PageHeader } from "../../layouts/UIComponents";
 import { projectsAPI } from "../../services/api";
 import { UsersIcon } from "@heroicons/react/24/outline";

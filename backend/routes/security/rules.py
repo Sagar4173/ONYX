@@ -10,11 +10,11 @@ from routes.dependencies import get_current_user
 from services.rules.rule_engine import CustomRule, RuleStatus, rule_engine
 from utils.error_handling import get_safe_error_detail
 
-from .models import RuleCreateRequest, RuleFromTemplateRequest
+from .schemas import RuleCreateRequest, RuleFromTemplateRequest
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["security - rules"])
+router = APIRouter(tags=["Security - Rules"])
 
 
 @router.get("/rules", response_model=List[Dict[str, Any]])

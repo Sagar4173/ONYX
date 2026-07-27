@@ -7,7 +7,7 @@
  *
  * Or individual imports:
  * import { colors } from '@styles/theme';
- * import { Button, Card } from '@styles/components';
+ * import { Button, Card } from '@components/ui/StyleComponents';
  * import { buttonStyles, cardStyles } from '@styles/classNames';
  */
 
@@ -20,8 +20,8 @@ export * from "./classNames";
 export { default as classNames } from "./classNames";
 
 // Pre-built React components
-export * from "./components";
-export { default as components } from "./components";
+export * from "../components/ui/StyleComponents";
+export { default as components } from "../components/ui/StyleComponents";
 
 // Convenience re-exports for most commonly used items
 export {
@@ -106,4 +106,4 @@ export {
   Tooltip,
   Avatar,
   Truncate,
-} from "./components";
+} from "../components/ui/StyleComponents";

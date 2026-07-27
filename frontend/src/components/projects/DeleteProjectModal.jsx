@@ -4,7 +4,7 @@ import {
   TrashIcon,
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Modal } from "../../styles/components";
+import { Button, Modal } from "../ui/StyleComponents";
 
 const DeleteProjectModal = ({
   isOpen,

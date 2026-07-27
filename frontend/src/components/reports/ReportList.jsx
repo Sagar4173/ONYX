@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { ChevronLeftIcon, ChevronRightIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
-import { Button, Skeleton } from "../../styles/components";
-import { EmptyState } from "../../styles/components";
+import { Button, Skeleton, EmptyState } from "../ui/StyleComponents";
 import ReportListItem from "./ReportListItem";
 import ReportGridCard from "./ReportGridCard";
 

@@ -1,4 +1,4 @@
-import { Alert } from "../styles/components";
+import { Alert } from "../components/ui/StyleComponents";
 
 export default {
   title: "Components/Alert",

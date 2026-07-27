@@ -12,7 +12,7 @@ from .detail import router as detail_router
 from .export import router as export_router
 from .listing import router as listing_router
 
-router = APIRouter(tags=["reports"])
+router = APIRouter(tags=["Reports"])
 router.include_router(listing_router)
 router.include_router(detail_router)
 router.include_router(export_router)

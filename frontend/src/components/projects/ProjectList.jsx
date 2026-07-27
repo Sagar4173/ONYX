@@ -19,7 +19,7 @@ import {
   ArrowPathIcon as RefreshIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { Card, EmptyState } from "../../styles/components";
+import { Card, EmptyState } from "../ui/StyleComponents";
 import toast from "react-hot-toast";
 import { reportsAPI, utils } from "../../services/api";
 

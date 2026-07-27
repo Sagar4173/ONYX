@@ -1,4 +1,4 @@
-import { Input } from "../styles/components";
+import { Input } from "../components/ui/StyleComponents";
 
 export default {
   title: "Components/Input",

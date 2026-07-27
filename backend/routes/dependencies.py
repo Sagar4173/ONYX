@@ -48,3 +48,18 @@ async def require_admin(
             detail="Admin access required",
         )
     return user
+
+
+def require_role(required_role: UserRole):
+    """Factory: require a specific role for access."""
+    async def _check_role(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+    ) -> User:
+        user = await auth_service.get_current_user(credentials)
+        if user.role != required_role and user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"{required_role.value} role required",
+            )
+        return user
+    return _check_role

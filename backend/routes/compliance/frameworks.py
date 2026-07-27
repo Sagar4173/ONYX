@@ -14,7 +14,7 @@ from .reports import get_compliance_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["compliance - frameworks"])
+router = APIRouter(tags=["Compliance - Frameworks"])
 
 
 class FrameworkControlStatus(BaseModel):

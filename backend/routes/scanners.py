@@ -8,7 +8,7 @@ from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["scanners"])
+router = APIRouter(tags=["Scanners"])
 
 
 async def _check_scanner_availability(scanner_name: str, command: List[str]) -> Dict[str, Any]:

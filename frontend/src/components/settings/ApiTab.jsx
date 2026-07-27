@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { EyeIcon, EyeSlashIcon, ClipboardIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { Button } from "../../styles/components";
+import { Button } from "../ui/StyleComponents";
 import SettingCard from "./SettingCard";
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };

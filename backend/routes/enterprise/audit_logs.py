@@ -225,18 +225,20 @@ async def get_audit_logs(
                 "skip": skip,
                 "limit": limit
             }
-        except Exception:
+        except Exception as e:
+            logger.error("Failed to query audit logs: %s", e, exc_info=True)
             return {
-                "success": True,
+                "success": False,
                 "logs": [],
                 "total": 0,
                 "skip": skip,
                 "limit": limit
             }
 
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to query audit logs (outer): %s", e, exc_info=True)
         return {
-            "success": True,
+            "success": False,
             "logs": [],
             "total": 0,
             "skip": skip,
@@ -257,14 +259,16 @@ async def get_audit_users(
                 "success": True,
                 "users": [u for u in users if u]
             }
-        except Exception:
+        except Exception as e:
+            logger.error("Failed to query audit users: %s", e, exc_info=True)
             return {
-                "success": True,
+                "success": False,
                 "users": []
             }
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to query audit users (outer): %s", e, exc_info=True)
         return {
-            "success": True,
+            "success": False,
             "users": []
         }
 
@@ -288,13 +292,15 @@ async def get_retention_policies(
                 "success": True,
                 "policies": policies
             }
-        except Exception:
+        except Exception as e:
+            logger.error("Failed to query retention policies: %s", e, exc_info=True)
             return {
-                "success": True,
+                "success": False,
                 "policies": []
             }
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to query retention policies (outer): %s", e, exc_info=True)
         return {
-            "success": True,
+            "success": False,
             "policies": []
         }

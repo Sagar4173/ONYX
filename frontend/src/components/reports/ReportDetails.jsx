@@ -14,9 +14,11 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   ChartBarIcon,
+  ChatBubbleLeftRightIcon,
   CpuChipIcon,
   DocumentTextIcon,
   SparklesIcon,
+  ArrowsUpDownIcon,
 } from "@heroicons/react/24/outline";
 import { PageContainer, PageHeader, LoadingState, ErrorState } from "../../layouts";
 import ParticleBackground from "../projects/ParticleBackground";
@@ -24,10 +26,13 @@ import { ComplianceMapping } from "./ComplianceMapping";
 import { ReportCharts } from "./ReportCharts";
 import { ExportDropdown } from "./ReportExport";
 import { AISection } from "./AISection";
+import { AIChatPanel } from "./AIChatPanel";
 import { StatusBadge } from "./ReportBadges";
 import SecretDetectionSummary from "./SecretDetectionSummary";
 import FindingCard from "./FindingCard";
 import ScannerResultCard from "./ScannerResultCard";
+import ScanComparison from "../security/ScanComparison";
+import TriageDashboard from "./TriageDashboard";
 import { COMPLIANCE_STANDARDS, mapFindingToCompliance } from "../../utils/complianceMapping";
 
 const TABS = [
@@ -36,6 +41,9 @@ const TABS = [
   { id: "ai-analysis", name: "AI Analysis", icon: SparklesIcon },
   { id: "compliance", name: "Compliance", icon: DocumentTextIcon },
   { id: "scanners", name: "Scanners", icon: CpuChipIcon },
+  { id: "ai-chat", name: "AI Chat", icon: ChatBubbleLeftRightIcon },
+  { id: "compare", name: "Compare", icon: ArrowsUpDownIcon },
+  { id: "triage", name: "Triage", icon: ChartBarIcon },
 ];
 
 const SEVERITY_PILLS = [
@@ -396,6 +404,10 @@ const ReportDetails = () => {
                 <AISection aiAnalysis={aiAnalysis} aiLoading={aiLoading} aiError={aiError} />
               )}
 
+              {activeTab === "ai-chat" && (
+                <AIChatPanel reportId={reportId} />
+              )}
+
               {activeTab === "scanners" && (
                 <motion.div
                   className="space-y-6"
@@ -422,6 +434,14 @@ const ReportDetails = () => {
                     </div>
                   )}
                 </motion.div>
+              )}
+
+              {activeTab === "compare" && (
+                <ScanComparison projectName={report.project_name} />
+              )}
+
+              {activeTab === "triage" && (
+                <TriageDashboard projectId={report.scan_id} scanId={report.scan_id} />
               )}
 
               {activeTab === "compliance" && (

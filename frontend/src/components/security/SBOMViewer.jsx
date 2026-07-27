@@ -29,7 +29,7 @@ import { Card } from "@styles";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
-  ? "http://127.0.0.1:8000"
+  ? "http://127.0.0.1:8000/api"
   : import.meta.env.VITE_API_URL || "/api";
 
 // License badge
@@ -203,7 +203,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
   const generateMutation = useMutation({
     mutationFn: async (params) => {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/api/enterprise/sbom/generate`, {
+      const response = await fetch(`${API_BASE_URL}/enterprise/sbom/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -221,7 +221,7 @@ const SBOMViewer = ({ repositoryPath = null, sbomData = null, onGenerate: _onGen
     queryKey: ["sbom-formats"],
     queryFn: async () => {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/api/enterprise/sbom/formats`, {
+      const response = await fetch(`${API_BASE_URL}/enterprise/sbom/formats`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
         },

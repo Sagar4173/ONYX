@@ -14,7 +14,7 @@ from .helpers import _get_recent_scan_reports, _get_scan_reports_by_ids
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["compliance - reports"])
+router = APIRouter(tags=["Compliance - Reports"])
 
 _compliance_service_instance = None
 

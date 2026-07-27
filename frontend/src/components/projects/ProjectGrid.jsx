@@ -6,8 +6,7 @@ import {
   ArchiveBoxIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Skeleton } from "../../styles/components";
-import { EmptyState } from "../../styles/components";
+import { Button, Skeleton, EmptyState } from "../ui/StyleComponents";
 import ProjectCard from "./ProjectCard";
 import ProjectRow from "./ProjectRow";
 

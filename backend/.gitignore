@@ -27,8 +27,15 @@ env/
 *.log
 logs/
 
-# FastAPI/Uvicorn cache
+# Test artifacts and caches
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+wheels/
+vendor/
 
 # IDE files
 .vscode/

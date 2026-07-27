@@ -8,7 +8,7 @@ from routes.dependencies import get_current_user
 from services.service_registry import ServiceRegistry
 from utils.error_handling import get_safe_error_detail
 
-from .models import PentestRequest, VulnerabilityScanRequest
+from .schemas import PentestRequest, VulnerabilityScanRequest
 
 logger = logging.getLogger(__name__)
 

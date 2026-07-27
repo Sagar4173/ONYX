@@ -15,7 +15,7 @@ import {
   EnvelopeIcon,
   AtSymbolIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Input } from "../../styles/components";
+import { Button, Input } from "../ui/StyleComponents";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
 

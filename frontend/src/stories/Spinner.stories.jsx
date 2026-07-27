@@ -1,4 +1,4 @@
-import { Spinner } from "../styles/components";
+import { Spinner } from "../components/ui/StyleComponents";
 
 export default {
   title: "Components/Spinner",

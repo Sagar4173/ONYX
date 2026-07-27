@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
 from models.report import WebhookEvent
@@ -76,8 +76,8 @@ async def get_webhook_event(event_id: str) -> Dict[str, Any]:
 
 @router.get("/events")
 async def list_webhook_events(
-    limit: int = 50,
-    skip: int = 0,
+    limit: int = Query(50, ge=1, le=1000),
+    skip: int = Query(0, ge=0),
     repository_url: Optional[str] = None
 ) -> Dict[str, Any]:
     try:

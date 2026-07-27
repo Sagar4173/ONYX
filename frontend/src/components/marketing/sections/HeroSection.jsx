@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SparklesIcon, ArrowRightIcon, PlayIcon, ArrowDownIcon } from "@heroicons/react/24/outline";
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
-import { AnimatedCounter } from "../../../styles/components";
+import { AnimatedCounter } from "../../../components/ui/StyleComponents";
 import TypeWriter from "../TypeWriter";
 import FloatingParticles from "../FloatingParticles";
 

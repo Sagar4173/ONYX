@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button, Modal } from "../../styles/components";
+import { Button, Modal } from "../ui/StyleComponents";
 import { frameworks } from "./complianceHelpers";
 
 const CreateAssessmentModal = ({

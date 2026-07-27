@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { EllipsisVerticalIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Badge } from "../../styles/components";
+import { Badge } from "../ui/StyleComponents";
 import { motion } from "framer-motion";
 
 const priorityConfig = {

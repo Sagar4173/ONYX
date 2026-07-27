@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import { StatusDot } from "./components";
+import { StatusDot } from "../components/ui/StyleComponents";
 
 describe("StatusDot", () => {
   it("renders a span", () => {

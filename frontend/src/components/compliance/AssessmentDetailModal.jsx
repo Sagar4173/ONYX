@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Card, Modal } from "../../styles/components";
+import { Card, Modal } from "../ui/StyleComponents";
 import { formatDate, getFrameworkInfo, getScoreColor } from "./complianceHelpers";
 
 const AssessmentDetailModal = ({ assessment, onClose }) => {

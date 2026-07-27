@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ConfirmDialog } from "../../styles/components";
+import { ConfirmDialog } from "../ui/StyleComponents";
 
 const RetentionConfirmDialog = ({ confirmDialog, onClose }) => {
   return (

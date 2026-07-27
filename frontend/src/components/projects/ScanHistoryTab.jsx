@@ -9,7 +9,7 @@ import {
   ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { Button, EmptyState } from "../../styles/components";
+import { Button, EmptyState } from "../ui/StyleComponents";
 import { utils } from "../../services/api";
 
 const ScanStatusBadge = ({ status }) => {

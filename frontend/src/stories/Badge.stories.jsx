@@ -1,4 +1,4 @@
-import { Badge, SeverityBadge } from "../styles/components";
+import { Badge, SeverityBadge } from "../components/ui/StyleComponents";
 
 export default {
   title: "Components/Badge",

@@ -346,6 +346,15 @@ export const reportsAPI = {
     }
   },
 
+  aiChat: async (scanId, message, conversationHistory = []) => {
+    const response = await api.post("/ai/chat", {
+      scan_id: scanId,
+      message,
+      conversation_history: conversationHistory.slice(-20),
+    });
+    return response.data;
+  },
+
   // Get analytics overview
   getAnalyticsOverview: async (daysBack = 30, projectName = null) => {
     try {
@@ -1590,11 +1599,11 @@ export const enterpriseAPI = {
   // ---------- Scan Comparison ----------
 
   // Compare two scans
-  compareScans: async ({ baseScanId, targetScanId }) => {
+  compareScans: async ({ baseScanId, compareScanId }) => {
     try {
-      const response = await api.post("/enterprise/scans/compare", {
+      const response = await api.post("/enterprise-security/scans/compare", {
         base_scan_id: baseScanId,
-        target_scan_id: targetScanId,
+        compare_scan_id: compareScanId,
       });
       return response.data;
     } catch (error) {
@@ -1880,6 +1889,172 @@ export const advancedSecurityAPI = {
       return response.data;
     } catch (error) {
       console.error("Error getting compliance dashboard:", error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Scheduled Scans API
+ * Cron-based automatic scanning schedules
+ */
+export const schedulesAPI = {
+  listSchedules: async (params = {}) => {
+    try {
+      const response = await api.get("/schedules", {
+        params: cleanParams(params),
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error listing schedules:", error);
+      throw error;
+    }
+  },
+
+  getSchedule: async (scheduleId) => {
+    try {
+      const response = await api.get(`/schedules/${scheduleId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error getting schedule:", error);
+      throw error;
+    }
+  },
+
+  createSchedule: async (scheduleData) => {
+    try {
+      const response = await api.post("/schedules", scheduleData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating schedule:", error);
+      throw error;
+    }
+  },
+
+  updateSchedule: async (scheduleId, scheduleData) => {
+    try {
+      const response = await api.put(`/schedules/${scheduleId}`, scheduleData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      throw error;
+    }
+  },
+
+  deleteSchedule: async (scheduleId) => {
+    try {
+      const response = await api.delete(`/schedules/${scheduleId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      throw error;
+    }
+  },
+
+  triggerRun: async (scheduleId) => {
+    try {
+      const response = await api.post(`/schedules/${scheduleId}/run`);
+      return response.data;
+    } catch (error) {
+      console.error("Error triggering schedule run:", error);
+      throw error;
+    }
+  },
+
+  toggleSchedule: async (scheduleId) => {
+    try {
+      const response = await api.patch(`/schedules/${scheduleId}/toggle`);
+      return response.data;
+    } catch (error) {
+      console.error("Error toggling schedule:", error);
+      throw error;
+    }
+  },
+
+  getScheduleHistory: async (scheduleId, limit = 20) => {
+    try {
+      const response = await api.get(`/schedules/${scheduleId}/history`, {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting schedule history:", error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Triage API
+ * Intelligent vulnerability prioritization and business impact scoring
+ */
+export const triageAPI = {
+  getTriage: async (scanId, topN = 20) => {
+    try {
+      const response = await api.get(`/triage/${scanId}?top_n=${topN}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error getting triage data:", error);
+      throw error;
+    }
+  },
+
+  rescoreTriage: async (scanId, context, topN = 20) => {
+    try {
+      const response = await api.post(`/triage/${scanId}?top_n=${topN}`, context);
+      return response.data;
+    } catch (error) {
+      console.error("Error re-scoring triage:", error);
+      throw error;
+    }
+  },
+};
+
+export const secretHistoryAPI = {
+  list: async (projectName, { limit = 50, offset = 0, status } = {}) => {
+    try {
+      const params = { project_name: projectName, limit, offset };
+      if (status) params.status = status;
+      const response = await api.get("/secret-history", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error listing secret history:", error);
+      throw error;
+    }
+  },
+
+  trends: async (projectName, limit = 30) => {
+    try {
+      const response = await api.get("/secret-history/trends", {
+        params: { project_name: projectName, limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting secret trends:", error);
+      throw error;
+    }
+  },
+
+  summary: async (projectName) => {
+    try {
+      const response = await api.get("/secret-history/summary", {
+        params: { project_name: projectName },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error getting secret summary:", error);
+      throw error;
+    }
+  },
+
+  updateStatus: async (recordId, status) => {
+    try {
+      const response = await api.patch(`/secret-history/${recordId}`, null, {
+        params: { status },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating secret status:", error);
       throw error;
     }
   },

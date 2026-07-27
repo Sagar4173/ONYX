@@ -7,7 +7,7 @@ from routes.dependencies import get_current_user
 from services.service_registry import ServiceRegistry
 from utils.error_handling import get_safe_error_detail
 
-from .models import RuleParseRequest
+from .schemas import RuleParseRequest
 
 logger = logging.getLogger(__name__)
 

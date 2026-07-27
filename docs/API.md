@@ -1,16 +1,12 @@
-# 📚 API Documentation
+# API Documentation
 
 ## Overview
 
-ONYX - Security Intelligence Platform provides a comprehensive REST API for managing security scans, accessing reports, and integrating with external systems. The API is built with FastAPI and provides automatic OpenAPI documentation.
+ONYX - Security Intelligence Platform provides a comprehensive REST API for managing security scans, accessing reports, and integrating with external systems. Built with FastAPI, featuring automatic OpenAPI documentation at `/docs`.
 
-**Base URLs**:
-- **Production**: `https://api.your-domain.com`
-- **Development**: `http://localhost:8000`
+**Base URL**: `http://localhost:8000` (development)
 
-**API Documentation**:
-
-- **Local Development**: Visit `/docs` for interactive Swagger UI documentation
+**Docs**: `/docs` (Swagger UI) or `/openapi.json`
 
 ---
 

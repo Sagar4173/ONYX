@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
-import { Button } from "../../styles/components";
+import { Button } from "../ui/StyleComponents";
 import SettingCard from "./SettingCard";
 import Toggle from "./Toggle";
 import SystemInfo from "./SystemInfo";

@@ -3,7 +3,7 @@ import { useReducer, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import { Modal, Button } from "../../styles/components";
+import { Modal, Button } from "../ui/StyleComponents";
 import { projectsAPI } from "../../services/api";
 
 const INITIAL_STATE = {

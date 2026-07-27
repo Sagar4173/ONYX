@@ -1,1050 +1,142 @@
-# 🚀 Installation & Deployment Guide
+# Installation Guide
 
-## 🌐 Deployment
+## Prerequisites
 
-This project is deployed on **AWS**. For deployment instructions, see the [Deployment Guide](DEPLOYMENT.md).
-
-## Overview
-
-ONYX - Security Intelligence Platform can be deployed in multiple configurations to meet different organizational needs, from development environments to enterprise-scale production deployments.
-
----
-
-## 📋 **Prerequisites**
-
-### **System Requirements**
-
-#### **Minimum Requirements (Development)**
-
-- **CPU**: 2 cores
-- **Memory**: 4GB RAM
-- **Storage**: 20GB free space
-- **Network**: Internet connection for AI services
-
-#### **Recommended Requirements (Production)**
-
-- **CPU**: 4+ cores
-- **Memory**: 8GB+ RAM
-- **Storage**: 100GB+ SSD
-- **Network**: High-speed internet, dedicated bandwidth
-
-#### **Enterprise Requirements (High Scale)**
-
-- **CPU**: 8+ cores per node
-- **Memory**: 16GB+ RAM per node
-- **Storage**: 500GB+ NVMe SSD
-- **Network**: Load balancer, CDN, dedicated circuits
-
-### **Software Dependencies**
-
-#### **Required Software**
-
-- **Python 3.11+** with pip
-- **Node.js 18+** with npm/yarn
-- **MongoDB 7.0+** (local or cloud)
-- **Git** for repository cloning
-- **Docker** (optional, for containerized deployment)
-
-#### **Security Tools (Auto-installed)**
-
-```bash
-# These are automatically installed via requirements.txt
-- Semgrep (Static Analysis)
-- Trivy (Container Security)
-- GitLeaks (Secret Detection)
-- Lynis (Infrastructure Security)
-- Safety (Python Dependencies)
-- Bandit (Python SAST)
-```
-
-#### **External Services**
-
-- **OpenAI API** (required for AI analysis)
-- **Slack/Teams** (optional, for notifications)
-- **SMTP Server** (optional, for email notifications)
+- Python 3.13+
+- Node.js 22+
+- MongoDB 7.0+ (local, Atlas, or Docker)
+- Git
 
 ---
 
-## 🛠️ **Installation Methods**
+## Local Development Setup
 
-### **Method 1: Local Development Setup**
-
-#### **1. Clone Repository**
+### 1. Clone
 
 ```bash
-# Clone the repository
 git clone https://github.com/Sagar4173/ONYX.git
 cd ONYX
-
-# Verify directory structure
-ls -la
-# Should show: backend/ frontend/ docs/ README.md
 ```
 
-#### **2. Backend Setup**
+### 2. Backend
 
 ```bash
-# Navigate to backend directory
 cd backend
-
-# Create virtual environment
 python -m venv venv
+venv\Scripts\activate      # Windows
+source venv/bin/activate   # Linux/macOS
 
-# Activate virtual environment
-# Windows PowerShell
-venv\Scripts\Activate.ps1
-# Windows Command Prompt
-venv\Scripts\activate.bat
-# Linux/macOS
-source venv/bin/activate
-
-# Upgrade pip
-python -m pip install --upgrade pip
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Verify installation
-python -c "import fastapi, motor, openai; print('All dependencies installed successfully')"
-```
-
-#### **3. Frontend Setup**
-
-```bash
-# Navigate to frontend directory (from project root)
-cd frontend
-
-# Install Node.js dependencies
-npm install
-
-# Verify installation
-npm list --depth=0
-```
-
-#### **4. Database Setup**
-
-##### **Option A: Local MongoDB**
-
-```bash
-# Install MongoDB (Ubuntu/Debian)
-wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-
-# Start MongoDB service
-sudo systemctl start mongod
-sudo systemctl enable mongod
-
-# Verify MongoDB is running
-mongosh --eval "db.adminCommand('ping')"
-```
-
-##### **Option B: MongoDB Atlas (Cloud)**
-
-```bash
-# Sign up at https://cloud.mongodb.com/
-# Create a cluster
-# Get connection string
-# Use in environment configuration
-```
-
-#### **5. Environment Configuration**
-
-```bash
-# Create environment file (from project root)
 cp .env.example .env
-
-# Edit configuration
-nano .env  # or your preferred editor
+# Edit .env with your credentials
 ```
 
-**Environment Variables:**
+### 3. Frontend
 
 ```bash
-# Required Settings
-OPENAI_API_KEY=sk-your-openai-api-key-here
-SECRET_KEY=your-super-secure-secret-key-256-bits
+cd frontend
+npm install
+```
+
+### 4. Database
+
+**Option A: Local MongoDB** - Install MongoDB 7+ and start the service.  
+**Option B: Docker** - `docker run -d -p 27017:27017 mongo:7`  
+**Option C: MongoDB Atlas** - Create free cluster and use connection string.
+
+### 5. Environment Variables
+
+Key variables in `backend/.env`:
+
+```env
+# Required
 MONGODB_URI=mongodb://localhost:27017/onyx
+SECRET_KEY=your-32-char-min-secret-key
 
-# Alternative AI Provider (Optional - use Gemini instead of/alongside OpenAI)
-GEMINI_API_KEY=your-gemini-api-key-here
-GEMINI_MODEL=gemini-pro
-GEMINI_MAX_TOKENS=4096
-AI_PROVIDER=openai  # Options: "openai" or "gemini"
+# AI (at least one)
+OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=...
 
-# Optional Settings
-ENVIRONMENT=development
-DEBUG=true
-LOG_LEVEL=INFO
-
-# CORS Configuration
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-
-# Rate Limiting
-RATE_LIMIT_PER_MINUTE=100
-
-# Notification Settings (Optional)
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
-TEAMS_WEBHOOK_URL=https://outlook.office.com/webhook/YOUR/TEAMS/WEBHOOK
-
-# Scanner Configuration
-SEMGREP_PATH=semgrep
-TRIVY_PATH=trivy
-GITLEAKS_PATH=gitleaks
-LYNIS_PATH=lynis
-
-# Git Scanning Settings
-GIT_SCAN_TIMEOUT=300
-CLEANUP_AFTER_SCAN=true
-
-# OpenAI Configuration
-OPENAI_MODEL=gpt-4
-OPENAI_MAX_TOKENS=2000
+# Optional
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+TEAMS_WEBHOOK_URL=https://outlook.office.com/webhook/...
+SENTRY_DSN=https://...@o....ingest.sentry.io/...
 ```
 
-#### **6. Generate Secret Key**
+Full list: see `.env.example`
+
+### 6. Start
 
 ```bash
-# Generate a secure secret key
-python -c "
-import secrets
-print('SECRET_KEY=' + secrets.token_urlsafe(32))
-"
-```
-
-#### **7. Start Services**
-
-```bash
-# Terminal 1: Start Backend
+# Terminal 1 - Backend
 cd backend
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-python app.py
+python main.py
 
-# Terminal 2: Start Frontend
+# Terminal 2 - Frontend
 cd frontend
 npm run dev
-
-# Terminal 3: Monitor Logs (Optional)
-tail -f backend/logs/app.log
 ```
 
-#### **8. Verify Installation**
-
-```bash
-# Check backend health
-curl http://localhost:8000/health
-
-# Check frontend
-open http://localhost:5173  # or visit in browser
-
-# Test API documentation
-open http://localhost:8000/docs
-```
-
-### **Method 2: Docker Deployment**
-
-#### **1. Docker Compose Setup**
-
-```yaml
-# docker-compose.yml
-version: "3.8"
-
-services:
-  mongodb:
-    image: mongo:7.0
-    container_name: onyx-mongo
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: onyx
-    volumes:
-      - mongodb_data:/data/db
-      - ./backend/scripts/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    ports:
-      - "27017:27017"
-    networks:
-      - onyx-network
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: onyx-backend
-    restart: unless-stopped
-    environment:
-      MONGODB_URI: mongodb://admin:${MONGO_PASSWORD}@mongodb:27017/onyx?authSource=admin
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      SECRET_KEY: ${SECRET_KEY}
-      ENVIRONMENT: production
-      DEBUG: false
-    volumes:
-      - ./backend/logs:/app/logs
-      - scanner_cache:/app/cache
-    ports:
-      - "8000:8000"
-    depends_on:
-      - mongodb
-    networks:
-      - onyx-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: onyx-frontend
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - backend
-    networks:
-      - onyx-network
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
-
-  redis:
-    image: redis:7-alpine
-    container_name: onyx-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - onyx-network
-
-volumes:
-  mongodb_data:
-  redis_data:
-  scanner_cache:
-
-networks:
-  onyx-network:
-    driver: bridge
-```
-
-#### **2. Environment Configuration**
-
-```bash
-# Create .env file for Docker
-cat > .env << EOF
-MONGO_PASSWORD=your-secure-mongo-password
-OPENAI_API_KEY=sk-your-openai-api-key
-SECRET_KEY=$(openssl rand -hex 32)
-EOF
-```
-
-#### **3. Build and Deploy**
-
-```bash
-# Build and start all services
-docker-compose up -d
-
-# Check service status
-docker-compose ps
-
-# View logs
-docker-compose logs -f backend
-docker-compose logs -f frontend
-
-# Scale backend if needed
-docker-compose up -d --scale backend=3
-```
-
-#### **4. Docker Health Checks**
-
-```bash
-# Check all service health
-docker-compose exec backend curl -f http://localhost:8000/health
-docker-compose exec mongodb mongosh --eval "db.adminCommand('ping')"
-docker-compose exec redis redis-cli ping
-```
-
-### **Method 3: Kubernetes Deployment**
-
-#### **1. Kubernetes Manifests**
-
-**Namespace:**
-
-```yaml
-# k8s/namespace.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: onyx
-  labels:
-    name: onyx
-```
-
-**ConfigMap:**
-
-```yaml
-# k8s/configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: onyx-config
-  namespace: onyx
-data:
-  ENVIRONMENT: "production"
-  DEBUG: "false"
-  LOG_LEVEL: "INFO"
-  RATE_LIMIT_PER_MINUTE: "100"
-  OPENAI_MODEL: "gpt-4"
-  OPENAI_MAX_TOKENS: "2000"
-```
-
-**Secrets:**
-
-```yaml
-# k8s/secrets.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: onyx-secrets
-  namespace: onyx
-type: Opaque
-stringData:
-  MONGODB_URI: "mongodb://admin:password@mongodb:27017/onyx?authSource=admin"
-  OPENAI_API_KEY: "sk-your-openai-api-key"
-  SECRET_KEY: "your-super-secure-secret-key"
-  SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
-```
-
-**MongoDB Deployment:**
-
-```yaml
-# k8s/mongodb.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mongodb
-  namespace: onyx
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: mongodb
-  template:
-    metadata:
-      labels:
-        app: mongodb
-    spec:
-      containers:
-        - name: mongodb
-          image: mongo:7.0
-          env:
-            - name: MONGO_INITDB_ROOT_USERNAME
-              value: "admin"
-            - name: MONGO_INITDB_ROOT_PASSWORD
-              value: "password"
-            - name: MONGO_INITDB_DATABASE
-              value: "onyx"
-          ports:
-            - containerPort: 27017
-          volumeMounts:
-            - name: mongodb-storage
-              mountPath: /data/db
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-      volumes:
-        - name: mongodb-storage
-          persistentVolumeClaim:
-            claimName: mongodb-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongodb
-  namespace: onyx
-spec:
-  selector:
-    app: mongodb
-  ports:
-    - port: 27017
-      targetPort: 27017
-```
-
-**Backend Deployment:**
-
-```yaml
-# k8s/backend.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: onyx-backend
-  namespace: onyx
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: onyx-backend
-  template:
-    metadata:
-      labels:
-        app: onyx-backend
-    spec:
-      containers:
-        - name: backend
-          image: onyx/backend:latest
-          envFrom:
-            - configMapRef:
-                name: onyx-config
-            - secretRef:
-                name: onyx-secrets
-          ports:
-            - containerPort: 8000
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          volumeMounts:
-            - name: logs
-              mountPath: /app/logs
-            - name: cache
-              mountPath: /app/cache
-      volumes:
-        - name: logs
-          emptyDir: {}
-        - name: cache
-          emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: onyx-backend
-  namespace: onyx
-spec:
-  selector:
-    app: onyx-backend
-  ports:
-    - port: 8000
-      targetPort: 8000
-  type: ClusterIP
-```
-
-**Ingress:**
-
-```yaml
-# k8s/ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: onyx-ingress
-  namespace: onyx
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
-spec:
-  tls:
-    - hosts:
-        - onyx.yourdomain.com
-      secretName: onyx-tls
-  rules:
-    - host: onyx.yourdomain.com
-      http:
-        paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: onyx-backend
-                port:
-                  number: 8000
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: onyx-frontend
-                port:
-                  number: 80
-```
-
-#### **2. Deploy to Kubernetes**
-
-```bash
-# Apply all manifests
-kubectl apply -f k8s/
-
-# Check deployment status
-kubectl get pods -n onyx
-kubectl get services -n onyx
-kubectl get ingress -n onyx
-
-# Check logs
-kubectl logs -f deployment/onyx-backend -n onyx
-
-# Scale deployment
-kubectl scale deployment onyx-backend --replicas=5 -n onyx
-```
+**Frontend:** http://localhost:5173  
+**API Docs:** http://localhost:8000/docs
 
 ---
 
-## 🔧 **Production Configuration**
+## Docker Deployment
 
-### **Security Hardening**
+### Prerequisites
 
-#### **1. SSL/TLS Configuration**
+- Docker 24+ and Docker Compose 2+
 
-```nginx
-# nginx.conf for frontend
-server {
-    listen 443 ssl http2;
-    server_name onyx.yourdomain.com;
-
-    ssl_certificate /etc/ssl/certs/onyx.crt;
-    ssl_certificate_key /etc/ssl/private/onyx.key;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
-    ssl_prefer_server_ciphers off;
-
-    location /api {
-        proxy_pass http://backend:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location / {
-        root /usr/share/nginx/html;
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-#### **2. Database Security**
+### Quick Start
 
 ```bash
-# MongoDB security configuration
-# Enable authentication
-security:
-  authorization: enabled
-
-# Enable SSL
-net:
-  ssl:
-    mode: requireSSL
-    PEMKeyFile: /etc/ssl/mongodb.pem
-
-# Bind to specific interface
-net:
-  bindIp: 127.0.0.1,mongodb.yourdomain.com
+git clone https://github.com/Sagar4173/ONYX.git
+cd ONYX
+cp .env.example .env
+# Edit .env with required values
+docker compose up -d
 ```
 
-#### **3. Environment Security**
+Services:
+
+| Service | Port | URL |
+|---|---|---|
+| Frontend | 80 | http://localhost |
+| Backend | 8000 | http://localhost:8000 |
+| API Docs | - | http://localhost:8000/docs |
+| MongoDB | 27017 | Internal |
+
+### Verify
 
 ```bash
-# Production environment variables
-ENVIRONMENT=production
-DEBUG=false
-SECRET_KEY=$(openssl rand -hex 32)
-MONGODB_URI=mongodb://user:password@mongodb:27017/onyx?ssl=true&authSource=admin
-
-# Security headers
-FORCE_HTTPS=true
-SECURE_COOKIES=true
-SESSION_COOKIE_HTTPONLY=true
-SESSION_COOKIE_SECURE=true
-
-# Rate limiting
-RATE_LIMIT_PER_MINUTE=60
-RATE_LIMIT_BURST=10
-```
-
-### **Performance Optimization**
-
-#### **1. Application Tuning**
-
-```python
-# backend/config.py - Production settings
-class ProductionConfig(BaseConfig):
-    WORKERS = 4  # Number of Gunicorn workers
-    WORKER_CLASS = "uvicorn.workers.UvicornWorker"
-    WORKER_CONNECTIONS = 1000
-    MAX_REQUESTS = 1000
-    MAX_REQUESTS_JITTER = 100
-    PRELOAD_APP = True
-
-    # Database connection pooling
-    MONGODB_MAX_POOL_SIZE = 100
-    MONGODB_MIN_POOL_SIZE = 10
-
-    # Caching
-    CACHE_TYPE = "redis"
-    CACHE_REDIS_URL = "redis://redis:6379/0"
-    CACHE_DEFAULT_TIMEOUT = 300
-```
-
-#### **2. Database Optimization**
-
-```javascript
-// MongoDB indexes for performance
-db.scan_reports.createIndex({ scan_id: 1 }, { unique: true });
-db.scan_reports.createIndex({ project_name: 1, created_at: -1 });
-db.scan_reports.createIndex({ status: 1, created_at: -1 });
-db.scan_reports.createIndex({ total_findings: -1 });
-db.scan_reports.createIndex({
-  project_name: "text",
-  "git_metadata.commit_message": "text",
-});
-
-// Compound indexes for common queries
-db.scan_reports.createIndex({
-  project_name: 1,
-  status: 1,
-  created_at: -1,
-});
-```
-
-#### **3. Caching Strategy**
-
-```python
-# Redis caching implementation
-from redis import asyncio as aioredis
-import json
-
-class CacheService:
-    def __init__(self):
-        self.redis = aioredis.from_url("redis://redis:6379")
-
-    async def get_scan_results(self, scan_id: str):
-        cached = await self.redis.get(f"scan:{scan_id}")
-        if cached:
-            return json.loads(cached)
-        return None
-
-    async def cache_scan_results(self, scan_id: str, results: dict):
-        await self.redis.setex(
-            f"scan:{scan_id}",
-            3600,  # 1 hour TTL
-            json.dumps(results, default=str)
-        )
-```
-
-### **Monitoring & Observability**
-
-#### **1. Health Checks**
-
-```python
-# Comprehensive health check endpoint
-@app.get("/health")
-async def health_check():
-    health = {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
-        "services": {}
-    }
-
-    # Database check
-    try:
-        await db_manager.ping()
-        health["services"]["database"] = "healthy"
-    except Exception as e:
-        health["services"]["database"] = f"unhealthy: {e}"
-        health["status"] = "unhealthy"
-
-    # Security scanners check
-    for scanner_name, scanner in security_scanner.scanners.items():
-        try:
-            available = await scanner.is_available()
-            health["services"][scanner_name.value] = "healthy" if available else "unavailable"
-        except Exception as e:
-            health["services"][scanner_name.value] = f"error: {e}"
-
-    # AI service check
-    try:
-        await ai_processor.health_check()
-        health["services"]["ai_processor"] = "healthy"
-    except Exception as e:
-        health["services"]["ai_processor"] = f"unhealthy: {e}"
-        health["status"] = "unhealthy"
-
-    return health
-```
-
-#### **2. Prometheus Metrics**
-
-```python
-# metrics.py
-from prometheus_client import Counter, Histogram, Gauge, generate_latest
-
-# Define metrics
-SCAN_REQUESTS = Counter('onyx_scan_requests_total', 'Total scan requests')
-SCAN_DURATION = Histogram('onyx_scan_duration_seconds', 'Scan duration')
-ACTIVE_SCANS = Gauge('onyx_active_scans', 'Number of active scans')
-VULNERABILITIES_FOUND = Counter('onyx_vulnerabilities_total', 'Total vulnerabilities found', ['severity'])
-
-@app.get("/metrics")
-async def metrics():
-    return Response(generate_latest(), media_type="text/plain")
-```
-
-#### **3. Logging Configuration**
-
-```python
-# logging_config.py
-import structlog
-
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
-```
-
----
-
-## 🔄 **Backup & Recovery**
-
-### **Database Backup**
-
-```bash
-#!/bin/bash
-# backup.sh - MongoDB backup script
-
-BACKUP_DIR="/backup/mongodb"
-DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_PATH="$BACKUP_DIR/onyx_$DATE"
-
-# Create backup directory
-mkdir -p $BACKUP_DIR
-
-# Create backup
-mongodump --uri="mongodb://admin:password@mongodb:27017/onyx?authSource=admin" --out="$BACKUP_PATH"
-
-# Compress backup
-tar -czf "$BACKUP_PATH.tar.gz" -C "$BACKUP_DIR" "onyx_$DATE"
-
-# Remove uncompressed backup
-rm -rf "$BACKUP_PATH"
-
-# Keep only last 7 days of backups
-find $BACKUP_DIR -name "*.tar.gz" -mtime +7 -delete
-
-echo "Backup completed: $BACKUP_PATH.tar.gz"
-```
-
-### **Automated Backup with Cron**
-
-```bash
-# Add to crontab (daily backup at 2 AM)
-0 2 * * * /path/to/backup.sh >> /var/log/mongodb-backup.log 2>&1
-```
-
-### **Recovery Process**
-
-```bash
-#!/bin/bash
-# restore.sh - MongoDB restore script
-
-BACKUP_FILE=$1
-
-if [ -z "$BACKUP_FILE" ]; then
-    echo "Usage: $0 <backup_file.tar.gz>"
-    exit 1
-fi
-
-# Extract backup
-tar -xzf "$BACKUP_FILE" -C /tmp/
-
-# Get backup directory name
-BACKUP_DIR=$(tar -tzf "$BACKUP_FILE" | head -1 | cut -f1 -d"/")
-
-# Restore database
-mongorestore --uri="mongodb://admin:password@mongodb:27017/?authSource=admin" --drop /tmp/$BACKUP_DIR
-
-# Clean up
-rm -rf /tmp/$BACKUP_DIR
-
-echo "Restore completed from: $BACKUP_FILE"
-```
-
----
-
-## 🚨 **Troubleshooting**
-
-### **Common Issues**
-
-#### **1. Backend Won't Start**
-
-```bash
-# Check Python version
-python --version  # Should be 3.11+
-
-# Check dependencies
-pip list | grep fastapi
-pip list | grep motor
-
-# Check environment variables
-echo $OPENAI_API_KEY
-echo $MONGODB_URI
-
-# Check logs
-tail -f backend/logs/app.log
-```
-
-#### **2. Database Connection Issues**
-
-```bash
-# Test MongoDB connectivity
-mongosh "mongodb://localhost:27017/onyx" --eval "db.adminCommand('ping')"
-
-# Check MongoDB service
-sudo systemctl status mongod
-
-# Check network connectivity
-telnet mongodb-host 27017
-```
-
-#### **3. Frontend Build Issues**
-
-```bash
-# Clear npm cache
-npm cache clean --force
-
-# Delete node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Check Node.js version
-node --version  # Should be 18+
-npm --version
-```
-
-#### **4. Security Scanner Issues**
-
-```bash
-# Verify scanner installations
-semgrep --version
-trivy --version
-gitleaks version
-lynis --version
-
-# Check scanner availability
 curl http://localhost:8000/health
 ```
 
-### **Performance Issues**
+---
 
-#### **1. Slow Scans**
-
-```bash
-# Check system resources
-top
-htop
-iostat
-
-# Monitor scan processes
-ps aux | grep -E "(semgrep|trivy|gitleaks|lynis)"
-
-# Check disk space
-df -h
-```
-
-#### **2. High Memory Usage**
+## Verification
 
 ```bash
-# Check memory usage
-free -h
-cat /proc/meminfo
+# Run backend tests
+cd backend
+python -m pytest tests/ -q
 
-# Monitor Python processes
-ps aux | grep python | awk '{print $6}' | awk '{sum+=$1} END {print sum/1024 " MB"}'
+# Run frontend tests
+cd frontend
+npm test
 
-# Adjust worker processes
-# In production config, reduce WORKERS count
-```
-
-#### **3. Database Performance**
-
-```bash
-# Check MongoDB performance
-db.serverStatus().metrics
-db.stats()
-
-# Monitor slow queries
-db.setProfilingLevel(1, { slowms: 100 })
-db.system.profile.find().sort({ ts: -1 }).limit(5)
+# Frontend build
+npm run build
 ```
 
 ---
 
-## 📞 **Support & Maintenance**
+## Troubleshooting
 
-### **Regular Maintenance Tasks**
-
-```bash
-# Weekly tasks
-- Database backup verification
-- Log rotation and cleanup
-- Security scanner updates
-- Dependency updates
-
-# Monthly tasks
-- Performance monitoring review
-- Security audit
-- Capacity planning
-- Documentation updates
-```
-
-### **Update Procedures**
-
-```bash
-# Update application
-git pull origin main
-pip install -r requirements.txt
-npm install --prefix frontend
-npm run build --prefix frontend
-
-# Update security scanners
-pip install --upgrade semgrep
-# Trivy auto-updates its database
-# GitLeaks updates via Go modules
-```
-
-This comprehensive installation guide covers all deployment scenarios from development to enterprise production environments, ensuring successful deployment and operation of the ONYX Security Intelligence Platform.
+| Problem | Solution |
+|---|---|
+| Backend won't start | Check Python 3.13+ and `pip install -r requirements.txt` |
+| MongoDB connection | Verify `MONGODB_URI` and MongoDB is running |
+| Frontend build fails | Delete `node_modules`, re-run `npm install` |
+| Port conflicts | Change `PORT` in `.env` or `vite.config.js` |

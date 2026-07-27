@@ -5,7 +5,7 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { PageTransition } from "../styles/components";
+import { PageTransition } from "../components/ui/StyleComponents";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
 // Redirect component for /compliance/:reportId to /report/:reportId
@@ -36,6 +36,8 @@ const DataRetentionPolicies = lazy(() => import("../components/compliance/DataRe
 const UserManagement = lazy(() => import("../components/users/UserManagement"));
 const AuditLogs = lazy(() => import("../components/users/AuditLogs"));
 const Settings = lazy(() => import("../components/settings/Settings"));
+const ScheduledScansPage = lazy(() => import("../components/schedules/ScheduledScansPage"));
+const SecretHistoryPanel = lazy(() => import("../components/security/SecretHistoryPanel"));
 
 /**
  * Main Layout with Sidebar and Header
@@ -350,6 +352,22 @@ export const MainLayout = () => {
                       <AdminRoute>
                         <AdminDashboard />
                       </AdminRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/scheduled-scans"
+                  element={
+                    <ErrorBoundary>
+                      <ScheduledScansPage />
+                    </ErrorBoundary>
+                  }
+                />
+                  <Route
+                  path="/secret-history"
+                  element={
+                    <ErrorBoundary>
+                      <SecretHistoryPanel />
                     </ErrorBoundary>
                   }
                 />

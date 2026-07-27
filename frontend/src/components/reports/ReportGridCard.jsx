@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "../../styles/components";
+import { Badge } from "../ui/StyleComponents";
 
 const scanTypeColors = {
   sast: "from-cyan-500 to-blue-600",

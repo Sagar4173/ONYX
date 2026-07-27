@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { EmptyState } from "./components";
+import { EmptyState } from "../components/ui/StyleComponents";
 
 describe("EmptyState", () => {
   it("renders title", () => {

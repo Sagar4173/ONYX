@@ -22,10 +22,14 @@ from ..scanners import (
     BaseScanner,
     CheckovScanner,
     CodeQLScanner,
+    DependencyGovernanceScanner,
+    DetectSecretsScanner,
     GitLeaksScanner,
+    LynisScanner,
     NucleiScanner,
     SafetyScanner,
     SemgrepScanner,
+    SopsScanner,
     TrivyScanner,
     ZAPScanner,
 )
@@ -90,7 +94,8 @@ class ScanOrchestrator:
         
         # IaC scanners
         self._scanners[ScanType.IAC] = [
-            CheckovScanner(self.config)
+            CheckovScanner(self.config),
+            LynisScanner(self.config)
         ]
         
         # Container scanners
@@ -100,12 +105,15 @@ class ScanOrchestrator:
         
         # Secrets scanners
         self._scanners[ScanType.SECRETS] = [
-            GitLeaksScanner(self.config)
+            GitLeaksScanner(self.config),
+            DetectSecretsScanner(self.config),
+            SopsScanner(self.config),
         ]
         
         # SCA scanners (Trivy handles both container and dependency scanning)
         self._scanners[ScanType.SCA] = [
             SafetyScanner(self.config),
+            DependencyGovernanceScanner(self.config),
             trivy_scanner  # Reuse shared instance for SCA
         ]
     

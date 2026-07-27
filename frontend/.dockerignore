@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.git/
+*.md
+.env.local
+storybook-static/
+node_modules/.vite/
+.R

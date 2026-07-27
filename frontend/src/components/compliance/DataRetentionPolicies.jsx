@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon, ArchiveBoxIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { enterpriseAPI } from "../../services/api";
-import { EmptyState } from "../../styles/components";
+import { EmptyState } from "../ui/StyleComponents";
 import { PageContainer, PageHeader } from "../../layouts";
 import RetentionPolicyCard from "./RetentionPolicyCard";
 import RetentionFormModal from "./RetentionFormModal";

@@ -6,7 +6,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { PageTransition } from "../../styles/components";
+import { PageTransition } from "../ui/StyleComponents";
 import toast from "react-hot-toast";
 import { useAuth, AuthModal, EmailVerification } from "./index";
 

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.user import User, UserRole
 from routes.dependencies import auth_service, get_current_user
 from routes.enterprise.dependencies import get_database
-from routes.enterprise.models import RetentionPolicyCreate
+from routes.enterprise.schemas import RetentionPolicyCreate
 from services.analytics.data_retention_service import (
     RetentionAction,
     RetentionPolicyType,

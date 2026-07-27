@@ -20,6 +20,7 @@ import {
   ClipboardDocumentListIcon,
   ClockIcon,
   CpuChipIcon,
+  ClockIcon as ClockIconSidebar,
 } from "@heroicons/react/24/outline";
 import { OnyxLogo } from "../components/common";
 import { useAuth } from "../components/auth";
@@ -56,6 +57,18 @@ const getNavigation = (user) => {
       path: "/compliance",
       icon: ShieldCheckIcon,
       gradient: "from-violet-500 to-cyan-500",
+    },
+    {
+      name: "Scheduled Scans",
+      path: "/scheduled-scans",
+      icon: ClockIconSidebar,
+      gradient: "from-amber-500 to-yellow-500",
+    },
+    {
+      name: "Secret History",
+      path: "/secret-history",
+      icon: ShieldExclamationIcon,
+      gradient: "from-pink-500 to-rose-500",
     },
   ];
 

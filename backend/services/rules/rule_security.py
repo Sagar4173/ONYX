@@ -499,9 +499,8 @@ class RuleTestingFramework:
                     if len(matches) >= RuleExecutionLimits.MAX_MATCHES_PER_RULE:
                         break
         
-        except Exception:
-            # Log error but don't fail the test
-            pass
+        except Exception as e:
+            logger.warning("Regex rule pattern execution failed: %s", e, exc_info=True)
         
         return matches
     
@@ -534,15 +533,12 @@ class RuleTestingFramework:
                     matches = output.get('results', [])
             
             except subprocess.TimeoutExpired:
-                # Rule took too long to execute
-                pass
+                logger.warning("Semgrep rule execution timed out for rule: %s on %s", rule_data.get('id', 'unknown'), file_path)
             except json.JSONDecodeError:
-                # Invalid JSON output
-                pass
+                logger.warning("Semgrep returned invalid JSON for rule: %s on %s", rule_data.get('id', 'unknown'), file_path)
             
-        except Exception:
-            # Log error but don't fail the test
-            pass
+        except Exception as e:
+            logger.warning("Semgrep rule execution failed: %s", e, exc_info=True)
         
         finally:
             # Cleanup temporary rule file

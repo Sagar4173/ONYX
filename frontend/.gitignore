@@ -13,6 +13,9 @@ node_modules/
 /build
 /dist
 
+# Storybook build output
+/storybook-static
+
 # Development
 .vite/
 .env
@@ -40,9 +43,6 @@ pids
 
 # Optional npm cache directory
 .npm
-
-# Optional eslint cache
-.eslintcache
 
 # Yarn Integrity file
 .yarn-integrity

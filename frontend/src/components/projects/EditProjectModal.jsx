@@ -10,7 +10,7 @@ import {
   TagIcon,
   EyeIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Modal } from "../../styles/components";
+import { Button, Modal } from "../ui/StyleComponents";
 
 const SCANNER_OPTIONS = [
   { value: "sast", label: "SAST", description: "Static Application Security Testing" },

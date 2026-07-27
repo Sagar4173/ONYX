@@ -28,7 +28,7 @@ import { Card, statusStyles } from "@styles";
 
 // API Configuration - Production ready with environment variable support
 const API_BASE_URL = import.meta.env.DEV
-  ? "http://127.0.0.1:8000"
+  ? "http://127.0.0.1:8000/api"
   : import.meta.env.VITE_API_URL || "/api";
 
 // Trend direction indicator - using centralized status styles
@@ -248,7 +248,7 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
       if (projectId) params.append("project_id", projectId);
 
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`${API_BASE_URL}/api/enterprise/trends/dashboard?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/enterprise/trends/dashboard?${params}`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
         },

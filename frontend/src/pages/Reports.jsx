@@ -7,7 +7,7 @@ import {
   Bars3Icon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
-import { Button } from "../styles/components";
+import { Button } from "../components/ui/StyleComponents";
 import { PageContainer, PageHeader } from "../layouts/UIComponents";
 import { reportsAPI } from "../services/api";
 import ReportFilters from "../components/reports/ReportFilters";

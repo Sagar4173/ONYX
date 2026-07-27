@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { EllipsisVerticalIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Badge, StatusDot } from "../../styles/components";
+import { Badge, StatusDot } from "../ui/StyleComponents";
 
 const priorityBadgeMap = { critical: "danger", high: "warning", medium: "warning", low: "info" };
 const statusDotMap = { active: "success", inactive: "warning", archived: "neutral" };

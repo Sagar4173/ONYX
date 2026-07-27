@@ -8,7 +8,7 @@ from models.user import User
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["stats"])
+router = APIRouter(tags=["Stats"])
 
 
 @router.get("/stats/public")

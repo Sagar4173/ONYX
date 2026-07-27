@@ -422,11 +422,12 @@ async def init_database():
         
         # Import document models
         from models.report import ScanReport, WebhookEvent
+        from models.schedule import ScanSchedule
         
         # Initialize Beanie using the existing db_manager connection (no duplicate client)
         await init_beanie(
             database=db_manager.db,
-            document_models=[ScanReport, WebhookEvent, ScannerHealth, User, UserSession, APIToken, Project]
+            document_models=[ScanReport, WebhookEvent, ScannerHealth, User, UserSession, APIToken, Project, ScanSchedule]
         )
         
         beanie_connected = True

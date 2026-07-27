@@ -39,7 +39,7 @@ else:
 from config import settings
 from database import close_database, db_manager, init_database
 from routes.admin import router as admin_router
-from routes.advanced_scanning_fastapi import router as advanced_scanning_router
+from routes.advanced_scanning import router as advanced_scanning_router
 from routes.advanced_security import router as advanced_security_router  # Consolidated security routes
 from routes.auth import router as auth_router
 from routes.compliance import router as compliance_router
@@ -48,6 +48,8 @@ from routes.enterprise_security import router as enterprise_security_router
 from routes.projects import router as projects_router
 
 # Import route modules
+from routes.ai_chat import router as ai_chat_router
+from routes.auto_fix import router as auto_fix_router
 from routes.analytics import router as analytics_router
 from routes.reports import router as reports_router
 from routes.scanners import router as scanners_router
@@ -55,12 +57,18 @@ from routes.security import router as security_router
 from routes.stats import router as stats_router
 from routes.users import router as users_router
 from routes.webhook import router as webhook_router
+from routes.triage import router as triage_router
+from routes.schedules import router as schedules_router
+from routes.secret_history import router as secret_history_router
 
 # Import WebSocket manager for real-time notifications
 from services.notifications.websocket_manager import ws_manager
 
 # Import centralized service registry
 from services.service_registry import ServiceRegistry
+
+# Import scheduler service for lifespan management
+from services.scheduling.scheduler_service import ScanSchedulerService
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -89,6 +97,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"⚠️ Service Registry initialization error: {e}")
     
+    # Initialize monitoring (Sentry + Prometheus)
+    try:
+        from services.infrastructure.monitoring import MonitoringService
+        monitoring = MonitoringService()
+        monitoring.init_sentry(settings.sentry_dsn, settings.environment)
+        if settings.enable_prometheus:
+            monitoring.init_prometheus(app)
+        app.state.monitoring = monitoring
+    except Exception as e:
+        logger.warning(f"⚠️ Monitoring initialization failed: {e}")
+
     # Start threat intelligence engine background tasks
     threat_intel = ServiceRegistry.get_threat_intelligence()
     if threat_intel and hasattr(threat_intel, 'start'):
@@ -97,6 +116,15 @@ async def lifespan(app: FastAPI):
             logger.info("🛡️ Threat Intelligence Engine background tasks started")
         except Exception as e:
             logger.warning(f"⚠️ Threat Intelligence Engine failed to start: {e}")
+    
+    # Start scan scheduler
+    scheduler_svc = ServiceRegistry.get_scan_scheduler()
+    if scheduler_svc:
+        try:
+            await scheduler_svc.start()
+            logger.info("⏰ Scan Scheduler started")
+        except Exception as e:
+            logger.warning(f"⚠️ Scan Scheduler failed to start: {e}")
     
     yield
     
@@ -162,19 +190,24 @@ app.include_router(webhook_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")  # Admin dashboard and management
 
 # Security routes (consolidated)
-app.include_router(security_router)  # Core security: /api/security/*
-app.include_router(advanced_security_router)  # Advanced security: /api/advanced-security/*
-app.include_router(advanced_scanning_router)  # Scanning: /api/advanced-scanning/*
+app.include_router(security_router, prefix="/api")
+app.include_router(advanced_security_router, prefix="/api")
+app.include_router(advanced_scanning_router, prefix="/api")
 
 # Compliance and Enterprise routes
 app.include_router(compliance_router, prefix="/api")
-app.include_router(enterprise_router)  # Enterprise features: /api/enterprise/*
-app.include_router(enterprise_security_router)  # Enterprise security: /api/enterprise-security/*
+app.include_router(enterprise_router, prefix="/api")
+app.include_router(enterprise_security_router, prefix="/api")
 
 # Analytics, scanners, stats
+app.include_router(auto_fix_router, prefix="/api")
+app.include_router(ai_chat_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
 app.include_router(scanners_router, prefix="/api")
 app.include_router(stats_router, prefix="/api")
+app.include_router(triage_router, prefix="/api")
+app.include_router(schedules_router, prefix="/api")
+app.include_router(secret_history_router, prefix="/api")
 
 # Add trailing slash redirect middleware
 from fastapi.responses import RedirectResponse

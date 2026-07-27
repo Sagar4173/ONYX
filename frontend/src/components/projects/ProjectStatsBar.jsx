@@ -5,7 +5,7 @@ import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { StatCard } from "../../styles/components";
+import { StatCard } from "../ui/StyleComponents";
 
 const ProjectStatsBar = ({ analytics, isLoading }) => {
   if (isLoading) {
