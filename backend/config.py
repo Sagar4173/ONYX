@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     # Ollama (self-hosted local LLM)
     ai_local_base_url: str = Field(default="http://ollama:11434/v1", env="AI_LOCAL_BASE_URL")
-    ai_local_model: str = Field(default="qwen2.5-coder:1.5b", env="AI_LOCAL_MODEL")
+    ai_local_model: str = Field(default="qwen2.5-coder:7b", env="AI_LOCAL_MODEL")
     ai_local_timeout: int = Field(default=120, env="AI_LOCAL_TIMEOUT")
     
     # Notifications

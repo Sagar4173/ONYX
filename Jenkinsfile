@@ -43,7 +43,13 @@ pipeline {
 
                     # Remove old workspaces
                     rm -rf "$HOME/workspace/"*/workspace/* 2>/dev/null || true
-                    rm -rf "$HOME/ollama" 2>/dev/null || true
+
+                    # Only remove ollama if disk is critically low (<500MB free)
+                    AVAIL_KB=$(df "$HOME" | awk 'NR==2 {print $4}')
+                    if [ "$AVAIL_KB" -lt 512000 ]; then
+                        rm -rf "$HOME/ollama" 2>/dev/null || true
+                        echo "Disk critically low — removed Ollama to free space"
+                    fi
 
                     # Clear caches
                     rm -rf "$HOME/.cache/pip" 2>/dev/null || true
@@ -135,7 +141,7 @@ pipeline {
                 sh '''
                     OLLAMA_BIN="$HOME/ollama/bin/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
-                    MODEL="qwen2.5-coder:1.5b"
+                    MODEL="qwen2.5-coder:7b"
 
                     mkdir -p "$HOME/ollama"
 

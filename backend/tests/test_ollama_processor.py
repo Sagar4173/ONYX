@@ -9,7 +9,7 @@ from models.report import AIAnalysis
 def _patch_settings():
     with patch("services.ai.ollama_ai_processor.settings") as mock:
         mock.ai_local_base_url = "http://localhost:11434/v1"
-        mock.ai_local_model = "qwen2.5-coder:1.5b"
+        mock.ai_local_model = "qwen2.5-coder:7b"
         mock.ai_local_timeout = 120
         mock.openai_max_tokens = 2000
         yield mock
@@ -30,7 +30,7 @@ class TestOllamaProcessorHealth:
     async def test_check_health_success(self, processor):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = {"models": [{"name": "qwen2.5-coder:1.5b"}]}
+        mock_resp.json.return_value = {"models": [{"name": "qwen2.5-coder:7b"}]}
 
         with patch("httpx.AsyncClient") as mock_httpx:
             mock_httpx.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_resp)
@@ -138,7 +138,7 @@ class TestOllamaProcessorAnalysis:
             result = await processor.analyze_scan_results([mock_result])
             assert isinstance(result, AIAnalysis)
             assert result.risk_score >= 40
-            assert result.model_used == "ollama/qwen2.5-coder:1.5b"
+            assert result.model_used == "ollama/qwen2.5-coder:7b"
             assert "ollama" in result.model_used
 
     @pytest.mark.asyncio

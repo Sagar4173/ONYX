@@ -57,9 +57,9 @@ SECRET_KEY=your-32-char-min-secret-key
 AI_PROVIDER=auto
 # Default uses Ollama - install and run separately:
 #   docker run -d -p 11434:11434 ollama/ollama
-#   docker exec -it <container> ollama pull qwen2.5-coder:1.5b
+#   docker exec -it <container> ollama pull qwen2.5-coder:7b
 AI_LOCAL_BASE_URL=http://localhost:11434/v1
-AI_LOCAL_MODEL=qwen2.5-coder:1.5b
+AI_LOCAL_MODEL=qwen2.5-coder:7b
 
 # AI - Option B: OpenAI (fallback)
 OPENAI_API_KEY=sk-...
@@ -122,7 +122,7 @@ Services:
 
 ```bash
 # Pull the AI model for zero-cost local inference
-docker compose exec ollama ollama pull qwen2.5-coder:1.5b
+docker compose exec ollama ollama pull qwen2.5-coder:7b
 ```
 
 This downloads ~4.5GB. After this, all AI features run locally with no API fees.
