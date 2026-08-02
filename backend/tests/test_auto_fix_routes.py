@@ -20,7 +20,7 @@ from services.scm.auto_fix_service import AutoFixError
 
 def _make_mock_user(role=UserRole.DEVELOPER):
     user = MagicMock(spec=User)
-    user.user_id = "user-test-123"
+    user.id = "user-test-123"
     user.email = "test@example.com"
     user.role = role
     return user

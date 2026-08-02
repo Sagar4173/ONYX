@@ -44,7 +44,7 @@ class ChatResponse(BaseModel):
 
 
 async def _build_scan_context(scan_id: str, user) -> Optional[Dict[str, Any]]:
-    report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": user.user_id})
+    report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": str(user.id)})
     if not report:
         report = await ScanReport.find_one({"scan_id": scan_id})
         if not report:

@@ -17,7 +17,7 @@ async def trigger_auto_fix(
     finding_id: str,
     user=Depends(get_current_user),
 ):
-    report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": user.user_id})
+    report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": str(user.id)})
     if not report:
         report = await ScanReport.find_one({"scan_id": scan_id})
         if not report:
