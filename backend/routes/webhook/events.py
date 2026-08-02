@@ -3,11 +3,13 @@ import hmac
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
 from config import settings
 from models.report import WebhookEvent
+from models.user import User
+from routes.dependencies import get_current_user
 from routes.webhook.processor import webhook_processor
 from utils.error_handling import get_safe_error_detail
 from utils.rate_limit import limiter
@@ -16,12 +18,29 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Headers that may be persisted with a webhook event. Everything else
+# (including the shared secret header) is dropped before storage.
+SAFE_HEADER_KEYS = frozenset({
+    "user-agent",
+    "content-type",
+    "x-github-event",
+    "x-github-delivery",
+    "x-gitlab-event",
+    "x-event-key",
+    "x-hub-signature-256",
+})
+
 
 def _verify_webhook_signature(request: Request, raw_body: bytes) -> None:
     """Reject requests without a valid shared-secret signature."""
     if not settings.webhook_secret:
-        logger.warning("WEBHOOK_SECRET is not set; webhook endpoint is unauthenticated")
-        return
+        # Fail closed: without a configured secret the endpoint must not accept
+        # unauthenticated scan triggers.
+        logger.error("WEBHOOK_SECRET is not set; webhook endpoint is unavailable")
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook authentication is not configured"
+        )
 
     provided = request.headers.get("x-onyx-webhook-secret") or request.headers.get("x-webhook-secret")
     if provided and hmac.compare_digest(provided, settings.webhook_secret):
@@ -52,6 +71,11 @@ async def receive_webhook(
         raw_body = await request.body()
         _verify_webhook_signature(request, raw_body)
 
+        # Persist only safe, non-secret headers with the event
+        headers = {
+            k: v for k, v in headers.items() if k.lower() in SAFE_HEADER_KEYS
+        }
+
         if raw_body:
             import json
             payload = json.loads(raw_body)
@@ -79,7 +103,10 @@ async def receive_webhook(
 
 
 @router.get("/events/{event_id}")
-async def get_webhook_event(event_id: str) -> Dict[str, Any]:
+async def get_webhook_event(
+    event_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
     try:
         webhook_event = await WebhookEvent.find_one(WebhookEvent.event_id == event_id)
 
@@ -114,7 +141,8 @@ async def get_webhook_event(event_id: str) -> Dict[str, Any]:
 async def list_webhook_events(
     limit: int = Query(50, ge=1, le=1000),
     skip: int = Query(0, ge=0),
-    repository_url: Optional[str] = None
+    repository_url: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     try:
         query = WebhookEvent.find()

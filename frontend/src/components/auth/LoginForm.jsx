@@ -25,16 +25,6 @@ import toast from "react-hot-toast";
 
 const GOOGLE_GSI_SRC = "https://accounts.google.com/gsi/client";
 
-// Cryptographically random nonce bound to this login page session. Google
-// embeds it in the issued ID token, and the backend rejects tokens whose
-// nonce doesn't match — preventing replay of captured tokens from other sessions.
-const generateNonce = () => {
-  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
-  const arr = new Uint8Array(16);
-  window.crypto.getRandomValues(arr);
-  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
-};
-
 const GoogleLogo = () => (
   <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -59,6 +49,10 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
   const [googleReady, setGoogleReady] = useState(false);
   const [googlePendingToken, setGooglePendingToken] = useState(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  // Server-issued, single-use nonce from GET /auth/sso/google/config. Google
+  // embeds it in the ID token; the backend verifies and consumes it on login,
+  // so a captured token can never be replayed.
+  const [ssoNonce, setSsoNonce] = useState(null);
   const googleButtonRef = useRef(null);
   const { login, googleLogin, completeGoogleLogin } = useAuth();
 
@@ -88,8 +82,9 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
       .getGoogleSSOConfig()
       .then((config) => {
         if (cancelled) return;
-        if (config?.enabled && config.client_id) {
+        if (config?.enabled && config.client_id && config.nonce) {
           setSsoEnabled(true);
+          setSsoNonce(config.nonce);
           window.__ONYX_GOOGLE_CLIENT_ID__ = config.client_id;
           loadGoogleScript();
         }
@@ -103,18 +98,16 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
     };
   }, []);
 
-  // Initialize GSI once the script is loaded
+  // Initialize GSI once the script is loaded and the server nonce is available
   useEffect(() => {
-    if (!googleReady || !ssoEnabled || !window.google?.accounts) return;
+    if (!googleReady || !ssoEnabled || !ssoNonce || !window.google?.accounts) return;
     window.google.accounts.id.initialize({
       client_id: window.__ONYX_GOOGLE_CLIENT_ID__,
       callback: handleGoogleCredential,
       auto_select: false,
-      nonce: nonceRef.current,
+      nonce: ssoNonce,
     });
-  }, [googleReady, ssoEnabled]);
-
-  const nonceRef = useRef(generateNonce());
+  }, [googleReady, ssoEnabled, ssoNonce]);
 
   const handleGoogleCredential = useCallback(
     async (response) => {
@@ -124,7 +117,7 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
       }
       setIsGoogleLoading(true);
       try {
-        const result = await googleLogin(response.credential, nonceRef.current);
+        const result = await googleLogin(response.credential, ssoNonce);
         if (result?.requires_2fa) {
           setGooglePendingToken(response.credential);
           setTwoFAEmail(result.user_email || "your email");
@@ -139,7 +132,7 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
         setIsGoogleLoading(false);
       }
     },
-    [googleLogin, onSuccess]
+    [googleLogin, onSuccess, ssoNonce]
   );
 
   // Render the Google button once the container + GSI are both available
@@ -151,7 +144,6 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
           size: "large",
           text: "continue_with",
           shape: "pill",
-          width: "100%",
           click_listener: () => setIsGoogleLoading(true),
         });
       } catch (error) {
@@ -191,7 +183,7 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
     setIsLoading(true);
     try {
       if (googlePendingToken) {
-        await completeGoogleLogin(googlePendingToken, formData.two_factor_code, nonceRef.current);
+        await completeGoogleLogin(googlePendingToken, formData.two_factor_code, ssoNonce);
       } else {
         await login({ ...formData, two_factor_code: formData.two_factor_code });
       }

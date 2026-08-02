@@ -217,6 +217,22 @@ class APIToken(Document):
         ]
 
 
+class SsoNonce(Document):
+    """Server-issued, single-use nonce for Google SSO login.
+
+    Issued by GET /auth/sso/google/config, embedded in the Google ID token via
+    the GSI `nonce` option, then verified and consumed by POST /auth/sso/google.
+    A Mongo TTL index expires records 10 minutes after issuance.
+    """
+
+    nonce: Indexed(str, unique=True)
+    expires_at: datetime
+    used: bool = False
+
+    class Settings:
+        name = "sso_nonces"
+
+
 # Pydantic Models for API Requests/Responses
 
 class UserCreate(BaseModel):

@@ -24,6 +24,7 @@ from models.user import (
     LoginRequest,
     LoginResponse,
     PasswordResetConfirm,
+    SsoNonce,
     User,
     UserCreate,
     UserPasswordChange,
@@ -339,7 +340,7 @@ class AuthService:
             )
 
         # Only accept email-verified Google accounts
-        if not info.get("email_verified"):
+        if info.get("email_verified") is not True:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Google account email is not verified"
@@ -352,14 +353,20 @@ class AuthService:
                 detail="Google token is missing an email address"
             )
 
-        # Nonce check binds the token to the login page session that requested it,
-        # preventing replay of captured ID tokens from other sessions.
-        if nonce:
-            if not info.get("nonce") or info.get("nonce") != nonce:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Google token nonce mismatch"
-                )
+        # The nonce is server-issued, single-use, and must match the one embedded
+        # in the ID token by the Google Identity Services client. This binds the
+        # token to the exact login page session that requested it, so a captured
+        # ID token cannot be replayed against a different session.
+        if not nonce:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Google SSO requires a nonce"
+            )
+        if not info.get("nonce") or info.get("nonce") != nonce:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Google token nonce mismatch"
+            )
 
         # Optional domain allowlist
         allowed_domains = [d.strip().lower() for d in settings.google_allowed_domains.split(",") if d.strip()]
@@ -370,6 +377,31 @@ class AuthService:
             )
 
         return info
+
+    async def issue_sso_nonce(self) -> str:
+        """Issue a server-side, single-use nonce for the Google SSO login flow."""
+        nonce = secrets.token_urlsafe(32)
+        await SsoNonce(
+            nonce=nonce,
+            expires_at=utc_now() + timedelta(minutes=10),
+        ).insert()
+        return nonce
+
+    async def consume_sso_nonce(self, nonce: str) -> None:
+        """Validate and single-use consume a server-issued SSO nonce."""
+        if not nonce:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Google SSO requires a nonce"
+            )
+        doc = await SsoNonce.find_one(SsoNonce.nonce == nonce)
+        if not doc or doc.used or doc.expires_at < utc_now():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired Google SSO nonce"
+            )
+        doc.used = True
+        await doc.save()
 
     async def google_login(self, id_token_str: str, two_factor_code: Optional[str], request: Request, nonce: Optional[str] = None):
         """
@@ -384,6 +416,10 @@ class AuthService:
                 detail="Database is not available. Please try again in a few moments."
             )
 
+        # The server-issued nonce proves this Google token was minted for this
+        # login session. It is consumed only when login COMPLETES (single-use), so
+        # the 2FA round-trip can present the same (id_token, nonce) pair twice;
+        # once completed, a replayed pair can never be accepted again.
         info = self.verify_google_id_token(id_token_str, nonce)
         email = (info.get("email") or "").lower()
 
@@ -417,12 +453,22 @@ class AuthService:
             try:
                 await user.insert()
             except DuplicateKeyError:
-                # Rare username race with concurrent SSO signups for the same email;
-                # retry once with a random suffix.
-                user.username = f"{username}{secrets.randbelow(9999)}"
-                await user.insert()
-            logger.info(f"Auto-provisioned Google SSO account for {email}")
-            return await self._build_login_response(user, request)
+                # Concurrent provisioning for the same email: another request
+                # created the account. Bind to it instead of failing with a 500.
+                raced = await User.find_one({"email": email})
+                if raced is not None:
+                    user = raced
+                else:
+                    # Rare username race; retry once with a random suffix.
+                    user.username = f"{username}{secrets.randbelow(9999)}"
+                    await user.insert()
+                    logger.info(f"Auto-provisioned Google SSO account for {email}")
+                    await self.consume_sso_nonce(nonce or "")
+                    return await self._build_login_response(user, request)
+            else:
+                logger.info(f"Auto-provisioned Google SSO account for {email}")
+                await self.consume_sso_nonce(nonce or "")
+                return await self._build_login_response(user, request)
 
         # Existing account: enforce the same gates as password login
         if user.status not in [UserStatus.ACTIVE, UserStatus.PENDING_VERIFICATION]:
@@ -478,6 +524,7 @@ class AuthService:
         user.last_login = utc_now()
         await user.save()
 
+        await self.consume_sso_nonce(nonce or "")
         return await self._build_login_response(user, request)
 
     async def _derive_username(self, email: str) -> str:

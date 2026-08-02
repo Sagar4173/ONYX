@@ -863,7 +863,10 @@ export const webhookAPI = {
       const queryParams = new URLSearchParams(params).toString();
       const url = `${backendBaseUrl}/webhook/events${queryParams ? "?" + queryParams : ""}`;
 
-      const response = await fetch(url);
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

@@ -27,20 +27,25 @@ router = APIRouter()
 class GoogleSSOLoginRequest(BaseModel):
     id_token: str
     two_factor_code: Optional[str] = None  # Required if user has 2FA enabled
-    nonce: Optional[str] = None  # Binds the ID token to the login page session
+    nonce: str  # Server-issued single-use nonce from the config endpoint
 
 
 class GoogleSSOConfigResponse(BaseModel):
     enabled: bool
     client_id: Optional[str] = None
+    nonce: Optional[str] = None  # Fresh server-issued nonce for this login page session
 
 
 @router.get("/sso/google/config", response_model=GoogleSSOConfigResponse)
 async def get_google_sso_config() -> GoogleSSOConfigResponse:
     """Public config so the frontend only renders the SSO button when enabled"""
+    if not settings.google_sso_enabled:
+        return GoogleSSOConfigResponse(enabled=False)
+    nonce = await auth_service.issue_sso_nonce()
     return GoogleSSOConfigResponse(
-        enabled=settings.google_sso_enabled,
-        client_id=settings.google_client_id if settings.google_sso_enabled else None,
+        enabled=True,
+        client_id=settings.google_client_id,
+        nonce=nonce,
     )
 
 

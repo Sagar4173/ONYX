@@ -15,7 +15,7 @@ from models.project import Project
 
 # Import all models
 from models.report import ScannerHealth
-from models.user import APIToken, User, UserSession
+from models.user import APIToken, SsoNonce, User, UserSession
 
 logger = logging.getLogger(__name__)
 
@@ -427,8 +427,16 @@ async def init_database():
         # Initialize Beanie using the existing db_manager connection (no duplicate client)
         await init_beanie(
             database=db_manager.db,
-            document_models=[ScanReport, WebhookEvent, ScannerHealth, User, UserSession, APIToken, Project, ScanSchedule]
+            document_models=[ScanReport, WebhookEvent, ScannerHealth, User, UserSession, APIToken, Project, ScanSchedule, SsoNonce]
         )
+        
+        # TTL index: auto-expire consumed/abandoned SSO nonces 10 minutes after issuance
+        try:
+            await SsoNonce.get_motor_collection().create_index(
+                "expires_at", expireAfterSeconds=0
+            )
+        except Exception as e:
+            logger.warning(f"Could not create SSO nonce TTL index: {e}")
         
         beanie_connected = True
         global beanie_initialized

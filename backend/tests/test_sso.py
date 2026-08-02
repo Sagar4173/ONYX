@@ -121,20 +121,39 @@ class TestGoogleTokenVerification:
     async def test_domain_allowlist_enforced(self):
         from services.auth.auth_service import auth_service
 
+        claims = _google_claims(email="bob@evil.com")
+        claims["nonce"] = "allowed-nonce"
+
         with (
             patch.object(settings, "google_client_id", "test-client"),
             patch.object(settings, "google_allowed_domains", "example.com"),
             patch(
                 "services.auth.auth_service.google_id_token.verify_oauth2_token",
-                return_value=_google_claims(email="bob@evil.com"),
+                return_value=claims,
             ),
         ):
             with pytest.raises(HTTPException) as exc_info:
-                auth_service.verify_google_id_token("token")
+                auth_service.verify_google_id_token("token", nonce="allowed-nonce")
         assert exc_info.value.status_code == 403
         assert "domain" in exc_info.value.detail
 
     async def test_valid_token_returns_claims(self):
+        from services.auth.auth_service import auth_service
+
+        claims = _google_claims()
+        claims["nonce"] = "good-nonce"
+
+        with (
+            patch.object(settings, "google_client_id", "test-client"),
+            patch(
+                "services.auth.auth_service.google_id_token.verify_oauth2_token",
+                return_value=claims,
+            ),
+        ):
+            info = auth_service.verify_google_id_token("good-token", nonce="good-nonce")
+        assert info["email"] == "jane@example.com"
+
+    async def test_missing_nonce_rejected(self):
         from services.auth.auth_service import auth_service
 
         with (
@@ -144,8 +163,10 @@ class TestGoogleTokenVerification:
                 return_value=_google_claims(),
             ),
         ):
-            info = auth_service.verify_google_id_token("good-token")
-        assert info["email"] == "jane@example.com"
+            with pytest.raises(HTTPException) as exc_info:
+                auth_service.verify_google_id_token("good-token")
+        assert exc_info.value.status_code == 401
+        assert "nonce" in exc_info.value.detail
 
     async def test_nonce_mismatch_rejected(self):
         from services.auth.auth_service import auth_service
@@ -184,7 +205,13 @@ class TestGoogleSSOLogin:
 
     @pytest.fixture(autouse=True)
     def _beanie_ready(self):
-        with patch("database.beanie_initialized", True):
+        with (
+            patch("database.beanie_initialized", True),
+            patch(
+                "services.auth.auth_service.auth_service.consume_sso_nonce",
+                new_callable=AsyncMock,
+            ),
+        ):
             yield
 
     async def test_invalid_token_rejected(self):
@@ -325,6 +352,38 @@ class TestGoogleSSOLogin:
                 await auth_service.google_login("token", "000000", _http_request())
         assert exc_info.value.status_code == 401
 
+    async def test_2fa_round_trip_uses_same_nonce_once(self):
+        """The nonce survives the 2FA prompt and is consumed only on completion,
+        so the (id_token, nonce) pair completes at most once."""
+        import pyotp
+
+        from services.auth.auth_service import auth_service
+
+        session_cls = MagicMock()
+        session_cls.return_value.insert = AsyncMock()
+        user = _user_mock(twofa=True)
+        user.two_factor_secret = pyotp.random_base32()
+        consume = auth_service.consume_sso_nonce
+        code = pyotp.TOTP(user.two_factor_secret).now()
+
+        with (
+            patch.object(settings, "google_client_id", "test-client"),
+            patch.object(auth_service, "verify_google_id_token", return_value=_google_claims()),
+            patch.object(auth_service, "create_access_token", return_value="access-123"),
+            patch.object(auth_service, "create_refresh_token", return_value="refresh-123"),
+            patch.object(auth_service, "_generate_2fa_temp_token", return_value="temp-123"),
+            patch("services.auth.auth_service.User.find_one", new=AsyncMock(return_value=user)),
+            patch("services.auth.auth_service.UserSession", new=session_cls),
+        ):
+            first = await auth_service.google_login("token", None, _http_request(), nonce="nonce-1")
+            consume.assert_not_awaited()
+            assert first["requires_2fa"] is True
+
+            second = await auth_service.google_login("token", code, _http_request(), nonce="nonce-1")
+            consume.assert_awaited_once_with("nonce-1")
+
+        assert second.access_token == "access-123"
+
     async def test_suspended_account_rejected(self):
         from services.auth.auth_service import auth_service
 
@@ -356,6 +415,73 @@ class TestGoogleSSOLogin:
         assert exc_info.value.status_code == 423
 
 
+class TestSsoNonceLifecycle:
+    """Server-issued SSO nonces must be validated, single-use, and short-lived."""
+
+    @pytest.fixture(autouse=True)
+    def _beanie_ready(self):
+        with patch("database.beanie_initialized", True):
+            yield
+
+    async def test_consume_rejects_missing_nonce(self):
+        from services.auth.auth_service import auth_service
+
+        with pytest.raises(HTTPException) as exc_info:
+            await auth_service.consume_sso_nonce("")
+        assert exc_info.value.status_code == 401
+
+    async def test_consume_rejects_unknown_nonce(self):
+        from services.auth.auth_service import auth_service
+
+        nonce_cls = MagicMock()
+        nonce_cls.find_one = AsyncMock(return_value=None)
+
+        with patch("services.auth.auth_service.SsoNonce", new=nonce_cls):
+            with pytest.raises(HTTPException) as exc_info:
+                await auth_service.consume_sso_nonce("nope")
+        assert exc_info.value.status_code == 401
+        assert "nonce" in exc_info.value.detail
+
+    async def test_consume_rejects_expired_nonce(self):
+        from services.auth.auth_service import auth_service
+
+        doc = MagicMock()
+        doc.used = False
+        doc.expires_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+        doc.save = AsyncMock()
+
+        nonce_cls = MagicMock()
+        nonce_cls.find_one = AsyncMock(return_value=doc)
+
+        with patch("services.auth.auth_service.SsoNonce", new=nonce_cls):
+            with pytest.raises(HTTPException) as exc_info:
+                await auth_service.consume_sso_nonce("old-nonce")
+        assert exc_info.value.status_code == 401
+        doc.save.assert_not_awaited()
+
+    async def test_consume_marks_used_and_rejects_replay(self):
+        from services.auth.auth_service import auth_service
+
+        doc = MagicMock()
+        doc.used = False
+        doc.expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+        doc.save = AsyncMock()
+
+        nonce_cls = MagicMock()
+        nonce_cls.find_one = AsyncMock(return_value=doc)
+
+        with patch("services.auth.auth_service.SsoNonce", new=nonce_cls):
+            await auth_service.consume_sso_nonce("valid-nonce")
+        assert doc.used is True
+        doc.save.assert_awaited()
+
+        doc.used = True
+        with patch("services.auth.auth_service.SsoNonce", new=nonce_cls):
+            with pytest.raises(HTTPException) as exc_info:
+                await auth_service.consume_sso_nonce("valid-nonce")
+        assert exc_info.value.status_code == 401
+
+
 class TestGoogleSSOEndpoints:
     async def test_endpoint_disabled(self):
         from fastapi.testclient import TestClient
@@ -368,10 +494,13 @@ class TestGoogleSSOEndpoints:
             with patch.object(settings, "google_client_id", None):
                 response = TestClient(app).get("/api/auth/sso/google/config")
             assert response.status_code == 200
-            assert response.json() == {"enabled": False, "client_id": None}
+            assert response.json() == {"enabled": False, "client_id": None, "nonce": None}
 
             with patch.object(settings, "google_client_id", None):
-                response = TestClient(app).post("/api/auth/sso/google", json={"id_token": "x"})
+                response = TestClient(app).post(
+                    "/api/auth/sso/google",
+                    json={"id_token": "x", "nonce": "abc"},
+                )
             assert response.status_code == 404
         finally:
             app.dependency_overrides.clear()
@@ -381,13 +510,26 @@ class TestGoogleSSOEndpoints:
 
         from app import app
         from database import require_beanie
+        from services.auth.auth_service import auth_service
 
         app.dependency_overrides[require_beanie] = lambda: None
         try:
-            with patch.object(settings, "google_client_id", "my-client-id"):
+            with (
+                patch.object(settings, "google_client_id", "my-client-id"),
+                patch.object(
+                    auth_service,
+                    "issue_sso_nonce",
+                    new_callable=AsyncMock,
+                    return_value="issued-nonce-1",
+                ),
+            ):
                 response = TestClient(app).get("/api/auth/sso/google/config")
             assert response.status_code == 200
-            assert response.json() == {"enabled": True, "client_id": "my-client-id"}
+            assert response.json() == {
+                "enabled": True,
+                "client_id": "my-client-id",
+                "nonce": "issued-nonce-1",
+            }
         finally:
             app.dependency_overrides.clear()
 
@@ -422,7 +564,7 @@ class TestGoogleSSOEndpoints:
                 mock_login.return_value = {"access_token": "access-123", "user": {}}
                 response = TestClient(app).post(
                     "/api/auth/sso/google",
-                    json={"id_token": "valid-id-token"},
+                    json={"id_token": "valid-id-token", "nonce": "test-nonce"},
                 )
             assert response.status_code == 200
             assert response.json()["access_token"] == "access-123"

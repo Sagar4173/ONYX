@@ -149,6 +149,7 @@ class TestWebhook:
     """Test /api/webhook endpoints."""
 
     def test_receive_webhook_accepted(self, test_app):
+        from config import settings
         from routes.webhook.processor import webhook_processor
 
         mock_git_meta = MagicMock()
@@ -158,6 +159,7 @@ class TestWebhook:
         mock_git_meta.event_type = "push"
 
         with (
+            patch.object(settings, "webhook_secret", "test-webhook-secret"),
             patch.object(webhook_processor, "_parse_webhook_data", return_value=mock_git_meta),
             patch.object(webhook_processor, "_process_scan_workflow", new_callable=AsyncMock),
             patch("routes.webhook.processor.WebhookEvent") as mock_event_cls,
@@ -169,14 +171,28 @@ class TestWebhook:
             response = test_app.post(
                 "/api/webhook/",
                 json={"ref": "refs/heads/main", "repository": {"clone_url": "https://github.com/test/repo"}},
-                headers={"X-GitHub-Event": "push", "Content-Type": "application/json"},
+                headers={
+                    "X-GitHub-Event": "push",
+                    "Content-Type": "application/json",
+                    "X-Onyx-Webhook-Secret": "test-webhook-secret",
+                },
             )
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "accepted"
 
     def test_webhook_invalid_payload(self, test_app):
-        response = test_app.post("/api/webhook/", json={}, headers={"Content-Type": "application/json"})
+        from config import settings
+
+        with patch.object(settings, "webhook_secret", "test-webhook-secret"):
+            response = test_app.post(
+                "/api/webhook/",
+                json={},
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Onyx-Webhook-Secret": "test-webhook-secret",
+                },
+            )
         assert response.status_code in (400, 500)
 
 

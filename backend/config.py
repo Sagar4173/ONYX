@@ -274,6 +274,14 @@ def validate_settings_on_startup():
         if not settings.smtp_server:
             logger.warning("⚠️ EMAIL_ENABLED=true but SMTP_SERVER not configured")
     
+    # Check webhook authentication (fails closed when unset)
+    if not settings.webhook_secret:
+        logger.warning("⚠️ WEBHOOK_SECRET is not set - the webhook endpoint will return 503 until it is configured")
+    
+    # Check Google SSO configuration
+    if settings.google_client_id and not settings.google_allowed_domains.strip():
+        logger.warning("⚠️ GOOGLE_CLIENT_ID is set but GOOGLE_ALLOWED_DOMAINS is empty - any Google account can sign in")
+    
     return is_valid
 
 

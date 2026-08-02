@@ -1,3 +1,6 @@
+import socket
+from unittest.mock import patch
+
 import pytest
 
 from utils.repo_clone import RepoCloneError, validate_repo_url
@@ -48,8 +51,15 @@ class TestValidateRepoUrl:
             validate_repo_url("https://192.168.1.1/repo.git")
 
     def test_rejects_private_hostname_resolving_to_loopback(self):
-        with pytest.raises(RepoCloneError):
-            validate_repo_url("https://foo.localhost/repo.git")
+        loopback_resolution = [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 0))
+        ]
+        with patch(
+            "utils.repo_clone.socket.getaddrinfo",
+            return_value=loopback_resolution,
+        ):
+            with pytest.raises(RepoCloneError):
+                validate_repo_url("https://foo.localhost/repo.git")
 
     def test_rejects_unsupported_scheme(self):
         with pytest.raises(RepoCloneError):
