@@ -70,17 +70,17 @@ class ErrorBoundary extends React.Component {
             </p>
 
             {/* Error Details (Development only) */}
-            {import.meta.env.DEV && this.state.error && (
-              <div className="mb-6 p-4 bg-gray-900/50 rounded-lg text-left overflow-auto max-h-40">
-                <p className="text-red-400 text-sm font-mono break-words">
+            {this.state.error && (
+              <details className="mb-6 p-4 bg-gray-900/50 rounded-lg text-left overflow-auto max-h-40">
+                <summary className="text-red-400 text-sm font-mono cursor-pointer select-none">
                   {this.state.error.toString()}
-                </p>
+                </summary>
                 {this.state.errorInfo && (
                   <pre className="text-gray-500 text-xs mt-2 whitespace-pre-wrap">
                     {this.state.errorInfo.componentStack}
                   </pre>
                 )}
-              </div>
+              </details>
             )}
 
             {/* Action Buttons */}
