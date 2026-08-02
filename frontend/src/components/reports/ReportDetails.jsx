@@ -405,7 +405,7 @@ const ReportDetails = () => {
               )}
 
               {activeTab === "ai-chat" && (
-                <AIChatPanel reportId={reportId} />
+                <AIChatPanel scanId={report.scan_id} />
               )}
 
               {activeTab === "scanners" && (

@@ -29,7 +29,7 @@ const getIconForText = (text) => {
   return <SparklesIcon className="w-4 h-4 text-violet-400" />;
 };
 
-export const AIChatPanel = ({ reportId }) => {
+export const AIChatPanel = ({ scanId }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +59,7 @@ export const AIChatPanel = ({ reportId }) => {
         content: m.content,
       }));
 
-      const data = await reportsAPI.aiChat(reportId, userMessage, history);
+      const data = await reportsAPI.aiChat(scanId, userMessage, history);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: data.reply, model: data.model_used },

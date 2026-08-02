@@ -47,8 +47,13 @@ async def _build_scan_context(scan_id: str, user) -> Optional[Dict[str, Any]]:
     report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": str(user.id)})
     if not report:
         report = await ScanReport.find_one({"scan_id": scan_id})
-        if not report:
-            return None
+    if not report:
+        try:
+            report = await ScanReport.get(scan_id)
+        except Exception:
+            report = None
+    if not report:
+        return None
 
     findings_summary = []
     if report.scan_results:
