@@ -15,6 +15,7 @@ import {
   DocumentChartBarIcon,
   ChartBarIcon,
   ShieldCheckIcon,
+  ShieldExclamationIcon,
   UsersIcon,
   Cog6ToothIcon,
   ClipboardDocumentListIcon,
