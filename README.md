@@ -56,6 +56,7 @@ AI-Powered Security Scanning Free & Self-Hosted Enterprise-Ready.
 
 ### Enterprise
 - Role-based access control (Admin, Security Manager, Developer, Viewer)
+- Google Single Sign-On (OAuth 2.0 ID tokens) with optional domain allowlist
 - Admin dashboard with system-wide monitoring
 - Audit logging with integrity verification
 - Data retention policies
@@ -102,6 +103,17 @@ For detailed setup, see [Installation Guide](docs/INSTALLATION.md).
 For Docker deployment, see [Deployment Guide](docs/DEPLOYMENT.md).  
 
 > **Zero-cost AI**: Set `AI_PROVIDER=auto` and run Ollama alongside ONYX. All AI features run locally with no API fees.
+
+### Google SSO (optional)
+
+Create an OAuth 2.0 **Web application** client ID in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (authorized JS origin: your ONYX domain), then configure the backend:
+
+```bash
+GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+GOOGLE_ALLOWED_DOMAINS=yourcompany.com          # optional comma-separated allowlist
+```
+
+Setting `GOOGLE_CLIENT_ID` enables SSO; a **Sign in with Google** button then appears on the login page. SSO users are auto-provisioned as Viewers (when registration is enabled) and still pass through the 2FA, suspension, and email-verification gates.
 
 ---
 

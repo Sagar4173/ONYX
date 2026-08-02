@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import SettingCard from "./SettingCard";
 import Toggle from "./Toggle";
@@ -5,9 +6,58 @@ import Toggle from "./Toggle";
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
-const SecurityTab = ({ settings, handleSettingChange, handleNestedSettingChange }) => (
+const SecurityTab = ({ settings, handleSettingChange, handleNestedSettingChange }) => {
+  const [ssoConfig, setSsoConfig] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(
+      `${import.meta.env.DEV ? "http://127.0.0.1:8000" : ""}/api/auth/sso/google/config`
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setSsoConfig(data);
+      })
+      .catch(() => {
+        if (!cancelled) setSsoConfig(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
   <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="show">
     <h2 className="text-xl font-semibold text-white">Security Settings</h2>
+
+    <motion.div variants={item}>
+      <SettingCard
+        title="Google Sign-In (SSO)"
+        description="Allow users to sign in with their Google account instead of a password"
+      >
+        <div className="flex items-center gap-3 w-full">
+          <span
+            className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+              ssoConfig?.enabled
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                : "bg-gray-700/40 text-gray-400 border border-gray-600/40"
+            }`}
+          >
+            {ssoConfig === null ? "Checking..." : ssoConfig.enabled ? "Enabled" : "Disabled"}
+          </span>
+          {ssoConfig?.enabled && ssoConfig.client_id && (
+            <code className="text-xs text-gray-400 font-mono break-all min-w-0">
+              {ssoConfig.client_id}
+            </code>
+          )}
+          {ssoConfig !== null && !ssoConfig.enabled && (
+            <span className="text-xs text-gray-500">
+              Set GOOGLE_CLIENT_ID on the server to enable
+            </span>
+          )}
+        </div>
+      </SettingCard>
+    </motion.div>
 
     <motion.div variants={item}>
       <SettingCard
@@ -106,5 +156,6 @@ const SecurityTab = ({ settings, handleSettingChange, handleNestedSettingChange 
     </motion.div>
   </motion.div>
 );
+};
 
 export default SecurityTab;

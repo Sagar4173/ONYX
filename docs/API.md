@@ -53,6 +53,55 @@ POST /auth/refresh
 Authorization: Bearer <refresh_token>
 ```
 
+#### **Google SSO Config** (public)
+
+Returns whether Google Sign-In is enabled and the OAuth client ID. The frontend uses this to conditionally render the **Sign in with Google** button.
+
+```http
+GET /auth/sso/google/config
+```
+
+**Response:**
+
+```json
+{
+  "enabled": true,
+  "client_id": "1234567890-abc.apps.googleusercontent.com"
+}
+```
+
+#### **Google SSO Login**
+
+Verifies a Google Identity Services ID token (signature, audience, issuer, `email_verified`, optional nonce and domain allowlist) and returns the same token response as `/auth/login`. Auto-provisions a new Viewer account when registration is enabled; existing accounts still pass the suspension, lockout, email-verification, and 2FA gates.
+
+```http
+POST /auth/sso/google
+Content-Type: application/json
+
+{
+  "id_token": "eyJhbGciOiJSUzI1NiIs...",
+  "two_factor_code": "123456",
+  "nonce": "a1b2c3d4"
+}
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer",
+  "expires_in": 1800
+}
+```
+
+**Status Codes:**
+
+- `200`: Authenticated (may include a `require_2fa` response if a code is missing)
+- `404`: Google SSO not configured
+- `422`: Invalid or expired ID token / verification required / user locked
+- `429`: Rate limit exceeded (30/minute)
+
 ---
 
 ## 🔍 Scan Management API
