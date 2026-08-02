@@ -300,8 +300,16 @@ class WebhookProcessor:
                 scan_report.status = ScanStatus.FAILED
                 scan_report.completed_at = datetime.now(timezone.utc)
                 if scan_report.started_at:
+                    # DB round-trips can yield naive UTC datetimes; normalize
+                    # both sides before subtracting (tz-aware arithmetic only).
+                    started_at = scan_report.started_at
+                    if started_at.tzinfo is None:
+                        started_at = started_at.replace(tzinfo=timezone.utc)
+                    completed_at = scan_report.completed_at
+                    if completed_at.tzinfo is None:
+                        completed_at = completed_at.replace(tzinfo=timezone.utc)
                     scan_report.duration_seconds = (
-                        scan_report.completed_at - scan_report.started_at
+                        completed_at - started_at
                     ).total_seconds()
                 await scan_report.save()
 

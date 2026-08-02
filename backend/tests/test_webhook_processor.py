@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -33,7 +34,7 @@ def _project_mock():
     return project_cls
 
 
-def _scan_report_factory(created: List[ScanReport]):
+def _scan_report_factory(created: List[ScanReport], naive_started_at: bool = False):
     def factory(**kwargs):
         report = ScanReport.model_construct(
             project_name=kwargs["project_name"],
@@ -42,7 +43,11 @@ def _scan_report_factory(created: List[ScanReport]):
             status=ScanStatus.PENDING,
         )
         report.id = REPORT_ID
-        report.started_at = None
+        report.started_at = (
+            datetime(2026, 8, 2, 10, 0, 0)
+            if naive_started_at
+            else None
+        )
         created.append(report)
         return report
 
@@ -94,9 +99,12 @@ class TestProcessScanWorkflow:
 
         with (
             patch("models.project.Project", new=_project_mock()),
-            patch("routes.webhook.processor.ScanReport", new=_scan_report_factory(created)),
+            patch(
+                "routes.webhook.processor.ScanReport",
+                new=_scan_report_factory(created, naive_started_at=True),
+            ),
             patch.object(ScanReport, "insert", new_callable=AsyncMock, create=True),
-            patch.object(ScanReport, "save", new_callable=AsyncMock, create=True),
+            patch.object(ScanReport, "save", new_callable=AsyncMock, create=True) as report_save,
             patch.object(WebhookEvent, "save", new_callable=AsyncMock, create=True) as event_save,
             patch(
                 "routes.webhook.processor.repo_cloner.clone_repository",
@@ -112,4 +120,6 @@ class TestProcessScanWorkflow:
         assert "clone failed" in webhook_event.error_message
         assert isinstance(webhook_event.scan_report_id, str)
         assert created[0].status == ScanStatus.FAILED
+        assert created[0].duration_seconds >= 0
         event_save.assert_awaited()
+        report_save.assert_awaited()
