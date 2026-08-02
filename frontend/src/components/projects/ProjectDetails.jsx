@@ -57,6 +57,7 @@ const ProjectDetails = () => {
   const [scanProgress, setScanProgress] = useState(0);
   const [isPolling, setIsPolling] = useState(false);
   const [scanCompleted, setScanCompleted] = useState(false);
+  const [scanLog, setScanLog] = useState([]);
   const hasShownCompletionToast = useRef(false);
 
   const {
@@ -99,6 +100,7 @@ const ProjectDetails = () => {
       const status = await reportsAPI.getScanStatus(activeScan.scan_id);
       if (status) {
         setScanProgress(status.progress || 0);
+        if (Array.isArray(status.log) && status.log.length > 0) setScanLog(status.log);
         setActiveScan((prev) => ({
           ...prev,
           status: status.status || prev?.status,
@@ -192,6 +194,7 @@ const ProjectDetails = () => {
       toast.success("Security scan started! Monitoring progress...");
       hasShownCompletionToast.current = false;
       setScanCompleted(false);
+      setScanLog([]);
       setActiveScan({
         scan_id: data.scan_id,
         status: data.status || "pending",
@@ -391,15 +394,18 @@ const ProjectDetails = () => {
     isStarting: startScanMutation.isPending,
     onStopScan: handleStopScan,
     onStartScan: handleStartScan,
+    scanLog,
     onDismiss: () => {
       setActiveScan(null);
       setScanCompleted(false);
       setScanProgress(0);
+      setScanLog([]);
     },
     onRunNewScan: () => {
       setActiveScan(null);
       setScanCompleted(false);
       setScanProgress(0);
+      setScanLog([]);
       hasShownCompletionToast.current = false;
       handleStartScan();
     },

@@ -159,7 +159,7 @@ class TestProcessScanWorkflow:
 
         assert created, "workflow did not create a scan report"
         assert isinstance(webhook_event.scan_report_id, str)
-        assert webhook_event.scan_report_id == str(REPORT_ID)
+        assert webhook_event.scan_report_id == str(created[0].scan_id)
         assert webhook_event.status == "processing"
         event_save.assert_awaited()
 

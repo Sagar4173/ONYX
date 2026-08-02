@@ -20,6 +20,7 @@ from models.report import (
 )
 from models.user import User
 from routes.dependencies import get_current_user
+from routes.webhook.processor import add_scan_log, get_scan_log
 from routes.webhook.schemas import ScanRequest
 from services.infrastructure.project_service import ProjectService
 from services.notifications.websocket_manager import ws_manager
@@ -69,7 +70,8 @@ async def get_scan_status(
                 "progress": getattr(scan_report, 'progress', 0),
                 "current_scanner": getattr(scan_report, 'current_scanner', None),
                 "error_message": getattr(scan_report, 'error_message', None),
-                "is_cancelled": scan_id in active_scans and not active_scans[scan_id]
+                "is_cancelled": scan_id in active_scans and not active_scans[scan_id],
+                "log": get_scan_log(scan_id)
             }
         )
     except HTTPException:
@@ -241,6 +243,7 @@ async def process_real_scan(
         )
 
         await ws_manager.notify_scan_started(scan_id, project_name)
+        add_scan_log(scan_id, "INFO", f"Security scan started for {project_name}")
 
         logger.info(f"Starting real security scan for {scan_id}")
 
@@ -252,6 +255,7 @@ async def process_real_scan(
             {"$set": {"progress": 10, "current_scanner": "Cloning repository and preparing codebase..."}}
         )
         await ws_manager.notify_scan_progress(scan_id, project_name, 10, "Cloning repository")
+        add_scan_log(scan_id, "SCAN", "Cloning repository")
 
         scanner = RealSecurityScanner()
 
@@ -263,6 +267,7 @@ async def process_real_scan(
             {"$set": {"progress": 20, "current_scanner": "Running SAST (Static Application Security Testing)..."}}
         )
         await ws_manager.notify_scan_progress(scan_id, project_name, 20, "SAST Analysis")
+        add_scan_log(scan_id, "SCAN", "SAST Analysis")
 
         await asyncio.sleep(0.5)
 
@@ -270,6 +275,7 @@ async def process_real_scan(
             {"$set": {"progress": 35, "current_scanner": "Scanning for exposed secrets and credentials..."}}
         )
         await ws_manager.notify_scan_progress(scan_id, project_name, 35, "Secrets Detection")
+        add_scan_log(scan_id, "SCAN", "Secrets Detection")
 
         await asyncio.sleep(0.5)
 
@@ -277,6 +283,7 @@ async def process_real_scan(
             {"$set": {"progress": 50, "current_scanner": "Analyzing dependencies for known vulnerabilities..."}}
         )
         await ws_manager.notify_scan_progress(scan_id, project_name, 50, "Dependency Analysis")
+        add_scan_log(scan_id, "SCAN", "Dependency Analysis")
 
         scan_results = await scanner.scan_repository(
             repository_url=str(scan_request.repository_url),
@@ -291,6 +298,7 @@ async def process_real_scan(
             {"$set": {"progress": 70, "current_scanner": "Processing and categorizing findings..."}}
         )
         await ws_manager.notify_scan_progress(scan_id, project_name, 70, "Processing Results")
+        add_scan_log(scan_id, "SCAN", "Processing Results")
 
         total_findings = scan_results['total_findings']
         findings_by_severity = scan_results['findings_by_severity']
@@ -557,6 +565,14 @@ async def process_real_scan(
         await ws_manager.notify_scan_completed(
             scan_id, project_name, total_findings, findings_by_severity
         )
+        add_scan_log(
+            scan_id, "INFO",
+            f"Scan completed: {total_findings} findings "
+            f"({findings_by_severity.get('critical', 0)} critical, "
+            f"{findings_by_severity.get('high', 0)} high, "
+            f"{findings_by_severity.get('medium', 0)} medium, "
+            f"{findings_by_severity.get('low', 0)} low)"
+        )
 
         if findings_by_severity.get('critical', 0) > 0:
             for finding in detailed_findings[:5]:
@@ -623,3 +639,4 @@ async def process_real_scan(
         )
 
         await ws_manager.notify_scan_failed(scan_id, project_name, user_error)
+        add_scan_log(scan_id, "ERROR", f"Scan failed: {user_error}")

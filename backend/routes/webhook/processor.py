@@ -2,17 +2,41 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 
 from config import settings
 from models.report import GitMetadata, ScanReport, ScanStatus, WebhookEvent
+from services.notifications.websocket_manager import ws_manager
 from services.scanning.workflow import enhanced_workflow
 from utils.error_handling import get_safe_error_detail
 from utils.repo_clone import repo_cloner
 
 logger = logging.getLogger(__name__)
+
+# In-memory per-scan console log for live progress polling. Survives only the
+# process lifetime; each scan_id keeps its own bounded history.
+scan_logs: Dict[str, List[Dict[str, Any]]] = {}
+
+MAX_SCAN_LOG_LINES = 500
+
+
+def add_scan_log(scan_id: str, level: str, message: str) -> None:
+    """Append a line to a scan's live console log (bounded)."""
+    lines = scan_logs.setdefault(scan_id, [])
+    lines.append({
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "level": level,
+        "message": message,
+    })
+    if len(lines) > MAX_SCAN_LOG_LINES:
+        del lines[:-MAX_SCAN_LOG_LINES]
+
+
+def get_scan_log(scan_id: str) -> List[Dict[str, Any]]:
+    """Return a scan's live console log (empty list when unknown)."""
+    return scan_logs.get(scan_id, [])
 
 
 class WebhookProcessor:
@@ -237,6 +261,7 @@ class WebhookProcessor:
         git_metadata: GitMetadata
     ):
         scan_report = None
+        user_id = None
 
         try:
             webhook_event.status = "processing"
@@ -262,13 +287,35 @@ class WebhookProcessor:
             )
 
             await scan_report.insert()
-            webhook_event.scan_report_id = str(scan_report.id)
+            scan_id = str(scan_report.scan_id)
+            webhook_event.scan_report_id = scan_id
             await webhook_event.save()
 
             scan_report.status = ScanStatus.RUNNING
+            scan_report.started_at = datetime.now(timezone.utc)
             await scan_report.save()
 
+            add_scan_log(scan_id, "INFO", f"Webhook event received - {git_metadata.repository_url}")
+            add_scan_log(scan_id, "INFO", f"Branch: {git_metadata.branch or 'default'}")
+            await ws_manager.notify_scan_started(scan_id, scan_report.project_name, user_id=user_id)
+
+            async def _progress(progress_pct: int, message: str) -> None:
+                scan_report.progress = progress_pct
+                scan_report.current_scanner = message
+                add_scan_log(scan_id, "SCAN", message)
+                try:
+                    await scan_report.save()
+                except Exception as e:
+                    logger.warning("Failed to persist scan progress: %s", e)
+                try:
+                    await ws_manager.notify_scan_progress(
+                        scan_id, scan_report.project_name, progress_pct, message, user_id=user_id
+                    )
+                except Exception as e:
+                    logger.warning("Failed to broadcast scan progress: %s", e)
+
             logger.info("Cloning repository...")
+            await _progress(5, "Cloning repository and preparing codebase...")
             clone_info = await repo_cloner.clone_repository(
                 git_metadata.repository_url,
                 git_metadata.branch,
@@ -282,7 +329,8 @@ class WebhookProcessor:
                 _updated_scan_report = await enhanced_workflow.execute_comprehensive_scan(
                     scan_report=scan_report,
                     repository_path=local_path,
-                    target_url=None
+                    target_url=None,
+                    progress_callback=_progress
                 )
 
                 logger.info(f"Enhanced scan workflow completed successfully for {git_metadata.repository_url}")
@@ -291,6 +339,23 @@ class WebhookProcessor:
                 if settings.cleanup_after_scan:
                     await repo_cloner.cleanup_repository(local_path)
 
+            add_scan_log(
+                scan_id, "INFO",
+                f"Scan completed: {scan_report.total_findings} findings "
+                f"({scan_report.findings_by_severity.get('critical', 0)} critical, "
+                f"{scan_report.findings_by_severity.get('high', 0)} high, "
+                f"{scan_report.findings_by_severity.get('medium', 0)} medium, "
+                f"{scan_report.findings_by_severity.get('low', 0)} low)"
+            )
+            try:
+                await ws_manager.notify_scan_completed(
+                    scan_id, scan_report.project_name,
+                    scan_report.total_findings, scan_report.findings_by_severity,
+                    user_id=user_id
+                )
+            except Exception as e:
+                logger.warning("Failed to broadcast scan completion: %s", e)
+
         except Exception as e:
             error_msg = f"Scan workflow failed: {e}"
             logger.error(error_msg, exc_info=True)
@@ -298,6 +363,16 @@ class WebhookProcessor:
             webhook_event.status = "failed"
             webhook_event.error_message = error_msg
             await webhook_event.save()
+
+            project_name = scan_report.project_name if scan_report else git_metadata.repository_url
+            add_scan_log(str(scan_report.scan_id) if scan_report else "unknown", "ERROR", error_msg)
+            try:
+                await ws_manager.notify_scan_failed(
+                    str(scan_report.scan_id) if scan_report else "unknown",
+                    project_name, error_msg, user_id=user_id
+                )
+            except Exception as ws_error:
+                logger.warning("Failed to broadcast scan failure: %s", ws_error)
 
             if scan_report:
                 scan_report.status = ScanStatus.FAILED

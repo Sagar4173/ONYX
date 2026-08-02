@@ -5,7 +5,7 @@ Ensures complete scanning with AI analysis and proper error handling
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from models.report import ScanReport, ScanResult, ScanStatus
 from services.ai.ai_processor import get_ai_processor
@@ -35,7 +35,8 @@ class EnhancedScanningWorkflow:
         scan_report: ScanReport,
         repository_path: str,
         target_url: Optional[str] = None,
-        scan_config: Optional[ScanConfig] = None
+        scan_config: Optional[ScanConfig] = None,
+        progress_callback: Optional[Callable[[int, str], Awaitable]] = None
     ) -> ScanReport:
         """
         Execute a comprehensive security scan with AI analysis
@@ -45,10 +46,19 @@ class EnhancedScanningWorkflow:
             repository_path: Local path to the repository
             target_url: Optional target URL for DAST scanning
             scan_config: Optional scanner configuration
-            
+            progress_callback: Optional async callback (progress_pct, message)
+                invoked as each scan phase starts, enabling live progress UI
+        
         Returns:
             Updated scan report with results and AI analysis
         """
+        async def _report(pct: int, message: str) -> None:
+            if progress_callback:
+                try:
+                    await progress_callback(pct, message)
+                except Exception as e:
+                    logger.warning("Progress callback failed: %s", e)
+
         try:
             logger.info(f"Starting comprehensive scan for {scan_report.project_name}")
             
@@ -56,10 +66,12 @@ class EnhancedScanningWorkflow:
             scan_report.status = ScanStatus.RUNNING
             scan_report.started_at = datetime.now(timezone.utc)
             await scan_report.save()
+            await _report(10, "Analyzing repository structure...")
             
             # Phase 1: Repository Analysis
             logger.info("Phase 1: Analyzing repository structure...")
             repo_context = await self._analyze_repository_context(repository_path)
+            await _report(30, "Running security scanners...")
             
             # Phase 2: Security Scanning
             logger.info("Phase 2: Running security scanners...")
@@ -74,6 +86,7 @@ class EnhancedScanningWorkflow:
             scan_report.scan_results = scan_results
             scan_report.update_summary()
             await scan_report.save()
+            await _report(55, "Generating AI analysis...")
             
             # Phase 3: AI Analysis (always run, even if no findings)
             logger.info("Phase 3: Generating AI analysis...")
@@ -83,16 +96,19 @@ class EnhancedScanningWorkflow:
                 scan_report
             )
             scan_report.ai_analysis = ai_analysis
+            await _report(65, "Processing vulnerabilities...")
             
             # Phase 4: Vulnerability Management
             logger.info("Phase 4: Processing vulnerabilities...")
             await self._process_vulnerabilities(scan_report, repo_context)
+            await _report(75, "Analyzing compliance...")
             
             # Phase 5: Compliance Analysis
             logger.info("Phase 5: Analyzing compliance...")
             compliance_analysis = await self._analyze_compliance(scan_report)
             if compliance_analysis:
                 scan_report.metadata["compliance_analysis"] = compliance_analysis
+            await _report(85, "Finalizing report...")
             
             # Phase 6: Final Report Generation
             logger.info("Phase 6: Finalizing report...")
@@ -112,6 +128,7 @@ class EnhancedScanningWorkflow:
             })
             
             await scan_report.save()
+            await _report(90, "Updating secret history...")
             
             # Phase 7: Secret History Tracking
             logger.info("Phase 7: Updating secret history...")
@@ -120,7 +137,8 @@ class EnhancedScanningWorkflow:
                 await SecretHistoryService().update_from_scan(scan_report)
             except Exception as e:
                 logger.warning("Secret history update failed: %s", e)
-
+            await _report(95, "Sending notifications...")
+            
             # Phase 8: Notifications
             logger.info("Phase 8: Sending notifications...")
             try:
@@ -128,6 +146,7 @@ class EnhancedScanningWorkflow:
             except Exception as e:
                 logger.warning(f"Notification failed: {e}")
             
+            await _report(100, "Scan complete")
             logger.info(f"Comprehensive scan completed for {scan_report.project_name}")
             return scan_report
             
