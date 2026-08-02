@@ -52,7 +52,7 @@ const MetricCard = ({
         <div className="p-2.5 rounded-xl" style={{ background: `${color}20` }}>
           <Icon className="w-5 h-5" style={{ color }} />
         </div>
-        {trend && <Sparkline data={trend} color={color} />}
+        {Array.isArray(trend) && trend.length >= 2 && <Sparkline data={trend} color={color} />}
       </div>
       <motion.p className="text-2xl font-bold text-white font-mono">{displayValue}</motion.p>
       <p className="text-sm text-gray-400 mt-0.5">{label}</p>

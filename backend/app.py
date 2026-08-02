@@ -175,10 +175,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Handle OPTIONS requests explicitly
-@app.options("/{full_path:path}")
-async def options_handler():
-    return {"message": "OK"}
+# CORS middleware handles OPTIONS preflight requests itself,
+# so no catch-all OPTIONS route is registered here.
 
 # Include API routers with consistent /api/ prefixing
 # Core routes
