@@ -351,7 +351,7 @@ export const reportsAPI = {
       scan_id: scanId,
       message,
       conversation_history: conversationHistory.slice(-20),
-    });
+    }, { timeout: 300000 });
     return response.data;
   },
 
