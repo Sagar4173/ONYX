@@ -518,7 +518,7 @@ export const EmptyState = ({ icon, title, description, action, className = "" })
       transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
       className="mb-6"
     >
-      {icon ? (
+      {React.isValidElement(icon) ? (
         <div className="text-gray-500">{icon}</div>
       ) : (
         <svg

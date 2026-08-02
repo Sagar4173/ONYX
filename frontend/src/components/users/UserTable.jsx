@@ -39,7 +39,7 @@ const UserTable = ({
   }
 
   if (!usersData?.users?.length) {
-    return <EmptyState icon={UsersIcon} title="No Users Found" />;
+    return <EmptyState icon={<UsersIcon className="h-12 w-12" />} title="No Users Found" />;
   }
 
   return (

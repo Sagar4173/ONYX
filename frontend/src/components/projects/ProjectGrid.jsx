@@ -89,7 +89,7 @@ const ProjectGrid = ({
   if (!projects || projects.length === 0) {
     return (
       <EmptyState
-        icon={FolderIcon}
+        icon={<FolderIcon className="h-12 w-12" />}
         title="No projects found"
         description="Get started by creating your first security scanning project."
         action={
