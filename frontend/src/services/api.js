@@ -1123,6 +1123,30 @@ export const utils = {
     return colors[severity?.toLowerCase()] || colors.info;
   },
 
+  // Get severity background color
+  getSeverityBgColor: (severity) => {
+    const colors = {
+      critical: "bg-red-100",
+      high: "bg-orange-100",
+      medium: "bg-yellow-100",
+      low: "bg-cyan-100",
+      info: "bg-gray-100",
+    };
+    return colors[severity?.toLowerCase()] || colors.info;
+  },
+
+  // Get severity text color
+  getSeverityTextColor: (severity) => {
+    const colors = {
+      critical: "text-red-600",
+      high: "text-orange-600",
+      medium: "text-yellow-600",
+      low: "text-cyan-600",
+      info: "text-gray-600",
+    };
+    return colors[severity?.toLowerCase()] || colors.info;
+  },
+
   // Download file
   downloadFile: (data, filename, mimeType = "application/octet-stream") => {
     const blob = new Blob([data], { type: mimeType });

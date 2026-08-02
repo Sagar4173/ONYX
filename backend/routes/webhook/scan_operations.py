@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from models.report import (
@@ -26,6 +26,7 @@ from services.notifications.websocket_manager import ws_manager
 from services.scanning.scanners import RealSecurityScanner
 from services.service_registry import ServiceRegistry
 from utils.error_handling import get_safe_error_detail
+from utils.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,9 @@ async def stop_scan(
 
 
 @router.post("/scan")
+@limiter.limit("10/minute")
 async def submit_scan(
+    request: Request,
     scan_request: ScanRequest,
     current_user: User = Depends(get_current_user)
 ) -> JSONResponse:

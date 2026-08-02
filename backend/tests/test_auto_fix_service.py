@@ -49,7 +49,7 @@ def scan_report(scan_result):
     sr = MagicMock(spec=ScanReport)
     sr.project_name = "test-repo"
     sr.scan_id = "scan-001"
-    sr.owner_id = "user-1"
+    sr.user_id = "user-1"
     sr.project_id = "proj-1"
     sr.total_findings = 1
     sr.scan_results = [scan_result]

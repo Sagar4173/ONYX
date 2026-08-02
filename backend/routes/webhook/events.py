@@ -1,26 +1,62 @@
+import hashlib
+import hmac
 import logging
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
+from config import settings
 from models.report import WebhookEvent
 from routes.webhook.processor import webhook_processor
 from utils.error_handling import get_safe_error_detail
+from utils.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
+def _verify_webhook_signature(request: Request, raw_body: bytes) -> None:
+    """Reject requests without a valid shared-secret signature."""
+    if not settings.webhook_secret:
+        logger.warning("WEBHOOK_SECRET is not set; webhook endpoint is unauthenticated")
+        return
+
+    provided = request.headers.get("x-onyx-webhook-secret") or request.headers.get("x-webhook-secret")
+    if provided and hmac.compare_digest(provided, settings.webhook_secret):
+        return
+
+    # GitHub-style HMAC-SHA256 signature: sha256=<hex digest of raw body>
+    signature = request.headers.get("x-hub-signature-256")
+    if signature and signature.startswith("sha256="):
+        expected = hmac.new(
+            settings.webhook_secret.encode("utf-8"),
+            raw_body,
+            hashlib.sha256,
+        ).hexdigest()
+        if hmac.compare_digest(signature[len("sha256="):], expected):
+            return
+
+    raise HTTPException(status_code=401, detail="Invalid or missing webhook signature")
+
+
 @router.post("/")
+@limiter.limit("20/minute")
 async def receive_webhook(
     request: Request,
     background_tasks: BackgroundTasks
 ) -> JSONResponse:
     try:
         headers = dict(request.headers)
-        payload = await request.json()
+        raw_body = await request.body()
+        _verify_webhook_signature(request, raw_body)
+
+        if raw_body:
+            import json
+            payload = json.loads(raw_body)
+        else:
+            payload = {}
 
         logger.info(f"Received webhook from {headers.get('user-agent', 'unknown')}")
 

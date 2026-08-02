@@ -85,17 +85,6 @@ def _build_mock_user(role: str) -> MagicMock:
 # Audit endpoint path sets
 # ---------------------------------------------------------------------------
 
-AUDIT_AUTH_PATHS = frozenset({
-    "/api/enterprise/audit-logs/query",
-    "/api/enterprise/audit-logs/user/{user_id}",
-    "/api/enterprise/audit-logs/resource/{resource_type}/{resource_id}",
-    "/api/enterprise/audit-logs/compliance-report",
-    "/api/enterprise/audit-logs/export",
-    "/api/enterprise/audit-logs/verify/{event_id}",
-    "/api/enterprise/audit-logs",
-    "/api/enterprise/audit-logs/users",
-})
-
 # Endpoints that go through audit service (need mock_service patch)
 AUDIT_SERVICE_PATHS = frozenset({
     "/api/enterprise/audit-logs/query",
@@ -161,10 +150,21 @@ def _setup_client(user_role=None):
     found_audit_routes = 0
     found_bound_methods = 0
 
-    for route in app.routes:
+    def _flatten_routes(routes):
+        # FastAPI 0.139+ wraps include_router results in _IncludedRouter
+        # containers whose routes live under original_router.routes; recurse
+        # so introspection works across versions.
+        for route in routes:
+            nested = getattr(route, "original_router", None)
+            if nested is not None:
+                yield from _flatten_routes(nested.routes)
+            else:
+                yield route
+
+    for route in _flatten_routes(app.routes):
         if not hasattr(route, "dependant"):
             continue
-        if route.path not in AUDIT_AUTH_PATHS:
+        if "audit-logs" not in route.path:
             continue
         found_audit_routes += 1
         deps = route.dependant.dependencies

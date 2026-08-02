@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials
 
+from utils.rate_limit import limiter
 from models.user import LoginRequest, RefreshTokenRequest, TokenResponse, User, UserSession
 from services.auth.auth_service import auth_service
 from utils.datetime_utils import utc_now
@@ -14,6 +15,7 @@ router = APIRouter()
 
 
 @router.post("/login")
+@limiter.limit("30/minute")
 async def login(login_data: LoginRequest, request: Request) -> Any:
     try:
         response = await auth_service.login(login_data, request)

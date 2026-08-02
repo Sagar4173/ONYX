@@ -582,7 +582,6 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
               </li>
             ))}
           </ul>
-        </div>
         </motion.div>
       )}
     </motion.div>

@@ -1,4 +1,6 @@
 
+from typing import Any, Dict
+
 from fastapi import APIRouter, Depends, Query
 
 from models.user import APITokenCreate, APITokenResponse, User, UserPasswordChange, UserResponse, UserUpdate
@@ -6,6 +8,23 @@ from services.auth.auth_service import auth_service
 from services.auth.user_service import user_service
 
 router = APIRouter(tags=["User Management - Profile"])
+
+
+@router.get("/me/settings")
+async def get_current_user_settings(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    return current_user.settings or {}
+
+
+@router.put("/me/settings")
+async def update_current_user_settings(
+    settings_data: Dict[str, Any],
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    current_user.settings = settings_data
+    await current_user.save()
+    return {"status": "saved", "settings": current_user.settings}
 
 
 @router.get("/me", response_model=UserResponse)

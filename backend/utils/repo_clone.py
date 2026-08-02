@@ -2,11 +2,14 @@
 Git repository cloning utilities
 """
 import asyncio
+import ipaddress
 import logging
 import shutil
+import socket
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
+from urllib.parse import urlparse
 
 from git import GitCommandError, InvalidGitRepositoryError, Repo
 
@@ -15,10 +18,75 @@ from utils.datetime_utils import utc_now
 
 logger = logging.getLogger(__name__)
 
+# Schemes we are willing to clone over (file:// and plain local paths are rejected)
+ALLOWED_GIT_SCHEMES = ("https", "http", "ssh", "git")
+
 
 class RepoCloneError(Exception):
     """Custom exception for repository cloning errors"""
     pass
+
+
+def _is_private_host(host: str) -> bool:
+    """Return True if host resolves to a loopback/private/link-local/reserved address."""
+    try:
+        ip = ipaddress.ip_address(host)
+        candidates = [ip]
+    except ValueError:
+        try:
+            infos = socket.getaddrinfo(host, None)
+        except socket.gaierror:
+            # Unresolvable hostnames are allowed; git will fail later if truly invalid.
+            return False
+        candidates = [info[4][0] for info in infos if info and len(info) > 4 and info[4]]
+
+    for candidate in candidates:
+        try:
+            ip = ipaddress.ip_address(candidate)
+        except ValueError:
+            continue
+        if (
+            ip.is_loopback
+            or ip.is_private
+            or ip.is_link_local
+            or ip.is_multicast
+            or ip.is_reserved
+            or ip.is_unspecified
+        ):
+            return True
+    return False
+
+
+def validate_repo_url(repo_url: str) -> None:
+    """
+    Validate a repository URL before cloning to prevent SSRF and local-file access.
+
+    Raises RepoCloneError for disallowed schemes, local paths, and private hosts.
+    """
+    url = (repo_url or "").strip()
+    if not url:
+        raise RepoCloneError("Repository URL is required")
+
+    parsed = urlparse(url)
+
+    if parsed.scheme:
+        if parsed.scheme.lower() not in ALLOWED_GIT_SCHEMES:
+            raise RepoCloneError(f"Unsupported repository URL scheme: {parsed.scheme}")
+        host = parsed.hostname
+        if not host:
+            raise RepoCloneError("Repository URL has no host")
+        if _is_private_host(host):
+            raise RepoCloneError(f"Repository host is not allowed: {host}")
+    else:
+        # scp-like syntax: git@github.com:owner/repo.git OR a local path
+        at_parts = url.split("@")
+        user_host = at_parts[-1]
+        if ":" in user_host and not user_host.startswith(":"):
+            host = user_host.split(":", 1)[0]
+            if _is_private_host(host):
+                raise RepoCloneError(f"Repository host is not allowed: {host}")
+        else:
+            raise RepoCloneError("Repository URL must be a remote git URL (no local paths)")
 
 
 class GitRepoCloner:
@@ -70,6 +138,8 @@ class GitRepoCloner:
         Returns:
             Dict containing clone information and local path
         """
+        validate_repo_url(repo_url)
+
         repo_name = self._get_repo_name(repo_url)
         sanitized_name = self._sanitize_path(repo_name)
         
@@ -90,19 +160,37 @@ class GitRepoCloner:
             # Remove None values
             clone_kwargs = {k: v for k, v in clone_kwargs.items() if v is not None}
             
-            # Clone the repository
-            repo = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: Repo.clone_from(repo_url, clone_dir, **clone_kwargs)
-            )
+            # Clone the repository (bounded by configured timeout)
+            try:
+                repo = await asyncio.wait_for(
+                    asyncio.get_event_loop().run_in_executor(
+                        None,
+                        lambda: Repo.clone_from(repo_url, clone_dir, **clone_kwargs)
+                    ),
+                    timeout=settings.git_clone_timeout,
+                )
+            except asyncio.TimeoutError:
+                self._cleanup_directory(clone_dir)
+                raise RepoCloneError(
+                    f"Repository clone timed out after {settings.git_clone_timeout} seconds"
+                ) from None
             
             # Checkout specific commit if provided
             if commit_hash:
                 logger.info(f"Checking out commit {commit_hash}")
-                await asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: repo.git.checkout(commit_hash)
-                )
+                try:
+                    await asyncio.wait_for(
+                        asyncio.get_event_loop().run_in_executor(
+                            None,
+                            lambda: repo.git.checkout(commit_hash)
+                        ),
+                        timeout=settings.git_clone_timeout,
+                    )
+                except asyncio.TimeoutError:
+                    self._cleanup_directory(clone_dir)
+                    raise RepoCloneError(
+                        f"Commit checkout timed out after {settings.git_clone_timeout} seconds"
+                    ) from None
             
             # Get repository metadata
             head_commit = repo.head.commit

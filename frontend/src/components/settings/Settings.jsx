@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   CogIcon,
@@ -36,6 +36,20 @@ const contentAnim = {
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("security");
   const { user } = useAuth();
+
+  const settingsApiUrl = `${import.meta.env.DEV ? "http://127.0.0.1:8000" : ""}/api/users/me/settings`;
+
+  const { data: savedSettings } = useQuery({
+    queryKey: ["userSettings"],
+    queryFn: async () => {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(settingsApiUrl, {
+        headers: { Authorization: token ? `Bearer ${token}` : "" },
+      });
+      if (!response.ok) return {};
+      return response.json();
+    },
+  });
 
   const [settings, setSettings] = useState({
     security: {
@@ -76,10 +90,8 @@ const Settings = () => {
   const saveSettingsMutation = useMutation({
     mutationFn: async (settingsData) => {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(
-        `${import.meta.env.DEV ? "http://127.0.0.1:8000" : ""}/api/users/me/settings`,
-        {
-          method: "PUT",
+      const response = await fetch(settingsApiUrl, {
+        method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: token ? `Bearer ${token}` : "",
@@ -100,6 +112,12 @@ const Settings = () => {
       toast.error(error.message || "Failed to save settings");
     },
   });
+
+  useEffect(() => {
+    if (savedSettings && Object.keys(savedSettings).length > 0) {
+      setSettings((prev) => ({ ...prev, ...savedSettings }));
+    }
+  }, [savedSettings]);
 
   const handleSettingChange = (category, key, value) => {
     setSettings((prev) => ({

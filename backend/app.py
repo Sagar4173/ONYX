@@ -16,9 +16,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent / '.env'
@@ -75,7 +75,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Rate limiter setup
-limiter = Limiter(key_func=get_remote_address)
+from utils.rate_limit import limiter
 
 # Lifespan context manager for startup/shutdown events
 @asynccontextmanager
@@ -152,6 +152,7 @@ app = FastAPI(
 # Add rate limiting to app state
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS settings from environment variables
 allowed_origins = settings.cors_origins_list
@@ -416,7 +417,7 @@ async def get_public_stats():
 async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=None)):
     """
     WebSocket endpoint for real-time updates.
-    Supports optional authentication via token query parameter.
+    Requires a valid access token; anonymous connections are rejected.
     """
     client_host = websocket.client.host if websocket.client else "unknown"
     logger.info(f"WebSocket connection attempt from {client_host}")
@@ -432,6 +433,11 @@ async def websocket_endpoint(websocket: WebSocket, token: str = Query(default=No
                 logger.info(f"WebSocket authenticated for user: {user_id}")
         except Exception as auth_error:
             logger.warning(f"WebSocket token verification failed: {auth_error}")
+    
+    if not user_id:
+        logger.info(f"Rejecting unauthenticated WebSocket connection from {client_host}")
+        await websocket.close(code=1008, reason="Authentication required")
+        return
     
     try:
         # Connect using the WebSocket manager

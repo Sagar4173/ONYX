@@ -91,16 +91,11 @@ def _build_mock_user(role: str) -> MagicMock:
 # Override helpers
 # ---------------------------------------------------------------------------
 
-RETENTION_POST_PATHS = {
-    "/api/enterprise/retention/policies",
-    "/api/enterprise/retention/policies/{policy_id}/execute",
-    "/api/enterprise/retention/policies/execute-all",
-    "/api/enterprise/retention/initialize-defaults",
-}
-
-RETENTION_GET_PATHS = {
-    "/api/enterprise/retention-policies",
-    "/api/enterprise/retention/statistics",
+RETENTION_POST_SUFFIXES = {
+    "/retention/policies",
+    "/retention/policies/{policy_id}/execute",
+    "/retention/policies/execute-all",
+    "/retention/initialize-defaults",
 }
 
 
@@ -164,12 +159,23 @@ def _setup_client(user_role=None):
     found_post_routes = 0
     found_bound_methods = 0
 
-    for route in app.routes:
+    def _flatten_routes(routes):
+        # FastAPI 0.139+ wraps include_router results in _IncludedRouter
+        # containers whose routes live under original_router.routes; recurse
+        # so introspection works across versions.
+        for route in routes:
+            nested = getattr(route, "original_router", None)
+            if nested is not None:
+                yield from _flatten_routes(nested.routes)
+            else:
+                yield route
+
+    for route in _flatten_routes(app.routes):
         if not hasattr(route, "dependant"):
             continue
         if "retention" not in route.path:
             continue
-        if route.path not in RETENTION_POST_PATHS:
+        if not any(route.path.endswith(s) for s in RETENTION_POST_SUFFIXES):
             continue
         found_post_routes += 1
         deps = route.dependant.dependencies

@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import git
 
 from database import db_manager
+from utils.repo_clone import validate_repo_url
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ async def start_comprehensive_scan_task(
     try:
         temp_dir = tempfile.mkdtemp(prefix='advanced_scan_')
         logger.info(f"Cloning repository {repository_url} to {temp_dir}")
+        validate_repo_url(repository_url)
         _repo = git.Repo.clone_from(repository_url, temp_dir)
 
         from .engine import get_scanner_engine
@@ -64,6 +66,7 @@ async def start_sast_scan_task(
     temp_dir = None
     try:
         temp_dir = tempfile.mkdtemp(prefix='sast_scan_')
+        validate_repo_url(repository_url)
         _repo = git.Repo.clone_from(repository_url, temp_dir)
 
         from .engine import generate_findings_summary, get_scanner_engine
@@ -168,6 +171,7 @@ async def start_iac_scan_task(
     temp_dir = None
     try:
         temp_dir = tempfile.mkdtemp(prefix='iac_scan_')
+        validate_repo_url(repository_url)
         _repo = git.Repo.clone_from(repository_url, temp_dir)
 
         from .engine import generate_findings_summary, get_scanner_engine

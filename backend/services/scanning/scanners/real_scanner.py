@@ -15,6 +15,8 @@ from typing import Any, Dict, List, Optional
 
 from git import Repo
 
+from utils.repo_clone import validate_repo_url
+
 logger = logging.getLogger(__name__)
 
 # Thread pool for running blocking operations
@@ -118,6 +120,7 @@ class RealSecurityScanner:
     
     async def _clone_repository(self, repository_url: str, branch: str) -> str:
         """Clone repository to temporary directory (non-blocking)"""
+        validate_repo_url(repository_url)
         repo_name = repository_url.split('/')[-1].replace('.git', '')
         clone_path = os.path.join(self.temp_dir, repo_name)
         

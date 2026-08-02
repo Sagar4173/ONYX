@@ -1,13 +1,14 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import ValidationError
 
 from config import settings
 from models.user import User, UserCreate, UserResponse, UserRole
 from services.auth.auth_service import auth_service
 from utils.error_handling import get_safe_error_detail
+from utils.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,9 @@ router = APIRouter()
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/hour")
 async def register_user(
+    request: Request,
     user_data: UserCreate,
     current_user: Optional[User] = Depends(auth_service.get_optional_current_user)
 ):

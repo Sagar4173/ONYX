@@ -7,22 +7,32 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, field_validator
 
 from config import settings
-from models.report import ScanReport
 from routes.dependencies import get_current_user
+from routes.reports.report_dependencies import get_accessible_scan_report
 from utils.error_handling import get_safe_error_detail
+from utils.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ai", tags=["AI Security Chat"])
 
+ALLOWED_CHAT_ROLES = ("user", "assistant")
+
 
 class ChatMessage(BaseModel):
     role: str
     content: str
+
+    @field_validator("role")
+    @classmethod
+    def valid_role(cls, v: str) -> str:
+        if v not in ALLOWED_CHAT_ROLES:
+            raise ValueError("role must be 'user' or 'assistant'")
+        return v
 
 
 class ChatRequest(BaseModel):
@@ -44,14 +54,7 @@ class ChatResponse(BaseModel):
 
 
 async def _build_scan_context(scan_id: str, user) -> Optional[Dict[str, Any]]:
-    report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": str(user.id)})
-    if not report:
-        report = await ScanReport.find_one({"scan_id": scan_id})
-    if not report:
-        try:
-            report = await ScanReport.get(scan_id)
-        except Exception:
-            report = None
+    report = await get_accessible_scan_report(scan_id, str(user.id))
     if not report:
         return None
 
@@ -119,7 +122,8 @@ The user's scan results and AI analysis context are provided below. Use them to 
 
     if conversation_history:
         for msg in conversation_history:
-            messages.append({"role": msg["role"], "content": msg["content"]})
+            role = msg["role"] if msg["role"] in ALLOWED_CHAT_ROLES else "user"
+            messages.append({"role": role, "content": msg["content"]})
 
     messages.append({"role": "user", "content": message})
 
@@ -207,11 +211,13 @@ def _get_active_model() -> str:
 
 
 @router.post("/chat", response_model=ChatResponse)
+@limiter.limit("30/minute")
 async def ai_chat(
-    request: ChatRequest,
+    request: Request,
+    payload: ChatRequest,
     user=Depends(get_current_user),
 ):
-    scan_context = await _build_scan_context(request.scan_id, user)
+    scan_context = await _build_scan_context(payload.scan_id, user)
     if not scan_context:
         raise HTTPException(
             status_code=404,
@@ -219,12 +225,12 @@ async def ai_chat(
         )
 
     hist = None
-    if request.conversation_history:
-        hist = [{"role": m.role, "content": m.content} for m in request.conversation_history]
+    if payload.conversation_history:
+        hist = [{"role": m.role, "content": m.content} for m in payload.conversation_history]
 
     try:
         reply = await _call_ai_chat(
-            message=request.message,
+            message=payload.message,
             scan_context=scan_context,
             conversation_history=hist,
         )

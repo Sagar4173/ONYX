@@ -2,8 +2,8 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from models.report import ScanReport
 from routes.dependencies import get_current_user
+from routes.reports.report_dependencies import get_accessible_scan_report
 from services.scm.auto_fix_service import AutoFixError, auto_fix_service
 
 logger = logging.getLogger(__name__)
@@ -17,13 +17,11 @@ async def trigger_auto_fix(
     finding_id: str,
     user=Depends(get_current_user),
 ):
-    report = await ScanReport.find_one({"scan_id": scan_id, "owner_id": str(user.id)})
+    report = await get_accessible_scan_report(scan_id, str(user.id))
     if not report:
-        report = await ScanReport.find_one({"scan_id": scan_id})
-        if not report:
-            raise HTTPException(
-                status_code=404, detail="Scan report not found or access denied"
-            )
+        raise HTTPException(
+            status_code=404, detail="Scan report not found or access denied"
+        )
 
     try:
         result = await auto_fix_service.create_auto_fix_pr(report, finding_id)
@@ -33,5 +31,5 @@ async def trigger_auto_fix(
     except Exception as e:
         logger.error(f"Auto-fix failed for scan {scan_id}, finding {finding_id}: {e}")
         raise HTTPException(
-            status_code=502, detail=f"Auto-fix failed: {str(e)}"
+            status_code=502, detail="Auto-fix failed. Please try again later."
         )

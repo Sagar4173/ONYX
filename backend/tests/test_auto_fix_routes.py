@@ -52,7 +52,8 @@ class TestAutoFixRoute:
         sr = MagicMock(spec=ScanReport)
         sr.project_name = "test-repo"
         sr.scan_id = self.scan_id
-        sr.owner_id = "user-test-123"
+        sr.user_id = "user-test-123"
+        sr.project_id = None
         sr.total_findings = 0
         sr.scan_results = []
         sr.git_metadata = GitMetadata(
@@ -63,13 +64,26 @@ class TestAutoFixRoute:
         )
         return sr
 
-    def test_auto_fix_success(self):
+    def _patch_access(self, report=None):
         from models.report import ScanReport as SR
+        patchers = [
+            patch.object(SR, "find_one", AsyncMock(return_value=report)),
+            patch(
+                "routes.reports.report_dependencies.get_user_project_ids",
+                AsyncMock(return_value=[]),
+            ),
+        ]
+        for patcher in patchers:
+            patcher.start()
+        return patchers
+
+    def test_auto_fix_success(self):
         mock_report = self._make_report()
 
         client = _setup_client()
 
-        with patch.object(SR, "find_one", AsyncMock(return_value=mock_report)):
+        patchers = self._patch_access(mock_report)
+        try:
             with patch(
                 "routes.auto_fix.auto_fix_service.create_auto_fix_pr",
                 AsyncMock(return_value={
@@ -81,6 +95,9 @@ class TestAutoFixRoute:
                 }),
             ):
                 response = client.post(self.endpoint)
+        finally:
+            for patcher in patchers:
+                patcher.stop()
 
         assert response.status_code == 200
         data = response.json()
@@ -96,6 +113,22 @@ class TestAutoFixRoute:
 
         assert response.status_code == 404
 
+    def test_auto_fix_access_denied_for_foreign_scan(self):
+        """Foreign scan must not be auto-fixable (IDOR regression)."""
+        foreign_report = self._make_report()
+        foreign_report.user_id = "someone-else"
+
+        client = _setup_client()
+
+        patchers = self._patch_access(foreign_report)
+        try:
+            response = client.post(self.endpoint)
+        finally:
+            for patcher in patchers:
+                patcher.stop()
+
+        assert response.status_code == 404
+
     def test_auto_fix_unauthenticated(self):
         app.dependency_overrides.clear()
         client = TestClient(app)
@@ -105,32 +138,39 @@ class TestAutoFixRoute:
         assert response.status_code == 401
 
     def test_auto_fix_service_error(self):
-        from models.report import ScanReport as SR
         mock_report = self._make_report()
 
         client = _setup_client()
 
-        with patch.object(SR, "find_one", AsyncMock(return_value=mock_report)):
+        patchers = self._patch_access(mock_report)
+        try:
             with patch(
                 "routes.auto_fix.auto_fix_service.create_auto_fix_pr",
                 AsyncMock(side_effect=Exception("Internal error")),
             ):
                 response = client.post(self.endpoint)
+        finally:
+            for patcher in patchers:
+                patcher.stop()
 
         assert response.status_code == 502
+        assert "Internal error" not in response.json()["detail"]
 
     def test_auto_fix_bad_request(self):
-        from models.report import ScanReport as SR
         mock_report = self._make_report()
 
         client = _setup_client()
 
-        with patch.object(SR, "find_one", AsyncMock(return_value=mock_report)):
+        patchers = self._patch_access(mock_report)
+        try:
             with patch(
                 "routes.auto_fix.auto_fix_service.create_auto_fix_pr",
                 AsyncMock(side_effect=AutoFixError("No remediation code")),
             ):
                 response = client.post(self.endpoint)
+        finally:
+            for patcher in patchers:
+                patcher.stop()
 
         assert response.status_code == 400
         assert "No remediation code" in response.json()["detail"]

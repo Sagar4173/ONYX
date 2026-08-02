@@ -59,6 +59,9 @@ class User(Document):
         "product_updates": False,
         "marketing": False
     })
+
+    # User settings (security, notifications, scanning, API preferences)
+    settings: dict = Field(default_factory=dict)
     
     # Permissions & Projects
     project_permissions: List[str] = Field(default_factory=list)  # Project IDs user has access to

@@ -11,6 +11,7 @@ from routes.dependencies import get_current_user
 
 def _make_mock_user(role=UserRole.DEVELOPER):
     user = MagicMock(spec=User)
+    user.id = "user-test-123"
     user.user_id = "user-test-123"
     user.email = "test@example.com"
     user.role = role
@@ -67,6 +68,9 @@ class TestGetTriage:
         with patch(
             "services.triage.triage_service.TriageService.triage_scan",
             AsyncMock(return_value=mock_result),
+        ), patch(
+            "routes.triage.get_accessible_scan_report",
+            AsyncMock(return_value=MagicMock()),
         ):
             resp = client.get("/api/triage/scan-001")
 
@@ -83,10 +87,25 @@ class TestGetTriage:
         with patch(
             "services.triage.triage_service.TriageService.triage_scan",
             AsyncMock(return_value=None),
+        ), patch(
+            "routes.triage.get_accessible_scan_report",
+            AsyncMock(return_value=None),
         ):
             resp = client.get("/api/triage/scan-999")
         assert resp.status_code == 404
         assert resp.json()["detail"] == "Scan not found"
+
+    def test_get_triage_foreign_scan_rejected(self):
+        client = _setup_client()
+        with patch(
+            "services.triage.triage_service.TriageService.triage_scan",
+            AsyncMock(return_value=MagicMock()),
+        ), patch(
+            "routes.triage.get_accessible_scan_report",
+            AsyncMock(return_value=None),
+        ):
+            resp = client.get("/api/triage/scan-other")
+        assert resp.status_code == 404
 
     def test_get_triage_unauthenticated(self):
         client = TestClient(app)
@@ -118,6 +137,9 @@ class TestPostTriage:
         with patch(
             "services.triage.triage_service.TriageService.triage_scan",
             AsyncMock(return_value=mock_result),
+        ), patch(
+            "routes.triage.get_accessible_scan_report",
+            AsyncMock(return_value=MagicMock()),
         ):
             resp = client.post(
                 "/api/triage/scan-001",
@@ -137,6 +159,9 @@ class TestPostTriage:
         client = _setup_client()
         with patch(
             "services.triage.triage_service.TriageService.triage_scan",
+            AsyncMock(return_value=None),
+        ), patch(
+            "routes.triage.get_accessible_scan_report",
             AsyncMock(return_value=None),
         ):
             resp = client.post(

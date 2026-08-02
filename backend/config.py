@@ -154,6 +154,9 @@ class Settings(BaseSettings):
     # Git operations
     git_clone_timeout: int = Field(default=300, env="GIT_CLONE_TIMEOUT")  # 5 minutes
     git_scan_timeout: int = Field(default=600, env="GIT_SCAN_TIMEOUT")   # 10 minutes
+
+    # Webhooks
+    webhook_secret: Optional[str] = Field(default=None, env="WEBHOOK_SECRET")
     
     # Auto-Fix PRs
     auto_fix_branch_prefix: str = Field(default="onyx-auto-fix/", env="AUTO_FIX_BRANCH_PREFIX")

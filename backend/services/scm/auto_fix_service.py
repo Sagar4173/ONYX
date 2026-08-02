@@ -12,6 +12,7 @@ import httpx
 from config import settings
 from models.project import Project
 from models.report import ScanReport, VulnerabilityFinding
+from utils.repo_clone import validate_repo_url
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,8 @@ class AutoFixService:
     def _clone_repo(self, repo_url: str, branch: str, token: Optional[str]) -> str:
         from git import Repo
         from git.exc import GitCommandError
+
+        validate_repo_url(repo_url)
 
         clone_url = repo_url
         if token:
