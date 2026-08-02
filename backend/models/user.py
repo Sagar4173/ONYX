@@ -12,6 +12,7 @@ from pymongo import IndexModel
 
 # Import shared enums and utilities from the single source of truth
 from .base import UserRole, UserStatus, utc_now
+from utils.datetime_utils import ensure_utc
 
 
 class User(Document):
@@ -126,7 +127,7 @@ class User(Document):
     
     def is_account_locked(self) -> bool:
         """Check if account is locked due to failed attempts"""
-        if self.locked_until and self.locked_until > datetime.now(timezone.utc):
+        if self.locked_until and ensure_utc(self.locked_until) > datetime.now(timezone.utc):
             return True
         return False
     

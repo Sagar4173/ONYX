@@ -420,6 +420,23 @@ class TestGoogleSSOLogin:
         assert exc_info.value.status_code == 423
 
 
+def test_is_account_locked_naive_round_trip():
+    """Mongo strips tzinfo; a naive locked_until must still lock the account, not crash."""
+    from models.user import User
+
+    user = User.model_construct(
+        email="lock@example.com",
+        username="lockuser",
+        full_name="Lock User",
+        hashed_password="x",
+    )
+    user.locked_until = (datetime.now(timezone.utc) + timedelta(minutes=5)).replace(tzinfo=None)
+    assert user.is_account_locked() is True
+
+    user.locked_until = (datetime.now(timezone.utc) - timedelta(minutes=5)).replace(tzinfo=None)
+    assert user.is_account_locked() is False
+
+
 class TestSsoNonceLifecycle:
     """Server-issued SSO nonces must be validated, single-use, and short-lived."""
 
@@ -485,6 +502,41 @@ class TestSsoNonceLifecycle:
             with pytest.raises(HTTPException) as exc_info:
                 await auth_service.consume_sso_nonce("valid-nonce")
         assert exc_info.value.status_code == 401
+
+    async def test_consume_accepts_naive_unexpired_nonce(self):
+        """Mongo strips tzinfo on round-trip; naive datetimes must not crash comparisons."""
+        from services.auth.auth_service import auth_service
+
+        doc = MagicMock()
+        doc.used = False
+        doc.expires_at = (datetime.now(timezone.utc) + timedelta(minutes=5)).replace(tzinfo=None)
+        doc.save = AsyncMock()
+
+        nonce_cls = MagicMock()
+        nonce_cls.find_one = AsyncMock(return_value=doc)
+
+        with patch("services.auth.auth_service.SsoNonce", new=nonce_cls):
+            await auth_service.consume_sso_nonce("naive-nonce")
+        assert doc.used is True
+        doc.save.assert_awaited()
+
+    async def test_consume_rejects_naive_expired_nonce(self):
+        """Naive (DB-round-tripped) expired nonces must raise 401, not 500."""
+        from services.auth.auth_service import auth_service
+
+        doc = MagicMock()
+        doc.used = False
+        doc.expires_at = (datetime.now(timezone.utc) - timedelta(minutes=1)).replace(tzinfo=None)
+        doc.save = AsyncMock()
+
+        nonce_cls = MagicMock()
+        nonce_cls.find_one = AsyncMock(return_value=doc)
+
+        with patch("services.auth.auth_service.SsoNonce", new=nonce_cls):
+            with pytest.raises(HTTPException) as exc_info:
+                await auth_service.consume_sso_nonce("naive-expired")
+        assert exc_info.value.status_code == 401
+        doc.save.assert_not_awaited()
 
 
 class TestGoogleSSOEndpoints:

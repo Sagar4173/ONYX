@@ -35,7 +35,7 @@ from models.user import (
 )
 
 # Import timezone-aware UTC datetime helper
-from utils.datetime_utils import utc_now
+from utils.datetime_utils import utc_now, ensure_utc
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class AuthService:
         
         # Check if account is locked - BRUTE FORCE PROTECTION
         if user.is_account_locked():
-            remaining_time = user.locked_until - utc_now()
+            remaining_time = ensure_utc(user.locked_until) - utc_now()
             minutes_remaining = max(1, int(remaining_time.total_seconds() / 60))
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
@@ -395,7 +395,7 @@ class AuthService:
                 detail="Google SSO requires a nonce"
             )
         doc = await SsoNonce.find_one(SsoNonce.nonce == nonce)
-        if not doc or doc.used or doc.expires_at < utc_now():
+        if not doc or doc.used or ensure_utc(doc.expires_at) < utc_now():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired Google SSO nonce"
@@ -477,7 +477,7 @@ class AuthService:
                 detail="Account is suspended or inactive"
             )
         if user.is_account_locked():
-            remaining_time = user.locked_until - utc_now()
+            remaining_time = ensure_utc(user.locked_until) - utc_now()
             minutes_remaining = max(1, int(remaining_time.total_seconds() / 60))
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
@@ -564,7 +564,7 @@ class AuthService:
             "is_active": True
         })
         
-        if not session or session.refresh_expires_at < utc_now():
+        if not session or ensure_utc(session.refresh_expires_at) < utc_now():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired refresh token"
@@ -1036,7 +1036,7 @@ class AuthService:
             return None
         
         # Check expiration
-        if api_token.expires_at and api_token.expires_at < utc_now():
+        if api_token.expires_at and ensure_utc(api_token.expires_at) < utc_now():
             return None
         
         # Update usage stats
