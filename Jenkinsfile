@@ -172,7 +172,7 @@ pipeline {
                     if command -v trivy >/dev/null 2>&1; then
                         echo "Trivy already installed"
                     else
-                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin && echo "Trivy installed" || echo "⚠️ Trivy install failed"
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /home/ec2-user/ONYX/backend/venv/bin && echo "Trivy installed" || echo "⚠️ Trivy install failed"
                     fi
 
                     echo "Installing Gitleaks..."
@@ -181,7 +181,7 @@ pipeline {
                     else
                         GL_VER=$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -o '"tag_name": *"v[^"]*"' | cut -d'"' -f4 | tr -d 'v')
                         curl -fsSL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VER}/gitleaks_${GL_VER}_linux_x64.tar.gz" \
-                          && sudo tar -xzf /tmp/gitleaks.tgz -C /usr/local/bin gitleaks \
+                          && tar -xzf /tmp/gitleaks.tgz -C /home/ec2-user/ONYX/backend/venv/bin gitleaks \
                           && rm -f /tmp/gitleaks.tgz \
                           && echo "Gitleaks v${GL_VER} installed" || echo "⚠️ Gitleaks install failed"
                     fi
