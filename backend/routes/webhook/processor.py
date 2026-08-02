@@ -51,6 +51,8 @@ class WebhookProcessor:
 
             return event_id
 
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Webhook processing failed: {e}")
             raise HTTPException(status_code=500, detail=get_safe_error_detail(e))
