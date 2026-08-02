@@ -24,6 +24,9 @@ class WebhookProcessor:
         event_id = str(uuid.uuid4())
 
         try:
+            # ASGI header names arrive lowercased; normalize any caller-supplied
+            # casing so provider detection is case-insensitive.
+            headers = {k.lower(): v for k, v in headers.items()}
             git_metadata = self._parse_webhook_data(event_data, headers)
 
             if not git_metadata:
@@ -62,13 +65,13 @@ class WebhookProcessor:
         payload: Dict[str, Any],
         headers: Dict[str, str]
     ) -> Optional[GitMetadata]:
-        if 'X-GitHub-Event' in headers or 'github' in headers.get('User-Agent', '').lower():
+        if 'x-github-event' in headers or 'github' in headers.get('user-agent', ''):
             return self._parse_github_webhook(payload, headers)
 
-        elif 'X-Gitlab-Event' in headers:
+        elif 'x-gitlab-event' in headers:
             return self._parse_gitlab_webhook(payload, headers)
 
-        elif 'X-Event-Key' in headers:
+        elif 'x-event-key' in headers:
             return self._parse_bitbucket_webhook(payload, headers)
 
         else:
@@ -79,7 +82,7 @@ class WebhookProcessor:
         payload: Dict[str, Any],
         headers: Dict[str, str]
     ) -> Optional[GitMetadata]:
-        event_type = headers.get('X-GitHub-Event', '')
+        event_type = headers.get('x-github-event', '')
 
         if event_type == 'push':
             repository = payload.get('repository', {})
@@ -117,7 +120,7 @@ class WebhookProcessor:
         payload: Dict[str, Any],
         headers: Dict[str, str]
     ) -> Optional[GitMetadata]:
-        event_type = headers.get('X-Gitlab-Event', '')
+        event_type = headers.get('x-gitlab-event', '')
 
         if event_type == 'Push Hook':
             project = payload.get('project', {})
@@ -153,7 +156,7 @@ class WebhookProcessor:
         payload: Dict[str, Any],
         headers: Dict[str, str]
     ) -> Optional[GitMetadata]:
-        event_key = headers.get('X-Event-Key', '')
+        event_key = headers.get('x-event-key', '')
 
         if event_key == 'repo:push':
             repository = payload.get('repository', {})

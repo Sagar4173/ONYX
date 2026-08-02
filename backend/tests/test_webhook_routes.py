@@ -13,7 +13,7 @@ class TestWebhookProcessor:
 
         processor = WebhookProcessor()
         event_data = {"ref": "refs/heads/main", "repository": {"clone_url": "https://github.com/test/repo", "full_name": "test/repo"}}
-        headers = {"X-GitHub-Event": "push"}
+        headers = {"x-github-event": "push"}
 
         mock_git_meta = MagicMock()
         mock_git_meta.repository_url = "https://github.com/test/repo"
@@ -52,7 +52,7 @@ class TestWebhookProcessor:
     def test_parse_webhook_data_github(self):
         from routes.webhook.processor import WebhookProcessor
         processor = WebhookProcessor()
-        headers = {"X-GitHub-Event": "push"}
+        headers = {"x-github-event": "push"}
         with patch.object(processor, "_parse_github_webhook", return_value="github_result") as mock_github:
             result = processor._parse_webhook_data({}, headers)
             mock_github.assert_called_once_with({}, headers)
@@ -61,7 +61,7 @@ class TestWebhookProcessor:
     def test_parse_webhook_data_gitlab(self):
         from routes.webhook.processor import WebhookProcessor
         processor = WebhookProcessor()
-        headers = {"X-Gitlab-Event": "Push Hook"}
+        headers = {"x-gitlab-event": "Push Hook"}
         with patch.object(processor, "_parse_gitlab_webhook", return_value="gitlab_result") as mock_gl:
             result = processor._parse_webhook_data({}, headers)
             mock_gl.assert_called_once_with({}, headers)
@@ -70,7 +70,7 @@ class TestWebhookProcessor:
     def test_parse_webhook_data_bitbucket(self):
         from routes.webhook.processor import WebhookProcessor
         processor = WebhookProcessor()
-        headers = {"X-Event-Key": "repo:push"}
+        headers = {"x-event-key": "repo:push"}
         with patch.object(processor, "_parse_bitbucket_webhook", return_value="bb_result") as mock_bb:
             result = processor._parse_webhook_data({}, headers)
             mock_bb.assert_called_once_with({}, headers)
@@ -93,7 +93,7 @@ class TestWebhookProcessor:
             "head_commit": {"id": "abc123", "message": "fix bug", "timestamp": "2026-01-15T10:00:00Z"},
             "repository": {"clone_url": "https://github.com/test/repo", "full_name": "test/repo"},
         }
-        result = processor._parse_github_webhook(payload, {"X-GitHub-Event": "push"})
+        result = processor._parse_github_webhook(payload, {"x-github-event": "push"})
         assert result is not None
         assert result.repository_url == "https://github.com/test/repo"
         assert result.branch == "main"
@@ -107,7 +107,7 @@ class TestWebhookProcessor:
             "pull_request": {"head": {"sha": "pr123", "ref": "feature"}, "title": "PR title"},
             "repository": {"clone_url": "https://github.com/test/repo", "full_name": "test/repo"},
         }
-        result = processor._parse_github_webhook(payload, {"X-GitHub-Event": "pull_request"})
+        result = processor._parse_github_webhook(payload, {"x-github-event": "pull_request"})
         assert result is not None
         assert result.commit_hash == "pr123"
         assert result.branch == "feature"
@@ -115,7 +115,7 @@ class TestWebhookProcessor:
     def test_parse_github_webhook_unsupported_event(self):
         from routes.webhook.processor import WebhookProcessor
         processor = WebhookProcessor()
-        result = processor._parse_github_webhook({}, {"X-GitHub-Event": "issues"})
+        result = processor._parse_github_webhook({}, {"x-github-event": "issues"})
         assert result is None
 
     def test_parse_gitlab_webhook_push(self):
@@ -127,7 +127,7 @@ class TestWebhookProcessor:
             "ref": "refs/heads/main",
             "after": "gl123",
         }
-        result = processor._parse_gitlab_webhook(payload, {"X-Gitlab-Event": "Push Hook"})
+        result = processor._parse_gitlab_webhook(payload, {"x-gitlab-event": "Push Hook"})
         assert result is not None
         assert result.repository_url == "https://gitlab.com/test/repo"
         assert result.commit_hash == "gl123"
@@ -139,14 +139,14 @@ class TestWebhookProcessor:
             "project": {"git_http_url": "https://gitlab.com/test/repo"},
             "object_attributes": {"last_commit": {"id": "mr456"}, "source_branch": "feature", "title": "MR title"},
         }
-        result = processor._parse_gitlab_webhook(payload, {"X-Gitlab-Event": "Merge Request Hook"})
+        result = processor._parse_gitlab_webhook(payload, {"x-gitlab-event": "Merge Request Hook"})
         assert result is not None
         assert result.commit_hash == "mr456"
 
     def test_parse_gitlab_webhook_unsupported(self):
         from routes.webhook.processor import WebhookProcessor
         processor = WebhookProcessor()
-        result = processor._parse_gitlab_webhook({}, {"X-Gitlab-Event": "Note Hook"})
+        result = processor._parse_gitlab_webhook({}, {"x-gitlab-event": "Note Hook"})
         assert result is None
 
     def test_parse_bitbucket_webhook_push(self):
@@ -156,7 +156,7 @@ class TestWebhookProcessor:
             "repository": {"links": {"clone": [{"name": "http", "href": "https://bitbucket.org/test/repo"}]}},
             "push": {"changes": [{"new": {"name": "main", "target": {"hash": "bb123", "message": "fix"}}}]},
         }
-        result = processor._parse_bitbucket_webhook(payload, {"X-Event-Key": "repo:push"})
+        result = processor._parse_bitbucket_webhook(payload, {"x-event-key": "repo:push"})
         assert result is not None
         assert result.repository_url == "https://bitbucket.org/test/repo"
         assert result.commit_hash == "bb123"
@@ -171,14 +171,14 @@ class TestWebhookProcessor:
                 "title": "PR title",
             },
         }
-        result = processor._parse_bitbucket_webhook(payload, {"X-Event-Key": "pullrequest:created"})
+        result = processor._parse_bitbucket_webhook(payload, {"x-event-key": "pullrequest:created"})
         assert result is not None
         assert result.commit_hash == "bb_pr1"
 
     def test_parse_bitbucket_webhook_unsupported(self):
         from routes.webhook.processor import WebhookProcessor
         processor = WebhookProcessor()
-        result = processor._parse_bitbucket_webhook({}, {"X-Event-Key": "repo:fork"})
+        result = processor._parse_bitbucket_webhook({}, {"x-event-key": "repo:fork"})
         assert result is None
 
     def test_parse_generic_webhook_full(self):

@@ -54,6 +54,77 @@ def _scan_report_factory(created: List[ScanReport], naive_started_at: bool = Fal
     return factory
 
 
+class TestProviderDetection:
+    """Webhook provider detection must work with ASGI-lowercased header names.
+
+    FastAPI delivers header names lowercased (x-github-event), so the parser
+    must not depend on original casing or real GitHub pushes are rejected.
+    """
+
+    async def test_github_push_parses_with_lowercase_headers(self):
+        processor = WebhookProcessor()
+        payload = {
+            "ref": "refs/heads/main",
+            "repository": {"clone_url": "https://github.com/test/repo.git"},
+            "head_commit": {"id": "abc123", "message": "push test"},
+        }
+        headers = {"x-github-event": "push", "user-agent": "GitHub-Hookshot/abc"}
+
+        captured = {}
+
+        def event_factory(**kwargs):
+            event = WebhookEvent.model_construct(**kwargs)
+            object.__setattr__(event, "insert", AsyncMock())
+            captured["event"] = event
+            return event
+
+        with (
+            patch("routes.webhook.processor.WebhookEvent", new=event_factory),
+            patch(
+                "routes.webhook.processor.asyncio.create_task",
+                lambda coro: coro.close(),
+            ),
+        ):
+            event_id = await processor.process_webhook_event(payload, headers)
+
+        assert event_id
+        event = captured["event"]
+        assert event.repository_url == "https://github.com/test/repo.git"
+        assert event.branch == "main"
+        assert event.commit_hash == "abc123"
+        assert event.event_type == "push"
+        event.insert.assert_awaited()
+
+    async def test_generic_payload_still_parses_with_mixed_case_headers(self):
+        processor = WebhookProcessor()
+        payload = {
+            "repository_url": "https://github.com/test/repo.git",
+            "branch": "main",
+            "commit_hash": "def456",
+        }
+        headers = {"User-Agent": "curl/8.0", "X-Custom-Header": "x"}
+
+        captured = {}
+
+        def event_factory(**kwargs):
+            event = WebhookEvent.model_construct(**kwargs)
+            object.__setattr__(event, "insert", AsyncMock())
+            captured["event"] = event
+            return event
+
+        with (
+            patch("routes.webhook.processor.WebhookEvent", new=event_factory),
+            patch(
+                "routes.webhook.processor.asyncio.create_task",
+                lambda coro: coro.close(),
+            ),
+        ):
+            event_id = await processor.process_webhook_event(payload, headers)
+
+        assert event_id
+        assert captured["event"].repository_url == "https://github.com/test/repo.git"
+
+
 class TestProcessScanWorkflow:
     """Webhook-triggered scans must persist a string scan_report_id.
 
