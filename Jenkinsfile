@@ -101,17 +101,10 @@ pipeline {
                 sh '''
                     cd /home/ec2-user/ONYX
 
-                    # Backup .env files before pull
-                    cp -f backend/.env backend/.env.backup 2>/dev/null || true
-                    cp -f frontend/.env frontend/.env.backup 2>/dev/null || true
-
-                    # Pull latest code
+                    # Pull latest code (.env files are untracked/gitignored,
+                    # so git reset cannot touch them - no backup/restore needed)
                     git fetch origin master
                     git reset --hard origin/master
-
-                    # Restore .env files after pull
-                    cp -f backend/.env.backup backend/.env 2>/dev/null || true
-                    cp -f frontend/.env.backup frontend/.env 2>/dev/null || true
 
                     echo "✅ Code pulled. Commit: $(git rev-parse --short HEAD)"
                 '''

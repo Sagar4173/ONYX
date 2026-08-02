@@ -259,7 +259,7 @@ class WebhookProcessor:
             )
 
             await scan_report.insert()
-            webhook_event.scan_report_id = scan_report.id
+            webhook_event.scan_report_id = str(scan_report.id)
             await webhook_event.save()
 
             scan_report.status = ScanStatus.RUNNING
