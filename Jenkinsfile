@@ -59,11 +59,30 @@ pipeline {
                     # Clear journal logs
                     sudo journalctl --vacuum-time=1d 2>/dev/null || true
 
+                    # Cap journal growth permanently (idempotent - created once)
+                    if [ ! -f /etc/systemd/journald.conf.d/onyx-size.conf ]; then
+                        echo -e "[Journal]\\nSystemMaxUse=200M" | sudo tee /etc/systemd/journald.conf.d/onyx-size.conf > /dev/null
+                        sudo systemctl restart systemd-journald 2>/dev/null || true
+                        echo "Journal capped at 200M"
+                    fi
+
+                    # Truncate ollama log if it grows large
+                    if [ -f "$HOME/ollama/ollama.log" ] && [ "$(stat -c%s "$HOME/ollama/ollama.log")" -gt 10485760 ]; then
+                        sudo truncate -s 0 "$HOME/ollama/ollama.log" 2>/dev/null || true
+                        echo "Truncated oversized ollama.log"
+                    fi
+
                     # Remove old onyx deploy artifacts (keep only 2 newest)
                     ls -dt "$HOME"/ONYX_bak_* 2>/dev/null | tail -n +3 | xargs rm -rf 2>/dev/null || true
 
                     echo "=== Disk AFTER cleanup ==="
                     df -h "$HOME" | tail -1
+
+                    # Warn if still low after cleanup
+                    AVAIL_KB=$(df "$HOME" | awk 'NR==2 {print $4}')
+                    if [ "$AVAIL_KB" -lt 1048576 ]; then
+                        echo "⚠️ WARNING: Low disk after cleanup ($(df -h "$HOME" | awk 'NR==2 {print $4}') free)"
+                    fi
                 '''
             }
         }
@@ -149,7 +168,7 @@ pipeline {
                     if command -v trivy >/dev/null 2>&1; then
                         echo "Trivy already installed"
                     else
-                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin && echo "Trivy installed" || echo "⚠️ Trivy install failed"
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin && echo "Trivy installed" || echo "⚠️ Trivy install failed"
                     fi
 
                     echo "Installing Gitleaks..."
@@ -158,7 +177,7 @@ pipeline {
                     else
                         GL_VER=$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -o '"tag_name": *"v[^"]*"' | cut -d'"' -f4 | tr -d 'v')
                         curl -fsSL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VER}/gitleaks_${GL_VER}_linux_x64.tar.gz" \
-                          && tar -xzf /tmp/gitleaks.tgz -C /usr/local/bin gitleaks \
+                          && sudo tar -xzf /tmp/gitleaks.tgz -C /usr/local/bin gitleaks \
                           && rm -f /tmp/gitleaks.tgz \
                           && echo "Gitleaks v${GL_VER} installed" || echo "⚠️ Gitleaks install failed"
                     fi
