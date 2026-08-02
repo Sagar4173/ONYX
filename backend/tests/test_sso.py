@@ -141,17 +141,22 @@ class TestGoogleTokenVerification:
         from services.auth.auth_service import auth_service
 
         claims = _google_claims()
-        claims["nonce"] = "good-nonce"
+        claims["nonce"] = "expected-nonce"
 
         with (
             patch.object(settings, "google_client_id", "test-client"),
             patch(
                 "services.auth.auth_service.google_id_token.verify_oauth2_token",
                 return_value=claims,
-            ),
+            ) as verify_mock,
         ):
-            info = auth_service.verify_google_id_token("good-token", nonce="good-nonce")
+            info = auth_service.verify_google_id_token("good-token", nonce="expected-nonce")
         assert info["email"] == "jane@example.com"
+        # google-auth uses the request arg to fetch its certificate cache on
+        # every verification; a non-callable transport (e.g. requests.Request)
+        # makes every SSO login fail with "'Request' object is not callable".
+        transport = verify_mock.call_args.args[1]
+        assert callable(transport)
 
     async def test_missing_nonce_rejected(self):
         from services.auth.auth_service import auth_service

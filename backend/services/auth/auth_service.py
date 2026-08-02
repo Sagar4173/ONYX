@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 import bcrypt
 import jwt
 import pyotp
-import requests as requests_lib
+from google.auth.transport.requests import Request as GoogleAuthRequest
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from google.oauth2 import id_token as google_id_token
@@ -316,7 +316,7 @@ class AuthService:
         try:
             info = google_id_token.verify_oauth2_token(
                 id_token_str,
-                requests_lib.Request(),
+                GoogleAuthRequest(),
                 settings.google_client_id
             )
         except ValueError as e:
