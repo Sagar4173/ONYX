@@ -1,5 +1,7 @@
 # FastAPI and ASGI server
-fastapi>=0.104.1
+# fastapi capped: 0.139.x changed include_router internals (nested _IncludedRouter
+# objects), which broke route enumeration in tests and could affect other tooling
+fastapi>=0.104.1,<0.140.0
 uvicorn[standard]>=0.24.0
 gunicorn>=21.2.0
 
