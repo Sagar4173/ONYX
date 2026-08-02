@@ -83,7 +83,6 @@ const Settings = () => {
     api: {
       api_key: "sk-••••••••••••••••••••••••••••••••",
       rate_limit: 1000,
-      webhook_url: "",
     },
   });
 
@@ -158,7 +157,7 @@ const Settings = () => {
       <NotificationTab settings={settings} handleSettingChange={handleSettingChange} />
     ),
     scanning: <ScanningTab settings={settings} handleSettingChange={handleSettingChange} />,
-    api: <ApiTab settings={settings} handleSettingChange={handleSettingChange} />,
+    api: <ApiTab user={user} />,
     system: <SystemTab user={user} />,
   };
 

@@ -96,6 +96,8 @@ slack-sdk>=3.26.1
 # Logging and monitoring
 structlog>=23.2.0
 colorama>=0.4.6
+sentry-sdk>=2.66.1
+prometheus-fastapi-instrumentator>=8.1.0
 
 # Date/time utilities
 python-dateutil>=2.8.2
