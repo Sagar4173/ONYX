@@ -133,7 +133,46 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 5: Setup Ollama (local AI, zero-cost)
+        // Stage 5: Install Scanners (idempotent - skips if already installed)
+        // =====================================================================
+        stage('Install Scanners') {
+            steps {
+                echo '🛠️ Installing security scanners...'
+                sh '''
+                    cd /home/ec2-user/ONYX/backend
+                    source venv/bin/activate
+
+                    echo "Installing Python scanners (bandit, safety, semgrep)..."
+                    pip install --quiet --no-cache-dir bandit safety semgrep || echo "⚠️ pip scanner install had issues"
+
+                    echo "Installing Trivy..."
+                    if command -v trivy >/dev/null 2>&1; then
+                        echo "Trivy already installed"
+                    else
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin && echo "Trivy installed" || echo "⚠️ Trivy install failed"
+                    fi
+
+                    echo "Installing Gitleaks..."
+                    if command -v gitleaks >/dev/null 2>&1; then
+                        echo "Gitleaks already installed"
+                    else
+                        GL_VER=$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -o '"tag_name": *"v[^"]*"' | cut -d'"' -f4 | tr -d 'v')
+                        curl -fsSL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VER}/gitleaks_${GL_VER}_linux_x64.tar.gz" \
+                          && tar -xzf /tmp/gitleaks.tgz -C /usr/local/bin gitleaks \
+                          && rm -f /tmp/gitleaks.tgz \
+                          && echo "Gitleaks v${GL_VER} installed" || echo "⚠️ Gitleaks install failed"
+                    fi
+
+                    echo "Scanner verification:"
+                    for s in bandit safety semgrep trivy gitleaks; do
+                        command -v "$s" >/dev/null 2>&1 && echo "  ✅ $s installed" || echo "  ❌ $s NOT FOUND"
+                    done
+                '''
+            }
+        }
+
+        // =====================================================================
+        // Stage 6: Setup Ollama (local AI, zero-cost)
         // =====================================================================
         stage('Setup Ollama') {
             steps {
