@@ -22,8 +22,11 @@ services:
       dockerfile: Dockerfile
     container_name: onyx-backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    # No host port mapping: the backend must only be reachable through the
+    # frontend nginx proxy (which sets a trustworthy X-Forwarded-For for
+    # rate limiting and keeps the API off the public interface).
+    expose:
+      - "8000"
     env_file:
       - ./backend/.env
     environment:

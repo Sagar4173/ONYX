@@ -23,7 +23,7 @@ const SecretDetectionSummary = ({ filteredFindings }) => {
       transition={{ duration: 0.3 }}
       className="glass-container rounded-xl p-4 border border-gray-700"
     >
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h4 className="text-sm font-semibold text-white flex items-center">
           <ShieldCheckIcon className="h-4 w-4 mr-2 text-purple-400" />
           Secret Detection Summary
@@ -33,7 +33,7 @@ const SecretDetectionSummary = ({ filteredFindings }) => {
           {secretFindings.length !== 1 ? "s" : ""}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {realSecretCount > 0 && (
           <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-red-400">{realSecretCount}</div>

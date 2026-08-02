@@ -25,6 +25,7 @@ class User(Document):
     
     # Authentication
     hashed_password: str
+    auth_provider: str = "password"  # "password" or "google" (SSO-created accounts)
     role: UserRole = UserRole.VIEWER
     status: UserStatus = UserStatus.PENDING_VERIFICATION
     

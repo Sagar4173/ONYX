@@ -45,9 +45,9 @@ const ScannerPerformance = ({ scanners = {} }) => {
             }}
             className="p-4 rounded-xl bg-gray-800/40 backdrop-blur-sm border border-gray-700/50"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <span className="text-sm font-medium text-white capitalize flex items-center gap-2">
-                <CpuChipIcon className="h-4 w-4 text-cyan-400" /> {scanner.name}
+                <CpuChipIcon className="h-4 w-4 text-cyan-400 flex-shrink-0" /> {scanner.name}
               </span>
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -70,14 +70,14 @@ const ScannerPerformance = ({ scanners = {} }) => {
               />
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-gray-400">
-              <div>
+              <div className="min-w-0">
                 <span className="text-gray-500">Runs:</span> {scanner.total_runs}
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-gray-500">Findings:</span> {scanner.total_findings}
               </div>
-              <div className="flex items-center gap-1">
-                <ClockIcon className="h-3 w-3 text-gray-500" />{" "}
+              <div className="flex items-center gap-1 min-w-0">
+                <ClockIcon className="h-3 w-3 text-gray-500 flex-shrink-0" />{" "}
                 {formatDuration(scanner.avg_duration)}
               </div>
             </div>

@@ -38,6 +38,14 @@ const TIMEZONES = [
   "Australia/Sydney",
 ];
 
+const CRON_FIELD_RE = /^[A-Za-z0-9*/,\-]+$/;
+
+const isValidCron = (expression) => {
+  if (typeof expression !== "string") return false;
+  const fields = expression.trim().split(/\s+/);
+  return fields.length === 5 && fields.every((f) => CRON_FIELD_RE.test(f));
+};
+
 const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
   const [cronPreset, setCronPreset] = useState(
     initial?.cron_expression && CRON_PRESETS.some((p) => p.value === initial.cron_expression)
@@ -55,17 +63,23 @@ const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
   const [scanTypes, setScanTypes] = useState(initial?.scan_types || ["sast", "secrets"]);
   const [timezone, setTimezone] = useState(initial?.timezone || "UTC");
   const [submitting, setSubmitting] = useState(false);
+  const [cronError, setCronError] = useState("");
 
   const isEditing = !!initial;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const cronExpression = cronPreset === "custom" ? customCron.trim() : cronPreset;
     if (!name.trim() || !target.trim()) return;
     if (scanTypes.length === 0) return;
+    if (!isValidCron(cronExpression)) {
+      setCronError("Invalid cron expression — use 5 fields: minute hour day-of-month month day-of-week");
+      return;
+    }
+    setCronError("");
 
     setSubmitting(true);
     try {
-      const cronExpression = cronPreset === "custom" ? customCron : cronPreset;
       await onSubmit({
         name: name.trim(),
         description: description.trim() || null,
@@ -202,13 +216,17 @@ const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
                 <input
                   type="text"
                   value={customCron}
-                  onChange={(e) => setCustomCron(e.target.value)}
+                  onChange={(e) => {
+                    setCustomCron(e.target.value);
+                    if (cronError) setCronError("");
+                  }}
                   placeholder="min hour dom mon dow"
                   className="w-full px-3 py-2 bg-gray-800/80 border border-gray-700/50 rounded-lg text-sm text-white font-mono placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all"
                 />
                 <p className="text-[10px] text-gray-500 mt-1">Format: minute hour day-of-month month day-of-week</p>
               </div>
             )}
+            {cronError && <p className="text-xs text-red-400 mt-1.5">{cronError}</p>}
           </div>
 
           <div>

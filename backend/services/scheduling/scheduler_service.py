@@ -13,6 +13,14 @@ from services.notifications.websocket_manager import ws_manager
 logger = logging.getLogger(__name__)
 
 
+def _validate_cron(expression: str) -> None:
+    """Raise ValueError if the cron expression cannot be parsed by APScheduler."""
+    try:
+        CronTrigger.from_crontab(expression)
+    except Exception as e:
+        raise ValueError(f"Invalid cron expression: {e}")
+
+
 class ScanSchedulerService:
     def __init__(self):
         self.scheduler: Optional[AsyncIOScheduler] = None
@@ -64,6 +72,9 @@ class ScanSchedulerService:
             logger.info("ScanSchedulerService stopped")
 
     async def create_schedule(self, schedule: ScanSchedule) -> ScanSchedule:
+        # Reject invalid cron before persisting anything (job registration
+        # would otherwise fail later with a generic 500).
+        _validate_cron(schedule.cron_expression)
         await schedule.insert()
         if schedule.enabled and self._running:
             self._add_job_for_schedule(schedule)
@@ -73,6 +84,9 @@ class ScanSchedulerService:
         schedule = await ScanSchedule.get(schedule_id)
         if not schedule:
             return None
+
+        if update_data.get("cron_expression"):
+            _validate_cron(update_data["cron_expression"])
 
         for key, value in update_data.items():
             if value is not None and hasattr(schedule, key):

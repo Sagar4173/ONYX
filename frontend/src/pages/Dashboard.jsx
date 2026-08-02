@@ -105,10 +105,17 @@ const Dashboard = ({ notifications = [] }) => {
               hidden: { opacity: 0, y: 15 },
               visible: { opacity: 1, y: 0 },
             }}
-            className="grid grid-cols-4 gap-4 mb-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
           >
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-[120px] bg-gray-800/30 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="h-[120px] bg-gray-800/30 rounded-xl animate-pulse p-4 flex flex-col justify-between"
+              >
+                <div className="h-3 w-24 bg-gray-700/50 rounded-full" />
+                <div className="h-8 w-16 bg-gray-700/50 rounded-lg" />
+                <div className="h-2.5 w-full bg-gray-700/40 rounded-full" />
+              </div>
             ))}
           </motion.div>
         ) : (

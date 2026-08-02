@@ -79,73 +79,111 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Normal login flow - store tokens and user data
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-      localStorage.setItem("user_data", JSON.stringify(data.user));
-
-      // Set initial user data
-      setUser(data.user);
-      setIsAuthenticated(true);
-
-      // Immediately refresh user profile to get latest verification status
-      try {
-        const updatedUser = await authAPI.getProfile();
-        setUser(updatedUser);
-        localStorage.setItem("user_data", JSON.stringify(updatedUser));
-      } catch (profileError) {
-        // Don't throw error, use the data from login response
-      }
-
-      toast.success(`Welcome back, ${data.user.full_name}!`);
+      storeSession(data);
       return data;
     } catch (error) {
-      const errorData = error.response?.data;
-
-      // Handle FastAPI validation errors (422)
-      if (error.response?.status === 422 && Array.isArray(errorData?.detail)) {
-        const validationErrors = errorData.detail;
-
-        // Format field names to be more readable
-        const formatFieldName = (field) => {
-          return field
-            .split("_")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ");
-        };
-
-        // Create user-friendly error messages
-        const errorMessages = validationErrors.map((err) => {
-          const field = err.loc?.[err.loc.length - 1] || "field";
-          const fieldName = formatFieldName(field);
-
-          // Customize message based on error type
-          if (err.type === "value_error" || err.type === "string_too_short") {
-            return `${fieldName}: ${err.msg}`;
-          } else if (err.type === "missing") {
-            return `${fieldName} is required`;
-          } else {
-            return `${fieldName}: ${err.msg}`;
-          }
-        });
-
-        // Show each error separately for better visibility
-        errorMessages.forEach((msg) => {
-          toast.error(msg, { duration: 5000 });
-        });
-      } else {
-        // Handle other error types including 400, 401, etc.
-        let errorMessage =
-          errorData?.detail || errorData?.message || "Login failed. Please check your credentials.";
-
-        // Clean up error codes like "400: " or "401: "
-        if (typeof errorMessage === "string") {
-          errorMessage = errorMessage.replace(/^\d{3}:\s*/, "");
-        }
-
-        toast.error(errorMessage, { duration: 5000 });
-      }
+      showLoginError(error);
       throw error;
     }
+  };
+
+  // Shared session storage for password and SSO logins
+  const storeSession = (data) => {
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("refresh_token", data.refresh_token);
+    localStorage.setItem("user_data", JSON.stringify(data.user));
+
+    setUser(data.user);
+    setIsAuthenticated(true);
+
+    // Immediately refresh user profile to get latest verification status
+    try {
+      authAPI.getProfile().then((updatedUser) => {
+        setUser(updatedUser);
+        localStorage.setItem("user_data", JSON.stringify(updatedUser));
+      });
+    } catch (profileError) {
+      // Don't throw error, use the data from login response
+    }
+
+    toast.success(`Welcome back, ${data.user.full_name}!`);
+  };
+
+  const showLoginError = (error) => {
+    const errorData = error.response?.data;
+
+    // Handle FastAPI validation errors (422)
+    if (error.response?.status === 422 && Array.isArray(errorData?.detail)) {
+      const validationErrors = errorData.detail;
+
+      // Format field names to be more readable
+      const formatFieldName = (field) => {
+        return field
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      };
+
+      // Create user-friendly error messages
+      const errorMessages = validationErrors.map((err) => {
+        const field = err.loc?.[err.loc.length - 1] || "field";
+        const fieldName = formatFieldName(field);
+
+        // Customize message based on error type
+        if (err.type === "value_error" || err.type === "string_too_short") {
+          return `${fieldName}: ${err.msg}`;
+        } else if (err.type === "missing") {
+          return `${fieldName} is required`;
+        } else {
+          return `${fieldName}: ${err.msg}`;
+        }
+      });
+
+      // Show each error separately for better visibility
+      errorMessages.forEach((msg) => {
+        toast.error(msg, { duration: 5000 });
+      });
+    } else {
+      // Handle other error types including 400, 401, etc.
+      let errorMessage =
+        errorData?.detail || errorData?.message || "Login failed. Please check your credentials.";
+
+      // Clean up error codes like "400: " or "401: "
+      if (typeof errorMessage === "string") {
+        errorMessage = errorMessage.replace(/^\d{3}:\s*/, "");
+      }
+
+      toast.error(errorMessage, { duration: 5000 });
+    }
+  };
+
+  const googleLogin = async (idToken, nonce) => {
+    try {
+      const data = await authAPI.googleLogin(idToken, null, nonce);
+
+      // Check if 2FA is required
+      if (data.requires_2fa) {
+        return {
+          requires_2fa: true,
+          temp_token: data.temp_token,
+          user_email: data.user_email,
+          message: data.message,
+        };
+      }
+
+      storeSession(data);
+      return data;
+    } catch (error) {
+      showLoginError(error);
+      throw error;
+    }
+  };
+
+  // Complete a pending SSO login that was paused for 2FA
+  const completeGoogleLogin = async (idToken, twoFactorCode, nonce) => {
+    const data = await authAPI.googleLogin(idToken, twoFactorCode, nonce);
+    storeSession(data);
+    return data;
   };
 
   const register = async (userData) => {
@@ -337,6 +375,8 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     isAuthenticated,
     login,
+    googleLogin,
+    completeGoogleLogin,
     register,
     logout,
     refreshUserProfile,

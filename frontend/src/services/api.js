@@ -145,6 +145,22 @@ export const authAPI = {
     return response.data;
   },
 
+  // Google SSO config (public)
+  getGoogleSSOConfig: async () => {
+    const response = await api.get("/auth/sso/google/config");
+    return response.data;
+  },
+
+  // Google SSO login with an ID token from Google Identity Services
+  googleLogin: async (idToken, twoFactorCode, nonce) => {
+    const response = await api.post("/auth/sso/google", {
+      id_token: idToken,
+      two_factor_code: twoFactorCode || null,
+      nonce: nonce || null,
+    });
+    return response.data;
+  },
+
   // Register user
   register: async (userData) => {
     const response = await api.post("/auth/register", userData);

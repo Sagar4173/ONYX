@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { PlusIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { PageContainer, PageHeader } from "../../layouts";
-import { schedulesAPI } from "../../services/api";
+import { schedulesAPI, getApiErrorMessage } from "../../services/api";
 import ScheduleCard from "./ScheduleCard";
 import ScheduleForm from "./ScheduleForm";
 import toast from "react-hot-toast";
@@ -40,7 +40,7 @@ const ScheduledScansPage = () => {
       setShowForm(false);
       loadSchedules();
     } catch (err) {
-      toast.error("Failed to create schedule");
+      toast.error(getApiErrorMessage(err, "Failed to create schedule"));
     }
   };
 
@@ -52,7 +52,7 @@ const ScheduledScansPage = () => {
       setEditingSchedule(null);
       loadSchedules();
     } catch (err) {
-      toast.error("Failed to update schedule");
+      toast.error(getApiErrorMessage(err, "Failed to update schedule"));
     }
   };
 

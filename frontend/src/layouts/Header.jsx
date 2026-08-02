@@ -160,18 +160,18 @@ const NotificationsDropdown = ({ notifications = [], onClear, onDismiss }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-3 w-96"
+            className="absolute right-0 mt-3 w-96 max-w-[calc(100vw-2rem)]"
           >
             {/* Glow */}
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
 
             <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800/50">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600">
+            <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-800/50">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 flex-shrink-0">
                   <BellIcon className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="font-semibold text-white text-base lg:text-lg">Notifications</h3>
+                <h3 className="font-semibold text-white text-base lg:text-lg truncate">Notifications</h3>
                 {unreadCount > 0 && (
                   <span className="text-xs px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
                     {unreadCount}
@@ -445,7 +445,7 @@ export default function Header({
       {/* Glass background */}
       <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50" />
 
-      <div className="relative h-16 lg:h-18 px-4 lg:px-6 flex items-center justify-between gap-4">
+      <div className="relative h-16 px-4 lg:px-6 flex items-center justify-between gap-4">
         {/* Left: Mobile menu */}
         <div className="flex items-center gap-4">
           <button

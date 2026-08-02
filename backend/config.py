@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     require_email_verification: bool = Field(default=True, env="REQUIRE_EMAIL_VERIFICATION")
     max_failed_login_attempts: int = Field(default=5, env="MAX_FAILED_LOGIN_ATTEMPTS")
     account_lockout_duration_minutes: int = Field(default=30, env="ACCOUNT_LOCKOUT_DURATION_MINUTES")
+
+    # Google SSO (OAuth 2.0 via Google Identity Services ID tokens)
+    # GOOGLE_CLIENT_ID enables the SSO endpoints + "Continue with Google" on login.
+    # GOOGLE_ALLOWED_DOMAINS optionally restricts SSO to a comma-separated domain allowlist.
+    google_client_id: Optional[str] = Field(default=None, env="GOOGLE_CLIENT_ID")
+    google_allowed_domains: str = Field(default="", env="GOOGLE_ALLOWED_DOMAINS")
+
+    @property
+    def google_sso_enabled(self) -> bool:
+        return bool(self.google_client_id)
     
     # AI Configuration
     # Supported providers: auto, ollama, openai, gemini

@@ -22,7 +22,7 @@ const FindingCard = ({ finding, index }) => {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
-      className={`glass-container rounded-xl p-6 ${
+      className={`glass-container rounded-xl p-4 sm:p-6 ${
         isSecretFinding && !isLikelyReal
           ? "border-l-4 border-l-cyan-500 bg-cyan-900/10"
           : isSecretFinding && isExampleFile && isLikelyReal
@@ -31,8 +31,8 @@ const FindingCard = ({ finding, index }) => {
       }`}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2 flex-wrap gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
             <SeverityBadge severity={finding.severity} />
             <span className="text-sm text-gray-400">{finding.scanner}</span>
 
@@ -51,7 +51,7 @@ const FindingCard = ({ finding, index }) => {
             )}
           </div>
 
-          <h4 className="text-lg font-semibold text-white mb-2">{finding.title}</h4>
+          <h4 className="text-base sm:text-lg font-semibold text-white mb-2 break-words">{finding.title}</h4>
 
           {isSecretFinding && finding.metadata?.calculated_entropy && (
             <div className="flex items-center text-xs text-gray-400 mb-2">
@@ -94,9 +94,9 @@ const FindingCard = ({ finding, index }) => {
           <p className="text-gray-300 mb-3">{finding.description}</p>
 
           {finding.file_path && (
-            <div className="flex items-center text-sm text-gray-400 mb-2">
-              <DocumentIcon className="h-4 w-4 mr-1" />
-              {finding.file_path}
+            <div className="flex items-center text-sm text-gray-400 mb-2 break-all">
+              <DocumentIcon className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="min-w-0">{finding.file_path}</span>
               {finding.line_number && `:${finding.line_number}`}
             </div>
           )}

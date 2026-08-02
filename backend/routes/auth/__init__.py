@@ -9,6 +9,7 @@ from .password import router as password_router
 from .profile import router as profile_router
 from .registration import router as registration_router
 from .sessions import router as sessions_router
+from .sso import router as sso_router
 from .two_factor import router as two_factor_router
 
 router = APIRouter(
@@ -18,6 +19,7 @@ router = APIRouter(
 )
 router.include_router(registration_router)
 router.include_router(sessions_router)
+router.include_router(sso_router)
 router.include_router(profile_router)
 router.include_router(notifications_router)
 router.include_router(two_factor_router)
