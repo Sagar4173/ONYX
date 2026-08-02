@@ -196,7 +196,19 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
-        
+
+        # Email verification gate - enforce only for PENDING_VERIFICATION
+        # accounts so legacy/admin-activated (ACTIVE) users are not locked out.
+        if (
+            settings.require_email_verification
+            and user.status == UserStatus.PENDING_VERIFICATION
+            and not user.is_email_verified
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Email verification required. Please verify your email to log in, or request a new verification link."
+            )
+
         # Check if 2FA is enabled for this user
         if user.two_factor_enabled:
             if not login_data.two_factor_code:

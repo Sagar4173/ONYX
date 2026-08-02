@@ -2,7 +2,7 @@
 Authentication Tests
 Tests for user authentication, registration, and token management
 """
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -42,6 +42,130 @@ class TestAuthEndpoints:
             )
             
             assert result is None
+
+
+class TestEmailVerificationEnforcement:
+    """REQUIRE_EMAIL_VERIFICATION must block unverified logins when enabled"""
+
+    @pytest.fixture(autouse=True)
+    def _enforce_verification(self):
+        from config import settings
+        with patch.object(settings, "require_email_verification", True):
+            yield
+
+    def _user_mock(self, verified: bool):
+        from datetime import datetime, timezone
+
+        from models.user import UserRole, UserStatus
+
+        return MagicMock(
+            id="user-verify-1",
+            email="verify@example.com",
+            username="verifyuser",
+            full_name="Verify User",
+            role=UserRole.VIEWER,
+            status=UserStatus.ACTIVE if verified else UserStatus.PENDING_VERIFICATION,
+            is_email_verified=verified,
+            two_factor_enabled=False,
+            hashed_password="hashed",
+            save=AsyncMock(),
+            dict=MagicMock(return_value={
+                "id": "user-verify-1",
+                "email": "verify@example.com",
+                "username": "verifyuser",
+                "full_name": "Verify User",
+                "role": UserRole.VIEWER,
+                "status": UserStatus.ACTIVE if verified else UserStatus.PENDING_VERIFICATION,
+                "timezone": "UTC",
+                "is_email_verified": verified,
+                "created_at": datetime.now(timezone.utc),
+                "notification_preferences": {},
+            }),
+        )
+
+    def _login_request(self):
+        from models.user import LoginRequest
+        return LoginRequest(
+            username_or_email="verify@example.com",
+            password="Password123!",
+        )
+
+    def _http_request(self):
+        from starlette.requests import Request
+        return Request({
+            "type": "http",
+            "method": "POST",
+            "path": "/api/auth/login",
+            "headers": [],
+            "query_string": b"",
+            "client": ("127.0.0.1", 1234),
+            "server": ("test", 80),
+            "scheme": "http",
+        })
+
+    def _session_mock(self):
+        session_cls = MagicMock()
+        session_cls.return_value.insert = AsyncMock()
+        return session_cls
+
+    @pytest.mark.asyncio
+    async def test_unverified_login_blocked(self):
+        """Unverified PENDING_VERIFICATION user must be rejected with 403"""
+        from fastapi import HTTPException
+
+        from routes.auth.sessions import login
+        from services.auth.auth_service import auth_service
+
+        user = self._user_mock(verified=False)
+        with patch.object(
+            auth_service, "authenticate_user", new_callable=AsyncMock, return_value=user
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await login(self._login_request(), self._http_request())
+
+        assert exc_info.value.status_code == 403
+        assert "Email verification required" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_verified_login_allowed(self):
+        """Verified user must still log in successfully when verification is enforced"""
+        from routes.auth.sessions import login
+        from services.auth.auth_service import auth_service
+
+        user = self._user_mock(verified=True)
+        with (
+            patch.object(
+                auth_service, "authenticate_user", new_callable=AsyncMock, return_value=user
+            ),
+            patch.object(auth_service, "create_access_token", return_value="access-123"),
+            patch.object(auth_service, "create_refresh_token", return_value="refresh-123"),
+            patch("services.auth.auth_service.UserSession", new=self._session_mock()),
+        ):
+            result = await login(self._login_request(), self._http_request())
+
+        assert result.access_token == "access-123"
+        assert result.refresh_token == "refresh-123"
+
+    @pytest.mark.asyncio
+    async def test_unverified_login_allowed_when_disabled(self):
+        """Unverified login is allowed when REQUIRE_EMAIL_VERIFICATION is off"""
+        from config import settings
+        from routes.auth.sessions import login
+        from services.auth.auth_service import auth_service
+
+        user = self._user_mock(verified=False)
+        with (
+            patch.object(settings, "require_email_verification", False),
+            patch.object(
+                auth_service, "authenticate_user", new_callable=AsyncMock, return_value=user
+            ),
+            patch.object(auth_service, "create_access_token", return_value="access-123"),
+            patch.object(auth_service, "create_refresh_token", return_value="refresh-123"),
+            patch("services.auth.auth_service.UserSession", new=self._session_mock()),
+        ):
+            result = await login(self._login_request(), self._http_request())
+
+        assert result.access_token == "access-123"
     
     @pytest.mark.asyncio
     async def test_token_refresh(self, mock_user, mock_jwt_token):
