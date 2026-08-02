@@ -2,7 +2,7 @@
  * Main Layout Component
  * Wraps authenticated pages with sidebar, header, footer and main content area
  */
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PageTransition } from "../components/ui/StyleComponents";
@@ -46,7 +46,7 @@ export const MainLayout = () => {
   const { user: _user, isAuthenticated: _isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const wasConnectedRef = useRef(false);
   const [notifications, setNotifications] = useState([]);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -71,17 +71,19 @@ export const MainLayout = () => {
     }, 1000);
 
     websocketService.on("connected", (connected) => {
-      setIsConnected(connected);
-      if (connected && isConnected === false) {
-        toast.success("🔗 Real-time connection restored");
+      if (connected) {
+        if (wasConnectedRef.current) {
+          toast.success("🔗 Real-time connection restored");
+        }
+        wasConnectedRef.current = true;
       }
     });
 
     websocketService.on("disconnected", () => {
-      setIsConnected(false);
-      if (isConnected) {
+      if (wasConnectedRef.current) {
         toast.error("🔴 Connection lost");
       }
+      wasConnectedRef.current = false;
     });
 
     websocketService.on("scan_update", (data) => {
@@ -181,7 +183,7 @@ export const MainLayout = () => {
       clearTimeout(timeoutId);
       websocketService.disconnect();
     };
-  }, [isConnected]);
+  }, []);
 
   // Notification handlers
   const handleClearNotifications = () => {
