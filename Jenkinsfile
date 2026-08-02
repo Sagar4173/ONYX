@@ -59,16 +59,20 @@ pipeline {
                     # Clear journal logs
                     sudo journalctl --vacuum-time=1d 2>/dev/null || true
 
-                    # Cap journal growth permanently (idempotent - created once)
+                    # Cap journal growth permanently (idempotent - needs root; skips if sudo not allowed)
                     if [ ! -f /etc/systemd/journald.conf.d/onyx-size.conf ]; then
-                        echo -e "[Journal]\\nSystemMaxUse=200M" | sudo tee /etc/systemd/journald.conf.d/onyx-size.conf > /dev/null
-                        sudo systemctl restart systemd-journald 2>/dev/null || true
-                        echo "Journal capped at 200M"
+                        echo -e "[Journal]\nSystemMaxUse=200M" | sudo -n tee /etc/systemd/journald.conf.d/onyx-size.conf > /dev/null 2>&1 || true
+                        if [ -f /etc/systemd/journald.conf.d/onyx-size.conf ]; then
+                            sudo -n systemctl restart systemd-journald 2>/dev/null || true
+                            echo "Journal capped at 200M"
+                        else
+                            echo "⚠️ Journal cap skipped (needs one-time manual root setup)"
+                        fi
                     fi
 
                     # Truncate ollama log if it grows large
                     if [ -f "$HOME/ollama/ollama.log" ] && [ "$(stat -c%s "$HOME/ollama/ollama.log")" -gt 10485760 ]; then
-                        sudo truncate -s 0 "$HOME/ollama/ollama.log" 2>/dev/null || true
+                        truncate -s 0 "$HOME/ollama/ollama.log" 2>/dev/null || true
                         echo "Truncated oversized ollama.log"
                     fi
 
