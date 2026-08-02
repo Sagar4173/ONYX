@@ -293,7 +293,7 @@ class WebhookProcessor:
 
         except Exception as e:
             error_msg = f"Scan workflow failed: {e}"
-            logger.error(error_msg)
+            logger.error(error_msg, exc_info=True)
 
             webhook_event.status = "failed"
             webhook_event.error_message = error_msg

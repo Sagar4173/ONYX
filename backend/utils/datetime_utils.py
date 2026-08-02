@@ -19,6 +19,44 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def ensure_utc(dt: datetime) -> datetime:
+    """
+    Normalize a datetime to timezone-aware UTC.
+
+    MongoDB strips tzinfo on BSON round-trips, so datetimes loaded from the
+    database come back naive. Attach UTC to naive values so mixed arithmetic
+    (e.g. duration computation) never raises "can't subtract offset-naive and
+    offset-aware datetimes".
+
+    Args:
+        dt: Datetime, possibly naive
+
+    Returns:
+        datetime: Timezone-aware UTC datetime
+    """
+    if dt is None:
+        return dt
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def elapsed_seconds(start: Optional[datetime], end: Optional[datetime]) -> Optional[float]:
+    """
+    Seconds between two datetimes, safe against naive/aware mixing and None.
+
+    Args:
+        start: Start datetime (possibly naive, possibly None)
+        end: End datetime (possibly naive, possibly None)
+
+    Returns:
+        float: Elapsed seconds, or None when either side is missing
+    """
+    if start is None or end is None:
+        return None
+    return (ensure_utc(end) - ensure_utc(start)).total_seconds()
+
+
 def utc_timestamp() -> float:
     """
     Get current UTC timestamp.

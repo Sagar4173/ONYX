@@ -54,6 +54,9 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
   // so a captured token can never be replayed.
   const [ssoNonce, setSsoNonce] = useState(null);
   const googleButtonRef = useRef(null);
+  // Tracks which nonce the GSI instance was initialized with, so re-renders
+  // never re-initialize (Google warns on multiple initialize() calls).
+  const gsiInitNonceRef = useRef(null);
   const { login, googleLogin, completeGoogleLogin } = useAuth();
 
   // Load Google Identity Services when SSO is configured
@@ -98,9 +101,12 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
     };
   }, []);
 
-  // Initialize GSI once the script is loaded and the server nonce is available
+  // Initialize GSI once the script is loaded and the server nonce is available.
+  // Re-initializes only when the nonce changes (stale-nonce recovery).
   useEffect(() => {
     if (!googleReady || !ssoEnabled || !ssoNonce || !window.google?.accounts) return;
+    if (gsiInitNonceRef.current === ssoNonce) return;
+    gsiInitNonceRef.current = ssoNonce;
     window.google.accounts.id.initialize({
       client_id: window.__ONYX_GOOGLE_CLIENT_ID__,
       callback: handleGoogleCredential,
@@ -108,6 +114,25 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
       nonce: ssoNonce,
     });
   }, [googleReady, ssoEnabled, ssoNonce]);
+
+  // The backend rejects nonces it never issued (e.g. a browser still running a
+  // cached pre-upgrade bundle, or a Google credential minted for an earlier
+  // session). Fetch a fresh nonce and re-initialize GSI so the next click
+  // produces a credential bound to the current server session.
+  const refreshSsoNonce = useCallback(async () => {
+    try {
+      const config = await authAPI.getGoogleSSOConfig();
+      if (config?.enabled && config.client_id && config.nonce) {
+        window.__ONYX_GOOGLE_CLIENT_ID__ = config.client_id;
+        gsiInitNonceRef.current = null;
+        setSsoNonce(config.nonce);
+        return true;
+      }
+    } catch {
+      // Config unavailable - keep the current state; the error toast stands.
+    }
+    return false;
+  }, []);
 
   const handleGoogleCredential = useCallback(
     async (response) => {
@@ -127,12 +152,18 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
         }
         onSuccess && onSuccess();
       } catch (error) {
-        // Error handled in the auth context
+        const detail = error?.response?.data?.detail;
+        if (typeof detail === "string" && /nonce|expired|session/i.test(detail)) {
+          const refreshed = await refreshSsoNonce();
+          if (refreshed) {
+            toast("Google session expired - please click Continue with Google again");
+          }
+        }
       } finally {
         setIsGoogleLoading(false);
       }
     },
-    [googleLogin, onSuccess, ssoNonce]
+    [googleLogin, onSuccess, ssoNonce, refreshSsoNonce]
   );
 
   // Render the Google button once the container + GSI are both available

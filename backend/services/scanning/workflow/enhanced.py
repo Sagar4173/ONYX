@@ -11,6 +11,7 @@ from models.report import ScanReport, ScanResult, ScanStatus
 from services.ai.ai_processor import get_ai_processor
 from services.notifications.notification_service import NotificationService
 from services.scanning.base import ScanConfig
+from utils.datetime_utils import elapsed_seconds
 
 # Use new scanner architecture instead of legacy
 from services.scanning.engine import ScanOrchestrator
@@ -97,9 +98,9 @@ class EnhancedScanningWorkflow:
             logger.info("Phase 6: Finalizing report...")
             scan_report.status = ScanStatus.COMPLETED
             scan_report.completed_at = datetime.now(timezone.utc)
-            scan_report.duration_seconds = (
-                scan_report.completed_at - scan_report.started_at
-            ).total_seconds()
+            scan_report.duration_seconds = elapsed_seconds(
+                scan_report.started_at, scan_report.completed_at
+            )
             
             # Add enhanced metadata
             scan_report.metadata.update({
@@ -131,15 +132,14 @@ class EnhancedScanningWorkflow:
             return scan_report
             
         except Exception as e:
-            logger.error(f"Comprehensive scan failed: {e}")
+            logger.error(f"Comprehensive scan failed: {e}", exc_info=True)
             
             # Update scan report with error
             scan_report.status = ScanStatus.FAILED
             scan_report.completed_at = datetime.now(timezone.utc)
-            if scan_report.started_at:
-                scan_report.duration_seconds = (
-                    scan_report.completed_at - scan_report.started_at
-                ).total_seconds()
+            scan_report.duration_seconds = elapsed_seconds(
+                scan_report.started_at, scan_report.completed_at
+            )
             
             scan_report.metadata["error"] = str(e)
             scan_report.metadata["error_phase"] = "comprehensive_scan"
