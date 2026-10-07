@@ -55,24 +55,40 @@ class Settings(BaseSettings):
         return bool(self.google_client_id)
     
     # AI Configuration
-    # Supported providers: auto, ollama, openai, gemini
-    # auto = tries ollama → gemini → openai in order
+    # Supported providers: auto (follows ai_provider_chain), ollama, openai, gemini, groq, openrouter
     ai_provider: str = Field(default="auto", env="AI_PROVIDER")
-    
-    # OpenAI
+    # Failover chain used when ai_provider=auto (left -> right)
+    ai_provider_chain: str = Field(default="gemini,groq,openrouter,ollama", env="AI_PROVIDER_CHAIN")
+
+    # OpenAI (legacy fallback)
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    openai_model: str = Field(default="gpt-4", env="OPENAI_MODEL")
+    openai_model: str = Field(default="gpt-4o-mini", env="OPENAI_MODEL")
     openai_max_tokens: int = Field(default=2000, env="OPENAI_MAX_TOKENS")
-    
-    # Google Gemini
+
+    # Google Gemini (primary free-tier provider)
     gemini_api_key: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-1.5-flash", env="GEMINI_MODEL")
+    gemini_model: str = Field(default="gemini-2.5-flash", env="GEMINI_MODEL")
     gemini_max_tokens: int = Field(default=2000, env="GEMINI_MAX_TOKENS")
 
-    # Ollama (self-hosted local LLM)
+    # Groq (free-tier fallback, OpenAI-compatible API)
+    groq_api_key: Optional[str] = Field(default=None, env="GROQ_API_KEY")
+    groq_model: str = Field(default="openai/gpt-oss-120b", env="GROQ_MODEL")
+
+    # OpenRouter (free-tier fallback, OpenAI-compatible API)
+    openrouter_api_key: Optional[str] = Field(default=None, env="OPENROUTER_API_KEY")
+    openrouter_model: str = Field(default="google/gemma-4-27b-it:free", env="OPENROUTER_MODEL")
+
+    # Ollama (self-hosted local LLM, dev only)
     ai_local_base_url: str = Field(default="http://ollama:11434/v1", env="AI_LOCAL_BASE_URL")
     ai_local_model: str = Field(default="qwen2.5-coder:7b", env="AI_LOCAL_MODEL")
     ai_local_timeout: int = Field(default=120, env="AI_LOCAL_TIMEOUT")
+
+    # AI gateway governance (budget protection)
+    ai_rate_limit_rpm: int = Field(default=15, env="AI_RATE_LIMIT_RPM")      # per provider, per minute
+    ai_rate_limit_rpd: int = Field(default=500, env="AI_RATE_LIMIT_RPD")     # per provider, per day
+    ai_cache_ttl_days: int = Field(default=7, env="AI_CACHE_TTL_DAYS")
+    ai_enrich_top_n: int = Field(default=10, env="AI_ENRICH_TOP_N")          # findings enriched per scan
+    ai_post_scan_concurrency: int = Field(default=2, env="AI_POST_SCAN_CONCURRENCY")
     
     # Notifications
     slack_webhook_url: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
@@ -194,35 +210,61 @@ class Settings(BaseSettings):
             return []  # Configure CORS_ORIGINS or ALLOWED_ORIGINS env var for production
         return ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
     
+    def provider_chain(self) -> list[str]:
+        """Ordered provider names for the configured AI provider mode."""
+        if self.ai_provider.lower() != "auto":
+            return [self.ai_provider.lower()]
+        return [p.strip().lower() for p in self.ai_provider_chain.split(",") if p.strip()]
+
+    def _provider_configured(self, name: str) -> bool:
+        """Whether a provider has credentials (ollama needs none)."""
+        if name == "ollama":
+            return True
+        keys = {
+            "openai": self.openai_api_key,
+            "gemini": self.gemini_api_key,
+            "groq": self.groq_api_key,
+            "openrouter": self.openrouter_api_key,
+        }
+        key = keys.get(name)
+        return bool(key) and len(key) > 10
+
+    def configured_provider_chain(self) -> list[str]:
+        """Chain entries that are actually usable right now."""
+        chain = [name for name in self.provider_chain() if self._provider_configured(name)]
+        if self.ai_provider.lower() != "auto":
+            return chain
+        # Legacy installs may only have OPENAI_API_KEY set; keep it as a last resort.
+        if self._provider_configured("openai") and "openai" not in chain:
+            chain.append("openai")
+        return chain
+
     def validate_ai_config(self) -> tuple[bool, str]:
         """
         Validate that the selected AI provider has a valid API key configured.
         Returns (is_valid, message) tuple.
         """
-        if self.ai_provider == "openai":
-            if not self.openai_api_key:
-                return False, "OPENAI_API_KEY is required when ai_provider=openai"
-            if self.openai_api_key.startswith("sk-") and len(self.openai_api_key) > 20:
-                return True, "OpenAI configuration valid"
-            return False, "OPENAI_API_KEY appears to be invalid format"
-        elif self.ai_provider == "gemini":
-            if not self.gemini_api_key:
-                return False, "GEMINI_API_KEY is required when ai_provider=gemini"
-            if len(self.gemini_api_key) > 10:
-                return True, "Gemini configuration valid"
-            return False, "GEMINI_API_KEY appears to be invalid format"
-        elif self.ai_provider == "ollama":
+        provider = self.ai_provider.lower()
+        if provider == "auto":
+            chain = self.configured_provider_chain()
+            if not chain:
+                return False, "No AI providers configured for AI_PROVIDER_CHAIN"
+            return True, "Auto AI chain: " + " -> ".join(chain)
+        if provider == "ollama":
             return True, "Ollama local AI configured"
-        elif self.ai_provider == "auto":
-            return True, "Auto-detecting AI provider (ollama → gemini → openai)"
-        else:
-            return False, f"Unknown AI provider: {self.ai_provider}. Use 'auto', 'ollama', 'openai', or 'gemini'"
-    
+        if provider not in ("openai", "gemini", "groq", "openrouter"):
+            return False, (
+                f"Unknown AI provider: {provider}. "
+                "Use 'auto', 'ollama', 'openai', 'gemini', 'groq', or 'openrouter'"
+            )
+        api_key = getattr(self, f"{provider}_api_key")
+        if api_key and len(api_key) > 10:
+            return True, f"{provider.capitalize()} configuration valid"
+        return False, f"{provider.upper()}_API_KEY is required when ai_provider={provider}"
+
     @property
     def ai_available(self) -> bool:
         """Check if AI functionality is properly configured"""
-        if self.ai_provider in ("auto", "ollama"):
-            return True
         is_valid, _ = self.validate_ai_config()
         return is_valid
     
@@ -255,20 +297,20 @@ def validate_settings_on_startup():
         logger.warning("⚠️ AI-powered features (remediation, analysis) will be unavailable.")
     else:
         logger.info(f"✅ AI Configuration: {message}")
-    
-    # Check for fallback AI provider
-    has_openai = settings.openai_api_key and len(settings.openai_api_key) > 10
-    has_gemini = settings.gemini_api_key and len(settings.gemini_api_key) > 10
-    
-    if settings.ai_provider in ("auto", "ollama"):
-        logger.info(f"✅ Ollama local AI configured at {settings.ai_local_base_url} (model: {settings.ai_local_model})")
-    if has_openai and has_gemini:
-        logger.info("ℹ️ Both OpenAI and Gemini available as fallback")
-    elif has_openai or has_gemini:
-        logger.info("ℹ️ One API-based fallback provider available")
-    if not has_openai and not has_gemini and settings.ai_provider not in ("auto", "ollama"):
+
+    configured = settings.configured_provider_chain()
+    if "ollama" in configured:
+        logger.info(
+            f"✅ Ollama local AI configured at {settings.ai_local_base_url} (model: {settings.ai_local_model})"
+        )
+    cloud = [p for p in configured if p != "ollama"]
+    if len(cloud) >= 2:
+        logger.info(f"ℹ️ Cloud AI providers available: {', '.join(cloud)}")
+    elif len(cloud) == 1:
+        logger.info(f"ℹ️ One cloud AI provider available: {cloud[0]}")
+    elif not configured:
         logger.warning("⚠️ No AI provider configured - AI features disabled")
-    
+
     # Check email configuration
     if settings.email_enabled:
         if not settings.smtp_server:

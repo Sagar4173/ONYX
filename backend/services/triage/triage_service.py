@@ -4,8 +4,6 @@ from datetime import datetime, timezone
 from hashlib import md5
 from typing import Any, Optional
 
-import httpx
-
 from config import settings
 from models.report import ScanReport, VulnerabilityFinding
 from models.triage import (
@@ -14,6 +12,7 @@ from models.triage import (
     ScoreBreakdown,
     TriageResult,
 )
+from services.ai.gateway import GatewayError, get_gateway
 
 logger = logging.getLogger(__name__)
 
@@ -59,21 +58,7 @@ def _get_priority_label(score: float):
 
 class TriageService:
     def __init__(self):
-        self._ai_client_initialized = False
-        self._ai_http_client: Optional[httpx.AsyncClient] = None
-
-    async def _ensure_ai_client(self):
-        if not self._ai_client_initialized:
-            if settings.openai_api_key and len(settings.openai_api_key) > 10:
-                self._ai_http_client = httpx.AsyncClient(
-                    base_url="https://api.openai.com/v1",
-                    headers={
-                        "Authorization": f"Bearer {settings.openai_api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    timeout=30.0,
-                )
-            self._ai_client_initialized = True
+        pass
 
     async def _load_scan_report(self, scan_id: str) -> Optional[ScanReport]:
         try:
@@ -292,32 +277,24 @@ class TriageService:
         )
 
     async def _call_ai(self, prompt: str) -> Optional[str]:
-        await self._ensure_ai_client()
-        if not self._ai_http_client:
-            return None
         try:
-            resp = await self._ai_http_client.post(
-                "/chat/completions",
-                json={
-                    "model": settings.openai_model,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "You are a senior cybersecurity expert specializing in vulnerability triage and business risk analysis.",
-                        },
-                        {"role": "user", "content": prompt},
-                    ],
-                    "max_tokens": settings.openai_max_tokens,
-                    "temperature": 0.3,
-                },
+            result = await get_gateway().complete(
+                system=(
+                    "You are a senior cybersecurity expert specializing in "
+                    "vulnerability triage and business risk analysis."
+                ),
+                user=prompt,
+                purpose="triage",
+                max_tokens=settings.openai_max_tokens,
+                temperature=0.3,
             )
-            if resp.status_code == 200:
-                data = resp.json()
-                return data["choices"][0]["message"]["content"]
-            logger.warning(f"AI API returned {resp.status_code}")
+            return result.text
+        except GatewayError as e:
+            logger.warning(f"AI call failed: {e}")
+            return None
         except Exception as e:
             logger.warning(f"AI call failed: {e}")
-        return None
+            return None
 
     async def _cache_result(
         self,

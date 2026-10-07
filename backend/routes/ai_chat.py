@@ -13,6 +13,7 @@ from pydantic import BaseModel, field_validator
 from config import settings
 from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_accessible_scan_report
+from services.ai.gateway import GatewayError, get_gateway
 from utils.error_handling import get_safe_error_detail
 from utils.rate_limit import limiter
 
@@ -118,96 +119,41 @@ The user's scan results and AI analysis context are provided below. Use them to 
     context_str = json.dumps(scan_context, indent=2, default=str)
     full_system_prompt = f"{system_prompt}\n\n## Current Scan Context\n```json\n{context_str}\n```"
 
-    messages = [{"role": "system", "content": full_system_prompt}]
-
-    if conversation_history:
-        for msg in conversation_history:
-            role = msg["role"] if msg["role"] in ALLOWED_CHAT_ROLES else "user"
-            messages.append({"role": role, "content": msg["content"]})
-
+    messages: List[Dict[str, str]] = [{"role": "system", "content": full_system_prompt}]
+    for msg in (conversation_history or [])[-10:]:
+        role = msg["role"] if msg["role"] in ALLOWED_CHAT_ROLES else "user"
+        messages.append({"role": role, "content": msg["content"]})
     messages.append({"role": "user", "content": message})
 
-    provider = settings.ai_provider.lower() if settings.ai_provider else "auto"
-
-    if provider in ("auto", "ollama"):
-        try:
-            from openai import AsyncOpenAI as OllamaClient
-
-            client = OllamaClient(
-                base_url=settings.ai_local_base_url,
-                api_key="ollama",
-                max_retries=0,
-            )
-            response = await client.chat.completions.create(
-                model=settings.ai_local_model,
-                messages=messages,
-                max_tokens=1500,
-                temperature=0.3,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            logger.warning(f"Ollama chat failed ({e}), trying fallback")
-            if provider == "ollama":
-                raise HTTPException(
-                    status_code=502,
-                    detail=f"Ollama AI chat error: {get_safe_error_detail(e)}",
-                )
-
-    if provider in ("auto", "gemini") and settings.gemini_api_key:
-        try:
-            from google import genai
-            from google.genai import types
-
-            client = genai.Client(api_key=settings.gemini_api_key)
-            chat = client.aio.chats.create(
-                model=settings.gemini_model or "gemini-1.5-flash",
-                config=types.GenerateContentConfig(
-                    system_instruction=full_system_prompt[:32000],
-                ),
-            )
-            if conversation_history:
-                for msg in conversation_history:
-                    if msg["role"] == "user":
-                        await chat.send_message(msg["content"])
-            response = await chat.send_message(message)
-            return response.text
-        except Exception as e:
-            logger.error(f"Gemini chat failed: {e}")
-            if provider == "gemini" and not settings.openai_api_key:
-                raise
-
-    if settings.openai_api_key:
-        from openai import AsyncOpenAI
-
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
-        try:
-            response = await client.chat.completions.create(
-                model=settings.openai_model or "gpt-4",
-                messages=messages,
-                max_tokens=1500,
-                temperature=0.3,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            logger.error(f"OpenAI chat failed: {e}")
-            raise HTTPException(
-                status_code=502,
-                detail=f"AI chat service error: {get_safe_error_detail(e)}",
-            )
-
-    raise HTTPException(
-        status_code=503,
-        detail="No AI provider available. Configure Ollama, OPENAI_API_KEY, or GEMINI_API_KEY.",
-    )
+    try:
+        result = await get_gateway().complete_messages(
+            messages=messages,
+            purpose="chat",
+            max_tokens=1500,
+            temperature=0.3,
+        )
+    except GatewayError as e:
+        logger.error(f"AI chat gateway exhausted: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="AI chat is temporarily unavailable. Please try again shortly.",
+        )
+    return result.text
 
 
 def _get_active_model() -> str:
-    provider = settings.ai_provider.lower() if settings.ai_provider else "auto"
-    if provider in ("auto", "ollama"):
-        return f"ollama/{settings.ai_local_model}"
-    if provider == "gemini":
-        return settings.gemini_model or "gemini-1.5-flash"
-    return settings.openai_model or "gpt-4"
+    chain = settings.configured_provider_chain()
+    if not chain:
+        return "unavailable"
+    provider = chain[0]
+    models = {
+        "gemini": settings.gemini_model,
+        "groq": settings.groq_model,
+        "openrouter": settings.openrouter_model,
+        "openai": settings.openai_model,
+        "ollama": settings.ai_local_model,
+    }
+    return f"{provider}/{models.get(provider, 'unknown')}"
 
 
 @router.post("/chat", response_model=ChatResponse)

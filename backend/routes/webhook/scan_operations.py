@@ -22,6 +22,8 @@ from models.user import User
 from routes.dependencies import get_current_user
 from routes.webhook.processor import add_scan_log, get_scan_log
 from routes.webhook.schemas import ScanRequest
+from services.ai.enrichment import enrich_detailed_findings
+from services.ai.post_scan import schedule_post_scan_ai
 from services.infrastructure.project_service import ProjectService
 from services.notifications.websocket_manager import ws_manager
 from services.scanning.scanners import RealSecurityScanner
@@ -410,49 +412,6 @@ async def process_real_scan(
             }
         })
 
-        ai_analysis_result = None
-        try:
-            logger.info(f"Starting AI analysis for scan {scan_id}")
-
-            await ScanReport.find_one(ScanReport.scan_id == scan_id).update(
-                {"$set": {"progress": 90, "current_scanner": "AI analyzing vulnerabilities and generating remediation advice..."}}
-            )
-
-            from services.ai.ai_processor import AIProcessorError, get_ai_processor
-            try:
-                ai_processor = get_ai_processor()
-            except AIProcessorError as e:
-                logger.warning(f"AI processor not available: {e}. Skipping AI analysis.")
-                ai_processor = None
-
-            if ai_processor and scan_results_list:
-                updated_report = await ScanReport.find_one(ScanReport.scan_id == scan_id)
-
-                if updated_report and updated_report.scan_results:
-                    project_context = {
-                        "project_name": updated_report.project_name,
-                        "repository_url": str(updated_report.git_metadata.repository_url) if updated_report.git_metadata else "",
-                        "branch": updated_report.git_metadata.branch if updated_report.git_metadata else "main"
-                    }
-
-                    ai_analysis_result = await ai_processor.analyze_scan_results(
-                        updated_report.scan_results,
-                        project_context
-                    )
-
-                    if ai_analysis_result:
-                        logger.info(f"AI analysis completed for scan {scan_id}")
-                    else:
-                        logger.warning(f"AI analysis returned empty results for scan {scan_id}")
-                else:
-                    logger.warning(f"Could not retrieve updated report for AI analysis: {scan_id}")
-            else:
-                logger.warning(f"AI processor not available or no scan results for AI analysis: {scan_id}")
-
-        except Exception as ai_error:
-            logger.error(f"AI analysis failed for scan {scan_id}: {str(ai_error)}")
-            logger.exception("Full AI analysis error:")
-
         compliance_result = None
         try:
             if scan_results_list and any(r.findings for r in scan_results_list):
@@ -518,21 +477,30 @@ async def process_real_scan(
         except Exception as cve_error:
             logger.warning(f"CVE correlation failed for scan {scan_id}: {str(cve_error)}")
 
+        enrichment_applied = False
+        if detailed_findings:
+            enrichment_applied = await enrich_detailed_findings(detailed_findings)
+            if enrichment_applied:
+                logger.info(f"AI remediation enrichment applied for scan {scan_id}")
+
         final_update = {
             "status": ScanStatus.COMPLETED,
             "completed_at": datetime.now(timezone.utc),
             "progress": 100,
             "current_scanner": None,
-            "updated_at": datetime.now(timezone.utc)
+            "updated_at": datetime.now(timezone.utc),
+            "metadata.ai_status": "queued",
         }
-        if ai_analysis_result:
-            final_update["ai_analysis"] = ai_analysis_result.model_dump()
         if compliance_result:
             final_update["compliance_analysis"] = compliance_result
         if cve_enrichments:
             final_update["cve_threat_intelligence"] = cve_enrichments
+        if enrichment_applied:
+            final_update["metadata.findings"] = detailed_findings
 
         await ScanReport.find_one(ScanReport.scan_id == scan_id).update({"$set": final_update})
+
+        schedule_post_scan_ai(scan_id)
 
         try:
             scan_results_for_project = {
