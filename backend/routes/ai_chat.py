@@ -15,6 +15,7 @@ from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_accessible_scan_report
 from services.ai.chat_grounding import extract_citations, format_context
 from services.ai.gateway import GatewayError, get_gateway
+from services.ai.injection_screen import ScreenUnavailable, screen_text
 from services.ai.retrieval import retrieve
 from utils.error_handling import get_safe_error_detail
 from utils.rate_limit import limiter
@@ -183,6 +184,24 @@ def _get_active_model() -> str:
     return f"{provider}/{models.get(provider, 'unknown')}"
 
 
+async def _screen_or_block(message: str) -> None:
+    """Reject prompt-injection attempts before retrieval/LLM (spec 4.3.6)."""
+    try:
+        result = await screen_text(message)
+    except ScreenUnavailable as e:
+        logger.error("Injection screen unavailable (fail-closed): %s", e)
+        raise HTTPException(
+            status_code=503,
+            detail="Message screening is temporarily unavailable. Please try again shortly.",
+        )
+    if not result.safe:
+        logger.warning("Blocked prompt-injection attempt (label=%s)", result.label)
+        raise HTTPException(
+            status_code=403,
+            detail="Message blocked by prompt-injection screening.",
+        )
+
+
 @router.post("/chat", response_model=ChatResponse)
 @limiter.limit("30/minute")
 async def ai_chat(
@@ -196,6 +215,8 @@ async def ai_chat(
             status_code=404,
             detail="Scan report not found or access denied",
         )
+
+    await _screen_or_block(payload.message)
 
     hist = None
     if payload.conversation_history:
