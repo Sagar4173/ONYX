@@ -10,6 +10,7 @@ package; we deliberately avoid that dependency.)
 import ast
 import difflib
 import os
+import posixpath
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -35,7 +36,10 @@ class GateReport:
 
 
 def _norm(path: str) -> str:
-    return path.replace("\\", "/").lstrip("./")
+    replaced = path.replace("\\", "/")
+    if not replaced:
+        return ""
+    return posixpath.normpath(replaced)
 
 
 def _secret_failures(added: List[str], target_path: str) -> List[GateFailure]:
@@ -100,8 +104,18 @@ def validate_patch(
             lineterm="",
         )
     )
-    added = [ln[1:] for ln in diff_list if ln.startswith("+") and not ln.startswith("+++")]
-    removed = [ln[1:] for ln in diff_list if ln.startswith("-") and not ln.startswith("---")]
+    added: List[str] = []
+    removed: List[str] = []
+    in_hunk = False
+    for ln in diff_list:
+        if not in_hunk:
+            if ln.startswith("@@"):
+                in_hunk = True
+            continue
+        if ln.startswith("+"):
+            added.append(ln[1:])
+        elif ln.startswith("-"):
+            removed.append(ln[1:])
     if len(added) + len(removed) > max_diff_lines:
         failures.append(
             GateFailure(

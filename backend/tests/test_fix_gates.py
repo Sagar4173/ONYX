@@ -64,3 +64,44 @@ def test_preexisting_secret_in_untouched_original_is_not_rescanned():
     patched = secret_orig + "import sys\n"
     report = _gate(patched, original=secret_orig)
     assert report.passed
+
+
+def test_added_line_with_triple_plus_prefix_is_captured_and_scanned():
+    patched = ORIG + '++TOKEN = "AKIA1234567890ABCDEF"\n'
+    report = _gate(patched)
+    assert report.added_lines == 1
+    assert any(f.gate == "secrets" for f in report.failures)
+
+
+def test_added_lines_with_triple_plus_prefix_count_toward_diff_cap():
+    patched = ORIG + "++alpha\n++beta\n"
+    report = _gate(patched, max_diff_lines=1)
+    assert report.added_lines == 2
+    assert any(f.gate == "diff_size" for f in report.failures)
+
+
+def test_removed_line_with_triple_dash_prefix_is_counted():
+    original = ORIG + "--legacy\n"
+    report = _gate(ORIG, original=original)
+    assert report.removed_lines == 1
+
+
+def test_allowlist_rejects_traversal_shaped_target_path():
+    report = _gate(ORIG + "\n# x\n", target_path="../app/run.py")
+    assert not report.passed
+    assert any(f.gate == "allowlist" for f in report.failures)
+
+
+def test_allowlist_rejects_sibling_of_dotfile_finding():
+    report = _gate(ORIG + "\n# x\n", target_path="env", finding_file_path=".env")
+    assert any(f.gate == "allowlist" for f in report.failures)
+
+
+def test_allowlist_rejects_empty_target_path():
+    report = _gate(ORIG + "\n# x\n", target_path="")
+    assert any(f.gate == "allowlist" for f in report.failures)
+
+
+def test_allowlist_accepts_normal_equivalent_paths():
+    report = _gate(ORIG + "\n# x\n", target_path="./app/run.py")
+    assert report.passed
