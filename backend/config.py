@@ -89,7 +89,17 @@ class Settings(BaseSettings):
     ai_cache_ttl_days: int = Field(default=7, env="AI_CACHE_TTL_DAYS")
     ai_enrich_top_n: int = Field(default=10, env="AI_ENRICH_TOP_N")          # findings enriched per scan
     ai_post_scan_concurrency: int = Field(default=2, env="AI_POST_SCAN_CONCURRENCY")
-    
+
+    # --- Phase 2: RAG / knowledge retrieval --------------------------------
+    knowledge_db_path: str = Field(default="data/knowledge.db", env="KNOWLEDGE_DB_PATH")
+    ai_embed_model: str = Field(default="gemini-embedding-2", env="AI_EMBED_MODEL")
+    ai_embed_local_model: str = Field(default="nomic-embed-text", env="AI_EMBED_LOCAL_MODEL")
+    ai_embed_dimensions: int = Field(default=768, env="AI_EMBED_DIMENSIONS")
+    ai_embed_batch_size: int = Field(default=16, env="AI_EMBED_BATCH_SIZE")
+    rag_top_k: int = Field(default=6, env="RAG_TOP_K")
+    rag_rrf_k: int = Field(default=60, env="RAG_RRF_K")
+    rag_max_context_chars: int = Field(default=6000, env="RAG_MAX_CONTEXT_CHARS")
+
     # Notifications
     slack_webhook_url: Optional[str] = Field(default=None, env="SLACK_WEBHOOK_URL")
     teams_webhook_url: Optional[str] = Field(default=None, env="TEAMS_WEBHOOK_URL")

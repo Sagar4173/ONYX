@@ -1,6 +1,6 @@
 """Single source of truth for AI prompts."""
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 PROMPT_VERSION = "2026-10-06.1"
 
@@ -38,6 +38,27 @@ def _one_line(value: Any, limit: int) -> str:
     return " ".join(str(value or "").split())[:limit]
 
 
+_MAX_GUIDANCE_CHUNKS = 3
+_MAX_GUIDANCE_CHARS = 400
+
+
+def _guidance_section(guidance: Optional[List[Dict[str, Any]]]) -> str:
+    if not guidance:
+        return ""
+    lines = [
+        "## Knowledge grounding",
+        "Reference material for this finding. Use it only where it directly "
+        "applies; do not quote it verbatim.",
+        "",
+    ]
+    for chunk in guidance[:_MAX_GUIDANCE_CHUNKS]:
+        header = _one_line(chunk.get("header") or chunk.get("title"), 120)
+        text = str(chunk.get("text") or "").replace("\n", " ")[:_MAX_GUIDANCE_CHARS]
+        lines.append(f"- {header}: {text}")
+    lines.append("")
+    return "\n".join(lines) + "\n"
+
+
 def build_analysis_prompt(
     findings_data: Dict[str, Any],
     project_context: Optional[Dict[str, Any]] = None,
@@ -67,7 +88,9 @@ def build_analysis_prompt(
     )
 
 
-def build_remediation_prompt(finding: Dict[str, Any]) -> str:
+def build_remediation_prompt(
+    finding: Dict[str, Any], *, guidance: Optional[List[Dict[str, Any]]] = None
+) -> str:
     """Build the user message for one remediation enrichment call."""
     from services.ai.schemas import RemediationAdvice
 
@@ -88,6 +111,7 @@ def build_remediation_prompt(finding: Dict[str, Any]) -> str:
         f"CWE: {cwe}\n"
         f"CVE: {cve}\n"
         f"Code:\n```\n{code}\n```\n\n"
+        f"{_guidance_section(guidance)}"
         "## Required Output\n"
         "Return ONLY a JSON object matching this JSON Schema:\n"
         f"{_schema_json(RemediationAdvice)}"

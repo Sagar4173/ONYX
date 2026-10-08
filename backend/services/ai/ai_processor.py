@@ -22,6 +22,7 @@ from services.ai.prompts import (
     build_analysis_prompt,
     build_remediation_prompt,
 )
+from services.ai.retrieval import retrieve_fts_only
 from services.ai.schemas import AnalysisNarrative, RemediationAdvice
 
 logger = logging.getLogger(__name__)
@@ -135,10 +136,11 @@ class VulnerabilityAIProcessor:
                 data = self._finding_as_dict(finding)
                 if not data.get("title") and not data.get("description"):
                     continue
+                guidance = _lookup_guidance(data)
                 advice, _ = await complete_structured(
                     self.gateway,
                     system=REMEDIATION_SYSTEM_PROMPT,
-                    user=build_remediation_prompt(data),
+                    user=build_remediation_prompt(data, guidance=guidance),
                     purpose="remediation",
                     schema=RemediationAdvice,
                     temperature=0.2,
@@ -456,6 +458,21 @@ class VulnerabilityAIProcessor:
 
 # Global AI processor instance - lazy initialization
 _ai_processor = None
+
+
+def _lookup_guidance(finding: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """FTS-only knowledge lookup for one finding. Never raises, never embeds."""
+    try:
+        query = " ".join(
+            str(finding.get(key) or "").strip()
+            for key in ("cwe_id", "rule_id", "title")
+        ).strip()
+        if not query:
+            return []
+        return retrieve_fts_only(query, top_k=3)
+    except Exception as e:
+        logger.debug("Guidance lookup failed (continuing ungrounded): %s", e)
+        return []
 
 
 def get_ai_processor() -> VulnerabilityAIProcessor:

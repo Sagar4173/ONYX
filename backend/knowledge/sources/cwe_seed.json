@@ -1,0 +1,166 @@
+{
+  "source": "cwe",
+  "docs": [
+    {
+      "source_id": "CWE-89",
+      "title": "SQL Injection (SQLi)",
+      "cwe_id": "CWE-89",
+      "severity": "critical",
+      "text": "Improper neutralization of special elements used in an SQL command allows attacker-controlled data to alter the query structure (G78/Owasp). Successful exploitation can disclose, modify, or destroy database data and may lead to full application compromise.",
+      "sections": [
+        {"heading": "Remediation", "text": "Use parameterized queries or prepared statements for all database access; never concatenate user input into SQL. Apply least-privilege database accounts, validate input against strict allow-lists, and use an ORM with safe bindings where practical."},
+        {"heading": "Detection", "text": "Look for string-built queries (f-strings, + concatenation, format()) feeding cursor.execute, raw query planners, and error messages that echo SQL syntax back to the client."}
+      ]
+    },
+    {
+      "source_id": "CWE-798",
+      "title": "Use of Hard-coded Credentials",
+      "cwe_id": "CWE-798",
+      "severity": "high",
+      "text": "A password, API key, or other secret is baked into source code. Anyone with repository access (or anyone who obtains a copy) can authenticate as the trusted component, and rotation requires a code change.",
+      "sections": [
+        {"heading": "Remediation", "text": "Move secrets to environment variables or a secret manager, rotate any exposed credential immediately, and scan history for prior leaks. Commit pre-receive hooks with detect-secrets/gitleaks prevent regressions."}
+      ]
+    },
+    {
+      "source_id": "CWE-79",
+      "title": "Cross-site Scripting (XSS)",
+      "cwe_id": "CWE-79",
+      "severity": "high",
+      "text": "Web applications include untrusted data in output pages without proper validation or escaping, allowing attackers to execute scripts in victims' browsers (session hijacking, defacement, credential theft).",
+      "sections": [
+        {"heading": "Remediation", "text": "Context-escape all dynamic output (HTML, JS, URL, CSS contexts), prefer framework auto-escaping and safe DOM APIs (textContent over innerHTML), sanitize rich HTML with a vetted allow-list sanitizer, and deploy a restrictive Content-Security-Policy."}
+      ]
+    },
+    {
+      "source_id": "CWE-78",
+      "title": "OS Command Injection",
+      "cwe_id": "CWE-78",
+      "severity": "critical",
+      "text": "User-controlled data reaches an OS shell command, letting attackers execute arbitrary commands with the application's privileges (RCE).",
+      "sections": [
+        {"heading": "Remediation", "text": "Avoid shells: use argument-array APIs (subprocess.run([...]) with shell=False), validate input against strict allow-lists, and drop privileges for child processes."}
+      ]
+    },
+    {
+      "source_id": "CWE-22",
+      "title": "Path Traversal",
+      "cwe_id": "CWE-22",
+      "severity": "high",
+      "text": "External input is used to construct a path that can escape the intended directory, exposing or overwriting arbitrary files (source disclosure, config theft, code execution via writable paths).",
+      "sections": [
+        {"heading": "Remediation", "text": "Resolve the final path with os.path.realpath/Path.resolve and verify it stays under the intended root; prefer id-based access over user paths; block ../ and absolute paths; run with least filesystem privilege."}
+      ]
+    },
+    {
+      "source_id": "CWE-200",
+      "title": "Exposure of Sensitive Information",
+      "cwe_id": "CWE-200",
+      "severity": "medium",
+      "text": "The application leaks confidential data (PII, secrets, internal state, stack traces) to actors not authorized to see it, via responses, logs, error pages, or side channels.",
+      "sections": [
+        {"heading": "Remediation", "text": "Minimize data returned, redact secrets and PII in responses and logs, disable debug error pages in production, and enforce server-side authorization on every object."}
+      ]
+    },
+    {
+      "source_id": "CWE-319",
+      "title": "Cleartext Transmission of Sensitive Information",
+      "cwe_id": "CWE-319",
+      "severity": "medium",
+      "text": "Sensitive data travels in cleartext (HTTP, FTP, unencrypted SMTP), allowing network observers to capture credentials, tokens, and personal data.",
+      "sections": [
+        {"heading": "Remediation", "text": "Enforce HTTPS/TLS everywhere with HSTS, disable plaintext fallbacks, and use encrypted protocols (SMTPS/IMAPS) for mail."}
+      ]
+    },
+    {
+      "source_id": "CWE-306",
+      "title": "Missing Authentication for Critical Function",
+      "cwe_id": "CWE-306",
+      "severity": "critical",
+      "text": "A sensitive operation (account admin, payment, config change) is reachable without proving identity, letting any attacker invoke it directly.",
+      "sections": [
+        {"heading": "Remediation", "text": "Require authentication on every critical route by default (deny-by-default), enforce authorization checks server-side, and add regression tests that unauthenticated requests are rejected with 401/403."}
+      ]
+    },
+    {
+      "source_id": "CWE-639",
+      "title": "Authorization Bypass Through User-Controlled Key (IDOR)",
+      "cwe_id": "CWE-639",
+      "severity": "high",
+      "text": "Objects are accessed by directly guessing or manipulating an identifier (id, uuid, account number) without verifying the caller owns or may access that object.",
+      "sections": [
+        {"heading": "Remediation", "text": "Enforce object-level authorization on every access (ownership/tenant checks server-side), prefer non-guessable identifiers, and never trust IDs from the client without a permission lookup."}
+      ]
+    },
+    {
+      "source_id": "CWE-502",
+      "title": "Deserialization of Untrusted Data",
+      "cwe_id": "CWE-502",
+      "severity": "critical",
+      "text": "Parsing attacker-controlled serialized objects (pickle, yaml.load, Java serialization) can trigger gadget chains that execute arbitrary code or instantiate attacker-chosen types.",
+      "sections": [
+        {"heading": "Remediation", "text": "Never deserialize untrusted data with unsafe formats; use JSON for untrusted payloads, safe loaders (yaml.safe_load), and integrity-check signed payloads before parsing."}
+      ]
+    },
+    {
+      "source_id": "CWE-918",
+      "title": "Server-Side Request Forgery (SSRF)",
+      "cwe_id": "CWE-918",
+      "severity": "high",
+      "text": "The server fetches a user-supplied URL, letting attackers reach internal services, cloud metadata endpoints (169.254.169.254), or scan the private network from the server's vantage point.",
+      "sections": [
+        {"heading": "Remediation", "text": "Allow-list outbound destinations, resolve and validate IPs (block private/link-local ranges), disable redirects, and separate egress networks for user-initiated fetches."}
+      ]
+    },
+    {
+      "source_id": "CWE-770",
+      "title": "Allocation of Resources Without Limits",
+      "cwe_id": "CWE-770",
+      "severity": "medium",
+      "text": "Unbounded allocation of files, memory, connections, or compute per request lets an attacker exhaust resources and cause denial of service for all users.",
+      "sections": [
+        {"heading": "Remediation", "text": "Apply quotas and rate limits per user/IP, bound request body and collection sizes, and set timeouts on all outbound calls."}
+      ]
+    },
+    {
+      "source_id": "CWE-327",
+      "title": "Use of a Broken or Risky Cryptographic Algorithm",
+      "cwe_id": "CWE-327",
+      "severity": "medium",
+      "text": "Use of broken or weak algorithms (MD5, SHA-1 for signatures, DES, ECB mode) undermines confidentiality or integrity guarantees even when crypto is 'used'.",
+      "sections": [
+        {"heading": "Remediation", "text": "Use modern algorithms (AES-GCM, SHA-256+, ChaCha20-Poly1305), prefer vetted libraries and authenticated encryption, and never design your own crypto."}
+      ]
+    },
+    {
+      "source_id": "CWE-330",
+      "title": "Use of Insufficiently Random Values",
+      "cwe_id": "CWE-330",
+      "severity": "medium",
+      "text": "Predictable random values (math.random for tokens, time-based seeds) allow attackers to guess session tokens, password-reset links, or nonces.",
+      "sections": [
+        {"heading": "Remediation", "text": "Use cryptographically secure generators (secrets, os.urandom, crypto/rand) for all security-sensitive values, and never seed PRNGs with time or low-entropy input."}
+      ]
+    },
+    {
+      "source_id": "CWE-611",
+      "title": "XML External Entity (XXE) Reference",
+      "cwe_id": "CWE-611",
+      "severity": "high",
+      "text": "XML parsers that resolve external entities let attackers read local files, perform SSRF, or exhaust resources while parsing seemingly benign XML.",
+      "sections": [
+        {"heading": "Remediation", "text": "Disable DTDs and external entity resolution in all XML parsers; prefer JSON for untrusted data."}
+      ]
+    },
+    {
+      "source_id": "CWE-1176",
+      "title": "Improper Handling of Syntax Errors (input validation)",
+      "cwe_id": "CWE-1176",
+      "severity": "low",
+      "text": "Unhandled malformed input causes crashes or inconsistent state instead of clean rejection, enabling denial of service and masking of real attacks in noisy errors.",
+      "sections": [
+        {"heading": "Remediation", "text": "Validate all external input against schemas, reject malformed data with clear 4xx responses, and fail closed without leaking internals."}
+      ]
+    }
+  ]
+}

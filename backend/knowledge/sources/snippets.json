@@ -1,0 +1,115 @@
+{
+  "source": "snippet",
+  "docs": [
+    {
+      "source_id": "snip-sql_injection-python",
+      "title": "Parameterized SQL queries in Python",
+      "language": "python",
+      "vuln_class": "sql_injection",
+      "cwe_id": "CWE-89",
+      "text": "Never build SQL by string concatenation. Use driver-level parameter binding so the driver escapes values, never structure.",
+      "sections": [
+        {"heading": "Remediation", "text": "# vulnerable: cursor.execute(f\"SELECT * FROM users WHERE email = '{email}'\")\n# safe (DB-API drivers):\ncursor.execute(\"SELECT * FROM users WHERE email = %s\", (email,))\n# safe (sqlite3):\ncursor.execute(\"SELECT * FROM users WHERE email = ?\", (email,))"}
+      ]
+    },
+    {
+      "source_id": "snip-sql_injection-javascript",
+      "title": "Parameterized SQL queries in Node.js",
+      "language": "javascript",
+      "vuln_class": "sql_injection",
+      "cwe_id": "CWE-89",
+      "text": "Use the driver's parameter placeholders instead of template-literal SQL; the driver sends values separately from the query text.",
+      "sections": [
+        {"heading": "Remediation", "text": "// vulnerable:\nconst q = `SELECT * FROM users WHERE email = '${email}'`;\nawait db.query(q);\n// safe (pg):\nawait db.query('SELECT * FROM users WHERE email = $1', [email]);\n// safe (mysql2):\nawait db.execute('SELECT * FROM users WHERE email = ?', [email]);"}
+      ]
+    },
+    {
+      "source_id": "snip-xss-python",
+      "title": "Escaping output in Jinja2 templates",
+      "language": "python",
+      "vuln_class": "xss",
+      "cwe_id": "CWE-79",
+      "text": "Jinja2 autoescaping plus explicit |e for dynamic HTML; never mark untrusted content as safe.",
+      "sections": [
+        {"heading": "Remediation", "text": "# Flask: keep autoescaping on for .html/.xml templates (default)\nreturn render_template(\"profile.html\", username=user_input)\n# in the template, escaping is automatic:\n#   <p>{{ username }}</p>\n# if you must allow limited HTML, sanitize first:\nimport bleach\nsanitized = bleach.clean(user_html, tags=[\"b\", \"i\", \"em\", \"strong\"])\n# never: Markup(user_input) or |safe on untrusted data"}
+      ]
+    },
+    {
+      "source_id": "snip-path_traversal-python",
+      "title": "Safe file paths in Python",
+      "language": "python",
+      "vuln_class": "path_traversal",
+      "cwe_id": "CWE-22",
+      "text": "Resolve the untrusted path and verify it stays inside the intended root before touching the filesystem.",
+      "sections": [
+        {"heading": "Remediation", "text": "# vulnerable:\npath = os.path.join(BASE_DIR, user_filename)\ndata = open(path).read()\n# safe:\nfrom pathlib import Path\nbase = Path(BASE_DIR).resolve()\ntarget = (base / user_filename).resolve()\nif not target.is_relative_to(base):\n    raise HTTPError(400, \"invalid path\")\ndata = target.read_bytes()"}
+      ]
+    },
+    {
+      "source_id": "snip-hardcoded_secret-python",
+      "title": "Environment-based secrets in Python",
+      "language": "python",
+      "vuln_class": "hardcoded_secret",
+      "cwe_id": "CWE-798",
+      "text": "Read secrets from the environment or a secret manager at runtime; keep them out of source and history.",
+      "sections": [
+        {"heading": "Remediation", "text": "# vulnerable:\nAPI_KEY = \"sk-live-1234567890\"\n# safe:\nimport os\nfrom functools import lru_cache\n\n@lru_cache\ndef get_api_key():\n    key = os.environ.get(\"API_KEY\")\n    if not key:\n        raise RuntimeError(\"API_KEY not configured\")\n    return key\n# plus: rotate any key that ever shipped in a commit (gitleaks --history)"}
+      ]
+    },
+    {
+      "source_id": "snip-command_injection-python",
+      "title": "Safe subprocess calls in Python",
+      "language": "python",
+      "vuln_class": "command_injection",
+      "cwe_id": "CWE-78",
+      "text": "Never pass user input to a shell; use argument arrays with shell=False and validate values against an allow-list.",
+      "sections": [
+        {"heading": "Remediation", "text": "# vulnerable:\nos.system(f\"ping -c 4 {host}\")\nsubprocess.run(f\"convert {src} {dst}\", shell=True)\n# safe:\nimport subprocess\nif host not in ALLOWED_HOSTS:\n    raise ValueError(\"host not allowed\")\nresult = subprocess.run(\n    [\"ping\", \"-c\", \"4\", host],\n    shell=False, capture_output=True, timeout=10,\n)"}
+      ]
+    },
+    {
+      "source_id": "snip-ssrf-python",
+      "title": "SSRF-safe outbound requests in Python",
+      "language": "python",
+      "vuln_class": "ssrf",
+      "cwe_id": "CWE-918",
+      "text": "Allow-list destinations and block private or link-local addresses after DNS resolution; never follow redirects blindly.",
+      "sections": [
+        {"heading": "Remediation", "text": "import ipaddress, socket, urllib.parse, requests\n\ndef safe_fetch(url: str):\n    host = urllib.parse.urlparse(url).hostname or \"\"\n    if host not in ALLOWED_HOSTS:\n        raise ValueError(\"host not allow-listed\")\n    ip = ipaddress.ip_address(socket.gethostbyname(host))\n    if ip.is_private or ip.is_loopback or ip.is_link_local:\n        raise ValueError(\"blocked address\")\n    return requests.get(url, timeout=5, allow_redirects=False)"}
+      ]
+    },
+    {
+      "source_id": "snip-insecure_deserialization-python",
+      "title": "Safe deserialization in Python",
+      "language": "python",
+      "vuln_class": "insecure_deserialization",
+      "cwe_id": "CWE-502",
+      "text": "Use JSON for untrusted data; never pickle or yaml.load input from users; safe loaders for the rest.",
+      "sections": [
+        {"heading": "Remediation", "text": "# vulnerable:\nimport pickle, yaml\nobj = pickle.loads(user_bytes)          # arbitrary code execution\ndata = yaml.load(user_text, Loader=yaml.Loader)\n# safe:\nimport json\ndata = json.loads(user_text)\nimport yaml\ndata = yaml.safe_load(user_text)\n# if you must use pickle, sign the payload first and verify before loads."}
+      ]
+    },
+    {
+      "source_id": "snip-crypto_weakness-python",
+      "title": "Modern password hashing and crypto in Python",
+      "language": "python",
+      "vuln_class": "crypto_weakness",
+      "cwe_id": "CWE-327",
+      "text": "Hash passwords with a memory-hard algorithm and per-password salt; avoid MD5/SHA-1 for security purposes.",
+      "sections": [
+        {"heading": "Remediation", "text": "# vulnerable:\nimport hashlib\nhashed = hashlib.md5(password.encode())\n# safe (argon2id preferred):\nfrom argon2 import PasswordHasher\nph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)\nhash_ = ph.hash(password)\n# verify:\nph.verify(hash_, password)\n# for general hashing use hashlib.sha256/bcrypt; for tokens use secrets.token_urlsafe(32)"}
+      ]
+    },
+    {
+      "source_id": "snip-auth_missing-javascript",
+      "title": "Enforcing authentication in Express routes",
+      "language": "javascript",
+      "vuln_class": "auth_missing",
+      "cwe_id": "CWE-306",
+      "text": "Protect every sensitive route by default with auth middleware; deny unauthenticated requests instead of trusting the client.",
+      "sections": [
+        {"heading": "Remediation", "text": "// vulnerable:\napp.get(\"/api/admin/users\", adminHandler);\n// safe:\nconst requireAuth = require(\"./middleware/requireAuth\");\napp.get(\"/api/admin/users\", requireAuth, requireRole(\"admin\"), adminHandler);\n// middleware/requireAuth.js (JWT example):\nmodule.exports = (req, res, next) => {\n  const token = (req.headers.authorization || \"\").replace(\"Bearer \", \"\");\n  try {\n    req.user = jwt.verify(token, process.env.JWT_SECRET);\n    next();\n  } catch (e) {\n    res.status(401).json({ error: \"unauthorized\" });\n  }\n};"}
+      ]
+    }
+  ]
+}

@@ -94,3 +94,33 @@ def test_get_active_model_unavailable_without_keys(monkeypatch):
     monkeypatch.setattr(settings, "ai_provider", "openai")
     monkeypatch.setattr(settings, "openai_api_key", None)
     assert _get_active_model() == "unavailable"
+
+
+async def test_knowledge_injected_into_system_prompt():
+    chunk = {
+        "chunk_id": 1, "header": "CWE-79: XSS", "source": "cwe",
+        "source_id": "CWE-79", "cwe_id": "CWE-79",
+        "text": "Use a content security policy to mitigate XSS.",
+    }
+    gw = FakeGateway(text="Mitigate with CSP [[1]].")
+    with patch("routes.ai_chat.get_gateway", return_value=gw):
+        out = await _call_ai_chat(
+            message="how do I fix XSS?",
+            scan_context={},
+            knowledge=[chunk],
+        )
+    assert out == "Mitigate with CSP [[1]]."
+    system = gw.calls[0]["messages"][0]["content"]
+    assert "## Knowledge Base (grounding)" in system
+    assert "[1] CWE-79: XSS (source=cwe, id=CWE-79)" in system
+    assert "Use a content security policy" in system
+    assert "[[n]]" in system
+    assert "untrusted reference data" in system
+
+
+async def test_no_knowledge_adds_no_grounding_section():
+    gw = FakeGateway(text="plain")
+    with patch("routes.ai_chat.get_gateway", return_value=gw):
+        await _call_ai_chat(message="q", scan_context={})
+    system = gw.calls[0]["messages"][0]["content"]
+    assert "## Knowledge Base (grounding)" not in system

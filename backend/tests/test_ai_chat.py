@@ -262,3 +262,118 @@ class TestAIChatEndpoint:
         )
 
         assert response.status_code == 422
+
+
+@pytest.fixture(autouse=True)
+def _offline_retrieval():
+    """Chat tests must never touch knowledge.db or call embedding APIs."""
+    with patch("routes.ai_chat.retrieve", new=AsyncMock(return_value=[])):
+        yield
+
+
+@pytest.mark.asyncio
+async def test_chat_returns_parsed_citations():
+    chunks = [
+        {"chunk_id": 1, "header": "CWE-79: XSS", "source": "cwe",
+         "source_id": "CWE-79", "cwe_id": "CWE-79", "text": "x"},
+        {"chunk_id": 2, "header": "CWE-89: SQLi", "source": "cwe",
+         "source_id": "CWE-89", "cwe_id": "CWE-89", "text": "y"},
+    ]
+    client = _setup_client()
+    patchers = _patch_access()
+    try:
+        with (
+            patch("routes.ai_chat._retrieve_knowledge", new=AsyncMock(return_value=chunks)),
+            patch(
+                "routes.ai_chat._call_ai_chat",
+                new=AsyncMock(return_value="Prefer parameterized queries [[2]]. Also [[1]]."),
+            ),
+        ):
+            response = client.post(
+                "/api/ai/chat",
+                json={"scan_id": "scan-001", "message": "How do I fix SQLi and XSS?"},
+            )
+    finally:
+        for patcher in patchers:
+            patcher.stop()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["reply"] == "Prefer parameterized queries [2]. Also [1]."
+    assert [c["n"] for c in data["citations"]] == [2, 1]
+    assert data["citations"][0]["source_id"] == "CWE-89"
+    assert data["citations"][1]["cwe_id"] == "CWE-79"
+
+
+@pytest.mark.asyncio
+async def test_retrieve_knowledge_swallows_errors():
+    from routes.ai_chat import _retrieve_knowledge
+
+    with patch("routes.ai_chat.retrieve", new=AsyncMock(side_effect=Exception("db gone"))):
+        assert await _retrieve_knowledge("how do I fix XSS?") == []
+
+
+@pytest.mark.asyncio
+async def test_chat_with_empty_knowledge_has_empty_citations():
+    client = _setup_client()
+    patchers = _patch_access()
+    try:
+        with (
+            patch("routes.ai_chat._retrieve_knowledge", new=AsyncMock(return_value=[])),
+            patch("routes.ai_chat._call_ai_chat", new=AsyncMock(return_value="No citations here.")),
+        ):
+            response = client.post(
+                "/api/ai/chat",
+                json={"scan_id": "scan-001", "message": "hello"},
+            )
+    finally:
+        for patcher in patchers:
+            patcher.stop()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["reply"] == "No citations here."
+    assert data["citations"] == []
+
+
+@pytest.mark.asyncio
+async def test_route_grounding_prompt_and_citations_aligned():
+    """End-to-end: real _call_ai_chat + real extract_citations, same knowledge list."""
+    chunk = {
+        "chunk_id": 1, "header": "CWE-89: SQL injection", "source": "cwe",
+        "source_id": "CWE-89", "cwe_id": "CWE-89",
+        "text": "Use parameterized queries instead of string concatenation.",
+    }
+    captured = {}
+
+    class _GW:
+        async def complete_messages(self, **kwargs):
+            captured.update(kwargs)
+            from services.ai.gateway import GatewayResult
+            return GatewayResult(text="Prefer parameterized queries [[1]].",
+                                 provider="fake", model="fake-1",
+                                 usage={}, latency_ms=1)
+
+    client = _setup_client()
+    patchers = _patch_access()
+    try:
+        with (
+            patch("routes.ai_chat._retrieve_knowledge", new=AsyncMock(return_value=[chunk])),
+            patch("routes.ai_chat.get_gateway", return_value=_GW()),
+        ):
+            response = client.post(
+                "/api/ai/chat",
+                json={"scan_id": "scan-001", "message": "How do I prevent SQLi?"},
+            )
+    finally:
+        for patcher in patchers:
+            patcher.stop()
+
+    assert response.status_code == 200
+    data = response.json()
+    system = captured["messages"][0]["content"]
+    assert "[1] CWE-89: SQL injection" in system, "prompt must number the same chunk as [1]"
+    assert "untrusted reference data" in system
+    assert data["reply"] == "Prefer parameterized queries [1]."
+    assert [c["n"] for c in data["citations"]] == [1]
+    assert data["citations"][0]["source_id"] == "CWE-89"
