@@ -198,7 +198,23 @@ class Settings(BaseSettings):
     auto_fix_branch_prefix: str = Field(default="onyx-auto-fix/", env="AUTO_FIX_BRANCH_PREFIX")
     auto_fix_pr_title_prefix: str = Field(default="[ONYX Auto-Fix] ", env="AUTO_FIX_PR_TITLE_PREFIX")
     auto_fix_token: Optional[str] = Field(default=None, env="AUTO_FIX_TOKEN")
-    
+
+    # --- Phase 3: Agentic fix-agent + AI safety (spec 4.2-4.5) ------------
+    # Human approval ON by default: propose -> gates -> pending fix stored;
+    # the PR is opened only by an explicit approve call (spec 4.3.4).
+    auto_fix_requires_approval: bool = Field(default=True, env="AUTO_FIX_REQUIRES_APPROVAL")
+    # Dry-run: compute + gate + show the diff; never persist, push, or open PRs.
+    auto_fix_dry_run: bool = Field(default=False, env="AUTO_FIX_DRY_RUN")
+    auto_fix_max_diff_lines: int = Field(default=50, env="AUTO_FIX_MAX_DIFF_LINES")
+    # Loop caps (spec 4.3.5): Agent(retries={'tools': fix_agent_max_tool_retries})
+    # bounds model turns to 1 + retries = 3 by default ("<=3 LLM turns").
+    fix_agent_max_tool_retries: int = Field(default=2, env="FIX_AGENT_MAX_TOOL_RETRIES")
+    fix_agent_output_token_limit: int = Field(default=4000, env="FIX_AGENT_OUTPUT_TOKEN_LIMIT")
+    # Inbound prompt-injection screening via llama-prompt-guard-2 (spec 4.3.6).
+    injection_screen_enabled: bool = Field(default=True, env="INJECTION_SCREEN_ENABLED")
+    injection_screen_fail_open: bool = Field(default=True, env="INJECTION_SCREEN_FAIL_OPEN")
+    injection_screen_model: str = Field(default="meta-llama/llama-prompt-guard-2-86m", env="INJECTION_SCREEN_MODEL")
+
     # WebSocket
     websocket_heartbeat_interval: int = Field(default=30, env="WEBSOCKET_HEARTBEAT_INTERVAL")
     
