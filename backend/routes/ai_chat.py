@@ -8,6 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from config import settings
@@ -109,13 +110,13 @@ async def _retrieve_knowledge(message: str) -> List[Dict[str, Any]]:
         return []
 
 
-async def _call_ai_chat(
+def _build_messages(
+    *,
     message: str,
     scan_context: Dict[str, Any],
     conversation_history: Optional[List[Dict[str, str]]] = None,
-    *,
     knowledge: Optional[List[Dict[str, Any]]] = None,
-) -> str:
+) -> List[Dict[str, str]]:
     system_prompt = """You are ONYX Security AI, a senior application security engineer assistant. 
 You analyze security scan results and answer questions about vulnerabilities, risks, and fixes.
 
@@ -147,18 +148,28 @@ The user's scan results and AI analysis context are provided below. Use them to 
                 "context without inventing citations."
             )
 
-    messages: List[Dict[str, str]] = [{"role": "system", "content": full_system_prompt}]
+    msgs: List[Dict[str, str]] = [{"role": "system", "content": full_system_prompt}]
     for msg in (conversation_history or [])[-10:]:
         role = msg["role"] if msg["role"] in ALLOWED_CHAT_ROLES else "user"
-        messages.append({"role": role, "content": msg["content"]})
-    messages.append({"role": "user", "content": message})
+        msgs.append({"role": role, "content": msg["content"]})
+    msgs.append({"role": "user", "content": message})
+    return msgs
 
+
+async def _call_ai_chat(
+    message: str,
+    scan_context: Dict[str, Any],
+    conversation_history: Optional[List[Dict[str, str]]] = None,
+    *,
+    knowledge: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    messages = _build_messages(
+        message=message, scan_context=scan_context,
+        conversation_history=conversation_history, knowledge=knowledge,
+    )
     try:
         result = await get_gateway().complete_messages(
-            messages=messages,
-            purpose="chat",
-            max_tokens=1500,
-            temperature=0.3,
+            messages=messages, purpose="chat", max_tokens=1500, temperature=0.3,
         )
     except GatewayError as e:
         logger.error(f"AI chat gateway exhausted: {e}")
@@ -243,3 +254,67 @@ async def ai_chat(
     _, visible_blocks = format_context(knowledge, settings.rag_max_context_chars)
     reply, citations = extract_citations(raw_reply, knowledge[:visible_blocks])
     return ChatResponse(reply=reply, model_used=_get_active_model(), citations=citations)
+
+
+def _sse(payload: Dict[str, Any]) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+@router.post("/chat/stream")
+@limiter.limit("30/minute")
+async def ai_chat_stream(
+    request: Request,
+    payload: ChatRequest,
+    user=Depends(get_current_user),
+):
+    scan_context = await _build_scan_context(payload.scan_id, user)
+    if not scan_context:
+        raise HTTPException(status_code=404, detail="Scan report not found or access denied")
+
+    await _screen_or_block(payload.message)
+
+    hist = None
+    if payload.conversation_history:
+        hist = [{"role": m.role, "content": m.content} for m in payload.conversation_history]
+
+    knowledge = await _retrieve_knowledge(payload.message)
+    messages = _build_messages(
+        message=payload.message, scan_context=scan_context,
+        conversation_history=hist, knowledge=knowledge,
+    )
+
+    async def event_gen():
+        reply_parts: List[str] = []
+        try:
+            async for ev in get_gateway().stream_messages(
+                messages=messages, purpose="chat", max_tokens=1500, temperature=0.3,
+            ):
+                if ev.error:
+                    yield _sse({"type": "error", "detail": "AI provider error mid-stream."})
+                if ev.delta:
+                    reply_parts.append(ev.delta)
+                    yield _sse({"type": "delta", "text": ev.delta})
+                if ev.done:
+                    break
+        except GatewayError:
+            yield _sse({"type": "error", "detail": "AI chat is temporarily unavailable."})
+            return
+        except Exception as e:
+            logger.error(f"AI chat stream error: {e}")
+            yield _sse({"type": "error", "detail": f"AI chat service error: {get_safe_error_detail(e)}"})
+            return
+        raw = "".join(reply_parts)
+        _, visible = format_context(knowledge, settings.rag_max_context_chars)
+        reply, citations = extract_citations(raw, knowledge[:visible])
+        yield _sse({
+            "type": "done",
+            "citations": citations,
+            "model_used": _get_active_model(),
+            "reply": reply,
+        })
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )

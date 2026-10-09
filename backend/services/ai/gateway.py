@@ -14,8 +14,8 @@ import logging
 import re
 import time
 from collections import deque
-from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, Optional, TypeVar
+from dataclasses import dataclass, field
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Optional, TypeVar
 
 from pydantic import BaseModel
 
@@ -63,6 +63,16 @@ class GatewayResult:
     usage: dict
     latency_ms: int
     cached: bool = False
+
+
+@dataclass
+class StreamEvent:
+    delta: str = ""
+    done: bool = False
+    provider: str = ""
+    model: str = ""
+    usage: dict = field(default_factory=dict)
+    error: Optional[str] = None
 
 
 def spec_for(name: str, s=None) -> ProviderSpec:
@@ -168,9 +178,60 @@ _DEFAULT_ADAPTERS: Dict[str, AdapterFn] = {
 }
 
 
+async def _stream_openai_compat(spec, messages, max_tokens, temperature):
+    """OpenAI-compatible streaming adapter (Groq, OpenRouter, OpenAI, Ollama)."""
+    from openai import AsyncOpenAI
+
+    timeout = float(settings.ai_local_timeout) if spec.name == "ollama" else 60.0
+    client = AsyncOpenAI(api_key=spec.api_key, base_url=spec.base_url, max_retries=0, timeout=timeout)
+    stream = await client.chat.completions.create(
+        model=spec.model, messages=messages, max_tokens=max_tokens,
+        temperature=temperature, stream=True,
+    )
+    async for chunk in stream:
+        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
+
+async def _stream_gemini(spec, messages, max_tokens, temperature):
+    """Gemini streaming adapter via google-genai (already a dependency)."""
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(api_key=spec.api_key)
+    system = next((m.get("content", "") for m in messages if m.get("role") == "system"), None)
+    parts = [
+        f"{m.get('role', 'user')}: {m.get('content', '')}"
+        for m in messages
+        if m.get("role") != "system"
+    ]
+    stream = await client.aio.models.generate_content_stream(
+        model=spec.model,
+        contents="\n".join(parts),
+        config=types.GenerateContentConfig(
+            system_instruction=system,
+            max_output_tokens=max_tokens,
+            temperature=temperature,
+        ),
+    )
+    async for resp in stream:
+        if resp.text:
+            yield resp.text
+
+
+_DEFAULT_STREAM_ADAPTERS = {
+    "gemini": _stream_gemini,
+    "groq": _stream_openai_compat,
+    "openrouter": _stream_openai_compat,
+    "openai": _stream_openai_compat,
+    "ollama": _stream_openai_compat,
+}
+
+
 class LLMGateway:
-    def __init__(self, adapters=None, quota=None, cache=None, tracer=None):
+    def __init__(self, adapters=None, stream_adapters=None, quota=None, cache=None, tracer=None):
         self._adapters = dict(_DEFAULT_ADAPTERS) if adapters is None else dict(adapters)
+        self._stream_adapters = dict(_DEFAULT_STREAM_ADAPTERS) if stream_adapters is None else dict(stream_adapters)
         self._quota = quota if quota is not None else QuotaLedger()
         self._cache = cache if cache is not None else ResponseCache()
         self._tracer = tracer if tracer is not None else InvocationTracer()
@@ -314,6 +375,73 @@ class LLMGateway:
                 text=text, provider=spec.name, model=spec.model,
                 usage=usage, latency_ms=latency,
             )
+        raise GatewayError("All AI providers failed: " + "; ".join(errors))
+
+    async def stream_messages(
+        self,
+        *,
+        messages: list,
+        purpose: str,
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.3,
+    ) -> AsyncIterator[StreamEvent]:
+        """Stream a chat completion with the same lane protections as complete_messages.
+
+        Yields StreamEvent deltas; exactly one terminal event (done=... or error=...).
+        Raises GatewayError only if no lane produced a first delta.
+        """
+        max_tokens = max_tokens or settings.openai_max_tokens
+        specs = [spec_for(name, settings) for name in settings.configured_provider_chain()]
+        if not specs:
+            raise GatewayError(
+                "No AI provider configured (set GEMINI_API_KEY, GROQ_API_KEY, "
+                "OPENROUTER_API_KEY, OPENAI_API_KEY, or AI_PROVIDER=ollama)"
+            )
+        errors = []
+        for spec in specs:
+            now = time.monotonic()
+            if self._circuit_open(spec.name, now):
+                errors.append(f"{spec.name}: circuit open (cooling down)")
+                continue
+            if not self._rate_ok(spec.name, now):
+                errors.append(f"{spec.name}: rate limit exceeded ({settings.ai_rate_limit_rpm}/min)")
+                continue
+            if not await self._quota.try_consume(spec.name):
+                errors.append(f"{spec.name}: daily quota exhausted ({settings.ai_rate_limit_rpd}/day)")
+                continue
+            adapter = self._stream_adapters.get(spec.name)
+            if adapter is None:
+                errors.append(f"{spec.name}: no streaming adapter registered")
+                continue
+            start = time.perf_counter()
+            started = False
+            try:
+                async for delta in adapter(spec, messages, max_tokens, temperature):
+                    started = True
+                    yield StreamEvent(delta=delta, provider=spec.name, model=spec.model)
+            except Exception as e:
+                latency = int((time.perf_counter() - start) * 1000)
+                self._note_failure(spec.name)
+                scrubbed = _scrub(e)
+                await self._tracer.record(
+                    purpose=purpose, provider=spec.name, model=spec.model,
+                    ok=False, latency_ms=latency, error=_scrub(e, 500),
+                )
+                logger.warning("AI stream provider %s failed: %s", spec.name, scrubbed)
+                if started:
+                    yield StreamEvent(error=scrubbed, provider=spec.name, model=spec.model)
+                    yield StreamEvent(done=True, provider=spec.name, model=spec.model)
+                    return
+                errors.append(f"{spec.name}: {scrubbed}")
+                continue
+            latency = int((time.perf_counter() - start) * 1000)
+            self._note_success(spec.name)
+            await self._tracer.record(
+                purpose=purpose, provider=spec.name, model=spec.model,
+                ok=True, latency_ms=latency,
+            )
+            yield StreamEvent(done=True, provider=spec.name, model=spec.model)
+            return
         raise GatewayError("All AI providers failed: " + "; ".join(errors))
 
     # --- protection primitives -------------------------------------------
