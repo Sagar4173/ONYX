@@ -2,7 +2,7 @@
 MongoDB models for ONYX Platform - Scan Reports and Findings
 """
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from beanie import Document
 from pydantic import BaseModel, ConfigDict, Field
@@ -80,6 +80,10 @@ class VulnerabilityFinding(BaseModel):
     false_positive_score: Optional[float] = Field(
         None, 
         description="False positive likelihood score (0-1)"
+    )
+    triage_label: Optional[Literal["accepted", "false_positive", "dismissed"]] = Field(
+        None,
+        description="Human triage label; None = untriaged (spec 5.1 P4)",
     )
     remediation: Optional[str] = Field(
         None,

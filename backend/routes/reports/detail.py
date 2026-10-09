@@ -133,6 +133,7 @@ async def get_report(
                             "cve_id": getattr(finding, "cve_id", None),
                             "owasp_category": getattr(finding, "owasp_category", None),
                             "references": getattr(finding, "references", []),
+                            "triage_label": getattr(finding, "triage_label", None),
                         }
                         scanner_data["findings"].append(finding_data)
 
