@@ -215,6 +215,15 @@ class Settings(BaseSettings):
     injection_screen_fail_open: bool = Field(default=True, env="INJECTION_SCREEN_FAIL_OPEN")
     injection_screen_model: str = Field(default="meta-llama/llama-prompt-guard-2-86m", env="INJECTION_SCREEN_MODEL")
 
+    # --- Phase 4: Investigate agent + ML triage (spec 4.4, 5.1 P4) --------
+    investigate_agent_enabled: bool = Field(default=True, env="INVESTIGATE_AGENT_ENABLED")
+    investigate_agent_max_tool_retries: int = Field(default=2, env="INVESTIGATE_AGENT_MAX_TOOL_RETRIES")
+    investigate_agent_output_token_limit: int = Field(default=3000, env="INVESTIGATE_AGENT_OUTPUT_TOKEN_LIMIT")
+    # IsolationForest activation gate: stays OFF until real scan history exists.
+    ml_isolation_forest_enabled: bool = Field(default=False, env="ML_ISOLATION_FOREST_ENABLED")
+    ml_min_training_scans: int = Field(default=30, env="ML_MIN_TRAINING_SCANS")
+    ml_training_window_days: int = Field(default=90, env="ML_TRAINING_WINDOW_DAYS")
+
     # WebSocket
     websocket_heartbeat_interval: int = Field(default=30, env="WEBSOCKET_HEARTBEAT_INTERVAL")
     
