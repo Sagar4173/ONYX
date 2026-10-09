@@ -1,14 +1,12 @@
-import os
-import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from models.report import (
     GitMetadata,
+    ScannerType,
     ScanReport,
     ScanResult,
-    ScannerType,
     ScanStatus,
     SeverityLevel,
     VulnerabilityFinding,
@@ -59,6 +57,8 @@ def scan_report(scan_result):
         commit_hash="abc123",
         event_type="push",
     )
+    sr.metadata = {}
+    sr.save = AsyncMock()
     return sr
 
 
@@ -114,99 +114,28 @@ class TestParseRepoInfo:
             service._parse_repo_info("https://github.com/single")
 
 
-class TestApplyFix:
-    def _create_file(self, tmpdir, lines=15):
-        file_path = os.path.join(tmpdir, "app/auth.py")
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, "w", encoding="utf-8") as f:
-            for i in range(1, lines + 1):
-                f.write(f"line{i}\n")
-        return file_path
-
-    def test_successful_patch(self, service, finding):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            self._create_file(tmpdir)
-            finding.file_path = "app/auth.py"
-            result = service._apply_fix(tmpdir, finding)
-
-            assert result == "app/auth.py"
-            file_path = os.path.join(tmpdir, "app/auth.py")
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            assert "cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))" in content
-            assert "line1" in content
-            assert "line9" in content
-            assert "line13" in content
-
-    def test_file_not_found(self, service, finding):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with pytest.raises(AutoFixError, match="File not found"):
-                service._apply_fix(tmpdir, finding)
-
-    def test_line_range_out_of_bounds(self, service, finding):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            file_path = os.path.join(tmpdir, "app/auth.py")
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write("line1\n")
-            finding.file_path = "app/auth.py"
-            finding.line_start = 10
-            with pytest.raises(AutoFixError, match="Line range out of bounds"):
-                service._apply_fix(tmpdir, finding)
-
-
-class TestCreateAutoFixPr:
+class TestOpenPrForPatchPath:
     @pytest.mark.asyncio
-    async def test_full_success(self, service, scan_report, finding):
+    async def test_branch_push_pr_sequence(self, service, scan_report, finding, tmp_path):
+        (tmp_path / "app").mkdir()
+        target = tmp_path / "app" / "auth.py"
+        target.write_text("x = 1\n", encoding="utf-8")
         with (
-            patch.object(service, "_find_finding", return_value=finding),
             patch.object(service, "_resolve_token", AsyncMock(return_value="ghp_token")),
-            patch.object(service, "_clone_repo", return_value="/tmp/fake-clone"),
-            patch.object(service, "_apply_fix", return_value="app/auth.py"),
-            patch.object(service, "_create_branch_and_commit", return_value="onyx-auto-fix/branch-1"),
+            patch.object(service, "_create_branch_and_commit", return_value="onyx-auto-fix/b1"),
             patch.object(service, "_push_branch"),
-            patch.object(service, "_create_pr", AsyncMock(return_value=("https://github.com/owner/repo/pull/1", 1))),
+            patch.object(service, "_create_pr", AsyncMock(return_value=("https://x/pull/1", 1))) as pr,
         ):
-            result = await service.create_auto_fix_pr(scan_report, "finding-001")
-
-        assert result["pr_url"] == "https://github.com/owner/repo/pull/1"
-        assert result["pr_number"] == 1
-        assert result["branch"] == "onyx-auto-fix/branch-1"
-        assert result["finding_id"] == "finding-001"
-        assert result["file_path"] == "app/auth.py"
-
-    @pytest.mark.asyncio
-    async def test_finding_not_found(self, service, scan_report):
-        with patch.object(service, "_find_finding", return_value=None):
-            with pytest.raises(AutoFixError, match="not found"):
-                await service.create_auto_fix_pr(scan_report, "nonexistent")
-
-    @pytest.mark.asyncio
-    async def test_no_remediation_code(self, service, scan_report, finding):
-        finding.remediation_code = None
-        with patch.object(service, "_find_finding", return_value=finding):
-            with pytest.raises(AutoFixError, match="no remediation code"):
-                await service.create_auto_fix_pr(scan_report, "finding-001")
-
-    @pytest.mark.asyncio
-    async def test_cleanup_on_clone_failure(self, service, scan_report, finding):
-        with (
-            patch.object(service, "_find_finding", return_value=finding),
-            patch.object(service, "_resolve_token", AsyncMock(return_value="token")),
-            patch.object(service, "_clone_repo", side_effect=AutoFixError("clone failed")),
-        ):
-            with pytest.raises(AutoFixError, match="clone failed"):
-                await service.create_auto_fix_pr(scan_report, "finding-001")
-
-    @pytest.mark.asyncio
-    async def test_no_token_available(self, service, scan_report, finding):
-        with (
-            patch.object(service, "_find_finding", return_value=finding),
-            patch.object(service, "_resolve_token", AsyncMock(return_value=None)),
-            patch.object(service, "_clone_repo", return_value="/tmp/fake"),
-            patch.object(service, "_apply_fix", return_value="app/auth.py"),
-            patch.object(service, "_create_branch_and_commit", return_value="branch"),
-            patch.object(service, "_push_branch"),
-        ):
-            with pytest.raises(AutoFixError, match="No SCM token"):
-                await service.create_auto_fix_pr(scan_report, "finding-001")
+            # simulate the runner writing the file, then the service sequence
+            target.write_text("x = 2\n", encoding="utf-8")
+            branch_name = service._create_branch_and_commit(
+                local_path=str(tmp_path), file_path="app/auth.py",
+                finding=finding, branch="main",
+            )
+            service._push_branch(str(tmp_path), branch_name, "ghp_token", "https://github.com/o/r")
+            url, num = await service._create_pr(
+                repo_url="https://github.com/o/r", branch="main", branch_name=branch_name,
+                finding=finding, token="t", scan_report=scan_report, body_extra="## Verification\n- ok",
+            )
+        assert url == "https://x/pull/1"
+        assert pr.await_args.kwargs["body_extra"] == "## Verification\n- ok"

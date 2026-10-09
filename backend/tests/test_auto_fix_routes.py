@@ -4,15 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import app
-from models.report import (
-    GitMetadata,
-    ScanReport,
-    ScanResult,
-    ScannerType,
-    ScanStatus,
-    SeverityLevel,
-    VulnerabilityFinding,
-)
+from models.report import GitMetadata, ScanReport
 from models.user import User, UserRole
 from routes.dependencies import get_current_user
 from services.scm.auto_fix_service import AutoFixError
@@ -34,6 +26,12 @@ def _setup_client(mock_user=None):
         return mock_user
     app.dependency_overrides[get_current_user] = _override
     return TestClient(app)
+
+
+def _result(status):
+    from services.ai.fix_runner import FixRunResult
+    return FixRunResult(status=status, finding_id="finding-001", file_path="app/run.py",
+                        diff="--- a\n+++ b\n", pr_url="https://x/pull/1" if status in ("pr_created", "verified") else None)
 
 
 @pytest.fixture(autouse=True)
@@ -77,32 +75,58 @@ class TestAutoFixRoute:
             patcher.start()
         return patchers
 
-    def test_auto_fix_success(self):
+    def _stop(self, patchers):
+        for patcher in patchers:
+            patcher.stop()
+
+    def test_propose_returns_awaiting_approval(self):
         mock_report = self._make_report()
-
         client = _setup_client()
-
         patchers = self._patch_access(mock_report)
         try:
-            with patch(
-                "routes.auto_fix.auto_fix_service.create_auto_fix_pr",
-                AsyncMock(return_value={
-                    "pr_url": "https://github.com/owner/repo/pull/1",
-                    "pr_number": 1,
-                    "branch": "onyx-auto-fix/branch-1",
-                    "finding_id": self.finding_id,
-                    "file_path": "app/auth.py",
-                }),
-            ):
-                response = client.post(self.endpoint)
+            with patch("routes.auto_fix.propose_fix", AsyncMock(return_value=_result("awaiting_approval"))):
+                resp = client.post(self.endpoint)
         finally:
-            for patcher in patchers:
-                patcher.stop()
+            self._stop(patchers)
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "awaiting_approval"
 
-        assert response.status_code == 200
-        data = response.json()
-        assert data["pr_url"] == "https://github.com/owner/repo/pull/1"
-        assert data["pr_number"] == 1
+    def test_propose_autofix_error_returns_400(self):
+        mock_report = self._make_report()
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            with patch("routes.auto_fix.propose_fix", AsyncMock(side_effect=AutoFixError("boom"))):
+                resp = client.post(self.endpoint)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 400
+        assert "boom" in resp.json()["detail"]
+
+    def test_approve_happy_path(self):
+        mock_report = self._make_report()
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            with patch("routes.auto_fix.approve_fix", AsyncMock(return_value=_result("pr_created"))):
+                resp = client.post(f"/api/reports/{self.scan_id}/auto-fix/{self.finding_id}/approve")
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "pr_created"
+        assert resp.json()["pr_url"] == "https://x/pull/1"
+
+    def test_approve_autofix_error_returns_400(self):
+        mock_report = self._make_report()
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            with patch("routes.auto_fix.approve_fix",
+                       AsyncMock(side_effect=AutoFixError("No pending fix for finding finding-001"))):
+                resp = client.post(f"/api/reports/{self.scan_id}/auto-fix/{self.finding_id}/approve")
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 400
 
     def test_auto_fix_scan_not_found(self):
         from models.report import ScanReport as SR
@@ -124,8 +148,7 @@ class TestAutoFixRoute:
         try:
             response = client.post(self.endpoint)
         finally:
-            for patcher in patchers:
-                patcher.stop()
+            self._stop(patchers)
 
         assert response.status_code == 404
 
@@ -136,41 +159,3 @@ class TestAutoFixRoute:
         response = client.post(self.endpoint)
 
         assert response.status_code == 401
-
-    def test_auto_fix_service_error(self):
-        mock_report = self._make_report()
-
-        client = _setup_client()
-
-        patchers = self._patch_access(mock_report)
-        try:
-            with patch(
-                "routes.auto_fix.auto_fix_service.create_auto_fix_pr",
-                AsyncMock(side_effect=Exception("Internal error")),
-            ):
-                response = client.post(self.endpoint)
-        finally:
-            for patcher in patchers:
-                patcher.stop()
-
-        assert response.status_code == 502
-        assert "Internal error" not in response.json()["detail"]
-
-    def test_auto_fix_bad_request(self):
-        mock_report = self._make_report()
-
-        client = _setup_client()
-
-        patchers = self._patch_access(mock_report)
-        try:
-            with patch(
-                "routes.auto_fix.auto_fix_service.create_auto_fix_pr",
-                AsyncMock(side_effect=AutoFixError("No remediation code")),
-            ):
-                response = client.post(self.endpoint)
-        finally:
-            for patcher in patchers:
-                patcher.stop()
-
-        assert response.status_code == 400
-        assert "No remediation code" in response.json()["detail"]
