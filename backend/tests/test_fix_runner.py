@@ -1,4 +1,5 @@
 """Fix runner: propose/approve with approval gate + dry-run (spec 4.3.4)."""
+import asyncio
 import shutil
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
@@ -16,7 +17,7 @@ from models.report import (
 )
 from services.ai.fix_agent import FixAgentError, FixAgentResult, PatchProposal
 from services.ai.fix_gates import GateReport
-from services.ai.fix_runner import approve_fix, propose_fix
+from services.ai.fix_runner import FixRunResult, approve_fix, propose_fix
 from services.scm.auto_fix_service import AutoFixError
 
 GOOD = "import os\nimport shlex\n\ndef run(q):\n    return os.popen(shlex.quote(q))\n"
@@ -187,3 +188,44 @@ async def test_approve_stale_base_sha_rejects(scan_report, runner_env, monkeypat
     repo.index.commit("advance")
     with pytest.raises(AutoFixError, match="advanced since the fix"):
         await approve_fix(scan_report, "finding-001")
+
+
+async def test_concurrent_approve_claims_pending_before_open_pr(scan_report, runner_env, monkeypatch):
+    """Concurrent approves: the pending entry is claimed before any await into
+    _open_pr, so exactly one call wins and the other gets "No pending fix"."""
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    await propose_fix(scan_report, "finding-001")  # pending stored
+    assert "finding-001" in scan_report.metadata["pending_fixes"]
+
+    pending_at_open_pr = []
+    second_caller_arrived = asyncio.Event()
+
+    async def _gated_open_pr(*args, **kwargs):
+        pending_at_open_pr.append(
+            "finding-001" in (scan_report.metadata.get("pending_fixes") or {})
+        )
+        if len(pending_at_open_pr) == 2:
+            second_caller_arrived.set()
+        try:
+            await asyncio.wait_for(second_caller_arrived.wait(), timeout=0.5)
+        except asyncio.TimeoutError:
+            pass
+        return FixRunResult(
+            status="pr_created", finding_id="finding-001", file_path="app/run.py",
+            pr_url="https://x/pull/9", pr_number=9,
+        )
+
+    with patch("services.ai.fix_runner._open_pr", new=_gated_open_pr):
+        results = await asyncio.gather(
+            approve_fix(scan_report, "finding-001"),
+            approve_fix(scan_report, "finding-001"),
+            return_exceptions=True,
+        )
+
+    wins = [r for r in results if isinstance(r, FixRunResult)]
+    losses = [r for r in results if isinstance(r, AutoFixError)]
+    assert len(wins) == 1, results
+    assert len(losses) == 1 and "No pending fix" in str(losses[0]), results
+    assert pending_at_open_pr == [False], pending_at_open_pr
+    assert "finding-001" not in (scan_report.metadata.get("pending_fixes") or {})

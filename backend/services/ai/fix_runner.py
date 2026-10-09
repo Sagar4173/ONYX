@@ -140,19 +140,37 @@ async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
     if settings.auto_fix_dry_run:
         raise AutoFixError("AUTO_FIX_DRY_RUN is enabled — fixes are never applied")
     metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
-    pending = (metadata.get(PENDING_FIXES) or {}).get(finding_id)
+    pending_map = dict(metadata.get(PENDING_FIXES) or {})
+    pending = pending_map.get(finding_id)
     if not pending:
         raise AutoFixError(f"No pending fix for finding {finding_id}")
+    # Claim the pending entry atomically before any await: a concurrent approve
+    # then loses with "No pending fix" instead of double-opening a PR. The
+    # read+pop above/below runs under the GIL with no suspension point, so it
+    # is a single synchronous operation.
+    pending_map.pop(finding_id)
+    scan_report.metadata = {**metadata, PENDING_FIXES: pending_map}
+
+    def _restore_pending() -> None:
+        # Put the entry back on any failure after the claim so the user can
+        # retry — but never clobber a newer pending fix added meanwhile.
+        current = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+        remaining = dict(current.get(PENDING_FIXES) or {})
+        if finding_id not in remaining:
+            remaining[finding_id] = pending
+            scan_report.metadata = {**current, PENDING_FIXES: remaining}
+
     finding = auto_fix_service._find_finding(scan_report, finding_id)
     if not finding:
+        _restore_pending()
         raise AutoFixError(f"Finding {finding_id} not found in scan report")
 
     repo_url = scan_report.git_metadata.repository_url
     branch = scan_report.git_metadata.branch
-    token = await auto_fix_service._resolve_token(scan_report)
 
     local_path = None
     try:
+        token = await auto_fix_service._resolve_token(scan_report)
         local_path = auto_fix_service._clone_repo(repo_url, branch, token)
         from git import Repo
 
@@ -164,12 +182,11 @@ async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
             patched_content=pending["patched_content"],
             model_used=pending.get("model_used", ""),
         )
-        new_metadata = dict(scan_report.metadata or {})
-        remaining = dict(new_metadata.get(PENDING_FIXES) or {})
-        remaining.pop(finding_id, None)
-        scan_report.metadata = {**new_metadata, PENDING_FIXES: remaining}
         await scan_report.save()
         return result
+    except BaseException:
+        _restore_pending()
+        raise
     finally:
         if local_path and os.path.exists(local_path):
             shutil.rmtree(local_path, ignore_errors=True)
