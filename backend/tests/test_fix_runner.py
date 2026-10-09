@@ -244,26 +244,30 @@ async def test_verify_fix_finding_absent_means_verified(finding):
     scanner = MagicMock()
     scanner.scan_repository = AsyncMock(return_value={
         "total_findings": 3,
-        "detailed_findings": [{"rule_id": "B608", "file_path": "other/x.py", "id": "f9"}],
+        # real scanner shape: rule_id + file_path, no id field
+        "detailed_findings": [{"rule_id": "B608", "file_path": "other/x.py"}],
     })
     with patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner):
         v = await verify_fix(repo_url="https://github.com/o/r", branch="onyx-auto-fix/b", finding=finding)
     assert v["verified"] is True and v["total_findings"] == 3
+    assert v["remaining"] == []
 
 
 async def test_verify_fix_finding_still_present_means_unverified(finding):
     scanner = MagicMock()
     scanner.scan_repository = AsyncMock(return_value={
         "total_findings": 4,
+        # real scanner shape: rule_id + file_path, no id field
         "detailed_findings": [
-            {"rule_id": "B608", "file_path": "app/run.py", "id": "f1"},
-            {"rule_id": "B608", "file_path": "/abs/clone/app/run.py", "id": "f2"},
+            {"rule_id": "B608", "file_path": "app/run.py"},
+            {"rule_id": "B608", "file_path": "/abs/clone/app/run.py"},
         ],
     })
     with patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner):
         v = await verify_fix(repo_url="https://github.com/o/r", branch="b", finding=finding)
     assert v["verified"] is False
-    assert v["remaining"] == ["f1", "f2"]  # absolute-path variant matched by suffix
+    # evidence strings, not ids (scanner dicts have no id)
+    assert v["remaining"] == ["B608 at app/run.py", "B608 at /abs/clone/app/run.py"]
 
 
 async def test_verify_fix_scanner_error_returns_unknown(finding):

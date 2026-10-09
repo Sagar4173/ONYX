@@ -80,7 +80,7 @@ async def verify_fix(*, repo_url: str, branch: str, finding: VulnerabilityFindin
     except Exception as e:
         return {"verified": None, "error": _scrub(e, 200)}
     remaining = [
-        rec.get("id")
+        f'{rec.get("rule_id")} at {rec.get("file_path") or rec.get("filename") or "?"}'
         for rec in (result.get("detailed_findings") or [])
         if isinstance(rec, dict)
         and rec.get("rule_id") == finding.rule_id
