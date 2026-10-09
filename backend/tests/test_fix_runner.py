@@ -116,7 +116,10 @@ async def test_propose_approval_off_opens_pr_immediately(scan_report, runner_env
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_requires_approval", False)
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
     with (
+        patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
         patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
               return_value="onyx-auto-fix/x"),
         patch("services.ai.fix_runner.auto_fix_service._push_branch"),
@@ -150,7 +153,10 @@ async def test_approve_success_pushes_and_clears_pending(scan_report, runner_env
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
     await propose_fix(scan_report, "finding-001")  # approval default ON -> pending stored
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
     with (
+        patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
         patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
               return_value="onyx-auto-fix/y"),
         patch("services.ai.fix_runner.auto_fix_service._push_branch") as push,
@@ -229,3 +235,76 @@ async def test_concurrent_approve_claims_pending_before_open_pr(scan_report, run
     assert len(losses) == 1 and "No pending fix" in str(losses[0]), results
     assert pending_at_open_pr == [False], pending_at_open_pr
     assert "finding-001" not in (scan_report.metadata.get("pending_fixes") or {})
+
+
+from services.ai.fix_runner import verification_markdown, verify_fix
+
+
+async def test_verify_fix_finding_absent_means_verified(finding):
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={
+        "total_findings": 3,
+        "detailed_findings": [{"rule_id": "B608", "file_path": "other/x.py", "id": "f9"}],
+    })
+    with patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner):
+        v = await verify_fix(repo_url="https://github.com/o/r", branch="onyx-auto-fix/b", finding=finding)
+    assert v["verified"] is True and v["total_findings"] == 3
+
+
+async def test_verify_fix_finding_still_present_means_unverified(finding):
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={
+        "total_findings": 4,
+        "detailed_findings": [
+            {"rule_id": "B608", "file_path": "app/run.py", "id": "f1"},
+            {"rule_id": "B608", "file_path": "/abs/clone/app/run.py", "id": "f2"},
+        ],
+    })
+    with patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner):
+        v = await verify_fix(repo_url="https://github.com/o/r", branch="b", finding=finding)
+    assert v["verified"] is False
+    assert v["remaining"] == ["f1", "f2"]  # absolute-path variant matched by suffix
+
+
+async def test_verify_fix_scanner_error_returns_unknown(finding):
+    scanner = MagicMock()
+    # 12-char token: gateway _scrub only redacts ghp_[A-Za-z0-9]{10,}
+    scanner.scan_repository = AsyncMock(side_effect=RuntimeError("clone failed ghp_ABCDEFGHIJK"))
+    with patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner):
+        v = await verify_fix(repo_url="https://github.com/o/r", branch="b", finding=finding)
+    assert v["verified"] is None
+    assert "REDACTED" in v["error"]  # token scrubbed
+
+
+def test_verification_markdown_covers_all_states():
+    assert "Verified" in verification_markdown({"verified": True, "total_findings": 0})
+    assert "Not verified" in verification_markdown({"verified": False, "total_findings": 2, "remaining": ["f1"]})
+    assert "Unknown" in verification_markdown({"verified": None, "error": "x"})
+
+
+async def test_open_pr_records_verification_and_status(scan_report, runner_env, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_requires_approval", False)
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    # metadata.findings mirrors the raw dict copy written by process_real_scan
+    scan_report.metadata = {"findings": [{"id": "finding-001", "title": "Shell injection"}]}
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={
+        "total_findings": 0,
+        "detailed_findings": [{"rule_id": "OTHER", "file_path": "elsewhere.py", "id": "fx"}],
+    })
+    with (
+        patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
+        patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
+              return_value="onyx-auto-fix/v"),
+        patch("services.ai.fix_runner.auto_fix_service._push_branch"),
+        patch("services.ai.fix_runner.auto_fix_service._create_pr",
+              AsyncMock(return_value=("https://x/pull/9", 9))) as pr,
+    ):
+        result = await propose_fix(scan_report, "finding-001")
+    assert result.status == "verified"
+    assert result.verification["verified"] is True
+    assert "Verification" in pr.await_args.kwargs["body_extra"]
+    entry = scan_report.metadata["findings"][0]
+    assert entry["fix_status"] == "verified"
+    assert entry["fix_pr_url"] == "https://x/pull/9"

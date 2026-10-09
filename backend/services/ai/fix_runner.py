@@ -1,7 +1,8 @@
 """Fix-run orchestration: propose -> gates -> approval -> PR (spec 4.2/4.3).
 
 Statuses: dry_run (never persists) | awaiting_approval (pending stored) |
-pr_created (approval OFF or approved). AUTO_FIX_REQUIRES_APPROVAL defaults ON
+pr_created | verified (approval OFF or approved; verified when the re-scan
+confirms the finding is gone). AUTO_FIX_REQUIRES_APPROVAL defaults ON
 so the PR only opens via approve_fix; AUTO_FIX_DRY_RUN makes every run
 side-effect free.
 """
@@ -58,6 +59,79 @@ async def _store_pending(scan_report: ScanReport, finding_id: str, payload: Dict
     await scan_report.save()
 
 
+def _norm_path(p: Any) -> str:
+    return str(p or "").replace("\\", "/")
+
+
+def _path_matches(record_path: Any, finding_file_path: str) -> bool:
+    rp = _norm_path(record_path)
+    target = _norm_path(finding_file_path)
+    return rp == target or rp.endswith("/" + target)
+
+
+async def verify_fix(*, repo_url: str, branch: str, finding: VulnerabilityFinding) -> Dict[str, Any]:
+    """Re-scan the fix branch; the agent never grades its own work (spec 4.3.3)."""
+    from services.ai.gateway import _scrub
+    from services.scanning.scanners.real_scanner import RealSecurityScanner
+
+    scanner = RealSecurityScanner()
+    try:
+        result = await scanner.scan_repository(repo_url, branch=branch)
+    except Exception as e:
+        return {"verified": None, "error": _scrub(e, 200)}
+    remaining = [
+        rec.get("id")
+        for rec in (result.get("detailed_findings") or [])
+        if isinstance(rec, dict)
+        and rec.get("rule_id") == finding.rule_id
+        and _path_matches(rec.get("file_path") or rec.get("filename"), finding.file_path)
+    ]
+    return {
+        "verified": not remaining,
+        "remaining": remaining,
+        "total_findings": result.get("total_findings", 0),
+    }
+
+
+def verification_markdown(v: Dict[str, Any]) -> str:
+    if v.get("verified") is True:
+        head = "✅ Verified — the original finding was not detected on this branch"
+    elif v.get("verified") is False:
+        head = "⚠️ Not verified — the original finding is still detected after re-scan"
+    else:
+        head = "❌ Unknown — the re-scan could not run"
+    lines = ["## Verification (re-scan of this branch)", "", f"- {head}"]
+    if "total_findings" in v:
+        lines.append(f"- Total findings after fix: {v['total_findings']}")
+    if v.get("remaining"):
+        lines.append(f"- Remaining matching findings: {', '.join(str(x) for x in v['remaining'])}")
+    if v.get("error"):
+        lines.append(f"- Scanner error: `{v['error']}`")
+    return "\n".join(lines)
+
+
+async def _record_fix_outcome(
+    scan_report: ScanReport, finding: VulnerabilityFinding, *, pr_url: str, verification: Dict[str, Any]
+) -> None:
+    metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+    entries = metadata.get("findings")
+    if not isinstance(entries, list):
+        return
+    updated, changed = [], False
+    for entry in entries:
+        if isinstance(entry, dict) and entry.get("id") == finding.id:
+            entry = {
+                **entry,
+                "fix_pr_url": pr_url,
+                "fix_status": "verified" if verification.get("verified") else "pr_created",
+            }
+            changed = True
+        updated.append(entry)
+    if changed:
+        scan_report.metadata = {**metadata, "findings": updated}
+        await scan_report.save()
+
+
 async def _open_pr(
     scan_report: ScanReport,
     finding: VulnerabilityFinding,
@@ -75,13 +149,18 @@ async def _open_pr(
         local_path=local_path, file_path=finding.file_path, finding=finding, branch=branch
     )
     auto_fix_service._push_branch(local_path, branch_name, token, repo_url)
+    verification = await verify_fix(repo_url=repo_url, branch=branch_name, finding=finding)
     pr_url, pr_number = await auto_fix_service._create_pr(
         repo_url=repo_url, branch=branch, branch_name=branch_name,
-        finding=finding, token=token, scan_report=scan_report, body_extra="",
+        finding=finding, token=token, scan_report=scan_report,
+        body_extra=verification_markdown(verification),
     )
+    await _record_fix_outcome(scan_report, finding, pr_url=pr_url, verification=verification)
     return FixRunResult(
-        status="pr_created", finding_id=finding.id, file_path=finding.file_path,
-        pr_url=pr_url, pr_number=pr_number, branch=branch_name, model_used=model_used,
+        status="verified" if verification.get("verified") is True else "pr_created",
+        finding_id=finding.id, file_path=finding.file_path,
+        pr_url=pr_url, pr_number=pr_number, branch=branch_name,
+        verification=verification, model_used=model_used,
     )
 
 
