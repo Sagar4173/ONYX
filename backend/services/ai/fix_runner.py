@@ -249,6 +249,11 @@ async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
 
     local_path = None
     try:
+        # The pending content was gated against the propose-time path only
+        # (single-file allowlist). If a rescan/metadata rewrite moved the
+        # finding, committing it to the current path would bypass that gate.
+        if pending.get("file_path") != finding.file_path:
+            raise AutoFixError("Finding path changed since propose — re-run auto-fix")
         token = await auto_fix_service._resolve_token(scan_report)
         local_path = auto_fix_service._clone_repo(repo_url, branch, token)
         from git import Repo

@@ -196,6 +196,46 @@ async def test_approve_stale_base_sha_rejects(scan_report, runner_env, monkeypat
         await approve_fix(scan_report, "finding-001")
 
 
+async def test_approve_rejects_path_changed_since_propose_and_restores_pending(
+    scan_report, runner_env, monkeypatch
+):
+    """Gated content was screened for the propose-time path only: if the
+    finding's path changed between propose and approve, approval must refuse
+    and put the pending entry back (spec 4.3.4)."""
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    await propose_fix(scan_report, "finding-001")
+    stored = dict(scan_report.metadata["pending_fixes"]["finding-001"])
+    assert stored["file_path"] == "app/run.py"
+
+    # rescan/metadata rewrite points the finding at another file mid-flight
+    scan_report.scan_results[0].findings[0].file_path = "app/other.py"
+
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
+    with (
+        patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
+        patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
+              return_value="onyx-auto-fix/z"),
+        patch("services.ai.fix_runner.auto_fix_service._push_branch") as push,
+        patch("services.ai.fix_runner.auto_fix_service._create_pr",
+              AsyncMock(return_value=("https://x/pull/3", 3))),
+    ):
+        with pytest.raises(AutoFixError, match="Finding path changed since propose"):
+            await approve_fix(scan_report, "finding-001")
+        assert not push.called
+        # pending restored (key-absent-only) so the user can retry
+        pending_now = scan_report.metadata.get("pending_fixes", {})
+        assert pending_now.get("finding-001") == stored
+
+        # path restored -> the very same pending entry approves normally
+        scan_report.scan_results[0].findings[0].file_path = "app/run.py"
+        result = await approve_fix(scan_report, "finding-001")
+
+    assert result.pr_url == "https://x/pull/3"
+    assert "finding-001" not in scan_report.metadata.get("pending_fixes", {})
+
+
 async def test_concurrent_approve_claims_pending_before_open_pr(scan_report, runner_env, monkeypatch):
     """Concurrent approves: the pending entry is claimed before any await into
     _open_pr, so exactly one call wins and the other gets "No pending fix"."""

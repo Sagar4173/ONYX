@@ -5,7 +5,7 @@ Allows users to ask natural language questions about their scan results
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -16,7 +16,7 @@ from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_accessible_scan_report
 from services.ai.chat_grounding import extract_citations, format_context
 from services.ai.gateway import GatewayError, get_gateway
-from services.ai.injection_screen import ScreenUnavailable, screen_text
+from services.ai.injection_screen import SCREEN_TEXT_LIMIT, ScreenUnavailable, screen_text
 from services.ai.retrieval import retrieve
 from utils.error_handling import get_safe_error_detail
 from utils.rate_limit import limiter
@@ -110,6 +110,32 @@ async def _retrieve_knowledge(message: str) -> List[Dict[str, Any]]:
         return []
 
 
+def _cap_user_text(
+    message: str,
+    conversation_history: Optional[List[Dict[str, str]]],
+) -> Tuple[str, List[Dict[str, str]]]:
+    """Bound client-controlled LLM text to SCREEN_TEXT_LIMIT chars total.
+
+    Deterministic order: the message first, then history entries in order,
+    until the budget is exhausted - entry remainders and any entries past the
+    budget are dropped. The result is always a prefix of the text handed to
+    screen_text, so the model never sees an unscreened tail.
+    """
+    history = list(conversation_history or [])
+    if len(message) >= SCREEN_TEXT_LIMIT:
+        return message[:SCREEN_TEXT_LIMIT], []
+    budget = SCREEN_TEXT_LIMIT - len(message)
+    kept: List[Dict[str, str]] = []
+    for msg in history:
+        if budget <= 0:
+            break
+        take = msg["content"][:budget]
+        if take:
+            kept.append({**msg, "content": take})
+        budget -= len(take)
+    return message, kept
+
+
 def _build_messages(
     *,
     message: str,
@@ -149,6 +175,7 @@ The user's scan results and AI analysis context are provided below. Use them to 
             )
 
     msgs: List[Dict[str, str]] = [{"role": "system", "content": full_system_prompt}]
+    message, conversation_history = _cap_user_text(message, conversation_history)
     for msg in (conversation_history or [])[-10:]:
         role = msg["role"] if msg["role"] in ALLOWED_CHAT_ROLES else "user"
         msgs.append({"role": role, "content": msg["content"]})
@@ -195,10 +222,21 @@ def _get_active_model() -> str:
     return f"{provider}/{models.get(provider, 'unknown')}"
 
 
-async def _screen_or_block(message: str) -> None:
+def _combined_screen_text(payload: ChatRequest) -> str:
+    """Message + every conversation_history entry as ONE classifier input.
+
+    History is as client-controlled as the message, so both must be screened
+    in a single screen_text call (spec 4.3.6) - one API call, quota-neutral.
+    """
+    parts = [payload.message]
+    parts.extend(m.content for m in (payload.conversation_history or []))
+    return "".join(parts)
+
+
+async def _screen_or_block(text: str) -> None:
     """Reject prompt-injection attempts before retrieval/LLM (spec 4.3.6)."""
     try:
-        result = await screen_text(message)
+        result = await screen_text(text)
     except ScreenUnavailable as e:
         logger.error("Injection screen unavailable (fail-closed): %s", e)
         raise HTTPException(
@@ -227,7 +265,7 @@ async def ai_chat(
             detail="Scan report not found or access denied",
         )
 
-    await _screen_or_block(payload.message)
+    await _screen_or_block(_combined_screen_text(payload))
 
     hist = None
     if payload.conversation_history:
@@ -271,7 +309,7 @@ async def ai_chat_stream(
     if not scan_context:
         raise HTTPException(status_code=404, detail="Scan report not found or access denied")
 
-    await _screen_or_block(payload.message)
+    await _screen_or_block(_combined_screen_text(payload))
 
     hist = None
     if payload.conversation_history:
