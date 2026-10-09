@@ -31,6 +31,7 @@ class RankedFinding(BaseModel):
     score_breakdown: ScoreBreakdown
     ai_triage_summary: Optional[str] = None
     sla_deadline: Optional[str] = None
+    triage_label: Optional[str] = None
 
 
 class TriageResult(BaseModel):
@@ -42,3 +43,4 @@ class TriageResult(BaseModel):
     executive_summary: Optional[str] = None
     business_context: BusinessContext
     generated_at: str
+    excluded_by_label: int = 0

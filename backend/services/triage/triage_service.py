@@ -98,25 +98,18 @@ class TriageService:
                 business_context=context,
                 generated_at=datetime.now(timezone.utc).isoformat(),
                 executive_summary="No findings to triage.",
+                excluded_by_label=0,
             )
             return result
 
         ranked = []
+        excluded_by_label = 0
         for finding in findings:
-            score, breakdown = self._compute_composite_score(finding, context)
-            priority_label, sla = _get_priority_label(score)
-            ranked.append(
-                RankedFinding(
-                    finding_id=finding.id or "",
-                    title=finding.title or "Untitled finding",
-                    severity=finding.severity.value if hasattr(finding.severity, "value") else str(finding.severity),
-                    file_path=finding.file_path or "",
-                    composite_score=round(score, 1),
-                    priority=priority_label,
-                    score_breakdown=breakdown,
-                    sla_deadline=sla,
-                )
-            )
+            rf = self._build_ranked(finding, context)
+            if rf is None:
+                excluded_by_label += 1
+                continue
+            ranked.append(rf)
 
         ranked.sort(key=lambda rf: (-rf.composite_score, SEVERITY_ORDER.get(rf.severity.lower(), 99)))
 
@@ -142,10 +135,36 @@ class TriageService:
             executive_summary=executive,
             business_context=context,
             generated_at=datetime.now(timezone.utc).isoformat(),
+            excluded_by_label=excluded_by_label,
         )
 
         await self._cache_result(report, result, ch)
         return result
+
+    _LABEL_EXCLUDED = ("false_positive", "dismissed")
+
+    def _build_ranked(
+        self,
+        finding: VulnerabilityFinding,
+        context: BusinessContext,
+        summary: Optional[str] = None,
+    ) -> Optional[RankedFinding]:
+        if getattr(finding, "triage_label", None) in self._LABEL_EXCLUDED:
+            return None
+        score, breakdown = self._compute_composite_score(finding, context)
+        priority_label, sla = _get_priority_label(score)
+        return RankedFinding(
+            finding_id=finding.id or "",
+            title=finding.title or "Untitled finding",
+            severity=finding.severity.value if hasattr(finding.severity, "value") else str(finding.severity),
+            file_path=finding.file_path or "",
+            composite_score=round(score, 1),
+            priority=priority_label,
+            score_breakdown=breakdown,
+            sla_deadline=sla,
+            ai_triage_summary=summary,
+            triage_label=getattr(finding, "triage_label", None),
+        )
 
     def _compute_composite_score(
         self,
@@ -162,6 +181,9 @@ class TriageService:
         compliance_raw = 100.0 if self._compute_compliance_risk_score(finding) > 0 else 0.0
         epss_raw = self._compute_epss_score(finding)
         fp_raw = finding.false_positive_score or 0.0
+        if getattr(finding, "triage_label", None) == "accepted":
+            # Human says this is real: trust the scanner's FP odds only half as much.
+            fp_raw *= 0.5
 
         raw = (
             sev * 0.20
@@ -331,20 +353,17 @@ class TriageService:
         for scan_result in report.scan_results:
             findings.extend(scan_result.findings)
         ranked = []
+        excluded_by_label = 0
+        summaries = cached.get("summaries", {})
         for finding in findings:
-            score, breakdown = self._compute_composite_score(finding, context)
-            priority_label, sla = _get_priority_label(score)
-            rf = RankedFinding(
-                finding_id=finding.id or "",
-                title=finding.title or "Untitled finding",
-                severity=finding.severity.value if hasattr(finding.severity, "value") else str(finding.severity),
-                file_path=finding.file_path or "",
-                composite_score=round(score, 1),
-                priority=priority_label,
-                score_breakdown=breakdown,
-                sla_deadline=sla,
-                ai_triage_summary=cached.get("summaries", {}).get(finding.id),
+            rf = self._build_ranked(
+                finding,
+                context,
+                summary=summaries.get(finding.id),
             )
+            if rf is None:
+                excluded_by_label += 1
+                continue
             ranked.append(rf)
         ranked.sort(key=lambda rf: (-rf.composite_score, SEVERITY_ORDER.get(rf.severity.lower(), 99)))
         priority_counts = {"immediate": 0, "high": 0, "medium": 0, "low": 0, "informational": 0}
@@ -361,6 +380,7 @@ class TriageService:
             executive_summary=cached.get("executive_summary"),
             business_context=context,
             generated_at=cached.get("generated_at", datetime.now(timezone.utc).isoformat()),
+            excluded_by_label=excluded_by_label,
         )
 
 

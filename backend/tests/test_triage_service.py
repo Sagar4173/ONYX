@@ -5,6 +5,7 @@ import pytest
 from models.triage import BusinessContext
 from services.triage.triage_service import (
     TriageService,
+    _context_hash,
     _get_severity_score,
     _get_priority_label,
     PRIORITY_MAP,
@@ -27,6 +28,7 @@ def _make_finding(
     cve_id=None,
     compliance_mappings=None,
     business_impact=None,
+    triage_label=None,
 ):
     mock = MagicMock()
     mock.id = finding_id
@@ -43,8 +45,21 @@ def _make_finding(
     mock.cve_id = cve_id
     mock.compliance_mappings = compliance_mappings or []
     mock.business_impact = business_impact
+    mock.triage_label = triage_label
     mock.metadata = {}
     return mock
+
+
+def _make_report(findings, metadata=None):
+    mock_report = MagicMock()
+    mock_report.scan_id = "scan-001"
+    mock_report.project_name = "test-project"
+    mock_report.total_findings = len(findings)
+    mock_report.metadata = metadata if metadata is not None else {}
+    scan_result = MagicMock()
+    scan_result.findings = findings
+    mock_report.scan_results = [scan_result]
+    return mock_report
 
 
 class TestGetSeverityScore:
@@ -291,3 +306,102 @@ class TestComputeEpssScore:
     def test_without_cve_returns_0(self, service):
         finding = _make_finding(cve_id=None)
         assert service._compute_epss_score(finding) == 0.0
+
+
+class TestLabelIntegration:
+    @pytest.mark.asyncio
+    async def test_false_positive_label_excludes_from_ranking(self, service):
+        findings = [
+            _make_finding("f-1", "critical", "Real bug", "a.py", 9.0, 8.0),
+            _make_finding(
+                "f-2", "high", "Noise", "b.py", 7.0, 5.0, triage_label="false_positive"
+            ),
+            _make_finding(
+                "f-3", "medium", "Ignored", "c.py", 5.0, 3.0, triage_label="dismissed"
+            ),
+        ]
+        mock_report = _make_report(findings)
+
+        with (
+            patch.object(service, "_load_scan_report", AsyncMock(return_value=mock_report)),
+            patch.object(service, "_call_ai", AsyncMock(return_value=None)),
+            patch.object(service, "_cache_result", AsyncMock()),
+        ):
+            result = await service.triage_scan("scan-001")
+
+        assert result is not None
+        assert result.total_findings == 3
+        assert len(result.ranked_findings) == 1
+        assert result.ranked_findings[0].finding_id == "f-1"
+        assert result.excluded_by_label == 2
+
+    def test_accepted_label_halves_fp_multiplier(self, service):
+        plain = _make_finding(
+            severity="high", cvss_base=7.0, exploitability=6.0, false_positive=0.8
+        )
+        accepted = _make_finding(
+            severity="high",
+            cvss_base=7.0,
+            exploitability=6.0,
+            false_positive=0.8,
+            triage_label="accepted",
+        )
+        context = BusinessContext(asset_criticality="medium")
+
+        score_plain, bd_plain = service._compute_composite_score(plain, context)
+        score_accepted, bd_accepted = service._compute_composite_score(accepted, context)
+
+        assert bd_plain.false_positive_adjustment == 0.8
+        assert bd_accepted.false_positive_adjustment == 0.4
+        assert score_accepted > score_plain
+
+    @pytest.mark.asyncio
+    async def test_from_cache_applies_same_exclusion(self, service):
+        findings = [
+            _make_finding("f-1", "critical", "Real bug", "a.py", 9.0, 8.0),
+            _make_finding(
+                "f-2", "high", "Noise", "b.py", 7.0, 5.0, triage_label="false_positive"
+            ),
+        ]
+        context = BusinessContext()
+        cached = {
+            "context_hash": _context_hash(context),
+            "summaries": {"f-1": "cached summary"},
+            "executive_summary": "cached exec",
+            "generated_at": "2026-01-01T00:00:00+00:00",
+        }
+        mock_report = _make_report(findings, metadata={"triage": cached})
+
+        with patch.object(
+            service, "_load_scan_report", AsyncMock(return_value=mock_report)
+        ):
+            result = await service.triage_scan("scan-001")
+
+        assert result is not None
+        assert result.total_findings == 2
+        assert len(result.ranked_findings) == 1
+        assert result.ranked_findings[0].finding_id == "f-1"
+        assert result.ranked_findings[0].ai_triage_summary == "cached summary"
+        assert result.excluded_by_label == 1
+        assert result.executive_summary == "cached exec"
+
+    @pytest.mark.asyncio
+    async def test_ranked_finding_carries_label(self, service):
+        findings = [
+            _make_finding(
+                "f-1", "critical", "Real bug", "a.py", 9.0, 8.0, triage_label="accepted"
+            ),
+            _make_finding("f-2", "low", "Debug log", "b.py", 2.0, 1.0),
+        ]
+        mock_report = _make_report(findings)
+
+        with (
+            patch.object(service, "_load_scan_report", AsyncMock(return_value=mock_report)),
+            patch.object(service, "_call_ai", AsyncMock(return_value=None)),
+            patch.object(service, "_cache_result", AsyncMock()),
+        ):
+            result = await service.triage_scan("scan-001")
+
+        labels = {rf.finding_id: rf.triage_label for rf in result.ranked_findings}
+        assert labels["f-1"] == "accepted"
+        assert labels["f-2"] is None

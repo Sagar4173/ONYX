@@ -63,6 +63,7 @@ class TestGetTriage:
             business_context=BusinessContext(),
             executive_summary="Triage summary",
             generated_at="2026-07-27T00:00:00",
+            excluded_by_label=2,
         )
 
         with patch(
@@ -81,6 +82,7 @@ class TestGetTriage:
         assert data["total_findings"] == 3
         assert len(data["ranked_findings"]) == 1
         assert data["ranked_findings"][0]["finding_id"] == "f-1"
+        assert data["excluded_by_label"] == 2
 
     def test_get_triage_not_found(self):
         client = _setup_client()
