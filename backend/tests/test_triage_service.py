@@ -1,8 +1,11 @@
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from models.triage import BusinessContext
+from services.scanning.vulnerability.manager import EPSSData
+from services.service_registry import ServiceRegistry
 from services.triage.triage_service import (
     TriageService,
     _context_hash,
@@ -41,7 +44,9 @@ def _make_finding(
         mock.cvss_score = MagicMock()
         mock.cvss_score.base_score = cvss_base
     mock.exploitability_score = exploitability
-    mock.false_positive_score = false_positive
+    # Stored score wins over the deterministic heuristic (heuristics are
+    # covered separately in test_fp_heuristics.py with real findings).
+    mock.false_positive_score = false_positive if false_positive is not None else 0.0
     mock.cve_id = cve_id
     mock.compliance_mappings = compliance_mappings or []
     mock.business_impact = business_impact
@@ -108,7 +113,7 @@ class TestGetPriorityLabel:
 
 
 class TestComputeCompositeScore:
-    def test_critical_cvss_exploitable_high_criticality(self, service):
+    async def test_critical_cvss_exploitable_high_criticality(self, service):
         bi = MagicMock()
         bi.confidentiality_impact = "high"
         bi.integrity_impact = "high"
@@ -127,25 +132,25 @@ class TestComputeCompositeScore:
         mock_vm = MagicMock()
         mock_epss = MagicMock()
         mock_epss.epss_score = 0.75
-        mock_vm.epss_service.get_epss_score.return_value = mock_epss
+        mock_vm.get_epss_score = AsyncMock(return_value=mock_epss)
 
         with patch(
             "services.service_registry.ServiceRegistry.get_vulnerability_manager",
             return_value=mock_vm,
         ):
-            score, breakdown = service._compute_composite_score(finding, context)
+            score, breakdown = await service._compute_composite_score(finding, context)
         assert score >= 70
         assert score < 80  # HIGH (not IMMEDIATE) without yet more factors
         assert breakdown.severity == 100
         assert breakdown.cvss == 90
 
-    def test_low_severity_low_criticality(self, service):
+    async def test_low_severity_low_criticality(self, service):
         finding = _make_finding(severity="low", cvss_base=2.0, exploitability=1.0)
         context = BusinessContext(asset_criticality="low")
-        score, breakdown = service._compute_composite_score(finding, context)
+        score, breakdown = await service._compute_composite_score(finding, context)
         assert score < 40
 
-    def test_false_positive_reduces_score(self, service):
+    async def test_false_positive_reduces_score(self, service):
         finding_low_fp = _make_finding(
             severity="high", cvss_base=7.0, exploitability=6.0, false_positive=0.1
         )
@@ -153,11 +158,11 @@ class TestComputeCompositeScore:
             severity="high", cvss_base=7.0, exploitability=6.0, false_positive=0.8
         )
         context = BusinessContext(asset_criticality="medium")
-        score_low, _ = service._compute_composite_score(finding_low_fp, context)
-        score_high, _ = service._compute_composite_score(finding_high_fp, context)
+        score_low, _ = await service._compute_composite_score(finding_low_fp, context)
+        score_high, _ = await service._compute_composite_score(finding_high_fp, context)
         assert score_high < score_low
 
-    def test_compliance_mapped_gets_boost(self, service):
+    async def test_compliance_mapped_gets_boost(self, service):
         finding_no = _make_finding(
             severity="medium", cvss_base=5.0, exploitability=4.0,
         )
@@ -168,18 +173,18 @@ class TestComputeCompositeScore:
             compliance_mappings=[MagicMock()],
         )
         context = BusinessContext(asset_criticality="medium")
-        score_no, _ = service._compute_composite_score(finding_no, context)
-        score_yes, _ = service._compute_composite_score(finding_yes, context)
+        score_no, _ = await service._compute_composite_score(finding_no, context)
+        score_yes, _ = await service._compute_composite_score(finding_yes, context)
         assert score_yes > score_no
 
-    def test_missing_scoring_fields_does_not_crash(self, service):
+    async def test_missing_scoring_fields_does_not_crash(self, service):
         finding = _make_finding(severity="info")
         context = BusinessContext()
-        score, breakdown = service._compute_composite_score(finding, context)
+        score, breakdown = await service._compute_composite_score(finding, context)
         assert score >= 0
         assert score < 20
 
-    def test_business_impact_adds_to_score(self, service):
+    async def test_business_impact_adds_to_score(self, service):
         bi = MagicMock()
         bi.confidentiality_impact = True
         bi.integrity_impact = True
@@ -191,7 +196,7 @@ class TestComputeCompositeScore:
             severity="medium", cvss_base=5.0, exploitability=4.0, business_impact=bi
         )
         context = BusinessContext()
-        score_with, _ = service._compute_composite_score(finding, context)
+        score_with, _ = await service._compute_composite_score(finding, context)
         assert score_with > 0
         assert score_with >= 30
 
@@ -289,23 +294,62 @@ class TestComplianceRiskScore:
 
 
 class TestComputeEpssScore:
-    def test_with_cve_and_epss_data(self, service):
+    async def test_with_cve_and_epss_data(self, service):
         mock_epss = MagicMock()
         mock_epss.epss_score = 0.75
         mock_vm = MagicMock()
-        mock_vm.epss_service.get_epss_score.return_value = mock_epss
+        mock_vm.get_epss_score = AsyncMock(return_value=mock_epss)
 
         finding = _make_finding(cve_id="CVE-2024-1234")
         with patch(
             "services.service_registry.ServiceRegistry.get_vulnerability_manager",
             return_value=mock_vm,
         ):
-            score = service._compute_epss_score(finding)
+            score = await service._compute_epss_score(finding)
         assert score == 75.0
+        mock_vm.get_epss_score.assert_awaited_once_with("CVE-2024-1234")
 
-    def test_without_cve_returns_0(self, service):
+    async def test_without_cve_returns_0(self, service):
         finding = _make_finding(cve_id=None)
-        assert service._compute_epss_score(finding) == 0.0
+        assert await service._compute_epss_score(finding) == 0.0
+
+    async def test_epss_term_uses_manager_api(self, service, monkeypatch):
+        epss_data = EPSSData(
+            cve_id="CVE-2024-0001",
+            epss_score=0.7,
+            percentile=0.9,
+            date=datetime(2026, 1, 1),
+        )
+        mock_vm = MagicMock()
+        mock_vm.get_epss_score = AsyncMock(return_value=epss_data)
+        monkeypatch.setattr(
+            ServiceRegistry,
+            "get_vulnerability_manager",
+            classmethod(lambda cls: mock_vm),
+        )
+
+        finding = _make_finding(cve_id="CVE-2024-0001")
+        score, breakdown = await service._compute_composite_score(
+            finding, BusinessContext()
+        )
+        assert breakdown.epss == 70.0
+        mock_vm.get_epss_score.assert_awaited_once_with("CVE-2024-0001")
+
+    async def test_epss_failure_scores_zero(self, service, monkeypatch):
+        mock_vm = MagicMock()
+        mock_vm.get_epss_score = AsyncMock(side_effect=RuntimeError("EPSS API down"))
+        monkeypatch.setattr(
+            ServiceRegistry,
+            "get_vulnerability_manager",
+            classmethod(lambda cls: mock_vm),
+        )
+
+        finding = _make_finding(cve_id="CVE-2024-0001")
+        score, breakdown = await service._compute_composite_score(
+            finding, BusinessContext()
+        )
+        assert breakdown.epss == 0.0
+        mock_vm.get_epss_score.assert_awaited_once_with("CVE-2024-0001")
 
 
 class TestLabelIntegration:
@@ -335,7 +379,7 @@ class TestLabelIntegration:
         assert result.ranked_findings[0].finding_id == "f-1"
         assert result.excluded_by_label == 2
 
-    def test_accepted_label_halves_fp_multiplier(self, service):
+    async def test_accepted_label_halves_fp_multiplier(self, service):
         plain = _make_finding(
             severity="high", cvss_base=7.0, exploitability=6.0, false_positive=0.8
         )
@@ -348,8 +392,10 @@ class TestLabelIntegration:
         )
         context = BusinessContext(asset_criticality="medium")
 
-        score_plain, bd_plain = service._compute_composite_score(plain, context)
-        score_accepted, bd_accepted = service._compute_composite_score(accepted, context)
+        score_plain, bd_plain = await service._compute_composite_score(plain, context)
+        score_accepted, bd_accepted = await service._compute_composite_score(
+            accepted, context
+        )
 
         assert bd_plain.false_positive_adjustment == 0.8
         assert bd_accepted.false_positive_adjustment == 0.4
