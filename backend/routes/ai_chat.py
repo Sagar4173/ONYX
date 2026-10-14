@@ -233,7 +233,7 @@ def _combined_screen_text(payload: ChatRequest) -> str:
     return "".join(parts)
 
 
-async def _screen_or_block(text: str) -> None:
+async def screen_or_block(text: str) -> None:
     """Reject prompt-injection attempts before retrieval/LLM (spec 4.3.6)."""
     try:
         result = await screen_text(text)
@@ -265,7 +265,7 @@ async def ai_chat(
             detail="Scan report not found or access denied",
         )
 
-    await _screen_or_block(_combined_screen_text(payload))
+    await screen_or_block(_combined_screen_text(payload))
 
     hist = None
     if payload.conversation_history:
@@ -309,7 +309,7 @@ async def ai_chat_stream(
     if not scan_context:
         raise HTTPException(status_code=404, detail="Scan report not found or access denied")
 
-    await _screen_or_block(_combined_screen_text(payload))
+    await screen_or_block(_combined_screen_text(payload))
 
     hist = None
     if payload.conversation_history:

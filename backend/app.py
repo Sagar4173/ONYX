@@ -49,6 +49,7 @@ from routes.projects import router as projects_router
 
 # Import route modules
 from routes.ai_chat import router as ai_chat_router
+from routes.ai_investigate import router as ai_investigate_router
 from routes.auto_fix import router as auto_fix_router
 from routes.finding_labels import router as finding_labels_router
 from routes.analytics import router as analytics_router
@@ -203,6 +204,7 @@ app.include_router(enterprise_security_router, prefix="/api")
 app.include_router(auto_fix_router, prefix="/api")
 app.include_router(finding_labels_router, prefix="/api")
 app.include_router(ai_chat_router, prefix="/api")
+app.include_router(ai_investigate_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
 app.include_router(scanners_router, prefix="/api")
 app.include_router(stats_router, prefix="/api")
