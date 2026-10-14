@@ -12,7 +12,7 @@ from services.ai.fix_agent import FixAgentError, FixOutcome, PatchProposal, run_
 
 @pytest.fixture(autouse=True)
 def _offline(monkeypatch):
-    monkeypatch.setattr("services.ai.fix_agent.retrieve", AsyncMock(return_value=[]))
+    monkeypatch.setattr("services.ai.agent_tools.retrieve", AsyncMock(return_value=[]))
     quota = AsyncMock()
     quota.try_consume = AsyncMock(return_value=True)
     monkeypatch.setattr("services.ai.fix_agent.QuotaLedger", lambda: quota)
@@ -100,10 +100,10 @@ async def test_wrong_file_is_rejected_by_allowlist_in_tool(workspace, finding):
 
 async def test_path_traversal_read_is_rejected(workspace, finding):
     from pydantic_ai import ModelRetry
-    from services.ai.fix_agent import _resolve_in_workspace
+    from services.ai.agent_tools import resolve_in_workspace
 
     with pytest.raises(ModelRetry):
-        _resolve_in_workspace(workspace, "../../etc/passwd")
+        resolve_in_workspace(workspace, "../../etc/passwd")
 
 
 async def test_agent_finishing_without_proposal_raises(workspace, finding):

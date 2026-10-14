@@ -8,7 +8,6 @@ feeds the failures back (bounded by settings.fix_agent_max_tool_retries).
 """
 import json
 import logging
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -17,20 +16,17 @@ from pydantic_ai import Agent, ModelRetry, UsageLimits, UsageLimitExceeded
 
 from config import settings
 from models.report import VulnerabilityFinding
-from services.ai.chat_grounding import format_context
+from services.ai.agent_tools import (
+    openai_compatible_spec,
+    register_readonly_tools,
+    resolve_in_workspace,
+)
 from services.ai.fix_gates import GateReport, validate_patch
-from services.ai.gateway import _scrub, spec_for
-from services.ai.retrieval import retrieve
+from services.ai.gateway import _scrub
 from services.ai.stores import QuotaLedger
 from services.ai.trace import InvocationTracer
 
 logger = logging.getLogger(__name__)
-
-# OpenAI-compatible lanes only (slim install has no google-genai extra).
-_AGENT_LANES = ("groq", "openrouter", "openai", "ollama")
-_SKIPPED_DIRS = {".git", "node_modules", "vendor", "__pycache__", ".venv", "venv", "dist", "build"}
-_MAX_SEARCH_HITS = 50
-_MAX_SEARCH_FILES = 2000
 
 
 class FixAgentError(Exception):
@@ -60,22 +56,13 @@ class FixAgentResult:
 
 
 def _agent_spec():
-    for name in settings.configured_provider_chain():
-        if name in _AGENT_LANES:
-            return spec_for(name)
-    raise FixAgentError(
-        "No OpenAI-compatible provider configured for the fix-agent "
-        "(set GROQ_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, or AI_PROVIDER=ollama)"
-    )
-
-
-def _resolve_in_workspace(workspace: Path, rel_path: str) -> Path:
-    candidate = (workspace / rel_path).resolve()
-    if not candidate.is_relative_to(workspace.resolve()):
-        raise ModelRetry(f"Path {rel_path!r} escapes the repository workspace")
-    if not candidate.is_file():
-        raise ModelRetry(f"File not found: {rel_path}")
-    return candidate
+    spec = openai_compatible_spec()
+    if spec is None:
+        raise FixAgentError(
+            "No OpenAI-compatible provider configured for the fix-agent "
+            "(set GROQ_API_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY, or AI_PROVIDER=ollama)"
+        )
+    return spec
 
 
 def _build_task_prompt(finding: VulnerabilityFinding, guidance: str) -> str:
@@ -142,75 +129,9 @@ async def run_fix_agent(
         retries={"tools": settings.fix_agent_max_tool_retries, "output": 1},
     )
 
+    register_readonly_tools(agent, workspace)
+
     candidate: dict = {}
-
-    @agent.tool_plain
-    async def read_file(path: str, start_line: int = 1, end_line: int = 200) -> str:
-        target = _resolve_in_workspace(workspace, path)
-        lines = target.read_text(encoding="utf-8", errors="replace").splitlines()
-        start = max(1, start_line)
-        end = min(len(lines), end_line)
-        if start > end:
-            raise ModelRetry(f"start_line {start} > end_line {end} (file has {len(lines)} lines)")
-        body = "\n".join(f"{i}: {lines[i - 1]}" for i in range(start, end + 1))
-        return body[:12000]
-
-    @agent.tool_plain
-    async def search_repo(pattern: str) -> str:
-        try:
-            regex = re.compile(pattern)
-        except re.error as e:
-            raise ModelRetry(f"Invalid regex: {e}")
-        hits = []
-        scanned = 0
-        for path in sorted(workspace.rglob("*")):
-            if not path.is_file() or set(path.parts) & _SKIPPED_DIRS:
-                continue
-            scanned += 1
-            if scanned > _MAX_SEARCH_FILES or len(hits) >= _MAX_SEARCH_HITS:
-                break
-            try:
-                if path.stat().st_size > 1_000_000:
-                    continue
-                for n, line in enumerate(
-                    path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
-                ):
-                    if regex.search(line):
-                        rel = path.relative_to(workspace).as_posix()
-                        hits.append(f"{rel}:{n}: {line.strip()[:200]}")
-                        if len(hits) >= _MAX_SEARCH_HITS:
-                            break
-            except OSError:
-                continue
-        return "\n".join(hits) or "no matches"
-
-    @agent.tool_plain
-    async def get_cwe(cwe_id: str) -> str:
-        cwe = cwe_id if cwe_id.upper().startswith("CWE-") else f"CWE-{cwe_id}"
-        try:
-            chunks = await retrieve(f"{cwe} remediation guidance")
-            text, _ = format_context(chunks, 3000)
-            return text or f"no knowledge base entries for {cwe}"
-        except Exception as e:
-            return f"knowledge lookup failed: {_scrub(e, 120)}"
-
-    @agent.tool_plain
-    async def get_vuln_intel(cve_id: str) -> str:
-        try:
-            from services.infrastructure.osv_nvd_integration import get_osv_nvd_service
-
-            svc = await get_osv_nvd_service()
-            match = await svc.query_by_cve(cve_id)
-            if not match:
-                return f"no record for {cve_id}"
-            return (
-                f"id={match.id} summary={getattr(match, 'summary', '')} "
-                f"cvss={getattr(match, 'cvss_score', None)} "
-                f"epss={getattr(match, 'epss_score', None)} "
-                f"kev={getattr(match, 'kev_listed', False)}"
-            )[:2000]
-        except Exception as e:  # intel is best-effort
-            return f"intel lookup failed: {_scrub(e, 120)}"
 
     @agent.tool_plain
     async def propose_patch(
@@ -220,7 +141,7 @@ async def run_fix_agent(
         patched_content: str,
         rationale: str,
     ) -> str:
-        target = _resolve_in_workspace(workspace, file_path)  # traversal + existence
+        target = resolve_in_workspace(workspace, file_path)  # traversal + existence
         original = target.read_text(encoding="utf-8", errors="replace")
         n_lines = len(original.splitlines())
         if not (1 <= line_start <= line_end <= n_lines):
