@@ -63,3 +63,20 @@ def test_extract_citations_no_markers_returns_unchanged():
     answer, citations = extract_citations("Plain answer.", [_chunk(1)])
     assert answer == "Plain answer."
     assert citations == []
+
+
+def test_extract_citations_includes_capped_normalized_text():
+    long_text = "word " * 600  # 3000 chars
+    answer, citations = extract_citations("Fixed [[1]] now.", [_chunk(1, text=long_text)])
+    assert [c["n"] for c in citations] == [1]
+    text = citations[0]["text"]
+    assert len(text) <= 1500
+    assert "  " not in text
+    assert text.startswith("word word")
+
+
+def test_extract_citations_text_empty_when_chunk_has_none():
+    chunk = _chunk(1)
+    chunk.pop("text")
+    _, citations = extract_citations("See [[1]].", [chunk])
+    assert citations[0]["text"] == ""

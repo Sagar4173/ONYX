@@ -59,6 +59,7 @@ def extract_citations(
                     "source": chunk.get("source"),
                     "source_id": chunk.get("source_id"),
                     "cwe_id": chunk.get("cwe_id"),
+                    "text": " ".join(str(chunk.get("text") or "").split())[:1500],
                 })
             return f"[{n}]"
         return ""  # out-of-range marker: drop, never show a dangling [n]
