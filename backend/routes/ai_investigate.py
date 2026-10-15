@@ -2,7 +2,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from config import settings
@@ -16,6 +16,7 @@ from services.ai.investigate_agent import (
     run_investigate_agent,
 )
 from utils.error_handling import get_safe_error_detail
+from utils.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,9 @@ def _find_finding(report, finding_id: str):
 
 
 @router.post("/investigate", response_model=InvestigateResponse)
+@limiter.limit("30/minute")
 async def investigate_finding(
+    request: Request,
     payload: InvestigateRequest,
     user: User = Depends(get_current_user),
 ):

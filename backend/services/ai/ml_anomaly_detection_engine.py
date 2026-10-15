@@ -696,6 +696,8 @@ class MLAnomalyDetectionEngine:
                 "recent_alerts": [],
                 "alert_statistics": {},
                 "active_model": None,
+                "total_recent_alerts": 0,
+                "anomaly_detection_status": "degraded",
                 "error": str(e),
             }
 

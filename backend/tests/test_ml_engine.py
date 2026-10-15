@@ -113,12 +113,21 @@ async def test_train_happy_path_honest_metrics(engine, monkeypatch):
 
 
 class _FieldExpr:
-    """Offline stand-in for Beanie query expressions (class attr access)."""
+    """Offline stand-in for Beanie query expressions (class attr access).
+
+    Records operands so tests can pin the actual query filters.
+    """
+
+    def __init__(self):
+        self.ge_operands = []
+        self.eq_operands = []
 
     def __ge__(self, other) -> bool:
+        self.ge_operands.append(other)
         return True
 
     def __eq__(self, other) -> bool:
+        self.eq_operands.append(other)
         return True
 
 
@@ -176,15 +185,24 @@ async def test_collect_training_data_uses_mongo(engine, monkeypatch):
     find_mock = MagicMock(return_value=stub)
 
     # Beanie is not initialized offline: class-level query operands and find()
-    # are replaced with offline stand-ins.
-    monkeypatch.setattr(ScanReport, "started_at", _FieldExpr(), raising=False)
-    monkeypatch.setattr(ScanReport, "status", _FieldExpr(), raising=False)
+    # are replaced with offline stand-ins that record their operands.
+    started_expr, status_expr = _FieldExpr(), _FieldExpr()
+    monkeypatch.setattr(ScanReport, "started_at", started_expr, raising=False)
+    monkeypatch.setattr(ScanReport, "status", status_expr, raising=False)
     monkeypatch.setattr(ScanReport, "find", find_mock, raising=False)
 
     rows = await engine._collect_training_data(90)
 
     find_mock.assert_called_once()
     stub.to_list.assert_awaited_once()
+
+    # Pin the actual query filters (cutoff math + completed-only).
+    args, kwargs = find_mock.call_args
+    assert len(args) == 2 and not kwargs
+    assert len(started_expr.ge_operands) == 1
+    cutoff = started_expr.ge_operands[0]
+    assert datetime.now(timezone.utc) - timedelta(days=90, minutes=2) < cutoff
+    assert status_expr.eq_operands == [ScanStatus.COMPLETED]
 
     assert len(rows) == 1  # empty scan skipped
     row = rows[0]
@@ -276,4 +294,6 @@ async def test_dashboard_degrades_on_missing_new_columns(engine):
     assert dashboard["recent_alerts"] == []
     assert dashboard["alert_statistics"] == {}
     assert dashboard["active_model"] is None
+    assert dashboard["total_recent_alerts"] == 0
+    assert dashboard["anomaly_detection_status"] == "degraded"
     assert "error" in dashboard
