@@ -18,7 +18,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -56,14 +56,13 @@ class AnomalyAlert:
 
 @dataclass
 class MLModelMetrics:
-    """ML model performance metrics"""
+    """Honest IsolationForest training metrics (no invented precision/recall)."""
     model_id: str
     model_type: str
     training_data_size: int
-    accuracy: float
-    precision: float
-    recall: float
-    f1_score: float
+    anomaly_rate: float          # fraction of training scans flagged -1
+    score_mean: float            # mean decision_function over training data
+    score_std: float
     last_trained: str
     feature_importance: Dict[str, float]
 
@@ -141,6 +140,13 @@ class MLAnomalyDetectionEngine:
             )
         ''')
         
+        # Legacy-safe: databases created before honest metrics lack these columns.
+        for col, col_type in (("anomaly_rate", "REAL"), ("score_mean", "REAL"), ("score_std", "REAL")):
+            try:
+                cursor.execute(f"ALTER TABLE ml_models ADD COLUMN {col} {col_type}")
+            except sqlite3.OperationalError:
+                pass  # column already exists
+
         # Historical features table for training
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS historical_features (
@@ -340,101 +346,115 @@ class MLAnomalyDetectionEngine:
         
         return total_score / total_count if total_count > 0 else 0
     
-    async def train_anomaly_model(self, historical_data_days: int = 90) -> MLModelMetrics:
-        """Train anomaly detection model on historical data"""
-        logger.info(f"🤖 Training anomaly detection model on {historical_data_days} days of data")
-        
-        # Collect historical features (simulated for demo)
-        training_features = await self._collect_training_data(historical_data_days)
-        
-        if len(training_features) < 10:
-            logger.warning("⚠️ Insufficient training data for ML model")
+    async def train_anomaly_model(self, historical_data_days: Optional[int] = None) -> Optional[MLModelMetrics]:
+        """Train IsolationForest on real scan history (activation-gated, spec 5.1 P4)."""
+        from config import settings
+        days = historical_data_days or settings.ml_training_window_days
+
+        if not settings.ml_isolation_forest_enabled:
+            logger.info("IsolationForest training skipped: ML_ISOLATION_FOREST_ENABLED=false")
             return None
-        
-        # Prepare feature matrix
+
+        training_features = await self._collect_training_data(days)
+        if len(training_features) < settings.ml_min_training_scans:
+            logger.warning(
+                "Insufficient scan history for IsolationForest: %d < %d",
+                len(training_features), settings.ml_min_training_scans,
+            )
+            return None
+
         feature_matrix, feature_names = self._prepare_feature_matrix(training_features)
-        
-        # Train isolation forest for anomaly detection
-        from sklearn.ensemble import IsolationForest
-        from sklearn.preprocessing import StandardScaler
-        
-        # Scale features
+
+        try:
+            from sklearn.ensemble import IsolationForest
+            from sklearn.preprocessing import StandardScaler
+        except ImportError as e:
+            logger.error("scikit-learn not installed; cannot train IsolationForest: %s", e)
+            return None
+
         scaler = StandardScaler()
-        scaled_features = scaler.fit_transform(feature_matrix)
-        
-        # Train model
+        scaled = scaler.fit_transform(feature_matrix)
         model = IsolationForest(contamination=0.1, random_state=42)
-        predictions = model.fit_predict(scaled_features)
-        
-        # Calculate metrics (using synthetic labels for demo)
-        normal_count = np.sum(predictions == 1)
-        anomaly_count = np.sum(predictions == -1)
-        
-        # Create model metrics
+        predictions = model.fit_predict(scaled)
+        scores = model.decision_function(scaled)
+
+        anomaly_rate = float((predictions == -1).sum()) / len(predictions)
+        importances = getattr(model, "feature_importances_", None)
+        if importances is None:
+            importances = [0.0] * len(feature_names)
+
         model_id = f"anomaly_model_{utc_now().strftime('%Y%m%d_%H%M%S')}"
         metrics = MLModelMetrics(
             model_id=model_id,
             model_type="IsolationForest",
             training_data_size=len(training_features),
-            accuracy=normal_count / len(predictions),
-            precision=0.85,  # Simulated for demo
-            recall=0.78,     # Simulated for demo
-            f1_score=0.81,   # Simulated for demo
+            anomaly_rate=round(anomaly_rate, 4),
+            score_mean=round(float(scores.mean()), 4),
+            score_std=round(float(scores.std()), 4),
             last_trained=utc_now().isoformat(),
-            feature_importance=dict(zip(feature_names, [0.2, 0.15, 0.13, 0.12, 0.1, 0.3]))
+            feature_importance=dict(zip(feature_names, [round(float(v), 4) for v in importances])),
         )
-        
-        # Save model
+
+        self.models_path.mkdir(parents=True, exist_ok=True)
         model_file = self.models_path / f"{model_id}.pkl"
-        with open(model_file, 'wb') as f:
-            pickle.dump({'model': model, 'scaler': scaler, 'features': feature_names}, f)
-        
-        # Store in database
+        with open(model_file, "wb") as f:
+            pickle.dump({"model": model, "scaler": scaler, "features": feature_names}, f)
+
         await self._store_model_metrics(metrics, str(model_file))
-        
-        # Update active model
-        self.models['anomaly_detector'] = {
-            'model': model,
-            'scaler': scaler,
-            'features': feature_names,
-            'metrics': metrics
+        self.models["anomaly_detector"] = {
+            "model": model, "scaler": scaler, "features": feature_names, "metrics": metrics,
         }
-        
-        logger.info(f"✅ Anomaly detection model trained: {anomaly_count} anomalies detected in training data")
+        logger.info(
+            "IsolationForest trained on %d scans (anomaly_rate=%.2f%%)",
+            len(training_features), anomaly_rate * 100,
+        )
         return metrics
     
     async def _collect_training_data(self, days: int) -> List[Dict[str, Any]]:
-        """Collect historical training data (simulated for demo)"""
-        # In a real implementation, this would query actual historical findings
-        # For demo, we'll generate realistic training data
-        
-        training_data = []
-        start_date = utc_now() - timedelta(days=days)
-        
-        for i in range(days):
-            date = start_date + timedelta(days=i)
-            
-            # Simulate varying finding patterns
-            base_findings = 10 + int(5 * np.sin(i * 0.1))  # Seasonal pattern
-            
-            # Add some anomalies
-            if i % 20 == 0:  # Anomaly every 20 days
-                base_findings += 50  # Spike
-            
-            features = {
-                'date_period': date.strftime('%Y-%m-%d'),
-                'total_findings': base_findings,
-                'critical_ratio': 0.1 + 0.05 * np.random.random(),
-                'high_ratio': 0.2 + 0.1 * np.random.random(),
-                'avg_cvss_score': 5.0 + 2.0 * np.random.random(),
-                'unique_cwe_count': 3 + int(2 * np.random.random()),
-                'findings_per_hour': base_findings / 24,
-                'is_anomaly': base_findings > 30  # Label anomalies
-            }
-            
-            training_data.append(features)
-        
-        return training_data
+        """One feature vector per completed scan in the window (REAL data, A10)."""
+        from models.base import ScanStatus
+        from models.report import ScanReport
+
+        cutoff = utc_now() - timedelta(days=days)
+        try:
+            reports = await ScanReport.find(
+                ScanReport.started_at >= cutoff,
+                ScanReport.status == ScanStatus.COMPLETED,
+            ).to_list()
+        except Exception as e:
+            logger.error("Failed to load scan history for ML training: %s", e)
+            return []
+
+        rows: List[Dict[str, Any]] = []
+        for rep in reports:
+            findings = [f for sr in rep.scan_results for f in (sr.findings or [])]
+            total = len(findings)
+            if total == 0:
+                continue
+
+            def _sev(f):
+                s = f.severity.value if hasattr(f.severity, "value") else str(f.severity)
+                return s.lower()
+
+            crit = sum(1 for f in findings if _sev(f) == "critical")
+            high = sum(1 for f in findings if _sev(f) == "high")
+            cvss_vals = [
+                f.cvss_score.base_score
+                for f in findings
+                if f.cvss_score and f.cvss_score.base_score
+            ]
+            cwes = {f.cwe_id for f in findings if f.cwe_id}
+            hours = max((rep.duration_seconds or 3600.0) / 3600.0, 0.1)
+            rows.append({
+                "scan_id": rep.scan_id,
+                "total_findings": total,
+                "critical_ratio": crit / total,
+                "high_ratio": high / total,
+                "avg_cvss_score": (sum(cvss_vals) / len(cvss_vals)) if cvss_vals else 0.0,
+                "unique_cwe_count": len(cwes),
+                "findings_per_hour": total / hours,
+            })
+        return rows
     
     def _prepare_feature_matrix(self, training_data: List[Dict[str, Any]]) -> Tuple[np.ndarray, List[str]]:
         """Prepare feature matrix for ML training"""
@@ -602,13 +622,13 @@ class MLAnomalyDetectionEngine:
             INSERT OR REPLACE INTO ml_models
             (model_id, model_type, training_data_size, accuracy, precision_score,
              recall_score, f1_score, last_trained, feature_importance_json,
-             model_file_path, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             model_file_path, status, anomaly_rate, score_mean, score_std)
+            VALUES (?, ?, ?, NULL, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             metrics.model_id, metrics.model_type, metrics.training_data_size,
-            metrics.accuracy, metrics.precision, metrics.recall, metrics.f1_score,
             metrics.last_trained, json.dumps(metrics.feature_importance),
-            model_file_path, 'active'
+            model_file_path, 'active',
+            metrics.anomaly_rate, metrics.score_mean, metrics.score_std,
         ))
         
         conn.commit()
@@ -636,35 +656,49 @@ class MLAnomalyDetectionEngine:
         conn.close()
     
     async def get_anomaly_dashboard(self) -> Dict[str, Any]:
-        """Generate anomaly detection dashboard"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Get recent alerts
-        cursor.execute('''
-            SELECT * FROM anomaly_alerts
-            WHERE timestamp > datetime('now', '-7 days')
-            ORDER BY timestamp DESC
-        ''')
-        recent_alerts = cursor.fetchall()
-        
-        # Get alert statistics
-        cursor.execute('''
-            SELECT severity, COUNT(*) FROM anomaly_alerts
-            WHERE timestamp > datetime('now', '-30 days')
-            GROUP BY severity
-        ''')
-        alert_stats = dict(cursor.fetchall())
-        
-        # Get model performance
-        cursor.execute('''
-            SELECT * FROM ml_models WHERE status = 'active'
-            ORDER BY last_trained DESC LIMIT 1
-        ''')
-        active_model = cursor.fetchone()
-        
-        conn.close()
-        
+        """Generate anomaly detection dashboard (degrades on legacy schema)."""
+        conn = None
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            # Get recent alerts
+            cursor.execute('''
+                SELECT * FROM anomaly_alerts
+                WHERE timestamp > datetime('now', '-7 days')
+                ORDER BY timestamp DESC
+            ''')
+            recent_alerts = cursor.fetchall()
+
+            # Get alert statistics
+            cursor.execute('''
+                SELECT severity, COUNT(*) FROM anomaly_alerts
+                WHERE timestamp > datetime('now', '-30 days')
+                GROUP BY severity
+            ''')
+            alert_stats = dict(cursor.fetchall())
+
+            # Get active model (honest metrics columns)
+            cursor.execute('''
+                SELECT model_id, model_type, training_data_size, last_trained,
+                       anomaly_rate, score_mean, score_std
+                FROM ml_models WHERE status = 'active'
+                ORDER BY last_trained DESC LIMIT 1
+            ''')
+            active_model = cursor.fetchone()
+
+            conn.close()
+        except sqlite3.Error as e:
+            logger.error("Anomaly dashboard query failed (legacy schema?): %s", e)
+            if conn is not None:
+                conn.close()
+            return {
+                "recent_alerts": [],
+                "alert_statistics": {},
+                "active_model": None,
+                "error": str(e),
+            }
+
         dashboard = {
             "recent_alerts": [
                 {
@@ -678,12 +712,27 @@ class MLAnomalyDetectionEngine:
             ],
             "alert_statistics": alert_stats,
             "active_model": {
-                "model_id": active_model[0] if active_model else None,
-                "accuracy": active_model[3] if active_model else None,
-                "last_trained": active_model[7] if active_model else None
+                "model_id": active_model[0],
+                "model_type": active_model[1],
+                "training_data_size": active_model[2],
+                "last_trained": active_model[3],
+                "anomaly_rate": active_model[4],
+                "score_mean": active_model[5],
+                "score_std": active_model[6],
             } if active_model else None,
             "total_recent_alerts": len(recent_alerts),
             "anomaly_detection_status": "active" if 'anomaly_detector' in self.models else "training_required"
         }
         
         return dashboard
+
+
+_engine: Optional[MLAnomalyDetectionEngine] = None
+
+
+def get_ml_engine() -> MLAnomalyDetectionEngine:
+    """Lazy singleton: no sqlite/mkdir side effects until first use."""
+    global _engine
+    if _engine is None:
+        _engine = MLAnomalyDetectionEngine()
+    return _engine

@@ -62,6 +62,7 @@ from routes.webhook import router as webhook_router
 from routes.triage import router as triage_router
 from routes.schedules import router as schedules_router
 from routes.secret_history import router as secret_history_router
+from routes.ml import router as ml_router
 
 # Import WebSocket manager for real-time notifications
 from services.notifications.websocket_manager import ws_manager
@@ -211,6 +212,7 @@ app.include_router(stats_router, prefix="/api")
 app.include_router(triage_router, prefix="/api")
 app.include_router(schedules_router, prefix="/api")
 app.include_router(secret_history_router, prefix="/api")
+app.include_router(ml_router, prefix="/api")
 
 # Add trailing slash redirect middleware
 from fastapi.responses import RedirectResponse
