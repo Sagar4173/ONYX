@@ -106,6 +106,12 @@ export async function streamChat({ scanId, message, conversationHistory = [], on
         onEvent(event);
       }
     }
+  } catch (err) {
+    if (err.name === "AbortError" || err instanceof AIStreamError) throw err;
+    throw new AIStreamError("Network error. Please check your connection.", {
+      status: 0,
+      kind: "network",
+    });
   } finally {
     reader.releaseLock?.();
   }

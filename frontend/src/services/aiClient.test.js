@@ -3,13 +3,21 @@ import { streamChat, getAIFeatures, AIStreamError } from "./aiClient";
 
 const encoder = new TextEncoder();
 
-function fakeResponse({ status = 200, headers = {}, frames = [], splitAt = null }) {
+function fakeResponse({
+  status = 200,
+  headers = {},
+  frames = [],
+  splitAt = null,
+  failAfter = null,
+  failError = null,
+}) {
   const chunks = frames.map((f) => encoder.encode(`data: ${JSON.stringify(f)}\n\n`));
   if (splitAt !== null && chunks.length > 0) {
     const whole = chunks[0];
     chunks.splice(0, 1, whole.slice(0, splitAt), whole.slice(splitAt));
   }
   let i = 0;
+  let reads = 0;
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -17,10 +25,13 @@ function fakeResponse({ status = 200, headers = {}, frames = [], splitAt = null 
     json: async () => ({ detail: headers.detail || "" }),
     body: {
       getReader: () => ({
-        read: async () =>
-          i < chunks.length
+        read: async () => {
+          if (failAfter !== null && reads >= failAfter) throw failError;
+          reads++;
+          return i < chunks.length
             ? { done: false, value: chunks[i++] }
-            : { done: true, value: undefined },
+            : { done: true, value: undefined };
+        },
         releaseLock: () => {},
       }),
     },
@@ -134,6 +145,47 @@ describe("streamChat", () => {
     abortError.name = "AbortError";
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abortError));
     const err = await streamChat({ scanId: "s", message: "x", onEvent: () => {} }).catch((e) => e);
+    expect(err.name).toBe("AbortError");
+  });
+
+  it("types mid-stream reader.read() failure as AIStreamError network", async () => {
+    const readError = new TypeError("network stream closed");
+    const response = fakeResponse({
+      frames: [{ type: "delta", text: "partial" }],
+      failAfter: 1,
+      failError: readError,
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
+    const events = [];
+    const err = await streamChat({
+      scanId: "s",
+      message: "x",
+      onEvent: (e) => events.push(e),
+    }).catch((e) => e);
+    expect(events).toEqual([{ type: "delta", text: "partial" }]);
+    expect(err).toBeInstanceOf(AIStreamError);
+    expect(err.name).toBe("AIStreamError");
+    expect(err.kind).toBe("network");
+    expect(err.status).toBe(0);
+  });
+
+  it("passes mid-read AbortError through untouched", async () => {
+    const abortError = new Error("aborted mid-read");
+    abortError.name = "AbortError";
+    const response = fakeResponse({
+      frames: [{ type: "delta", text: "partial" }],
+      failAfter: 1,
+      failError: abortError,
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
+    const events = [];
+    const err = await streamChat({
+      scanId: "s",
+      message: "x",
+      onEvent: (e) => events.push(e),
+    }).catch((e) => e);
+    expect(events).toEqual([{ type: "delta", text: "partial" }]);
+    expect(err).toBe(abortError);
     expect(err.name).toBe("AbortError");
   });
 
