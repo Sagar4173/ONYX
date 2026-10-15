@@ -6,7 +6,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 // API Configuration - Production ready with environment variable support
-const API_BASE_URL = import.meta.env.DEV
+export const API_BASE_URL = import.meta.env.DEV
   ? "http://127.0.0.1:8000/api" // Direct connection in development with /api prefix
   : import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "/api";
 
