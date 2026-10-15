@@ -131,7 +131,7 @@ Streaming region `aria-live="polite"` (finished answers announced, not per-token
 
 - **Storybook story** for each new primitive: `AIStateBlock`, `QuotaNotice`, citation chip, label controls, fix status rail, feature-flag badge (existing pattern: `src/stories/`, 6 today).
 - **vitest + Testing Library** interaction tests per new component (`ScanComparison.test.jsx` pattern): label optimistic-update + rollback; `useSSEStream` state machine fed a mock `ReadableStream`; keyboard triage `A/F/D/U` + bulk undo; fix lifecycle transitions; feature-flag gating.
-- Per phase gate: `npm run lint` (≤200 warnings), `npm test`, `npm run build` all green; backend suite untouched except Phase 0's features-endpoint test.
+- Per phase gate: `npm run lint` (delta ≤ 0 vs the 2026-10-16 recorded baseline of 2955 pre-existing prettier errors + 10 warnings — amended 2026-10-16 after discovering the drift predates this track; touched files must lint clean), `npm test`, `npm run build` all green; backend suite untouched except Phase 0's features-endpoint test.
 - **Manual visual-QA checklist per phase** vs the Linear/Vercel/Cursor bar, recorded in the phase plan. No Playwright additions.
 
 ### Edge cases (routed to their phase)
