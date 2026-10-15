@@ -27,7 +27,7 @@ Backend Phases 1-4 (commits `851cf27`…`bbaaba1`, pushed) shipped: SSE chat str
 ### Non-goals
 
 - No changes to July specs or `styles/` tokens; no general dashboard/page overhaul (only AI surfaces + components each phase touches).
-- Backend changes limited to `GET /api/ai/features` (plus its tests). No chat-history persistence endpoint — conversation state is session-scoped (module-level store, clears on reload).
+- Backend changes limited to `GET /api/ai/features` (plus its tests) **and one additive field — `text` (chunk body, whitespace-normalized, capped 1500 chars) on chat citation payloads in `services/ai/chat_grounding.py` (plan-time amendment, user-approved 2026-10-16: no endpoint serves knowledge-chunk text, and the CWE side-panel needs content)**. No chat-history persistence endpoint — conversation state is session-scoped (module-level store, clears on reload).
 - No global AI context provider; no Redux/Zustand; no TypeScript migration; no icon-library changes.
 
 ---
@@ -54,7 +54,7 @@ Backend Phases 1-4 (commits `851cf27`…`bbaaba1`, pushed) shipped: SSE chat str
 Extends `components/reports/AIChatPanel.jsx` (mounted as the AI Chat tab of `ReportDetails`); migrates it to primitives while touched.
 
 - **Transport:** `POST /api/ai/chat/stream` via `useSSEStream()` replaces buffered `POST /api/ai/chat` (`services/api.js:365-372`). Message store: `useConversation(scanId)` — module-level `Map` keyed by scanId (survives in-app navigation, clears on reload); sends last 20 messages as `conversation_history` (backend contract unchanged).
-- **Signature moment — live citation chips:** assistant bubble renders with a shimmer caret during streaming; citation markers (backend cite-by-index) turn into `Badge` chips the moment they appear, in DOM order of arrival. Chip click opens the **CWE side-panel**: existing `Modal` at `xl`/`max-w-4xl` (focus trap), content = Phase 2 RAG knowledge-base entry (CWE/finding reference) — page never left. Chips keyboard-reachable; panel restores focus to the invoking chip on close.
+- **Signature moment — live citation chips:** assistant bubble renders with a shimmer caret during streaming; citation markers (backend cite-by-index) turn into `Badge` chips the moment they appear, in DOM order of arrival. Chip click opens the **CWE side-panel**: existing `Modal` at `xl`/`max-w-4xl` (focus trap), content = the citation's `text` field (knowledge chunk body ≤1500 chars, from the plan-time-approved citation amendment) plus header/source/`source_id`/`cwe_id` metadata — page never left. Chips keyboard-reachable; panel restores focus to the invoking chip on close.
 - **States:** `AIStateBlock` loading/error; mid-stream disconnect keeps the partial answer + reconnect affordance; **Stop** button aborts fetch (idempotent); `QuotaNotice` on 429; backend SSE event types for provider-fallback and schema-retry map to notice events (never silent failures). `model_used` footer and suggested-question chips retained.
 
 ---
