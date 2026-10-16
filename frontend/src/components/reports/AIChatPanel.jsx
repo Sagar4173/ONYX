@@ -14,6 +14,7 @@ import { Button, Input, Spinner } from "../ui/StyleComponents";
 import { AIStateBlock } from "../common/AIStateBlock";
 import { QuotaNotice } from "../common/QuotaNotice";
 import { MessageContent } from "./MessageContent";
+import { CitationPanel } from "./CitationPanel";
 import { useConversation } from "../../hooks/useConversation";
 import { useSSEStream } from "../../hooks/useSSEStream";
 
@@ -42,6 +43,7 @@ export const AIChatPanel = ({ scanId }) => {
   const [input, setInput] = useState("");
   const [streamError, setStreamError] = useState(null);
   const [rateLimit, setRateLimit] = useState(null); // number | null (null = inactive)
+  const [citation, setCitation] = useState(null); // {n, citation} | null
   const messagesEndRef = useRef(null);
   const {
     messages,
@@ -218,6 +220,8 @@ export const AIChatPanel = ({ scanId }) => {
                     <MessageContent
                       text={msg.streaming ? msg.text : (msg.content ?? msg.text)}
                       streaming={msg.streaming}
+                      citations={msg.citations}
+                      onCitationClick={(n, cite) => setCitation({ n, citation: cite })}
                     />
                     {msg.partial && !msg.streaming && !msg.isError && (
                       <p className="mt-1 text-[10px] text-amber-300/80">
@@ -297,6 +301,13 @@ export const AIChatPanel = ({ scanId }) => {
           )}
         </div>
       </div>
+
+      <CitationPanel
+        isOpen={citation != null}
+        onClose={() => setCitation(null)}
+        n={citation?.n ?? 1}
+        citation={citation?.citation ?? null}
+      />
     </motion.div>
   );
 };
