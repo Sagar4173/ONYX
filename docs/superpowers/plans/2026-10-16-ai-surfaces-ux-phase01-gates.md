@@ -34,14 +34,26 @@
 
 ## Fix-round addendum (final-review fixes, same date)
 
-Final whole-branch review (3513ff2..0dd18d1) verdict: **With fixes** — Critical: 429?QuotaNotice unreachable end-to-end (slowapi emitted no Retry-After; frontend conflated "no header" with "no 429"); Important: QuotaNotice double-announced every countdown tick. User approved backend fix + a11y fix in one round.
+Final whole-branch review (3513ff2..0dd18d1) verdict: **With fixes** â€” Critical: 429 to QuotaNotice unreachable end-to-end (slowapi emitted no Retry-After; frontend conflated "no header" with "no 429"); Important: QuotaNotice double-announced every countdown tick. User approved backend fix + a11y fix in one round (batched question, 2026-10-16).
 
-**What landed:**
-- `backend/utils/rate_limit.py`: `headers_enabled=True` via `_FastAPILimiter` (skips slowapi's success-path `_inject_headers` when FastAPI passes no `Response` — plain `headers_enabled=True` crashes dict-returning endpoints). 429 handler now emits Retry-After + X-RateLimit-*.
-- `backend/tests/test_rate_limit.py`: over-the-wire test — 30/minute login limit exceeded ? 429 carries Retry-After + X-RateLimit-Limit/Remaining (hermetic limiter reset + `require_beanie` override).
-- `AIChatPanel`: quota state is now `{ retryAfter } | null` — a 429 always renders QuotaNotice (was hidden when Retry-After missing); "Try again" via retryLast.
-- `QuotaNotice`: "Try again" shows immediately when indeterminate; visible countdown `aria-hidden` with a single sr-only announcement; interval cleared at expiry; no more "retry in 0s" copy (? "you can retry now" + "Ready to retry" announcement).
-- `aiClient`: `Retry-After: 0` preserved as 0 (was mapped to null).
+**What landed (commit 3d47ab4):**
+
+- `backend/utils/rate_limit.py`: `headers_enabled=True` via `_FastAPILimiter` (skips slowapi's success-path `_inject_headers` when FastAPI passes no `Response`; plain `headers_enabled=True` crashes dict-returning endpoints with "parameter `response` must be an instance of starlette.responses.Response"). 429 handler now emits Retry-After + X-RateLimit-*.
+- `backend/tests/test_rate_limit.py`: over-the-wire test: 30/minute login limit exceeded, 429 carries Retry-After + X-RateLimit-Limit/Remaining (hermetic `limiter.reset()` before/after + `require_beanie` override, since the auth router 503s pre-limiter).
+- `AIChatPanel`: quota state is now `{ retryAfter } | null`; a 429 always renders QuotaNotice (was hidden when Retry-After was missing); "Try again" via retryLast.
+- `QuotaNotice`: "Try again" shows immediately when indeterminate; visible countdown `aria-hidden` with a single sr-only announcement; interval cleared at expiry; no more "retry in 0s" copy (becomes "you can retry now" + "Ready to retry" announcement).
+- `aiClient`: `Retry-After: 0` preserved as 0 (was mapped to null); negative values clamped to 0.
+
+**Focused re-review of 3d47ab4: Approved** (all fixes verified, no regressions; targeted re-runs green). Follow-up findings from re-review, both fixed in the follow-up commit below:
+
+- **CORS:** `Retry-After` was not in `expose_headers`, so cross-origin browsers (Vite dev at :5173 against API at :8000, split-domain prod) could not read it and would show only the indeterminate notice. `app.py` now exposes `Retry-After` + `X-RateLimit-*`. Same-origin nginx prod was unaffected. Pre-existing config gap, not introduced by the fix round.
+- Mojibake in this addendum repaired (this section rewritten as clean UTF-8/ASCII).
+
+**Residual notes (recorded per re-review):**
+
+- `_FastAPILimiter` overrides slowapi's private `_inject_headers` and relies on its `kwargs.get("response")` wrapper pattern (verified across all call sites in installed slowapi 0.1.10, sync + async wrappers). Slowapi is effectively frozen, but any future bump must re-check `extension.py`.
+- The rate-limit test exercises the 429 path; the no-crash success path for dict-returning decorated endpoints is covered indirectly by the wider suite (`test_investigate_route.py` happy path) rather than by a dedicated assertion.
+- Screen-reader countdown announces once per second (single channel now); threshold announcements (30/10/5/0) would be optional polish.
 
 **Re-run gates (all green):**
 
@@ -49,8 +61,8 @@ Final whole-branch review (3513ff2..0dd18d1) verdict: **With fixes** — Critical:
 |---|---|
 | Backend suite | **713 passed** (+1 new rate-limit test) |
 | Evals | **36 passed** |
-| Frontend tests | **219 passed (27 files)** (+6 new: quota delegation, aria contract, Retry-After 0/absent, indeterminate retry) |
-| Frontend lint | **2951 errors / 10 warnings — delta 0** vs this record; touched files clean (eslint exit 0) |
+| Frontend tests | **220 passed (27 files)** (+7 new: quota delegation, aria contract, Retry-After 0/absent/negative, indeterminate retry) |
+| Frontend lint | **2951 errors / 10 warnings - delta 0** vs this record; touched files clean (eslint exit 0) |
 | Frontend build | exit 0 |
 
-**Still pending:** live over-the-wire visual QA items 1-6 (unchanged — needs warm API + auth + scan + AI provider); item 4's live check now has backend header + panel unit coverage behind it.
+**Still pending:** live over-the-wire visual QA items 1-6 (unchanged: needs warm API + auth + scan + AI provider); item 4's live check now has backend header + CORS exposure + panel unit coverage behind it.

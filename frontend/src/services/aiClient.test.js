@@ -118,6 +118,16 @@ describe("streamChat", () => {
     expect(err.retryAfter).toBeNull();
   });
 
+  it("clamps a negative Retry-After to 0", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(fakeResponse({ status: 429, headers: { "Retry-After": "-5" } }))
+    );
+    const err = await streamChat({ scanId: "s", message: "x", onEvent: () => {} }).catch((e) => e);
+    expect(err.kind).toBe("rate_limited");
+    expect(err.retryAfter).toBe(0);
+  });
+
   it("throws AIStreamError not_found carrying detail", async () => {
     vi.stubGlobal(
       "fetch",

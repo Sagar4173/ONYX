@@ -178,6 +178,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    # Rate-limit headers are not CORS-safelisted; cross-origin browsers
+    # (Vite dev server, split-domain prod) need them exposed to read
+    # Retry-After for the quota countdown.
+    expose_headers=["Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
 )
 
 # CORS middleware handles OPTIONS preflight requests itself,

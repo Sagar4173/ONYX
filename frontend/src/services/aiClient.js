@@ -51,7 +51,7 @@ export async function streamChat({ scanId, message, conversationHistory = [], on
       throw new AIStreamError("Rate limit exceeded.", {
         status: 429,
         kind: "rate_limited",
-        retryAfter: Number.isNaN(parsed) ? null : parsed,
+        retryAfter: Number.isNaN(parsed) ? null : Math.max(0, parsed),
       });
     }
     if (response.status === 401) {
