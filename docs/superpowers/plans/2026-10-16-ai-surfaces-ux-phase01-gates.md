@@ -66,3 +66,33 @@ Final whole-branch review (3513ff2..0dd18d1) verdict: **With fixes** — Critica
 | Frontend build | exit 0 |
 
 **Still pending:** live over-the-wire visual QA items 1-6 (unchanged: needs warm API + auth + scan + AI provider); item 4's live check now has backend header + CORS exposure + panel unit coverage behind it.
+
+---
+
+## Live visual QA (items 1-6) - 2026-10-17
+
+Environment: backend uvicorn on 127.0.0.1:8000 (fresh process, Atlas `onyx` DB), Vite on 127.0.0.1:5173, Gemini key configured (provider `gemini/gemini-2.5-flash`). QA user `qa.live@example.com` (activated directly in DB; registration flow itself sends welcome/verification mail via the configured SMTP and swallows send failures). Seeded `ScanReport` scan_id `qa-live-check-001` (3 findings: CWE-89 critical, CWE-79 high, CWE-327 medium + AI analysis) owned by the QA user.
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| 1 | Streaming caret + Stop partial | **PASS** | Stop button (`aria-label="Stop response"`) visible from first frame (+3ms); Connecting -> Responding labels; caret `span.animate-pulse` observed mid-stream; input disabled while active; Stop clicked at 561 chars -> "Partial response - connection ended early." shown; button restored to Send |
+| 2 | Citation chips during stream + hydrate | **PASS** | Live pending chip observed mid-stream (`aria-label="Citation 2 loading"`, disabled, label `2...`); at `done` frame chips hydrated to full headers (e.g. `Citation 2: CWE-89: Remediation`); raw deltas carried `[[2]]`/`[[3]]` markers pre-hydration (curl trace) |
+| 3 | Chip -> CWE panel / Esc / focus | **PASS** (after fix) | Chip click opens `role="dialog" aria-modal="true"` with title `Citation [n] - <header>`, source/CWE badges, source text; Escape closes; focus restored to invoking chip |
+| 4 | 429 quota countdown end-to-end | **PASS** | Exactly 30 requests accepted on `/api/ai/chat/stream`, 31st -> 429 with `Retry-After: 23`, `X-RateLimit-Remaining: 0` (cross-origin readable - CORS expose_headers fix); browser send inside window renders QuotaNotice: "retry in 2s." -> "you can retry now." ticking each second; single sr-only announcement ("Rate limit reached. Ready to retry."); "Try again" appears enabled at expiry. Browser logs the 429 fetch as a console error (expected network log, not an app error) |
+| 5 | OS reduced-motion | **PASS** (after fix) | Before: framer-motion entrance tweened opacity 0->0.22->0.70->0.97->1 under `prefers-reduced-motion: reduce` (CSS override in index.css does not gate JS animations). After `<MotionConfig reducedMotion="user">` in App.jsx: transform tween suppressed (only start offset + rest observed; no intermediate matrices); opacity fade retained - this is Framer Motion's documented `user` behavior (transforms/layout disabled, opacity kept). CSS animations remain killed by the existing media query |
+| 6 | Keyboard / tab order / announcer | **PASS** | Enter in input sends (used throughout QA); send/stop and chips are real buttons (Tab-focusable, focus-visible rings in markup); sr-only `aria-live="polite"` announcer carries `Answer: ...` for completed replies and the quota channel announced once per state (see item 4) |
+
+**Defects found live and fixed in this pass (frontend):**
+
+- **Modal never focused into the dialog on open** (`StyleComponents.jsx`): focus stayed on the invoking chip; the Tab trap only wraps focus already inside the container, so keyboard users could tab through the page behind the dialog. Fix: focus first focusable (fallback: dialog via `tabIndex={-1}`) on open; keep existing trap + restore-on-close. Verified live: focus lands on "Close dialog" button; Esc restores to the invoking chip.
+- **Chat auto-scroll scrolled the whole page** (`AIChatPanel.jsx`): `messagesEndRef.scrollIntoView` moved the outer document (captured in screenshot: header/messages scrolled out of view, input row stuck under the tab bar). Fix: container-scoped `listRef` + `el.scrollTo` (with `scrollTop` fallback for jsdom).
+- **Framer-motion ignored OS reduced-motion** (`App.jsx`): added `MotionConfig reducedMotion="user"`. Note this is app-wide (all `motion.*` usage), matching the documented Framer semantics.
+
+**Re-run gates after fixes (all green):** frontend tests **220 passed (27 files)**; build **exit 0**; eslint on touched files (`App.jsx`, `AIChatPanel.jsx`, `StyleComponents.jsx`) **exit 0**. Backend untouched this pass (still 713 + 36 evals).
+
+**Residual notes:**
+
+- Pending-chip mid-stream state is model-timing dependent (markers must appear before `done`); observed live once and covered deterministically by unit tests.
+- QA artifacts (seeded scan `qa-live-check-001`, QA user) remain in the Atlas `onyx` DB; they are owned by the QA user and do not affect other accounts.
+- Backend `.env` on the QA machine now carries real Atlas + SMTP + AI provider credentials; `.env` stays gitignored. The two tracked `.env.example` files are modified (empty AI key slots documented) but intentionally left uncommitted pending a request.
+

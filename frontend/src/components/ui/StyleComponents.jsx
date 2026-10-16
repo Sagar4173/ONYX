@@ -414,6 +414,10 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = "md" })
     const container = containerRef.current;
     if (!container) return;
     const prevFocus = document.activeElement;
+    const initial =
+      container.querySelector(FOCUSABLE_MODAL) ||
+      (container.hasAttribute("tabindex") ? container : null);
+    initial?.focus();
     const handleKey = (e) => {
       if (e.key === "Escape") {
         onClose();
@@ -464,6 +468,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = "md" })
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

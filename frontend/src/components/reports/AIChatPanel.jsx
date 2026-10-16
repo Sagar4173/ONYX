@@ -44,7 +44,7 @@ export const AIChatPanel = ({ scanId }) => {
   const [streamError, setStreamError] = useState(null);
   const [quota, setQuota] = useState(null); // { retryAfter: number|null } | null (null = inactive)
   const [citation, setCitation] = useState(null); // {n, citation} | null
-  const messagesEndRef = useRef(null);
+  const listRef = useRef(null);
   const {
     messages,
     pushUser,
@@ -61,7 +61,13 @@ export const AIChatPanel = ({ scanId }) => {
   const active = status === "connecting" || status === "streaming";
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = listRef.current;
+    if (!el) return;
+    if (typeof el.scrollTo === "function") {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [messages, status]);
 
   const runStream = async (userMessage, baseMessages) => {
@@ -157,7 +163,7 @@ export const AIChatPanel = ({ scanId }) => {
         )}
       </div>
 
-      <div className="h-80 overflow-y-auto p-4 space-y-4">
+      <div ref={listRef} className="h-80 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && !active && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <ChatBubbleLeftRightIcon className="w-12 h-12 text-gray-600 mb-3" />
@@ -256,7 +262,6 @@ export const AIChatPanel = ({ scanId }) => {
           />
         )}
 
-        <div ref={messagesEndRef} />
         <div className="sr-only" aria-live="polite">
           {lastCompleted?.content ? `Answer: ${lastCompleted.content}` : ""}
         </div>

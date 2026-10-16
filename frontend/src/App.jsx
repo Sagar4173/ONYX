@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 
@@ -84,44 +85,46 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </AuthProvider>
+        <MotionConfig reducedMotion="user">
+          <AuthProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </AuthProvider>
 
-        {/* Global Toast Notifications */}
-        <Toaster
-          position="top-right"
-          reverseOrder={false}
-          gutter={8}
-          containerStyle={{ zIndex: 9999 }}
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background:
-                "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
-              color: "#fff",
-              border: "1px solid rgba(75, 85, 99, 0.3)",
-              borderRadius: "1rem",
-              backdropFilter: "blur(16px)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-              maxWidth: "500px",
-            },
-            success: {
-              duration: 3000,
-              iconTheme: { primary: "#10b981", secondary: "#fff" },
-            },
-            error: {
-              duration: 5000,
-              iconTheme: { primary: "#ef4444", secondary: "#fff" },
-            },
-            loading: {
-              duration: Infinity,
-              iconTheme: { primary: "#06b6d4", secondary: "#fff" },
-            },
-          }}
-        />
+          {/* Global Toast Notifications */}
+          <Toaster
+            position="top-right"
+            reverseOrder={false}
+            gutter={8}
+            containerStyle={{ zIndex: 9999 }}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background:
+                  "linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)",
+                color: "#fff",
+                border: "1px solid rgba(75, 85, 99, 0.3)",
+                borderRadius: "1rem",
+                backdropFilter: "blur(16px)",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                maxWidth: "500px",
+              },
+              success: {
+                duration: 3000,
+                iconTheme: { primary: "#10b981", secondary: "#fff" },
+              },
+              error: {
+                duration: 5000,
+                iconTheme: { primary: "#ef4444", secondary: "#fff" },
+              },
+              loading: {
+                duration: Infinity,
+                iconTheme: { primary: "#06b6d4", secondary: "#fff" },
+              },
+            }}
+          />
+        </MotionConfig>
       </QueryClientProvider>
     </ErrorBoundary>
   );
