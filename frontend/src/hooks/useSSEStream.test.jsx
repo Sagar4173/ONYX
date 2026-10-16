@@ -102,4 +102,85 @@ describe("useSSEStream", () => {
     expect(result.current.status).toBe("done");
     expect(rejectStream).toBeDefined();
   });
+
+  it("overlapping send aborts the first stream and a stale settle cannot overwrite the second's state", async () => {
+    const first = { signal: null, reject: null };
+    let resolveSecond;
+    let calls = 0;
+    streamChat.mockImplementation(({ signal }) => {
+      calls += 1;
+      if (calls === 1) {
+        first.signal = signal;
+        return new Promise((_, reject) => {
+          first.reject = reject;
+        });
+      }
+      return new Promise((resolve) => {
+        resolveSecond = resolve;
+      });
+    });
+    const { result } = renderHook(() => useSSEStream());
+
+    let firstOutcome;
+    await act(async () => {
+      firstOutcome = result.current.send({
+        scanId: "s",
+        message: "a",
+        history: [],
+        onEvent: () => {},
+      });
+    });
+    expect(first.signal.aborted).toBe(false);
+
+    let secondOutcome;
+    await act(async () => {
+      secondOutcome = result.current.send({
+        scanId: "s",
+        message: "b",
+        history: [],
+        onEvent: () => {},
+      });
+    });
+    expect(first.signal.aborted).toBe(true);
+
+    await act(async () => {
+      resolveSecond();
+      secondOutcome = await secondOutcome;
+    });
+    expect(secondOutcome).toEqual({ status: "done", error: null });
+    expect(result.current.status).toBe("done");
+
+    await act(async () => {
+      first.reject(new AIStreamError("late failure", { kind: "server" }));
+      firstOutcome = await firstOutcome;
+    });
+    expect(firstOutcome).toEqual({ status: "error", error: expect.any(Error) });
+    expect(result.current.status).toBe("done");
+    expect(result.current.error).toBeNull();
+  });
+
+  it("aborts the in-flight request when the hook unmounts", async () => {
+    let capturedSignal;
+    streamChat.mockImplementation(
+      ({ signal }) =>
+        new Promise((_, reject) => {
+          capturedSignal = signal;
+          signal.addEventListener("abort", () => {
+            const e = new Error("aborted");
+            e.name = "AbortError";
+            reject(e);
+          });
+        })
+    );
+    const { result, unmount } = renderHook(() => useSSEStream());
+    await act(async () => {
+      result.current.send({ scanId: "s", message: "x", history: [], onEvent: () => {} });
+    });
+    expect(capturedSignal).toBeDefined();
+    expect(capturedSignal.aborted).toBe(false);
+
+    unmount();
+    expect(capturedSignal.aborted).toBe(true);
+    await act(async () => {});
+  });
 });

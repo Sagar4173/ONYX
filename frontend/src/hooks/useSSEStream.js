@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { streamChat, AIStreamError } from "../services/aiClient";
 
 export function useSSEStream() {
@@ -7,6 +7,7 @@ export function useSSEStream() {
   const controllerRef = useRef(null);
 
   const send = useCallback(async ({ scanId, message, history, onEvent }) => {
+    controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
     setError(null);
@@ -26,28 +27,36 @@ export function useSSEStream() {
           onEvent(event);
         },
       });
-      setStatus("done");
+      if (controllerRef.current === controller) setStatus("done");
       return { status: "done", error: null };
     } catch (err) {
+      const isCurrent = controllerRef.current === controller;
       if (err.name === "AbortError") {
-        setStatus("done");
+        if (isCurrent) setStatus("done");
         return { status: "aborted", error: null };
       }
-      setError(err);
+      if (isCurrent) setError(err);
       if (err instanceof AIStreamError && err.kind === "rate_limited") {
-        setStatus("rate_limited");
+        if (isCurrent) setStatus("rate_limited");
         return { status: "rate_limited", error: err };
       }
-      setStatus("error");
+      if (isCurrent) setStatus("error");
       return { status: "error", error: err };
     } finally {
-      controllerRef.current = null;
+      if (controllerRef.current === controller) controllerRef.current = null;
     }
   }, []);
 
   const abort = useCallback(() => {
     controllerRef.current?.abort();
   }, []);
+
+  useEffect(
+    () => () => {
+      controllerRef.current?.abort();
+    },
+    []
+  );
 
   return { status, error, send, abort };
 }
