@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 vi.mock("@services/aiClient", async (importOriginal) => {
   const actual = await importOriginal();
@@ -106,5 +106,26 @@ describe("AIChatPanel", () => {
 
     expect(await screen.findByText(/rate limit reached/i)).toBeInTheDocument();
     expect(screen.getByText(/retry in 42s/i)).toBeInTheDocument();
+  });
+
+  it("shows indeterminate QuotaNotice with Try again on 429 without Retry-After", async () => {
+    streamChat.mockRejectedValue(
+      new AIStreamError("Rate limit exceeded.", {
+        status: 429,
+        kind: "rate_limited",
+        retryAfter: null,
+      })
+    );
+    render(<AIChatPanel scanId="scan-5" />);
+    fireEvent.change(screen.getByPlaceholderText(/ask about vulnerabilities/i), {
+      target: { value: "q" },
+    });
+    fireEvent.keyDown(screen.getByPlaceholderText(/ask about vulnerabilities/i), { key: "Enter" });
+
+    expect(await screen.findByText(/rate limit reached/i)).toBeInTheDocument();
+    expect(screen.getByText(/try again shortly/i)).toBeInTheDocument();
+    const retry = screen.getByRole("button", { name: /try again/i });
+    fireEvent.click(retry);
+    await waitFor(() => expect(streamChat).toHaveBeenCalledTimes(2)); // initial + retryLast re-send
   });
 });

@@ -47,10 +47,11 @@ export async function streamChat({ scanId, message, conversationHistory = [], on
     }
     if (response.status === 429) {
       const header = response.headers.get("Retry-After");
+      const parsed = header == null ? NaN : parseInt(header, 10);
       throw new AIStreamError("Rate limit exceeded.", {
         status: 429,
         kind: "rate_limited",
-        retryAfter: header ? parseInt(header, 10) || null : null,
+        retryAfter: Number.isNaN(parsed) ? null : parsed,
       });
     }
     if (response.status === 401) {

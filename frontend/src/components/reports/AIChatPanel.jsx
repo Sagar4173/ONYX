@@ -42,7 +42,7 @@ const getIconForText = (text) => {
 export const AIChatPanel = ({ scanId }) => {
   const [input, setInput] = useState("");
   const [streamError, setStreamError] = useState(null);
-  const [rateLimit, setRateLimit] = useState(null); // number | null (null = inactive)
+  const [quota, setQuota] = useState(null); // { retryAfter: number|null } | null (null = inactive)
   const [citation, setCitation] = useState(null); // {n, citation} | null
   const messagesEndRef = useRef(null);
   const {
@@ -91,7 +91,7 @@ export const AIChatPanel = ({ scanId }) => {
     const detail = outcome.error?.message || "AI chat service unavailable";
     const partial = getMessage(id)?.text;
     if (outcome.status === "rate_limited") {
-      setRateLimit(outcome.error?.retryAfter ?? null);
+      setQuota({ retryAfter: outcome.error?.retryAfter ?? null });
       if (partial) settleAssistant(id);
       else failAssistant(id, detail);
       return;
@@ -109,7 +109,7 @@ export const AIChatPanel = ({ scanId }) => {
     const userMessage = text || input;
     if (!userMessage.trim() || active) return;
     setStreamError(null);
-    setRateLimit(null);
+    setQuota(null);
     setInput("");
     pushUser(userMessage);
     await runStream(userMessage, baseMessages);
@@ -245,9 +245,9 @@ export const AIChatPanel = ({ scanId }) => {
           </div>
         )}
 
-        {rateLimit != null && !active && <QuotaNotice retryAfter={rateLimit} onRetry={retryLast} />}
+        {quota && !active && <QuotaNotice retryAfter={quota.retryAfter} onRetry={retryLast} />}
 
-        {streamError && rateLimit == null && !active && (
+        {streamError && !quota && !active && (
           <AIStateBlock
             variant="error"
             title="Response interrupted"

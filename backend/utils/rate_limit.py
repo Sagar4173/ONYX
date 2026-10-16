@@ -25,4 +25,23 @@ def _client_ip_key(request: Request) -> str:
     return get_remote_address(request)
 
 
-limiter = Limiter(key_func=_client_ip_key)
+class _FastAPILimiter(Limiter):
+    """
+    Limiter tuned for FastAPI's dict-returning endpoints.
+
+    With headers_enabled=True, slowapi's per-response injection calls
+    _inject_headers(kwargs.get("response"), ...) after the endpoint runs.
+    FastAPI only injects a `response: Response` kwarg when the endpoint
+    signature declares one, so plain dict returns would raise
+    "parameter `response` must be an instance of starlette.responses.Response".
+    Skip injection when there is no Response object; the 429 handler and
+    Response-returning endpoints (e.g. streaming chat) still get headers.
+    """
+
+    def _inject_headers(self, response, current_limit):
+        if response is None:
+            return response
+        return super()._inject_headers(response, current_limit)
+
+
+limiter = _FastAPILimiter(key_func=_client_ip_key, headers_enabled=True)
