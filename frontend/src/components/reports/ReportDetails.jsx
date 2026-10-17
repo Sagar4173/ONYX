@@ -446,7 +446,7 @@ const ReportDetails = () => {
               )}
 
               {activeTab === "triage" && (
-                <TriageDashboard projectId={report.scan_id} scanId={report.scan_id} />
+                <TriageDashboard scanId={report.scan_id} reportId={reportId} />
               )}
 
               {activeTab === "compliance" && (
