@@ -38,6 +38,7 @@ const AuditLogs = lazy(() => import("../components/users/AuditLogs"));
 const Settings = lazy(() => import("../components/settings/Settings"));
 const ScheduledScansPage = lazy(() => import("../components/schedules/ScheduledScansPage"));
 const SecretHistoryPanel = lazy(() => import("../components/security/SecretHistoryPanel"));
+const FindingDetail = lazy(() => import("../pages/FindingDetail"));
 
 /**
  * Main Layout with Sidebar and Header
@@ -334,6 +335,14 @@ export const MainLayout = () => {
                   element={
                     <ErrorBoundary>
                       <ReportDetails />
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/report/:reportId/finding/:findingId"
+                  element={
+                    <ErrorBoundary>
+                      <FindingDetail />
                     </ErrorBoundary>
                   }
                 />
