@@ -128,7 +128,7 @@ const ReportDetails = () => {
   };
 
   useTriageShortcuts({
-    enabled: activeTab === "findings" && !!report,
+    enabled: activeTab === "findings" && !!report && !helpOpen,
     onLabel: (label) => {
       if (focusIndex === null || !filteredFindings[focusIndex]) {
         toast.error("No finding focused — press J first");

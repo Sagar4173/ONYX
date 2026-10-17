@@ -47,6 +47,26 @@ describe("useTriageShortcuts", () => {
     expect(onMove).not.toHaveBeenCalled();
   });
 
+  it("fires shortcuts while a checkbox input has focus", () => {
+    const { onLabel } = setup();
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    document.body.appendChild(checkbox);
+    fireEvent.keyDown(checkbox, { key: "a" });
+    expect(onLabel).toHaveBeenCalledWith("accepted");
+  });
+
+  it("suppresses keys on a text input", () => {
+    const { onLabel, onMove } = setup();
+    const textInput = document.createElement("input");
+    textInput.type = "text";
+    document.body.appendChild(textInput);
+    fireEvent.keyDown(textInput, { key: "a" });
+    fireEvent.keyDown(textInput, { key: "j" });
+    expect(onLabel).not.toHaveBeenCalled();
+    expect(onMove).not.toHaveBeenCalled();
+  });
+
   it("does nothing when disabled", () => {
     const { onLabel, onMove, onToggleHelp } = setup(false);
     fireEvent.keyDown(document, { key: "a" });

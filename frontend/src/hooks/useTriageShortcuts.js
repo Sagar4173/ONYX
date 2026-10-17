@@ -7,6 +7,8 @@ const LABEL_KEYS = {
   u: "untriaged",
 };
 
+const NON_TEXT_INPUT_TYPES = new Set(["checkbox", "radio", "button", "submit"]);
+
 export function useTriageShortcuts({ enabled, onLabel, onMove, onToggleHelp }) {
   useEffect(() => {
     if (!enabled) return undefined;
@@ -15,7 +17,8 @@ export function useTriageShortcuts({ enabled, onLabel, onMove, onToggleHelp }) {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target;
       const tag = target?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable) {
+      const suppressForInput = tag === "input" && !NON_TEXT_INPUT_TYPES.has(target.type);
+      if (suppressForInput || tag === "textarea" || tag === "select" || target?.isContentEditable) {
         return;
       }
 

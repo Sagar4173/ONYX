@@ -199,7 +199,7 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
   };
 
   useTriageShortcuts({
-    enabled: !!data,
+    enabled: !!data && !helpOpen,
     onLabel: (label) => {
       if (!cursorId) {
         toast.error("No row focused — press J first");
