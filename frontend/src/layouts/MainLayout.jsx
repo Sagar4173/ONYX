@@ -374,7 +374,7 @@ export const MainLayout = () => {
                     </ErrorBoundary>
                   }
                 />
-                  <Route
+                <Route
                   path="/secret-history"
                   element={
                     <ErrorBoundary>

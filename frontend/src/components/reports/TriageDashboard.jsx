@@ -14,11 +14,36 @@ import { useTriageShortcuts } from "../../hooks/useTriageShortcuts";
 import { LABEL_OPTIONS, displayLabel } from "../../utils/labels";
 
 const PRIORITY_COLORS = {
-  immediate: { bg: "bg-red-500/20", text: "text-red-400", border: "border-red-500/30", bar: "bg-red-500" },
-  high: { bg: "bg-orange-500/20", text: "text-orange-400", border: "border-orange-500/30", bar: "bg-orange-500" },
-  medium: { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/30", bar: "bg-yellow-500" },
-  low: { bg: "bg-cyan-500/20", text: "text-cyan-400", border: "border-cyan-500/30", bar: "bg-cyan-500" },
-  informational: { bg: "bg-gray-500/20", text: "text-gray-400", border: "border-gray-500/30", bar: "bg-gray-500" },
+  immediate: {
+    bg: "bg-red-500/20",
+    text: "text-red-400",
+    border: "border-red-500/30",
+    bar: "bg-red-500",
+  },
+  high: {
+    bg: "bg-orange-500/20",
+    text: "text-orange-400",
+    border: "border-orange-500/30",
+    bar: "bg-orange-500",
+  },
+  medium: {
+    bg: "bg-yellow-500/20",
+    text: "text-yellow-400",
+    border: "border-yellow-500/30",
+    bar: "bg-yellow-500",
+  },
+  low: {
+    bg: "bg-cyan-500/20",
+    text: "text-cyan-400",
+    border: "border-cyan-500/30",
+    bar: "bg-cyan-500",
+  },
+  informational: {
+    bg: "bg-gray-500/20",
+    text: "text-gray-400",
+    border: "border-gray-500/30",
+    bar: "bg-gray-500",
+  },
 };
 
 const SCORE_COLORS = [
@@ -54,7 +79,10 @@ function BreakdownBar({ label, value, max = 100, color }) {
     <div className="flex items-center gap-2 text-xs">
       <span className="w-28 text-gray-400">{label}</span>
       <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color} transition-all duration-300`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-full rounded-full ${color} transition-all duration-300`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
       <span className="w-10 text-right text-gray-300">{value.toFixed(1)}</span>
     </div>
@@ -254,16 +282,23 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
         <div className="flex-1 space-y-4">
           {/* Priority distribution bars */}
           <div className="p-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
-            <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Priority Distribution</h4>
+            <h4 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
+              Priority Distribution
+            </h4>
             <div className="space-y-1.5">
               {Object.entries(PRIORITY_COLORS).map(([key, colors]) => (
                 <div key={key} className="flex items-center gap-2 text-xs">
                   <span className={`w-3 h-3 rounded-full ${colors.bg} ${colors.border} border`} />
                   <span className="w-24 text-gray-400 capitalize">{key}</span>
                   <div className="flex-1 h-3 bg-gray-700 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${colors.bar} transition-all`} style={{ width: `${(counts[key] || 0) / maxCount * 100}%` }} />
+                    <div
+                      className={`h-full rounded-full ${colors.bar} transition-all`}
+                      style={{ width: `${((counts[key] || 0) / maxCount) * 100}%` }}
+                    />
                   </div>
-                  <span className="w-6 text-right text-gray-300 font-medium">{counts[key] || 0}</span>
+                  <span className="w-6 text-right text-gray-300 font-medium">
+                    {counts[key] || 0}
+                  </span>
                 </div>
               ))}
             </div>
@@ -305,7 +340,8 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
               )}
 
               {findings.map((f, idx) => {
-                const pc = PRIORITY_COLORS[f.priority.toLowerCase()] || PRIORITY_COLORS.informational;
+                const pc =
+                  PRIORITY_COLORS[f.priority.toLowerCase()] || PRIORITY_COLORS.informational;
                 const isExpanded = expandedId === f.finding_id;
                 const isCursor = cursorId === f.finding_id;
                 return (
@@ -368,7 +404,9 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
                       )}
 
                       {f.sla_deadline && (
-                        <span className="text-xs text-gray-500 shrink-0">SLA: {f.sla_deadline}</span>
+                        <span className="text-xs text-gray-500 shrink-0">
+                          SLA: {f.sla_deadline}
+                        </span>
                       )}
 
                       <button
@@ -387,7 +425,12 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -395,19 +438,54 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
                     {isExpanded && (
                       <div className="px-3 pb-3 space-y-3 border-t border-gray-700/50 pt-3">
                         <div className="space-y-1">
-                          <h5 className="text-xs font-medium text-gray-400 uppercase">Score Breakdown</h5>
-                          <BreakdownBar label="Severity" value={f.score_breakdown.severity} color="bg-red-500" />
-                          <BreakdownBar label="CVSS" value={f.score_breakdown.cvss} color="bg-purple-500" />
-                          <BreakdownBar label="Exploitability" value={f.score_breakdown.exploitability} color="bg-orange-500" />
-                          <BreakdownBar label="Business Impact" value={f.score_breakdown.business_impact} color="bg-blue-500" />
-                          <BreakdownBar label="Compliance Risk" value={f.score_breakdown.compliance_risk} color="bg-green-500" />
-                          <BreakdownBar label="EPSS" value={f.score_breakdown.epss} color="bg-pink-500" />
-                          <BreakdownBar label="FP Adjustment" value={f.score_breakdown.false_positive_adjustment * 100} max={100} color="bg-gray-500" />
+                          <h5 className="text-xs font-medium text-gray-400 uppercase">
+                            Score Breakdown
+                          </h5>
+                          <BreakdownBar
+                            label="Severity"
+                            value={f.score_breakdown.severity}
+                            color="bg-red-500"
+                          />
+                          <BreakdownBar
+                            label="CVSS"
+                            value={f.score_breakdown.cvss}
+                            color="bg-purple-500"
+                          />
+                          <BreakdownBar
+                            label="Exploitability"
+                            value={f.score_breakdown.exploitability}
+                            color="bg-orange-500"
+                          />
+                          <BreakdownBar
+                            label="Business Impact"
+                            value={f.score_breakdown.business_impact}
+                            color="bg-blue-500"
+                          />
+                          <BreakdownBar
+                            label="Compliance Risk"
+                            value={f.score_breakdown.compliance_risk}
+                            color="bg-green-500"
+                          />
+                          <BreakdownBar
+                            label="EPSS"
+                            value={f.score_breakdown.epss}
+                            color="bg-pink-500"
+                          />
+                          <BreakdownBar
+                            label="FP Adjustment"
+                            value={f.score_breakdown.false_positive_adjustment * 100}
+                            max={100}
+                            color="bg-gray-500"
+                          />
                         </div>
                         {f.ai_triage_summary && (
                           <div>
-                            <h5 className="text-xs font-medium text-gray-400 uppercase mb-1">AI Triage Summary</h5>
-                            <p className="text-sm text-gray-300 leading-relaxed">{f.ai_triage_summary}</p>
+                            <h5 className="text-xs font-medium text-gray-400 uppercase mb-1">
+                              AI Triage Summary
+                            </h5>
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                              {f.ai_triage_summary}
+                            </p>
                           </div>
                         )}
                         <div>

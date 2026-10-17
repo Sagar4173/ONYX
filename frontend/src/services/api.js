@@ -363,11 +363,15 @@ export const reportsAPI = {
   },
 
   aiChat: async (scanId, message, conversationHistory = []) => {
-    const response = await api.post("/ai/chat", {
-      scan_id: scanId,
-      message,
-      conversation_history: conversationHistory.slice(-20),
-    }, { timeout: 300000 });
+    const response = await api.post(
+      "/ai/chat",
+      {
+        scan_id: scanId,
+        message,
+        conversation_history: conversationHistory.slice(-20),
+      },
+      { timeout: 300000 }
+    );
     return response.data;
   },
 

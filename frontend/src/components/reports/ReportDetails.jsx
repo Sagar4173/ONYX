@@ -53,7 +53,11 @@ const SEVERITY_PILLS = [
   { value: "all", label: "All", color: "" },
   { value: "critical", label: "Critical", color: "bg-red-500/20 text-red-400 border-red-500/30" },
   { value: "high", label: "High", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
-  { value: "medium", label: "Medium", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
+  {
+    value: "medium",
+    label: "Medium",
+    color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  },
   { value: "low", label: "Low", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" },
 ];
 
@@ -69,14 +73,24 @@ const ReportDetails = () => {
 
   const isValidReportId = reportId && reportId !== "undefined" && reportId !== "null";
 
-  const { data: report, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: report,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["report", reportId],
     queryFn: () => reportsAPI.getReport(reportId),
     enabled: isValidReportId,
     retry: false,
   });
 
-  const { data: aiAnalysis, isLoading: aiLoading, error: aiError } = useQuery({
+  const {
+    data: aiAnalysis,
+    isLoading: aiLoading,
+    error: aiError,
+  } = useQuery({
     queryKey: ["ai-analysis", reportId],
     queryFn: () => reportsAPI.getAIAnalysis(reportId),
     enabled: isValidReportId && !!report,
@@ -238,8 +252,7 @@ const ReportDetails = () => {
                 <div>
                   <div className="flex items-center space-x-6 text-sm text-gray-400 print:text-gray-600">
                     <div className="flex items-center">
-                      <ClockIcon className="h-4 w-4 mr-1" />{" "}
-                      {utils.formatDate(report.created_at)}
+                      <ClockIcon className="h-4 w-4 mr-1" /> {utils.formatDate(report.created_at)}
                     </div>
                     <div className="flex items-center">
                       <CodeBracketIcon className="h-4 w-4 mr-1" />{" "}
@@ -345,9 +358,7 @@ const ReportDetails = () => {
 
                   {report.scan_results && (
                     <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-white mb-4">
-                        Scanner Results
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white mb-4">Scanner Results</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {report.scan_results.map((sr, i) => (
                           <div
@@ -433,9 +444,7 @@ const ReportDetails = () => {
                     ) : (
                       <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-8 text-center">
                         <CheckCircleIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-white mb-2">
-                          No Findings
-                        </h3>
+                        <h3 className="text-lg font-semibold text-white mb-2">No Findings</h3>
                         <p className="text-gray-400">
                           {severityFilter === "all"
                             ? "No security findings were detected in this scan."
@@ -454,9 +463,7 @@ const ReportDetails = () => {
                 <AISection aiAnalysis={aiAnalysis} aiLoading={aiLoading} aiError={aiError} />
               )}
 
-              {activeTab === "ai-chat" && (
-                <AIChatPanel scanId={report.scan_id} />
-              )}
+              {activeTab === "ai-chat" && <AIChatPanel scanId={report.scan_id} />}
 
               {activeTab === "scanners" && (
                 <motion.div
@@ -475,9 +482,7 @@ const ReportDetails = () => {
                   ) : (
                     <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-8 text-center">
                       <CpuChipIcon className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-white mb-2">
-                        No Scanner Results
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white mb-2">No Scanner Results</h3>
                       <p className="text-gray-400">
                         No detailed scanner results are available for this report.
                       </p>
@@ -486,9 +491,7 @@ const ReportDetails = () => {
                 </motion.div>
               )}
 
-              {activeTab === "compare" && (
-                <ScanComparison projectName={report.project_name} />
-              )}
+              {activeTab === "compare" && <ScanComparison projectName={report.project_name} />}
 
               {activeTab === "triage" && (
                 <TriageDashboard scanId={report.scan_id} reportId={reportId} />
@@ -500,9 +503,7 @@ const ReportDetails = () => {
                   selectedStandards={selectedStandards}
                   onToggleStandard={(std) => {
                     setSelectedStandards((prev) =>
-                      prev.includes(std)
-                        ? prev.filter((s) => s !== std)
-                        : [...prev, std]
+                      prev.includes(std) ? prev.filter((s) => s !== std) : [...prev, std]
                     );
                   }}
                   getFilteredFindings={getFilteredFindings}
