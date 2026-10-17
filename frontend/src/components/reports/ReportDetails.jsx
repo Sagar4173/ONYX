@@ -380,7 +380,12 @@ const ReportDetails = () => {
                             show: { opacity: 1, x: 0 },
                           }}
                         >
-                          <FindingCard finding={finding} index={i} />
+                          <FindingCard
+                            finding={finding}
+                            index={i}
+                            reportId={reportId}
+                            scanId={report.scan_id}
+                          />
                         </motion.div>
                       ))
                     ) : (

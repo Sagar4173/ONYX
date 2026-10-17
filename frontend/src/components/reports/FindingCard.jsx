@@ -1,14 +1,13 @@
 import { motion } from "framer-motion";
-import {
-  InformationCircleIcon,
-  ExclamationTriangleIcon,
-  DocumentIcon,
-  LightBulbIcon,
-} from "@heroicons/react/24/outline";
+import { Link } from "react-router-dom";
+import { DocumentIcon, LightBulbIcon } from "@heroicons/react/24/outline";
 import { SeverityBadge } from "./ReportBadges";
+import { SecretFindingChips } from "./SecretFindingChips";
+import { LabelControls } from "../triage/LabelControls";
+import { useLabelFinding } from "../../hooks/useLabelFinding";
 
-const FindingCard = ({ finding, index }) => {
-  const isPlaceholder = finding.metadata?.is_placeholder;
+const FindingCard = ({ finding, index, reportId, scanId, focused = false, onSelect }) => {
+  const { labelFinding, isPending } = useLabelFinding({ reportId, scanId });
   const isExampleFile = finding.metadata?.is_example_file;
   const isLikelyReal = finding.metadata?.is_likely_real !== false;
   const isSecretFinding =
@@ -19,6 +18,8 @@ const FindingCard = ({ finding, index }) => {
   return (
     <motion.div
       key={index}
+      data-finding-card
+      onMouseDown={() => onSelect?.()}
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
@@ -28,7 +29,7 @@ const FindingCard = ({ finding, index }) => {
           : isSecretFinding && isExampleFile && isLikelyReal
             ? "border-l-4 border-l-orange-500 bg-orange-900/10"
             : ""
-      }`}
+      }${focused ? " ring-1 ring-cyan-500/50" : ""}`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
@@ -36,22 +37,26 @@ const FindingCard = ({ finding, index }) => {
             <SeverityBadge severity={finding.severity} />
             <span className="text-sm text-gray-400">{finding.scanner}</span>
 
-            {isSecretFinding && !isLikelyReal && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                <InformationCircleIcon className="h-3 w-3 mr-1" />
-                {isPlaceholder ? "Placeholder Credential" : "Example File"}
-              </span>
-            )}
-
-            {isSecretFinding && isLikelyReal && isExampleFile && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30">
-                <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
-                Verify - May Be Real
-              </span>
-            )}
+            <SecretFindingChips finding={finding} />
           </div>
 
-          <h4 className="text-base sm:text-lg font-semibold text-white mb-2 break-words">{finding.title}</h4>
+          <h4 className="text-base sm:text-lg font-semibold mb-2 break-words">
+            <Link
+              to={`/report/${reportId}/finding/${finding.id}`}
+              className="text-white hover:text-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
+            >
+              {finding.title}
+            </Link>
+          </h4>
+
+          <div className="mb-3" onMouseDown={(e) => e.stopPropagation()}>
+            <LabelControls
+              compact
+              value={finding.triage_label}
+              disabled={isPending}
+              onChange={(label) => labelFinding({ findingId: finding.id, label })}
+            />
+          </div>
 
           {isSecretFinding && finding.metadata?.calculated_entropy && (
             <div className="flex items-center text-xs text-gray-400 mb-2">
