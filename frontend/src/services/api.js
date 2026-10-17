@@ -52,7 +52,7 @@ export const getApiErrorMessage = (error, fallbackMessage = "An error occurred")
 };
 
 // Create axios instance with default config
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: {
@@ -2048,6 +2048,24 @@ export const triageAPI = {
       return response.data;
     } catch (error) {
       console.error("Error re-scoring triage:", error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Finding labels API
+ * Per-finding triage labels (accepted / false_positive / dismissed / untriaged)
+ */
+export const labelsAPI = {
+  setFindingLabel: async (scanId, findingId, label) => {
+    try {
+      const response = await api.post(`/reports/${scanId}/findings/${findingId}/label`, {
+        label,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error setting finding label:", error);
       throw error;
     }
   },
