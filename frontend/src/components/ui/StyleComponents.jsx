@@ -554,7 +554,13 @@ export const EmptyState = ({ icon, title, description, action, className = "" })
 // STAT CARD COMPONENT
 // =============================================================================
 
-export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+export const AnimatedCounter = ({ value, duration = 1000, suffix = "", decimals = 0 }) => {
+  const reduceMotion = prefersReducedMotion();
   const [count, setCount] = React.useState(0);
   const countRef = React.useRef(null);
   const hasAnimated = React.useRef(false);
@@ -566,9 +572,12 @@ export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
       setCount(value);
       return;
     }
+    if (reduceMotion) {
+      setCount(numValue);
+      return;
+    }
 
     const animate = () => {
-      let _start = 0;
       const end = numValue;
       const startTime = Date.now();
 
@@ -576,7 +585,8 @@ export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easeOut = 1 - Math.pow(1 - progress, 4);
-        setCount(Math.floor(easeOut * end));
+        const next = easeOut * end;
+        setCount(decimals > 0 ? Number(next.toFixed(decimals)) : Math.floor(next));
         if (progress < 1) requestAnimationFrame(frame);
       };
       frame();
@@ -599,13 +609,27 @@ export const AnimatedCounter = ({ value, duration = 1000, suffix = "" }) => {
     } else {
       animate();
     }
-  }, [value, duration, shouldAnimate]);
+  }, [value, duration, shouldAnimate, reduceMotion, decimals]);
+
+  const renderDisplay = () => {
+    if (reduceMotion) {
+      if (typeof value === "number") {
+        return decimals > 0 ? value.toFixed(decimals) : value.toLocaleString();
+      }
+      return value;
+    }
+    if (typeof value === "string" && value.includes("%")) {
+      return `${count}%`;
+    }
+    if (typeof count === "number") {
+      return decimals > 0 ? count.toFixed(decimals) : count.toLocaleString();
+    }
+    return count;
+  };
 
   return (
     <span ref={countRef}>
-      {typeof value === "string" && String(value).includes("%")
-        ? `${count}%`
-        : count.toLocaleString()}
+      {renderDisplay()}
       {suffix}
     </span>
   );
