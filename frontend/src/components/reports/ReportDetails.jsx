@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { generateViewPDF } from "../../utils/pdfReportGenerator";
@@ -34,6 +34,9 @@ import ScannerResultCard from "./ScannerResultCard";
 import ScanComparison from "../security/ScanComparison";
 import TriageDashboard from "./TriageDashboard";
 import { COMPLIANCE_STANDARDS, mapFindingToCompliance } from "../../utils/complianceMapping";
+import { useLabelFinding } from "../../hooks/useLabelFinding";
+import { useTriageShortcuts } from "../../hooks/useTriageShortcuts";
+import { ShortcutOverlay, KeyboardHintStrip } from "../triage/ShortcutOverlay";
 
 const TABS = [
   { id: "overview", name: "Overview", icon: ChartBarIcon },
@@ -80,6 +83,56 @@ const ReportDetails = () => {
     retry: false,
   });
 
+  const [focusIndex, setFocusIndex] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const { labelFinding } = useLabelFinding({
+    reportId,
+    scanId: report?.scan_id,
+  });
+
+  const getFilteredFindings = () => {
+    let allFindings = [];
+    if (report.findings) allFindings = allFindings.concat(report.findings);
+    else if (report.scan_results)
+      report.scan_results.forEach((sr) => {
+        if (sr.findings) allFindings = allFindings.concat(sr.findings);
+      });
+    return severityFilter === "all"
+      ? allFindings
+      : allFindings.filter((f) => f.severity === severityFilter);
+  };
+
+  const filteredFindings = report ? getFilteredFindings() : [];
+
+  const moveFocus = (delta) => {
+    setFocusIndex((prev) => {
+      const last = filteredFindings.length - 1;
+      if (last < 0) return null;
+      if (prev === null || prev === undefined) return delta > 0 ? 0 : last;
+      return Math.min(Math.max(prev + delta, 0), last);
+    });
+  };
+
+  useTriageShortcuts({
+    enabled: activeTab === "findings" && !!report,
+    onLabel: (label) => {
+      if (focusIndex === null || !filteredFindings[focusIndex]) {
+        toast.error("No finding focused — press J first");
+        return;
+      }
+      const target = filteredFindings[focusIndex];
+      labelFinding({ findingId: target.id, label });
+    },
+    onMove: moveFocus,
+    onToggleHelp: () => setHelpOpen((open) => !open),
+  });
+
+  useEffect(() => {
+    if (focusIndex === null || activeTab !== "findings") return;
+    const card = document.querySelectorAll("[data-finding-card]")[focusIndex];
+    card?.scrollIntoView?.({ block: "nearest" });
+  }, [focusIndex, activeTab]);
+
   const handleGenerateViewPDF = async () => {
     await generateViewPDF({ report, aiAnalysis, reportId, setIsGenerating, toast });
   };
@@ -118,19 +171,6 @@ const ReportDetails = () => {
     );
   }
 
-  const getFilteredFindings = () => {
-    let allFindings = [];
-    if (report.findings) allFindings = allFindings.concat(report.findings);
-    else if (report.scan_results)
-      report.scan_results.forEach((sr) => {
-        if (sr.findings) allFindings = allFindings.concat(sr.findings);
-      });
-    return severityFilter === "all"
-      ? allFindings
-      : allFindings.filter((f) => f.severity === severityFilter);
-  };
-
-  const filteredFindings = getFilteredFindings();
   const totalFindings =
     report.findings?.length ||
     report.scan_results?.reduce((a, sr) => a + (sr.findings?.length || 0), 0) ||
@@ -385,6 +425,8 @@ const ReportDetails = () => {
                             index={i}
                             reportId={reportId}
                             scanId={report.scan_id}
+                            focused={focusIndex === i}
+                            onSelect={() => setFocusIndex(i)}
                           />
                         </motion.div>
                       ))
@@ -402,6 +444,9 @@ const ReportDetails = () => {
                       </div>
                     )}
                   </motion.div>
+
+                  <KeyboardHintStrip />
+                  <ShortcutOverlay isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
                 </motion.div>
               )}
 
