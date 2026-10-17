@@ -44,6 +44,20 @@ function setup() {
   return { queryClient, hook };
 }
 
+function deferred() {
+  let resolve;
+  const promise = new Promise((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+}
+
+async function drainMicrotasks() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   labelsAPI.setFindingLabel.mockResolvedValue({ triage_label: "dismissed" });
@@ -121,5 +135,72 @@ describe("useBulkLabel", () => {
 
     expect(toast.error).toHaveBeenCalledWith("Couldn't label 2 findings");
     expect(toast).not.toHaveBeenCalled();
+  });
+
+  it("starts the next apply call only after the previous one settles", async () => {
+    const { hook } = setup();
+    const first = deferred();
+    const second = deferred();
+    labelsAPI.setFindingLabel
+      .mockImplementationOnce(() => first.promise)
+      .mockImplementationOnce(() => second.promise);
+
+    let inFlight;
+    act(() => {
+      inFlight = hook.result.current.applyLabels(["f1", "f2"], "dismissed");
+    });
+
+    expect(labelsAPI.setFindingLabel).toHaveBeenCalledTimes(1);
+    expect(labelsAPI.setFindingLabel).toHaveBeenNthCalledWith(1, "s1", "f1", "dismissed");
+
+    first.resolve({ triage_label: "dismissed" });
+    await drainMicrotasks();
+
+    expect(labelsAPI.setFindingLabel).toHaveBeenCalledTimes(2);
+    expect(labelsAPI.setFindingLabel).toHaveBeenNthCalledWith(2, "s1", "f2", "dismissed");
+
+    second.resolve({ triage_label: "dismissed" });
+    await act(async () => {
+      await inFlight;
+    });
+
+    expect(labelsAPI.setFindingLabel).toHaveBeenCalledTimes(2);
+    expect(toast).toHaveBeenCalledWith(expect.any(Function), { duration: 5000 });
+  });
+
+  it("starts the next restore call only after the previous one settles", async () => {
+    const { hook } = setup();
+
+    await act(async () => {
+      await hook.result.current.applyLabels(["f1", "f2"], "dismissed");
+    });
+    expect(labelsAPI.setFindingLabel).toHaveBeenCalledTimes(2);
+
+    const first = deferred();
+    const second = deferred();
+    labelsAPI.setFindingLabel
+      .mockImplementationOnce(() => first.promise)
+      .mockImplementationOnce(() => second.promise);
+
+    const undoToast = toast.mock.calls[0][0];
+    const view = undoToast({ id: "t1" });
+    act(() => {
+      view.props.children[1].props.onClick();
+    });
+
+    expect(labelsAPI.setFindingLabel).toHaveBeenCalledTimes(3);
+    expect(labelsAPI.setFindingLabel).toHaveBeenNthCalledWith(3, "s1", "f1", null);
+
+    first.resolve({ triage_label: null });
+    await drainMicrotasks();
+
+    expect(labelsAPI.setFindingLabel).toHaveBeenCalledTimes(4);
+    expect(labelsAPI.setFindingLabel).toHaveBeenNthCalledWith(4, "s1", "f2", "accepted");
+
+    second.resolve({ triage_label: "accepted" });
+    await drainMicrotasks();
+
+    expect(toast.dismiss).toHaveBeenCalledWith("t1");
+    expect(toast.success).toHaveBeenCalledWith("Change undone");
   });
 });
