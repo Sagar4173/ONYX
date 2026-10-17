@@ -134,6 +134,7 @@ async def get_report(
                             "owasp_category": getattr(finding, "owasp_category", None),
                             "references": getattr(finding, "references", []),
                             "triage_label": getattr(finding, "triage_label", None),
+                            "cvss_score": finding.cvss_score.model_dump() if getattr(finding, "cvss_score", None) else None,
                         }
                         scanner_data["findings"].append(finding_data)
 

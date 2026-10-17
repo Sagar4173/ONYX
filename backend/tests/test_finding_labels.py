@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app import app
-from models.base import ScannerType, ScanStatus, SeverityLevel
+from models.base import ScannerType, ScanStatus, SeverityLevel, CVSSScore
 from models.report import GitMetadata, ScanReport, ScanResult, VulnerabilityFinding
 from models.user import User, UserRole
 from routes.dependencies import get_current_user
@@ -163,7 +163,15 @@ class TestFindingLabelEndpoint:
 class TestReportDetailExposesLabel:
     async def test_report_detail_includes_label(self):
         client = _setup_client()
-        report = _make_report(finding=_make_finding(triage_label="accepted"))
+        report = _make_report(
+            finding=_make_finding(
+                triage_label="accepted",
+                cvss_score=CVSSScore(
+                    base_score=9.8,
+                    vector_string="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                ),
+            )
+        )
 
         with patch.object(
             ScanReport, "get", AsyncMock(return_value=report)
@@ -177,6 +185,23 @@ class TestReportDetailExposesLabel:
         assert findings[0]["id"] == "f-1"
         assert "triage_label" in findings[0]
         assert findings[0]["triage_label"] == "accepted"
+        assert findings[0]["cvss_score"]["base_score"] == 9.8
+        assert findings[0]["cvss_score"]["vector_string"].startswith("CVSS:3.1")
+
+    async def test_report_detail_cvss_null_when_absent(self):
+        client = _setup_client()
+        report = _make_report(finding=_make_finding())
+
+        with patch.object(
+            ScanReport, "get", AsyncMock(return_value=report)
+        ), patch(
+            "routes.reports.detail.get_user_project_ids", AsyncMock(return_value=[])
+        ):
+            resp = client.get(f"/api/reports/{SCAN_ID}")
+
+        assert resp.status_code == 200
+        findings = resp.json()["scan_results"][0]["findings"]
+        assert findings[0]["cvss_score"] is None
 
 
 class TestVulnerabilityFindingTriageLabelSchema:
