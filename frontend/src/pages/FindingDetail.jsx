@@ -7,6 +7,7 @@ import { Badge, Button, EmptyState, Skeleton } from "../components/ui/StyleCompo
 import { SeverityBadge } from "../components/reports/ReportBadges";
 import { SecretFindingChips } from "../components/reports/SecretFindingChips";
 import { LabelControls } from "../components/triage/LabelControls";
+import { InvestigatePanel } from "../components/reports/InvestigatePanel";
 import { useLabelFinding } from "../hooks/useLabelFinding";
 import { displayLabel } from "../utils/labels";
 
@@ -22,6 +23,17 @@ function findFinding(report, findingId) {
     if (hit) return hit;
   }
   return null;
+}
+
+function allFindingIds(report) {
+  const ids = new Set();
+  if (Array.isArray(report?.findings)) {
+    for (const finding of report.findings) ids.add(finding.id);
+  }
+  for (const scanResult of report?.scan_results ?? []) {
+    for (const finding of scanResult.findings ?? []) ids.add(finding.id);
+  }
+  return [...ids];
 }
 
 function Section({ title, children }) {
@@ -48,6 +60,7 @@ export default function FindingDetail() {
   });
 
   const finding = useMemo(() => findFinding(report, findingId), [report, findingId]);
+  const findingIds = useMemo(() => allFindingIds(report), [report]);
   const { labelFinding, isPending } = useLabelFinding({ reportId, scanId: report?.scan_id });
 
   if (isLoading) {
@@ -160,7 +173,13 @@ export default function FindingDetail() {
               onChange={(label) => labelFinding({ findingId, label })}
             />
           </div>
-          {/* Phase 3 (Investigate) and Phase 4 (Fix-PR) rail sections mount here later. */}
+          <InvestigatePanel
+            reportId={reportId}
+            scanId={report.scan_id}
+            findingId={findingId}
+            findingIds={findingIds}
+            currentLabel={finding.triage_label}
+          />
         </aside>
       </div>
     </div>

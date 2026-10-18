@@ -4,13 +4,21 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { reportsAPI, labelsAPI } from "../services/api";
+import { getAIFeatures } from "@services/aiClient";
 import FindingDetail from "./FindingDetail";
 
 vi.mock("../services/api", () => ({
   reportsAPI: { getReport: vi.fn() },
   labelsAPI: { setFindingLabel: vi.fn() },
+  api: { post: vi.fn() },
+  API_BASE_URL: "http://api.test",
   utils: { getStatusColor: () => "text-gray-400" },
 }));
+
+vi.mock("@services/aiClient", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, getAIFeatures: vi.fn(), runInvestigate: vi.fn() };
+});
 
 vi.mock("react-hot-toast", () => {
   const toastMock = Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() });
@@ -71,6 +79,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   reportsAPI.getReport.mockResolvedValue(REPORT);
   labelsAPI.setFindingLabel.mockResolvedValue({ triage_label: "accepted" });
+  getAIFeatures.mockResolvedValue({ investigate_agent_enabled: true });
 });
 
 describe("FindingDetail", () => {
@@ -113,5 +122,20 @@ describe("FindingDetail", () => {
     await waitFor(() => expect(screen.getByText("Finding not found")).toBeInTheDocument());
     await user.click(screen.getByRole("button", { name: "Back to report" }));
     expect(screen.getByText("report page")).toBeInTheDocument();
+  });
+
+  it("mounts the investigate panel on the action rail", async () => {
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: "Investigate" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Investigation question")).toBeInTheDocument();
+  });
+
+  it("shows the disabled explanation when the investigate flag is off", async () => {
+    getAIFeatures.mockResolvedValue({ investigate_agent_enabled: false });
+    renderPage();
+
+    expect(await screen.findByText("Investigate agent disabled")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Investigate" })).toBeDisabled();
   });
 });
