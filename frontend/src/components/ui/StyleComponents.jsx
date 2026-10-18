@@ -1205,14 +1205,39 @@ export const ConfirmDialog = ({
 }) => {
   const [typedText, setTypedText] = React.useState("");
   const titleId = React.useId();
+  const containerRef = React.useRef(null);
 
   React.useEffect(() => {
     if (!isOpen) return;
+    const container = containerRef.current;
     const prevFocus = document.activeElement;
+    if (container && !container.contains(document.activeElement)) {
+      container.querySelector(FOCUSABLE_MODAL)?.focus();
+    }
+    const handleKey = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !container) return;
+      const focusable = container.querySelectorAll(FOCUSABLE_MODAL);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKey);
     return () => {
+      document.removeEventListener("keydown", handleKey);
       prevFocus?.focus();
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -1236,6 +1261,7 @@ export const ConfirmDialog = ({
           transition={{ duration: 0.15 }}
         >
           <motion.div
+            ref={containerRef}
             className="bg-gray-900 border border-gray-700/50 rounded-2xl shadow-2xl max-w-md w-full p-6"
             role="dialog"
             aria-modal="true"
