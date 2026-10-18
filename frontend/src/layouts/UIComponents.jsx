@@ -22,6 +22,7 @@ import {
   ArchiveBoxIcon,
   BuildingOfficeIcon,
   ChevronRightIcon,
+  BeakerIcon,
 } from "@heroicons/react/24/outline";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -79,6 +80,12 @@ export const pageConfig = {
     description: "Platform configuration and preferences",
     icon: CogIcon,
     breadcrumb: ["Settings"],
+  },
+  "/admin/ml": {
+    title: "ML Dashboard",
+    description: "Anomaly detection model status, training, and recent alerts",
+    icon: BeakerIcon,
+    breadcrumb: ["Admin", "ML Dashboard"],
   },
 };
 
@@ -259,11 +266,7 @@ export const SkeletonCard = ({ className = "", lines = 3 }) => {
 // Loading State Component — Branded skeleton shimmer
 export const LoadingState = ({ message = "Loading...", cards = 4 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {Array.from({ length: cards }).map((_, i) => (
           <motion.div

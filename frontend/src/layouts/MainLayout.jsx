@@ -28,6 +28,7 @@ const Analytics = lazy(() => import("../pages/Analytics"));
 const Reports = lazy(() => import("../pages/Reports"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 const AdminDashboard = lazy(() => import("../pages/AdminDashboard"));
+const MLDashboard = lazy(() => import("../pages/MLDashboard"));
 const ProjectManagement = lazy(() => import("../components/projects/ProjectManagement"));
 const ProjectDetails = lazy(() => import("../components/projects/ProjectDetails"));
 const ReportDetails = lazy(() => import("../components/reports/ReportDetails"));
@@ -362,6 +363,16 @@ export const MainLayout = () => {
                     <ErrorBoundary>
                       <AdminRoute>
                         <AdminDashboard />
+                      </AdminRoute>
+                    </ErrorBoundary>
+                  }
+                />
+                <Route
+                  path="/admin/ml"
+                  element={
+                    <ErrorBoundary>
+                      <AdminRoute>
+                        <MLDashboard />
                       </AdminRoute>
                     </ErrorBoundary>
                   }

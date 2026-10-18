@@ -18,6 +18,12 @@ const defaultActions = [
   { id: "nav-users", label: "Go to User Management", category: "Navigation", path: "/users" },
   { id: "nav-settings", label: "Go to Settings", category: "Navigation", path: "/settings" },
   { id: "nav-admin", label: "Go to Admin Dashboard", category: "Navigation", path: "/admin" },
+  {
+    id: "nav-ml-dashboard",
+    label: "Go to ML Dashboard",
+    category: "Navigation",
+    path: "/admin/ml",
+  },
 ];
 
 export const CommandPalette = ({ isOpen, onClose }) => {

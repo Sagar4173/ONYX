@@ -21,6 +21,7 @@ import {
   ClipboardDocumentListIcon,
   ClockIcon,
   CpuChipIcon,
+  BeakerIcon,
   ClockIcon as ClockIconSidebar,
 } from "@heroicons/react/24/outline";
 import { OnyxLogo } from "../components/common";
@@ -100,6 +101,12 @@ const getNavigation = (user) => {
       icon: ClockIcon,
       gradient: "from-slate-500 to-gray-500",
     },
+    {
+      name: "ML Dashboard",
+      path: "/admin/ml",
+      icon: BeakerIcon,
+      gradient: "from-violet-500 to-purple-500",
+    },
   ];
 
   const settingsNavigation = [
@@ -125,11 +132,19 @@ const getNavigation = (user) => {
 /**
  * Navigation Item Component
  */
-const NavItem = ({ item, collapsed, onClick }) => {
+const NavItem = ({ item, collapsed, onClick, paths = [] }) => {
   const location = useLocation();
+  const hasMoreSpecificItem = paths.some(
+    (path) =>
+      path !== item.path &&
+      path.startsWith(item.path + "/") &&
+      (location.pathname === path || location.pathname.startsWith(path + "/"))
+  );
   const isActive =
     location.pathname === item.path ||
-    (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
+    (item.path !== "/dashboard" &&
+      !hasMoreSpecificItem &&
+      location.pathname.startsWith(item.path + "/"));
   const Icon = item.icon;
 
   return (
@@ -138,7 +153,7 @@ const NavItem = ({ item, collapsed, onClick }) => {
       onClick={onClick}
       className="group relative block focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 rounded-xl min-h-[48px]"
       title={collapsed ? item.name : undefined}
-      aria-current={isActive ? "page" : undefined}
+      aria-current={isActive ? "page" : null}
     >
       {/* Active indicator with animated glow */}
       {isActive && (
@@ -222,6 +237,7 @@ const Logo = ({ collapsed }) => (
 const DesktopSidebar = ({ collapsed, onToggle }) => {
   const { user } = useAuth();
   const navigation = getNavigation(user);
+  const paths = navigation.map((item) => item.path);
 
   return (
     <aside
@@ -256,7 +272,8 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
               variants={{
                 hidden: { opacity: 0, x: -15 },
                 visible: { opacity: 1, x: 0 },
-              }}>
+              }}
+            >
               {item.separator && !collapsed && (
                 <div className="px-4 pt-4 pb-2">
                   <div className="border-t border-gray-700/50" />
@@ -270,7 +287,7 @@ const DesktopSidebar = ({ collapsed, onToggle }) => {
                   <div className="border-t border-gray-700/50" />
                 </div>
               )}
-              <NavItem item={item} collapsed={collapsed} />
+              <NavItem item={item} collapsed={collapsed} paths={paths} />
             </motion.div>
           ))}
         </motion.nav>
@@ -325,6 +342,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
 
   const { user } = useAuth();
   const navigation = getNavigation(user);
+  const paths = navigation.map((item) => item.path);
 
   return (
     <AnimatePresence>
@@ -398,7 +416,7 @@ const MobileSidebar = ({ isOpen, onClose }) => {
                         </span>
                       </div>
                     )}
-                    <NavItem item={item} collapsed={false} onClick={onClose} />
+                    <NavItem item={item} collapsed={false} onClick={onClose} paths={paths} />
                   </motion.div>
                 ))}
               </motion.nav>
