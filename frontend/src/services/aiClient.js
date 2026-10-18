@@ -3,7 +3,7 @@
  * Non-streaming AI calls stay on the axios instance in ./api (auth refresh, toasts).
  * SSE chat uses fetch directly — EventSource cannot send an Authorization header.
  */
-import { API_BASE_URL } from "./api";
+import { API_BASE_URL, api } from "./api";
 
 export class AIStreamError extends Error {
   constructor(message, { status = 0, kind = "stream", retryAfter = null } = {}) {
@@ -125,4 +125,12 @@ export async function getAIFeatures() {
   const response = await fetch(`${API_BASE_URL}/ai/features`, { headers: authHeaders() });
   if (!response.ok) throw new Error(`AI features request failed (${response.status})`);
   return response.json();
+}
+
+export async function runInvestigate({ scanId, findingId, question }) {
+  const payload = { scan_id: scanId, finding_id: findingId };
+  const trimmed = (question || "").trim();
+  if (trimmed) payload.question = trimmed;
+  const response = await api.post("/ai/investigate", payload);
+  return response.data;
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { streamChat, getAIFeatures, AIStreamError } from "./aiClient";
+import { streamChat, getAIFeatures, runInvestigate, AIStreamError } from "./aiClient";
+import { api } from "./api";
 
 const encoder = new TextEncoder();
 
@@ -249,5 +250,41 @@ describe("getAIFeatures", () => {
   it("throws on !ok", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
     await expect(getAIFeatures()).rejects.toThrow("500");
+  });
+});
+
+describe("runInvestigate", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("posts the investigate payload and returns the envelope", async () => {
+    const envelope = {
+      report: { finding_id: "f-1", summary: "blast", evidence: [] },
+      provider: "groq",
+      model: "llama-3.3-70b",
+      usage: { prompt_tokens: 10, completion_tokens: 20, requests: 1 },
+    };
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: envelope });
+
+    await expect(
+      runInvestigate({ scanId: "s1", findingId: "f-1", question: "  is this exploitable?  " })
+    ).resolves.toEqual(envelope);
+    expect(postSpy).toHaveBeenCalledWith("/ai/investigate", {
+      scan_id: "s1",
+      finding_id: "f-1",
+      question: "is this exploitable?",
+    });
+  });
+
+  it("omits a blank question", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: {} });
+
+    await runInvestigate({ scanId: "s1", findingId: "f-1", question: "   " });
+
+    expect(postSpy).toHaveBeenCalledWith("/ai/investigate", {
+      scan_id: "s1",
+      finding_id: "f-1",
+    });
   });
 });
