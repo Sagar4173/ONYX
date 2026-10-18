@@ -2125,5 +2125,41 @@ export const secretHistoryAPI = {
   },
 };
 
+/**
+ * ML API
+ * Admin-only anomaly detection model endpoints
+ */
+export const mlAPI = {
+  getStatus: async () => {
+    try {
+      const response = await api.get("/ml/status");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching ML status:", error);
+      throw error;
+    }
+  },
+
+  train: async () => {
+    try {
+      const response = await api.post("/ml/train", null, { timeout: 300000 });
+      return response.data;
+    } catch (error) {
+      console.error("Error training ML model:", error);
+      throw error;
+    }
+  },
+
+  getAnomalies: async () => {
+    try {
+      const response = await api.get("/ml/anomalies");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching ML anomalies:", error);
+      throw error;
+    }
+  },
+};
+
 // Default export
 export default api;
