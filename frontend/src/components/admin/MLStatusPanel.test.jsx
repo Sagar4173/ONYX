@@ -1,0 +1,73 @@
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import MLStatusPanel from "./MLStatusPanel";
+
+const baseStatus = {
+  isolation_forest_enabled: true,
+  min_training_scans: 30,
+  training_window_days: 90,
+  model_trained: true,
+  sklearn_available: true,
+  active_model: {
+    model_id: "iso-forest-abc123",
+    training_data_size: 120,
+    anomaly_rate: 0.0833,
+    last_trained: "2026-10-18T12:00:00Z",
+  },
+};
+
+describe("MLStatusPanel", () => {
+  it("shows enabled flag states and the training gate line", () => {
+    render(<MLStatusPanel status={baseStatus} />);
+
+    expect(screen.getByText("Enabled")).toBeInTheDocument();
+    expect(screen.getByText("Available")).toBeInTheDocument();
+    expect(screen.getByText("Trained")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Minimum 30 scans within the last 90 days required to train/)
+    ).toBeInTheDocument();
+  });
+
+  it("shows disabled flag states", () => {
+    render(
+      <MLStatusPanel
+        status={{
+          ...baseStatus,
+          isolation_forest_enabled: false,
+          sklearn_available: false,
+          model_trained: false,
+          active_model: null,
+        }}
+      />
+    );
+
+    expect(screen.getByText("Disabled")).toBeInTheDocument();
+    expect(screen.getByText("Unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Not trained")).toBeInTheDocument();
+  });
+
+  it("renders the active model summary with formatted anomaly rate", () => {
+    render(<MLStatusPanel status={baseStatus} />);
+
+    expect(screen.getByText("iso-forest-abc123")).toBeInTheDocument();
+    expect(screen.getByText("120 scans")).toBeInTheDocument();
+    expect(screen.getByText("8.33%")).toBeInTheDocument();
+    expect(
+      screen.getByText(new Date(baseStatus.active_model.last_trained).toLocaleString())
+    ).toBeInTheDocument();
+  });
+
+  it("shows an empty state when no model is trained", () => {
+    render(<MLStatusPanel status={{ ...baseStatus, model_trained: false, active_model: null }} />);
+
+    expect(screen.getByText("No model trained yet")).toBeInTheDocument();
+  });
+
+  it("documents the in-memory model lifecycle", () => {
+    render(<MLStatusPanel status={baseStatus} />);
+
+    expect(
+      screen.getByText(/Model state is in-memory and resets on backend restart until retrained\./)
+    ).toBeInTheDocument();
+  });
+});
