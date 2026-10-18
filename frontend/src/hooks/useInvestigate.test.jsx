@@ -92,4 +92,24 @@ describe("useInvestigate", () => {
 
     expect(runInvestigate).toHaveBeenCalledTimes(1);
   });
+
+  it("never polls even when the app client defaults to refetchInterval", async () => {
+    vi.useFakeTimers();
+    try {
+      const client = new QueryClient({
+        defaultOptions: { queries: { retry: false, refetchInterval: 30000 } },
+      });
+      renderHook(() => useInvestigate({ scanId: "s1", findingId: "f-1", question: "" }), {
+        wrapper: makeWrapper(client),
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(runInvestigate).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(90000);
+      expect(runInvestigate).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

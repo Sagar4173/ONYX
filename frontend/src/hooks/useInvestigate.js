@@ -8,5 +8,6 @@ export function useInvestigate({ scanId, findingId, question }) {
     enabled: Boolean(scanId && findingId) && question !== null,
     retry: false,
     staleTime: Infinity,
+    refetchInterval: false,
   });
 }
