@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route, Link } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { reportsAPI, labelsAPI } from "../services/api";
-import { getAIFeatures, runInvestigate } from "@services/aiClient";
+import { getAIFeatures, runInvestigate, autoFixPropose, autoFixApprove } from "@services/aiClient";
 import FindingDetail from "./FindingDetail";
 
 vi.mock("../services/api", () => ({
@@ -17,7 +17,13 @@ vi.mock("../services/api", () => ({
 
 vi.mock("@services/aiClient", async (importOriginal) => {
   const actual = await importOriginal();
-  return { ...actual, getAIFeatures: vi.fn(), runInvestigate: vi.fn() };
+  return {
+    ...actual,
+    getAIFeatures: vi.fn(),
+    runInvestigate: vi.fn(),
+    autoFixPropose: vi.fn(),
+    autoFixApprove: vi.fn(),
+  };
 });
 
 vi.mock("react-hot-toast", () => {
@@ -75,6 +81,15 @@ const INVESTIGATE_ENVELOPE = {
   usage: { prompt_tokens: 1, completion_tokens: 2, requests: 1 },
 };
 
+const FIX_AWAITING = {
+  status: "awaiting_approval",
+  finding_id: "f-1",
+  file_path: "app.py",
+  diff: "@@ -1,1 +1,1 @@\n-old\n+new",
+  gate_failures: [],
+  model_used: "groq/openai/gpt-oss-120b",
+};
+
 function renderPage() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -97,6 +112,8 @@ beforeEach(() => {
   labelsAPI.setFindingLabel.mockResolvedValue({ triage_label: "accepted" });
   getAIFeatures.mockResolvedValue({ investigate_agent_enabled: true });
   runInvestigate.mockResolvedValue(INVESTIGATE_ENVELOPE);
+  autoFixPropose.mockResolvedValue(FIX_AWAITING);
+  autoFixApprove.mockResolvedValue({ ...FIX_AWAITING, status: "verified" });
 });
 
 describe("FindingDetail", () => {
@@ -146,6 +163,20 @@ describe("FindingDetail", () => {
 
     expect(await screen.findByRole("heading", { name: "Investigate" })).toBeInTheDocument();
     expect(screen.getByLabelText("Investigation question")).toBeInTheDocument();
+  });
+
+  it("mounts the fix-PR card on the rail and expands the review section on propose", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(await screen.findByRole("heading", { name: "Fix-PR" })).toBeInTheDocument();
+    expect(screen.queryByText("Fix-PR review")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /Propose fix/ }));
+
+    expect(autoFixPropose).toHaveBeenCalledWith({ scanId: "scan-1", findingId: "f-1" });
+    expect(await screen.findByText("Fix-PR review")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Approve & open PR/ })).toBeInTheDocument();
   });
 
   it("shows the disabled explanation when the investigate flag is off", async () => {
@@ -210,5 +241,54 @@ describe("FindingDetail", () => {
     expect(runInvestigate).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText("Investigation question")).toHaveValue("");
     expect(screen.queryByText("Blast radius")).toBeNull();
+  });
+
+  it("resets the fix flow when navigating to another finding", async () => {
+    const user = userEvent.setup();
+    reportsAPI.getReport.mockResolvedValue({
+      ...REPORT,
+      scan_results: [
+        {
+          scanner: "semgrep",
+          status: "completed",
+          findings: [
+            REPORT.scan_results[0].findings[0],
+            {
+              ...REPORT.scan_results[0].findings[0],
+              id: "f-2",
+              title: "Reflected XSS",
+              severity: "medium",
+            },
+          ],
+        },
+      ],
+    });
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/report/r1/finding/f-1"]}>
+          <Link to="/report/r1/finding/f-2">next finding</Link>
+          <Routes>
+            <Route path="/report/:reportId/finding/:findingId" element={<FindingDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "SQL Injection" })).toBeInTheDocument()
+    );
+    await user.click(await screen.findByRole("button", { name: /Propose fix/ }));
+    expect(await screen.findByText("Fix-PR review")).toBeInTheDocument();
+    expect((await screen.findAllByText("Awaiting approval")).length).toBeGreaterThan(0);
+    expect(autoFixPropose).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("link", { name: "next finding" }));
+
+    expect(await screen.findByRole("heading", { name: "Reflected XSS" })).toBeInTheDocument();
+    expect(autoFixPropose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Fix-PR review")).toBeNull();
+    expect(screen.getByRole("button", { name: /Propose fix/ })).toBeInTheDocument();
   });
 });

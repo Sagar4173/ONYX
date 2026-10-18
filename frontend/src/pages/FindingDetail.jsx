@@ -8,7 +8,10 @@ import { SeverityBadge } from "../components/reports/ReportBadges";
 import { SecretFindingChips } from "../components/reports/SecretFindingChips";
 import { LabelControls } from "../components/triage/LabelControls";
 import { InvestigatePanel } from "../components/reports/InvestigatePanel";
+import { FixTriggerCard } from "../components/reports/FixTriggerCard";
+import { FixReviewSection } from "../components/reports/FixReviewSection";
 import { useLabelFinding } from "../hooks/useLabelFinding";
+import { useFixRun } from "../hooks/useFixRun";
 import { displayLabel } from "../utils/labels";
 
 function findFinding(report, findingId) {
@@ -62,6 +65,7 @@ export default function FindingDetail() {
   const finding = useMemo(() => findFinding(report, findingId), [report, findingId]);
   const findingIds = useMemo(() => allFindingIds(report), [report]);
   const { labelFinding, isPending } = useLabelFinding({ reportId, scanId: report?.scan_id });
+  const fix = useFixRun({ scanId: report?.scan_id, findingId });
 
   if (isLoading) {
     return (
@@ -181,8 +185,22 @@ export default function FindingDetail() {
             findingIds={findingIds}
             currentLabel={finding.triage_label}
           />
+          <FixTriggerCard
+            key={`fix:${reportId}:${findingId}`}
+            fix={fix}
+            scanId={report.scan_id}
+            findingId={findingId}
+          />
         </aside>
       </div>
+
+      <FixReviewSection
+        key={`fix:${reportId}:${findingId}`}
+        fix={fix}
+        scanId={report.scan_id}
+        findingId={findingId}
+        filePath={finding.file_path}
+      />
     </div>
   );
 }
