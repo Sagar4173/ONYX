@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { streamChat, getAIFeatures, runInvestigate, AIStreamError } from "./aiClient";
+import {
+  streamChat,
+  getAIFeatures,
+  runInvestigate,
+  autoFixPropose,
+  autoFixApprove,
+  AIStreamError,
+} from "./aiClient";
 import { api } from "./api";
 
 const encoder = new TextEncoder();
@@ -286,5 +293,40 @@ describe("runInvestigate", () => {
       scan_id: "s1",
       finding_id: "f-1",
     });
+  });
+});
+
+describe("autoFixPropose", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("posts with finding_id as a query param and returns the run", async () => {
+    const run = {
+      status: "awaiting_approval",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      diff: "@@ -1,1 +1,1 @@\n-a\n+b",
+    };
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: run });
+
+    await expect(autoFixPropose({ scanId: "s1", findingId: "f-1" })).resolves.toEqual(run);
+    expect(postSpy).toHaveBeenCalledWith("/reports/s1/auto-fix", null, {
+      params: { finding_id: "f-1" },
+    });
+  });
+});
+
+describe("autoFixApprove", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("posts to the approve endpoint and returns the run", async () => {
+    const run = { status: "verified", finding_id: "f-1", pr_url: "https://x/pull/1" };
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: run });
+
+    await expect(autoFixApprove({ scanId: "s1", findingId: "f-1" })).resolves.toEqual(run);
+    expect(postSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1/approve");
   });
 });

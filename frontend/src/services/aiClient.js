@@ -134,3 +134,15 @@ export async function runInvestigate({ scanId, findingId, question }) {
   const response = await api.post("/ai/investigate", payload);
   return response.data;
 }
+
+export async function autoFixPropose({ scanId, findingId }) {
+  const response = await api.post(`/reports/${scanId}/auto-fix`, null, {
+    params: { finding_id: findingId },
+  });
+  return response.data;
+}
+
+export async function autoFixApprove({ scanId, findingId }) {
+  const response = await api.post(`/reports/${scanId}/auto-fix/${findingId}/approve`);
+  return response.data;
+}
