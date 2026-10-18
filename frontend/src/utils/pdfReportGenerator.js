@@ -151,6 +151,40 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
     // ============ COVER PAGE ============
     const securityScore = reportData.securityScore;
     const scoreAngle = (securityScore / 100) * 180;
+    const securityGrade =
+      reportData.securityScore >= 90
+        ? "A+"
+        : reportData.securityScore >= 80
+          ? "A"
+          : reportData.securityScore >= 70
+            ? "B"
+            : reportData.securityScore >= 60
+              ? "C"
+              : reportData.securityScore >= 50
+                ? "D"
+                : "F";
+    const gradeColor =
+      reportData.securityScore >= 70
+        ? "#10b981"
+        : reportData.securityScore >= 50
+          ? "#f59e0b"
+          : "#ef4444";
+    const riskLevel =
+      reportData.riskScore <= 25
+        ? "Low"
+        : reportData.riskScore <= 50
+          ? "Medium"
+          : reportData.riskScore <= 75
+            ? "High"
+            : "Critical";
+    const riskColor =
+      reportData.riskScore <= 25
+        ? "#059669"
+        : reportData.riskScore <= 50
+          ? "#d97706"
+          : reportData.riskScore <= 75
+            ? "#ea580c"
+            : "#dc2626";
     const coverPage = `
         <div style="page-break-after: always; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); color: white; padding: 50px 40px; min-height: 800px; position: relative;">
           <!-- Decorative gradient accent -->
@@ -379,41 +413,6 @@ export const generateViewPDF = async ({ report, aiAnalysis, reportId, setIsGener
       `;
 
     // ============ EXECUTIVE SUMMARY ============
-    const riskLevel =
-      reportData.riskScore <= 25
-        ? "Low"
-        : reportData.riskScore <= 50
-          ? "Medium"
-          : reportData.riskScore <= 75
-            ? "High"
-            : "Critical";
-    const riskColor =
-      reportData.riskScore <= 25
-        ? "#059669"
-        : reportData.riskScore <= 50
-          ? "#d97706"
-          : reportData.riskScore <= 75
-            ? "#ea580c"
-            : "#dc2626";
-    const securityGrade =
-      reportData.securityScore >= 90
-        ? "A+"
-        : reportData.securityScore >= 80
-          ? "A"
-          : reportData.securityScore >= 70
-            ? "B"
-            : reportData.securityScore >= 60
-              ? "C"
-              : reportData.securityScore >= 50
-                ? "D"
-                : "F";
-    const gradeColor =
-      reportData.securityScore >= 70
-        ? "#10b981"
-        : reportData.securityScore >= 50
-          ? "#f59e0b"
-          : "#ef4444";
-
     const executiveSummary = `
         <div style="page-break-after: always; padding: 40px;">
           <h2 style="font-size: 26px; font-weight: 800; color: #00e5ff; border-bottom: 4px solid #7c3aed; padding-bottom: 12px; margin-bottom: 24px; letter-spacing: -0.5px;">

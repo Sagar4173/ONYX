@@ -40,11 +40,11 @@ Notes:
 - Session handling: access token expires mid-session; the axios refresh interceptor silently recovered (one 401 on a triage fetch, subsequent calls 200). After a long idle window the refresh token also expired → re-login required. Expected behavior.
 - No Plan-2 code changes were needed during QA; no code was modified in this pass.
 
-## Pre-existing defects observed during QA (out of Plan-2 scope, not regressions)
+## Pre-existing defects observed during QA (out of Plan-2 scope, not regressions) — FIXED 2026-10-18
 
-- (a) "View PDF" / Export→PDF throws `ReferenceError: Cannot access 'gradeColor' before initialization` — `frontend/src/utils/pdfReportGenerator.js:211` uses `gradeColor` before its declaration in the same scope. Last touched `3b0a654` (pre-Plan-2). User-triggered during the walkthrough.
-- (b) `GET /api/reports/{id}/download?format=json|csv` → 404 for non-ObjectId report ids — `backend/routes/reports/export.py:34` requires `ObjectId.is_valid(report_id)`, so custom/seed ids (like qa-live-check-001) 404 even though the detail endpoint supports them. Last touched `02414d7` (pre-Plan-2). Only affects custom-id reports.
-- Recommended: one small follow-up fix task covering (a) declaration order and (b) a custom-id fallback in export.py.
+- (a) "View PDF" / Export→PDF throws `ReferenceError: Cannot access 'gradeColor' before initialization` — `frontend/src/utils/pdfReportGenerator.js:211` uses `gradeColor` before its declaration in the same scope. Last touched `3b0a654` (pre-Plan-2). User-triggered during the walkthrough. **Fixed:** `securityGrade`/`gradeColor` and `riskLevel`/`riskColor` declarations moved above the `coverPage` template (a second latent TDZ on `riskColor` was exposed once the first was fixed; regression tests added in `pdfReportGenerator.test.js`).
+- (b) `GET /api/reports/{id}/download?format=json|csv` → 404 for non-ObjectId report ids — `backend/routes/reports/export.py:34` requires `ObjectId.is_valid(report_id)`, so custom/seed ids (like qa-live-check-001) 404 even though the detail endpoint supports them. Last touched `02414d7` (pre-Plan-2). Only affects custom-id reports. **Fixed:** export route now falls back to `ScanReport.find_one({"scan_id": report_id})` like `detail.py`, and the access-denied 403 is no longer swallowed by the DB error handler; regression tests in `backend/tests/test_report_export_download.py`.
+- Recommended follow-up task: DONE — both fixes landed with live re-verification (UI PDF export downloaded successfully with success toast; `/download` returned 200 JSON/CSV for `qa-live-check-001`).
 
 ## Final whole-branch review (2026-10-18)
 
