@@ -9,5 +9,6 @@ export function useInvestigate({ scanId, findingId, question }) {
     retry: false,
     staleTime: Infinity,
     refetchInterval: false,
+    refetchOnReconnect: false,
   });
 }

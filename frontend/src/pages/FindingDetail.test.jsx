@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route, Link } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { reportsAPI, labelsAPI } from "../services/api";
-import { getAIFeatures } from "@services/aiClient";
+import { getAIFeatures, runInvestigate } from "@services/aiClient";
 import FindingDetail from "./FindingDetail";
 
 vi.mock("../services/api", () => ({
@@ -59,6 +59,22 @@ const REPORT = {
   ],
 };
 
+const INVESTIGATE_ENVELOPE = {
+  report: {
+    finding_id: "f-1",
+    summary: "Vulnerable path is reachable from the public handler.",
+    exploitability: "No admin role required.",
+    evidence: [],
+    likely_false_positive: false,
+    false_positive_reasons: [],
+    fix_guidance: "Use parameterized queries.",
+    confidence: "medium",
+  },
+  provider: "groq",
+  model: "llama-3.3-70b",
+  usage: { prompt_tokens: 1, completion_tokens: 2, requests: 1 },
+};
+
 function renderPage() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -80,6 +96,7 @@ beforeEach(() => {
   reportsAPI.getReport.mockResolvedValue(REPORT);
   labelsAPI.setFindingLabel.mockResolvedValue({ triage_label: "accepted" });
   getAIFeatures.mockResolvedValue({ investigate_agent_enabled: true });
+  runInvestigate.mockResolvedValue(INVESTIGATE_ENVELOPE);
 });
 
 describe("FindingDetail", () => {
@@ -137,5 +154,61 @@ describe("FindingDetail", () => {
 
     expect(await screen.findByText("Investigate agent disabled")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Investigate" })).toBeDisabled();
+  });
+
+  it("resets the investigate panel when navigating to another finding", async () => {
+    const user = userEvent.setup();
+    reportsAPI.getReport.mockResolvedValue({
+      ...REPORT,
+      scan_results: [
+        {
+          scanner: "semgrep",
+          status: "completed",
+          findings: [
+            REPORT.scan_results[0].findings[0],
+            {
+              ...REPORT.scan_results[0].findings[0],
+              id: "f-2",
+              title: "Reflected XSS",
+              severity: "medium",
+            },
+          ],
+        },
+      ],
+    });
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={["/report/r1/finding/f-1"]}>
+          <Link to="/report/r1/finding/f-2">next finding</Link>
+          <Routes>
+            <Route path="/report/:reportId/finding/:findingId" element={<FindingDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "SQL Injection" })).toBeInTheDocument()
+    );
+    await waitFor(() => expect(screen.getByRole("button", { name: "Investigate" })).toBeEnabled());
+
+    await user.type(screen.getByLabelText("Investigation question"), "why?");
+    await user.click(screen.getByRole("button", { name: "Investigate" }));
+    expect(await screen.findByText("Blast radius")).toBeInTheDocument();
+    expect(runInvestigate).toHaveBeenCalledTimes(1);
+    expect(runInvestigate).toHaveBeenCalledWith({
+      scanId: "scan-1",
+      findingId: "f-1",
+      question: "why?",
+    });
+
+    await user.click(screen.getByRole("link", { name: "next finding" }));
+
+    expect(await screen.findByRole("heading", { name: "Reflected XSS" })).toBeInTheDocument();
+    expect(runInvestigate).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText("Investigation question")).toHaveValue("");
+    expect(screen.queryByText("Blast radius")).toBeNull();
   });
 });

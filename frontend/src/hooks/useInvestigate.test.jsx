@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query";
 
 vi.mock("@services/aiClient", async (importOriginal) => {
   const actual = await importOriginal();
@@ -111,5 +111,21 @@ describe("useInvestigate", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("does not refetch on reconnect after a failure", async () => {
+    runInvestigate.mockRejectedValue(new Error("Network Error"));
+    const client = makeQueryClient();
+    const { result } = renderHook(
+      () => useInvestigate({ scanId: "s1", findingId: "f-1", question: "" }),
+      { wrapper: makeWrapper(client) }
+    );
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    onlineManager.setOnline(false);
+    onlineManager.setOnline(true);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(runInvestigate).toHaveBeenCalledTimes(1);
   });
 });

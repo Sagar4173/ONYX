@@ -48,6 +48,7 @@ function renderPanel() {
       </MemoryRouter>
     </QueryClientProvider>
   );
+  return client;
 }
 
 async function submitQuestion(user, text) {
@@ -164,5 +165,63 @@ describe("InvestigatePanel", () => {
     await waitForReady();
 
     expect(screen.getByLabelText("Investigation question")).toHaveAttribute("maxlength", "2000");
+  });
+
+  it("shows the not-available state for a deleted finding without retry", async () => {
+    const user = userEvent.setup();
+    runInvestigate.mockRejectedValue(httpError(404, "Finding not found."));
+    renderPanel();
+    await waitForReady();
+
+    await submitQuestion(user, "");
+
+    expect(await screen.findByText("Finding no longer available")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /retry/i })).toBeNull();
+  });
+
+  it("renders unmapped errors with a retry that recovers", async () => {
+    const user = userEvent.setup();
+    runInvestigate.mockRejectedValueOnce(httpError(500, "Proxy exploded."));
+    renderPanel();
+    await waitForReady();
+
+    await submitQuestion(user, "");
+
+    expect(await screen.findByText("Investigation failed")).toBeInTheDocument();
+    expect(screen.getByText("Proxy exploded.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("Blast radius")).toBeInTheDocument();
+    expect(runInvestigate).toHaveBeenCalledTimes(2);
+  });
+
+  it("renders network failures with a retry", async () => {
+    const user = userEvent.setup();
+    runInvestigate.mockRejectedValue(new Error("Network Error"));
+    renderPanel();
+    await waitForReady();
+
+    await submitQuestion(user, "");
+
+    expect(await screen.findByText("Investigation failed")).toBeInTheDocument();
+    expect(screen.getByText("Network Error")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+  });
+
+  it("hides a stale error once the kill switch turns the feature off", async () => {
+    const user = userEvent.setup();
+    runInvestigate.mockRejectedValue(httpError(503, "Investigation is unavailable."));
+    const client = renderPanel();
+    await waitForReady();
+
+    await submitQuestion(user, "");
+    expect(await screen.findByText("Investigation temporarily unavailable")).toBeInTheDocument();
+
+    getAIFeatures.mockResolvedValue({ investigate_agent_enabled: false });
+    await client.refetchQueries({ queryKey: ["ai-features"] });
+
+    expect(await screen.findByText("Investigate agent disabled")).toBeInTheDocument();
+    expect(screen.queryByText("Investigation temporarily unavailable")).toBeNull();
+    expect(screen.queryByRole("button", { name: /retry/i })).toBeNull();
   });
 });

@@ -174,6 +174,7 @@ export default function FindingDetail() {
             />
           </div>
           <InvestigatePanel
+            key={`${reportId}:${findingId}`}
             reportId={reportId}
             scanId={report.scan_id}
             findingId={findingId}

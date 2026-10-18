@@ -16,6 +16,7 @@ import { useLabelFinding } from "../../hooks/useLabelFinding";
 import { InvestigateReport } from "./InvestigateReport";
 
 const MAX_QUESTION = 2000;
+const MAPPED_STATUSES = [400, 403, 404, 429, 502, 503];
 
 function readRetryAfter(error) {
   const header = error?.response?.headers?.["retry-after"];
@@ -43,7 +44,7 @@ export function InvestigatePanel({
 
   const enabled = Boolean(features?.investigate_agent_enabled);
   const status = query.error?.response?.status;
-  const running = submitted !== null && query.isPending;
+  const running = submitted !== null && query.isFetching;
 
   return (
     <Card>
@@ -90,58 +91,63 @@ export function InvestigatePanel({
           </div>
         )}
 
-        {!running && (status === 400 || status === 403) && (
-          <div role="alert">
-            <Alert variant="warning" title="Question blocked by safety screening">
-              {errorDetail(query.error) || "Rewrite the question without instruction-like content."}
-            </Alert>
-          </div>
-        )}
+        {enabled && (
+          <>
+            {!running && (status === 400 || status === 403) && (
+              <div role="alert">
+                <Alert variant="warning" title="Question blocked by safety screening">
+                  {errorDetail(query.error) ||
+                    "Rewrite the question without instruction-like content."}
+                </Alert>
+              </div>
+            )}
 
-        {!running && status === 404 && (
-          <AIStateBlock
-            variant="error"
-            title="Finding no longer available"
-            description="This finding is no longer part of the report."
-          />
-        )}
+            {!running && status === 404 && (
+              <AIStateBlock
+                variant="error"
+                title="Finding no longer available"
+                description="This finding is no longer part of the report."
+              />
+            )}
 
-        {!running && status === 429 && (
-          <AIStateBlock
-            variant="rate_limited"
-            quotaRetryAfter={readRetryAfter(query.error)}
-            onQuotaRetry={() => query.refetch()}
-          />
-        )}
+            {!running && status === 429 && (
+              <AIStateBlock
+                variant="rate_limited"
+                quotaRetryAfter={readRetryAfter(query.error)}
+                onQuotaRetry={() => query.refetch()}
+              />
+            )}
 
-        {!running && status === 503 && (
-          <AIStateBlock
-            variant="error"
-            title="Investigation temporarily unavailable"
-            description={
-              errorDetail(query.error) || "The investigation service is unavailable right now."
-            }
-            onRetry={() => query.refetch()}
-          />
-        )}
+            {!running && status === 503 && (
+              <AIStateBlock
+                variant="error"
+                title="Investigation temporarily unavailable"
+                description={
+                  errorDetail(query.error) || "The investigation service is unavailable right now."
+                }
+                onRetry={() => query.refetch()}
+              />
+            )}
 
-        {!running && status === 502 && (
-          <AIStateBlock
-            variant="error"
-            title="Investigation failed"
-            description={
-              errorDetail(query.error) || "The investigate agent hit an unexpected error."
-            }
-          />
-        )}
+            {!running && status === 502 && (
+              <AIStateBlock
+                variant="error"
+                title="Investigation failed"
+                description={
+                  errorDetail(query.error) || "The investigate agent hit an unexpected error."
+                }
+              />
+            )}
 
-        {!running && query.error && !status && (
-          <AIStateBlock
-            variant="error"
-            title="Investigation failed"
-            description={query.error.message}
-            onRetry={() => query.refetch()}
-          />
+            {!running && query.error && !MAPPED_STATUSES.includes(status) && (
+              <AIStateBlock
+                variant="error"
+                title="Investigation failed"
+                description={errorDetail(query.error) || query.error.message}
+                onRetry={() => query.refetch()}
+              />
+            )}
+          </>
         )}
 
         {!running && query.data && (
