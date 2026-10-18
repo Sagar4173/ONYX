@@ -169,6 +169,49 @@ describe("fix-PR flow", () => {
     expect(screen.getByRole("link", { name: /PR #7/ })).toBeInTheDocument();
   });
 
+  it("keeps the reviewed diff when the approve response omits it", async () => {
+    const user = userEvent.setup();
+    autoFixPropose.mockResolvedValue(AWAITING);
+    autoFixApprove.mockResolvedValue({
+      status: "pr_created",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      pr_url: "https://x/pull/8",
+      pr_number: 8,
+      verification: { verified: true, remaining: [], total_findings: 1 },
+    });
+    renderHarness();
+
+    await user.click(await screen.findByRole("button", { name: /Propose fix/ }));
+    await user.click(await screen.findByRole("button", { name: /Approve & open PR/ }));
+    await user.type(screen.getByRole("textbox"), "APPROVE");
+    await user.click(screen.getByRole("button", { name: "Open pull request" }));
+
+    await screen.findByRole("link", { name: /PR #8/ });
+    expect(screen.queryByText("No changes")).toBeNull();
+    expect(screen.getByTestId("rdv").textContent).toContain("new line");
+  });
+
+  it("omits the diff area entirely when a run carries no diff", async () => {
+    const user = userEvent.setup();
+    autoFixPropose.mockResolvedValue({
+      status: "pr_created",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      pr_url: "https://x/pull/3",
+      pr_number: 3,
+      gate_failures: [],
+      verification: { verified: true, remaining: [], total_findings: 1 },
+    });
+    renderHarness();
+
+    await user.click(await screen.findByRole("button", { name: /Propose fix/ }));
+
+    await screen.findByRole("link", { name: /PR #3/ });
+    expect(screen.queryByText("No changes")).toBeNull();
+    expect(screen.queryByTestId("rdv")).toBeNull();
+  });
+
   it("rejects client-side after confirmation", async () => {
     const user = userEvent.setup();
     autoFixPropose.mockResolvedValue(AWAITING);
@@ -207,6 +250,7 @@ describe("fix-PR flow", () => {
     await user.click(screen.getByRole("button", { name: "Open pull request" }));
 
     await screen.findByText("Auto-fix could not run");
+    expect(screen.getByRole("alert")).toHaveTextContent("Auto-fix could not run");
     expect(screen.getByText(/re-run auto-fix/)).toBeInTheDocument();
     expect(screen.getByTestId("rdv")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Propose again/ })).toBeInTheDocument();

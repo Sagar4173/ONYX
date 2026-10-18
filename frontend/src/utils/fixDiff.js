@@ -11,7 +11,7 @@ export function parseUnifiedDiff(diff) {
   let removedLines = 0;
   for (const raw of diff.split("\n")) {
     const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-    if (line.startsWith("---") || line.startsWith("+++")) continue;
+    if (!current && (line.startsWith("---") || line.startsWith("+++"))) continue;
     if (HUNK_RE.test(line)) {
       current = { header: line, oldLines: [], newLines: [] };
       hunks.push(current);

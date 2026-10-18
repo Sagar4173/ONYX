@@ -89,7 +89,12 @@ export function useFixRun({ scanId, findingId }) {
     retry: false,
     onSuccess: (run, vars) => {
       update(vars, (prev) =>
-        withHistory({ ...prev, run, error: null }, "approve", run.status, true)
+        withHistory(
+          { ...prev, run: { ...run, diff: run.diff || prev.run?.diff || "" }, error: null },
+          "approve",
+          run.status,
+          true
+        )
       );
       toast.success(run.status === "verified" ? "Fix verified by re-scan" : "Pull request opened");
     },

@@ -52,6 +52,23 @@ describe("parseUnifiedDiff", () => {
     expect(parsed.hunks[1].newLines).toEqual(["ctx", "new line"]);
   });
 
+  it("keeps in-hunk lines whose content starts with -- or ++", () => {
+    const diff = [
+      "--- a/x.sql",
+      "+++ b/x.sql",
+      "@@ -1,2 +1,2 @@",
+      "--- stale comment",
+      "+++ fresh comment",
+      " SELECT 1",
+    ].join("\n");
+    const parsed = parseUnifiedDiff(diff);
+    expect(parsed.hunks).toHaveLength(1);
+    expect(parsed.removedLines).toBe(1);
+    expect(parsed.addedLines).toBe(1);
+    expect(parsed.hunks[0].oldLines).toEqual(["-- stale comment", "SELECT 1"]);
+    expect(parsed.hunks[0].newLines).toEqual(["++ fresh comment", "SELECT 1"]);
+  });
+
   it("returns an empty result for null / empty input", () => {
     expect(parseUnifiedDiff(null)).toEqual({ hunks: [], addedLines: 0, removedLines: 0 });
     expect(parseUnifiedDiff("")).toEqual({ hunks: [], addedLines: 0, removedLines: 0 });

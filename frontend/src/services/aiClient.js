@@ -135,14 +135,20 @@ export async function runInvestigate({ scanId, findingId, question }) {
   return response.data;
 }
 
+const PROPOSE_TIMEOUT_MS = 120_000;
+const APPROVE_TIMEOUT_MS = 600_000;
+
 export async function autoFixPropose({ scanId, findingId }) {
   const response = await api.post(`/reports/${scanId}/auto-fix`, null, {
     params: { finding_id: findingId },
+    timeout: PROPOSE_TIMEOUT_MS,
   });
   return response.data;
 }
 
 export async function autoFixApprove({ scanId, findingId }) {
-  const response = await api.post(`/reports/${scanId}/auto-fix/${findingId}/approve`);
+  const response = await api.post(`/reports/${scanId}/auto-fix/${findingId}/approve`, undefined, {
+    timeout: APPROVE_TIMEOUT_MS,
+  });
   return response.data;
 }

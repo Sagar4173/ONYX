@@ -102,7 +102,11 @@ export function FixReviewSection({ fix, scanId, findingId, filePath }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {error && run && (
-          <Alert variant="warning" title={ERROR_COPY[error.kind]?.title ?? "Auto-fix failed"}>
+          <Alert
+            variant="warning"
+            role="alert"
+            title={ERROR_COPY[error.kind]?.title ?? "Auto-fix failed"}
+          >
             {ERROR_COPY[error.kind]?.description}{" "}
             <span className="block mt-1 font-mono text-xs opacity-75">{error.detail}</span>
           </Alert>
@@ -142,7 +146,7 @@ export function FixReviewSection({ fix, scanId, findingId, filePath }) {
               </Alert>
             )}
 
-            <FixDiffViewer diff={run.diff} />
+            {run.diff ? <FixDiffViewer diff={run.diff} /> : null}
 
             {run.status === "awaiting_approval" && approvalRequired && (
               <div className="flex flex-wrap gap-3">

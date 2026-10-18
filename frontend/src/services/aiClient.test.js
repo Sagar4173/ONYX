@@ -313,6 +313,7 @@ describe("autoFixPropose", () => {
     await expect(autoFixPropose({ scanId: "s1", findingId: "f-1" })).resolves.toEqual(run);
     expect(postSpy).toHaveBeenCalledWith("/reports/s1/auto-fix", null, {
       params: { finding_id: "f-1" },
+      timeout: 120000,
     });
   });
 });
@@ -327,6 +328,8 @@ describe("autoFixApprove", () => {
     const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: run });
 
     await expect(autoFixApprove({ scanId: "s1", findingId: "f-1" })).resolves.toEqual(run);
-    expect(postSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1/approve");
+    expect(postSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1/approve", undefined, {
+      timeout: 600000,
+    });
   });
 });

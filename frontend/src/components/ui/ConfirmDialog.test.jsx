@@ -69,6 +69,66 @@ describe("ConfirmDialog", () => {
     expect(confirm).toBeEnabled();
   });
 
+  it("does not bounce focus when onClose identity changes while open, and uses the latest onClose", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    function Harness({ onCloseA, onCloseB }) {
+      const [open, setOpen] = React.useState(false);
+      const [useB, setUseB] = React.useState(false);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>open</button>
+          <button onClick={() => setUseB(true)}>bump-close</button>
+          <ConfirmDialog isOpen={open} onClose={useB ? onCloseB : onCloseA} onConfirm={() => {}} />
+        </>
+      );
+    }
+    render(<Harness onCloseA={first} onCloseB={second} />);
+    const opener = screen.getByRole("button", { name: "open" });
+    const focusSpy = vi.fn();
+    opener.addEventListener("focus", focusSpy);
+    opener.focus();
+    fireEvent.click(opener);
+    const cancel = screen.getByRole("button", { name: "Cancel" });
+    expect(document.activeElement).toBe(cancel);
+    focusSpy.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "bump-close" }));
+
+    expect(focusSpy).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(cancel);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets the type-to-confirm text when closed and reopened", () => {
+    function Harness() {
+      const [open, setOpen] = React.useState(true);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>reopen</button>
+          <ConfirmDialog
+            isOpen={open}
+            onClose={() => setOpen(false)}
+            onConfirm={() => {}}
+            requireTypeToConfirm
+            confirmText="APPROVE"
+            confirmLabel="Open pull request"
+          />
+        </>
+      );
+    }
+    render(<Harness />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "APPROVE" } });
+    expect(screen.getByRole("button", { name: "Open pull request" })).toBeEnabled();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "reopen" }));
+    expect(screen.getByRole("button", { name: "Open pull request" })).toBeDisabled();
+  });
+
   it("restores focus to the previously focused element on close", () => {
     function Harness() {
       const [open, setOpen] = React.useState(false);

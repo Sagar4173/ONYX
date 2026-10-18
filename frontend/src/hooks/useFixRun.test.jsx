@@ -113,6 +113,26 @@ describe("useFixRun", () => {
     expect(toast.success).toHaveBeenCalledWith("Fix verified by re-scan");
   });
 
+  it("preserves the reviewed diff when the approve response omits it", async () => {
+    autoFixPropose.mockResolvedValue(AWAITING);
+    autoFixApprove.mockResolvedValue({
+      status: "verified",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      pr_url: "https://x/pull/1",
+      pr_number: 1,
+      verification: { verified: true, remaining: [], total_findings: 1 },
+    });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    act(() => result.current.propose({ scanId: "s1", findingId: "f-1" }));
+    await waitFor(() => expect(result.current.run).not.toBeNull());
+    act(() => result.current.approve({ scanId: "s1", findingId: "f-1" }));
+    await waitFor(() => expect(result.current.run?.status).toBe("verified"));
+    expect(result.current.run.diff).toBe(AWAITING.diff);
+  });
+
   it("clears a stale run on an approve race", async () => {
     autoFixPropose.mockResolvedValue(AWAITING);
     autoFixApprove.mockRejectedValue(axiosError(400, "No pending fix for finding f-1"));

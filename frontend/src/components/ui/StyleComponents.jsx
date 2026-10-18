@@ -294,9 +294,17 @@ export const Select = ({
 // ALERT COMPONENT
 // =============================================================================
 
-export const Alert = ({ variant = "info", title, children, icon, onClose, className = "" }) => {
+export const Alert = ({
+  variant = "info",
+  title,
+  children,
+  icon,
+  onClose,
+  className = "",
+  role,
+}) => {
   return (
-    <div className={`${getAlertClasses(variant)} ${className}`}>
+    <div role={role} className={`${getAlertClasses(variant)} ${className}`}>
       {icon && <span className="w-5 h-5 flex-shrink-0">{icon}</span>}
       <div className="flex-1">
         {title && <p className="font-medium">{title}</p>}
@@ -1206,6 +1214,8 @@ export const ConfirmDialog = ({
   const [typedText, setTypedText] = React.useState("");
   const titleId = React.useId();
   const containerRef = React.useRef(null);
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -1216,7 +1226,7 @@ export const ConfirmDialog = ({
     }
     const handleKey = (e) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !container) return;
@@ -1237,7 +1247,11 @@ export const ConfirmDialog = ({
       document.removeEventListener("keydown", handleKey);
       prevFocus?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) setTypedText("");
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
