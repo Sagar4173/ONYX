@@ -159,3 +159,95 @@ class TestAutoFixRoute:
         response = client.post(self.endpoint)
 
         assert response.status_code == 401
+
+    state_url = "/api/reports/scan-001/auto-fix/finding-001"
+
+    def test_get_state_none(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {}
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            resp = client.get(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "none"
+        assert body["finding_id"] == "finding-001"
+        assert body["pr_url"] is None and body["diff"] == ""
+
+    def test_get_state_pending_omits_sensitive_fields(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {
+            "pending_fixes": {
+                "finding-001": {
+                    "file_path": "app/run.py",
+                    "patched_content": "SECRET PATCH",
+                    "base_sha": "s",
+                    "diff": "--- a\n+++ b\n",
+                    "model_used": "groq/m",
+                    "created_at": "2026-10-19T00:00:00+00:00",
+                }
+            }
+        }
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            resp = client.get(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "awaiting_approval"
+        assert body["diff"] == "--- a\n+++ b\n"
+        assert body["model_used"] == "groq/m"
+        assert "SECRET PATCH" not in resp.text
+        assert "patched_content" not in body and "base_sha" not in body
+
+    def test_get_state_outcome(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {
+            "findings": [
+                {
+                    "id": "finding-001",
+                    "file_path": "app/run.py",
+                    "fix_pr_url": "https://x/pull/1",
+                    "fix_status": "pr_created",
+                }
+            ]
+        }
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            resp = client.get(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 200
+        assert resp.json()["pr_url"] == "https://x/pull/1"
+        assert resp.json()["status"] == "pr_created"
+
+    def test_get_state_scan_not_found(self):
+        from models.report import ScanReport as SR
+
+        client = _setup_client()
+        with patch.object(SR, "find_one", AsyncMock(return_value=None)):
+            response = client.get(self.state_url)
+        assert response.status_code == 404
+
+    def test_get_state_access_denied_for_foreign_scan(self):
+        foreign_report = self._make_report()
+        foreign_report.user_id = "someone-else"
+        client = _setup_client()
+        patchers = self._patch_access(foreign_report)
+        try:
+            response = client.get(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert response.status_code == 404
+
+    def test_get_state_unauthenticated(self):
+        app.dependency_overrides.clear()
+        client = TestClient(app)
+        response = client.get(self.state_url)
+        assert response.status_code == 401
