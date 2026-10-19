@@ -1,13 +1,16 @@
 """IsolationForest hardening (Phase 4, spec 5.1 P4): activation gate, real data, honest metrics."""
+import pickle
 import sqlite3
 from unittest.mock import AsyncMock, MagicMock
 
+import numpy as np
 import pytest
 
 from config import settings
 from models.base import CVSSScore, ScanStatus, ScannerType, SeverityLevel
 from models.report import ScanReport, ScanResult, VulnerabilityFinding
 from services.ai.ml_anomaly_detection_engine import (
+    FEATURE_NAMES,
     MLAnomalyDetectionEngine,
     MLModelMetrics,
 )
@@ -47,6 +50,62 @@ def _rows(n):
 def _train_settings(monkeypatch, enabled=True, min_scans=10):
     monkeypatch.setattr(settings, "ml_isolation_forest_enabled", enabled)
     monkeypatch.setattr(settings, "ml_min_training_scans", min_scans)
+
+
+def _make_engine(tmp_path, *, db_name="ml.db", models_name="models"):
+    return MLAnomalyDetectionEngine(
+        db_path=str(tmp_path / db_name), models_path=str(tmp_path / models_name)
+    )
+
+
+def _write_artifact(path, *, features=None, n_cols=6):
+    from sklearn.ensemble import IsolationForest
+    from sklearn.preprocessing import StandardScaler
+
+    x = np.random.RandomState(0).rand(12, n_cols)
+    scaler = StandardScaler().fit(x)
+    model = IsolationForest(contamination=0.1, random_state=42).fit(scaler.transform(x))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "wb") as f:
+        pickle.dump(
+            {
+                "model": model,
+                "scaler": scaler,
+                "features": features if features is not None else list(FEATURE_NAMES),
+            },
+            f,
+        )
+
+
+def _insert_model_row(
+    db_path,
+    model_file_path,
+    *,
+    model_id="anomaly_model_test_000000",
+    last_trained="2026-10-19T00:00:00+00:00",
+    anomaly_rate=0.1,
+    score_mean=-0.04,
+    score_std=0.01,
+    feature_importance_json="{}",
+):
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        "INSERT OR REPLACE INTO ml_models "
+        "(model_id, model_type, training_data_size, last_trained, feature_importance_json, "
+        " model_file_path, status, anomaly_rate, score_mean, score_std) "
+        "VALUES (?, 'IsolationForest', 40, ?, ?, ?, 'active', ?, ?, ?)",
+        (
+            model_id,
+            last_trained,
+            feature_importance_json,
+            str(model_file_path),
+            anomaly_rate,
+            score_mean,
+            score_std,
+        ),
+    )
+    conn.commit()
+    conn.close()
 
 
 async def test_train_refuses_when_disabled(engine, monkeypatch):
@@ -110,6 +169,44 @@ async def test_train_happy_path_honest_metrics(engine, monkeypatch):
     assert row[6] == pytest.approx(metrics.score_mean)
     assert row[7] == pytest.approx(metrics.score_std)
     assert row[8] == "active"
+
+
+async def test_train_then_restart_hydrates_model(tmp_path, monkeypatch):
+    _train_settings(monkeypatch, min_scans=10)
+    first = _make_engine(tmp_path)
+    monkeypatch.setattr(first, "_collect_training_data", AsyncMock(return_value=_rows(40)))
+    metrics = await first.train_anomaly_model()
+    assert metrics is not None
+
+    revived = _make_engine(tmp_path)
+
+    assert "anomaly_detector" in revived.models
+    entry = revived.models["anomaly_detector"]
+    assert entry["metrics"].model_id == metrics.model_id
+    assert entry["metrics"].training_data_size == 40
+    assert entry["features"] == list(FEATURE_NAMES)
+    sample = np.array([[row[k] for k in FEATURE_NAMES] for row in _rows(2)])
+    assert entry["model"].predict(entry["scaler"].transform(sample)).shape == (2,)
+
+
+async def test_no_hydration_when_disabled(tmp_path, monkeypatch):
+    _train_settings(monkeypatch, min_scans=10)
+    first = _make_engine(tmp_path)
+    monkeypatch.setattr(first, "_collect_training_data", AsyncMock(return_value=_rows(40)))
+    await first.train_anomaly_model()
+
+    monkeypatch.setattr(settings, "ml_isolation_forest_enabled", False)
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_no_hydration_without_row(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+
+    engine = _make_engine(tmp_path)
+
+    assert engine.models == {}
 
 
 class _FieldExpr:

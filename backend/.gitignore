@@ -56,3 +56,7 @@ security-reports/
 
 # Runtime output
 output.txt
+
+# ML model artifacts (generated at runtime)
+ml_models/
+*.pkl

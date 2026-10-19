@@ -27,6 +27,16 @@ from utils.datetime_utils import utc_now
 # Configure logger (logging.basicConfig is called in app.py)
 logger = logging.getLogger(__name__)
 
+FEATURE_NAMES = [
+    "total_findings",
+    "critical_ratio",
+    "high_ratio",
+    "avg_cvss_score",
+    "unique_cwe_count",
+    "findings_per_hour",
+]
+
+
 @dataclass
 class FindingPattern:
     """Security finding pattern for ML analysis"""
@@ -80,8 +90,104 @@ class MLAnomalyDetectionEngine:
         
         self._init_database()
         self._init_feature_extractors()
-        
+        self._hydrate_persisted_model()
+
         logger.info("🤖 ML Anomaly Detection Engine initialized")
+
+    def _latest_active_model_row(self):
+        """Latest active model row (same ordering as the anomaly dashboard)."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT model_id, model_type, training_data_size, last_trained,
+                       anomaly_rate, score_mean, score_std, feature_importance_json,
+                       model_file_path
+                FROM ml_models WHERE status = 'active'
+                ORDER BY last_trained DESC LIMIT 1
+            ''')
+            return cursor.fetchone()
+        finally:
+            conn.close()
+
+    def _hydrate_persisted_model(self):
+        """Reload the latest persisted model at init (fail-soft; never raises)."""
+        from config import settings
+
+        if not settings.ml_isolation_forest_enabled:
+            return
+
+        try:
+            row = self._latest_active_model_row()
+            if row is None:
+                logger.info("No persisted ML model found; engine starts untrained")
+                return
+
+            (model_id, model_type, training_data_size, last_trained, anomaly_rate,
+             score_mean, score_std, feature_importance_json, model_file_path) = row
+            if not model_file_path or anomaly_rate is None or score_mean is None or score_std is None:
+                logger.warning(
+                    "Persisted model row %s lacks honest metrics or file path; skipping hydration",
+                    model_id,
+                )
+                return
+
+            artifact_path = Path(model_file_path).resolve()
+            models_root = self.models_path.resolve()
+            if models_root not in artifact_path.parents:
+                logger.warning(
+                    "Refusing to load model artifact outside %s: %s", models_root, artifact_path
+                )
+                return
+
+            if not artifact_path.is_file():
+                logger.warning("Model artifact missing for %s: %s", model_id, artifact_path)
+                return
+
+            with open(artifact_path, "rb") as f:
+                artifact = pickle.load(f)
+
+            if not isinstance(artifact, dict) or not {"model", "scaler", "features"} <= set(artifact):
+                logger.warning(
+                    "Model artifact %s has unexpected structure; skipping hydration", artifact_path
+                )
+                return
+
+            features = artifact["features"]
+            if list(features) != FEATURE_NAMES:
+                logger.warning("Feature schema drift in %s; retrain required", artifact_path)
+                return
+
+            model = artifact["model"]
+            scaler = artifact["scaler"]
+            n_features = len(FEATURE_NAMES)
+            if (
+                getattr(scaler, "n_features_in_", None) != n_features
+                or getattr(model, "n_features_in_", None) != n_features
+            ):
+                logger.warning("Feature shape mismatch in %s; retrain required", artifact_path)
+                return
+
+            metrics = MLModelMetrics(
+                model_id=model_id,
+                model_type=model_type or "IsolationForest",
+                training_data_size=training_data_size or 0,
+                anomaly_rate=float(anomaly_rate),
+                score_mean=float(score_mean),
+                score_std=float(score_std),
+                last_trained=last_trained or "",
+                feature_importance=json.loads(feature_importance_json) if feature_importance_json else {},
+            )
+            self.models["anomaly_detector"] = {
+                "model": model, "scaler": scaler, "features": features, "metrics": metrics,
+            }
+            logger.info(
+                "Hydrated persisted IsolationForest %s (%s training scans)",
+                model_id,
+                training_data_size,
+            )
+        except Exception:
+            logger.exception("Failed to hydrate persisted ML model; engine starts untrained")
     
     def _init_database(self):
         """Initialize ML anomaly detection database"""
@@ -458,10 +564,7 @@ class MLAnomalyDetectionEngine:
     
     def _prepare_feature_matrix(self, training_data: List[Dict[str, Any]]) -> Tuple[np.ndarray, List[str]]:
         """Prepare feature matrix for ML training"""
-        feature_names = [
-            'total_findings', 'critical_ratio', 'high_ratio', 
-            'avg_cvss_score', 'unique_cwe_count', 'findings_per_hour'
-        ]
+        feature_names = list(FEATURE_NAMES)
         
         feature_matrix = []
         for data_point in training_data:
