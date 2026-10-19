@@ -520,3 +520,38 @@ async def test_record_outcome_updates_all_matching_duplicates(scan_report, findi
     assert [e["fix_pr_url"] for e in entries] == ["https://x/pull/5", "https://x/pull/5"]
     assert [e["title"] for e in entries] == ["A", "B"]
     scan_report.save.assert_awaited()
+
+
+async def test_record_outcome_matches_semantic_production_shape(scan_report, finding):
+    # production invariant: VulnerabilityFinding.id is assigned the raw rule_id
+    finding.id = "B608"
+    scan_report.metadata = {"findings": [
+        {"rule_id": "B608", "file_path": "app/run.py", "title": "Shell injection"},
+    ]}
+    await _record_fix_outcome(
+        scan_report, finding, pr_url="https://x/pull/6", verification={"verified": True}
+    )
+    entry = scan_report.metadata["findings"][0]
+    assert entry["fix_status"] == "verified"
+    assert entry["fix_pr_url"] == "https://x/pull/6"
+    scan_report.save.assert_awaited()
+
+
+async def test_record_outcome_legacy_id_entry_still_matches(scan_report, finding):
+    scan_report.metadata = {"findings": [{"id": "finding-001", "file_path": "app/run.py"}]}
+    await _record_fix_outcome(
+        scan_report, finding, pr_url="https://x/pull/7", verification={"verified": False}
+    )
+    entry = scan_report.metadata["findings"][0]
+    assert entry["fix_status"] == "pr_created"
+    assert entry["fix_pr_url"] == "https://x/pull/7"
+    scan_report.save.assert_awaited()
+
+
+async def test_record_outcome_matches_when_entry_lacks_path(scan_report, finding):
+    scan_report.metadata = {"findings": [{"rule_id": "finding-001", "title": "no path"}]}
+    await _record_fix_outcome(
+        scan_report, finding, pr_url="https://x/pull/8", verification={"verified": True}
+    )
+    assert scan_report.metadata["findings"][0]["fix_status"] == "verified"
+    scan_report.save.assert_awaited()
