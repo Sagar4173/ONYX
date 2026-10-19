@@ -69,6 +69,22 @@ def _path_matches(record_path: Any, finding_file_path: str) -> bool:
     return rp == target or rp.endswith("/" + target)
 
 
+def _entry_matches_finding(entry: Dict[str, Any], finding: VulnerabilityFinding) -> bool:
+    """Match a metadata.findings entry (raw scanner dict) to a finding.
+
+    Real entries carry rule_id, not id; finding.id == rule_id on real scans.
+    When both sides have a file path, it must match too so duplicate
+    rule_ids on different files are disambiguated.
+    """
+    ident = entry.get("id") or entry.get("rule_id")
+    if ident != finding.id:
+        return False
+    entry_path = entry.get("file_path")
+    if entry_path and finding.file_path:
+        return _path_matches(entry_path, finding.file_path)
+    return True
+
+
 async def verify_fix(*, repo_url: str, branch: str, finding: VulnerabilityFinding) -> Dict[str, Any]:
     """Re-scan the fix branch; the agent never grades its own work (spec 4.3.3)."""
     from services.ai.gateway import _scrub
@@ -119,7 +135,7 @@ async def _record_fix_outcome(
         return
     updated, changed = [], False
     for entry in entries:
-        if isinstance(entry, dict) and entry.get("id") == finding.id:
+        if isinstance(entry, dict) and _entry_matches_finding(entry, finding):
             entry = {
                 **entry,
                 "fix_pr_url": pr_url,
@@ -141,7 +157,7 @@ def get_fix_state(scan_report: ScanReport, finding_id: str) -> Dict[str, Any]:
     entries = metadata.get("findings")
     if isinstance(entries, list):
         for entry in entries:
-            if isinstance(entry, dict) and entry.get("id") == finding_id:
+            if isinstance(entry, dict) and (entry.get("id") or entry.get("rule_id")) == finding_id:
                 status = entry.get("fix_status")
                 if status in ("pr_created", "verified"):
                     return {

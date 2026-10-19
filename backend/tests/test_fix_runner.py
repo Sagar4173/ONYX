@@ -19,6 +19,7 @@ from services.ai.fix_agent import FixAgentError, FixAgentResult, PatchProposal
 from services.ai.fix_gates import GateReport
 from services.ai.fix_runner import (
     FixRunResult,
+    _record_fix_outcome,
     approve_fix,
     discard_pending,
     get_fix_state,
@@ -334,6 +335,42 @@ def test_get_fix_state_outcome_pr_created(scan_report):
     }
 
 
+def test_get_fix_state_outcome_pr_created_raw_shape(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "file_path": "app/run.py",
+                "title": "Shell injection",
+                "fix_pr_url": "https://x/pull/3",
+                "fix_status": "pr_created",
+            }
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001") == {
+        "status": "pr_created",
+        "finding_id": "finding-001",
+        "file_path": "app/run.py",
+        "pr_url": "https://x/pull/3",
+    }
+
+
+def test_get_fix_state_raw_entry_without_status_returns_none(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "file_path": "app/run.py",
+                "title": "Shell injection",
+            }
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001") == {
+        "status": "none",
+        "finding_id": "finding-001",
+    }
+
+
 def test_get_fix_state_outcome_wins_over_pending(scan_report):
     scan_report.metadata = {
         "findings": [
@@ -420,8 +457,13 @@ async def test_open_pr_records_verification_and_status(scan_report, runner_env, 
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_requires_approval", False)
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
-    # metadata.findings mirrors the raw dict copy written by process_real_scan
-    scan_report.metadata = {"findings": [{"id": "finding-001", "title": "Shell injection"}]}
+    # metadata.findings holds the raw scanner dict shape written by
+    # process_real_scan: rule_id + file_path, no id
+    scan_report.metadata = {"findings": [{
+        "rule_id": "finding-001",
+        "file_path": "app/run.py",
+        "title": "Shell injection",
+    }]}
     scanner = MagicMock()
     scanner.scan_repository = AsyncMock(return_value={
         "total_findings": 0,
@@ -442,3 +484,39 @@ async def test_open_pr_records_verification_and_status(scan_report, runner_env, 
     entry = scan_report.metadata["findings"][0]
     assert entry["fix_status"] == "verified"
     assert entry["fix_pr_url"] == "https://x/pull/9"
+    # pre-existing raw scanner keys survive the outcome write
+    assert entry["title"] == "Shell injection"
+    assert entry["rule_id"] == "finding-001"
+    assert entry["file_path"] == "app/run.py"
+
+
+async def test_record_outcome_disambiguates_duplicate_rule_id_by_path(scan_report, finding):
+    finding.file_path = "b.py"
+    scan_report.metadata = {"findings": [
+        {"rule_id": "finding-001", "file_path": "a.py", "title": "A"},
+        {"rule_id": "finding-001", "file_path": "b.py", "title": "B"},
+    ]}
+    await _record_fix_outcome(
+        scan_report, finding, pr_url="https://x/pull/4", verification={"verified": False}
+    )
+    a_entry, b_entry = scan_report.metadata["findings"]
+    assert a_entry == {"rule_id": "finding-001", "file_path": "a.py", "title": "A"}
+    assert b_entry["fix_status"] == "pr_created"
+    assert b_entry["fix_pr_url"] == "https://x/pull/4"
+    assert b_entry["title"] == "B"
+    scan_report.save.assert_awaited()
+
+
+async def test_record_outcome_updates_all_matching_duplicates(scan_report, finding):
+    scan_report.metadata = {"findings": [
+        {"rule_id": "finding-001", "file_path": "app/run.py", "title": "A"},
+        {"rule_id": "finding-001", "file_path": "app/run.py", "title": "B"},
+    ]}
+    await _record_fix_outcome(
+        scan_report, finding, pr_url="https://x/pull/5", verification={"verified": True}
+    )
+    entries = scan_report.metadata["findings"]
+    assert [e["fix_status"] for e in entries] == ["verified", "verified"]
+    assert [e["fix_pr_url"] for e in entries] == ["https://x/pull/5", "https://x/pull/5"]
+    assert [e["title"] for e in entries] == ["A", "B"]
+    scan_report.save.assert_awaited()
