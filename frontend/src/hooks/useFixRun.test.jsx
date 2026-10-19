@@ -5,12 +5,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 vi.mock("../services/aiClient", () => ({
   autoFixPropose: vi.fn(),
   autoFixApprove: vi.fn(),
+  autoFixGetState: vi.fn(),
+  autoFixDiscard: vi.fn(),
 }));
 vi.mock("react-hot-toast", () => ({
   default: { success: vi.fn(), error: vi.fn() },
 }));
 
-import { autoFixPropose, autoFixApprove } from "../services/aiClient";
+import {
+  autoFixPropose,
+  autoFixApprove,
+  autoFixGetState,
+  autoFixDiscard,
+} from "../services/aiClient";
 import toast from "react-hot-toast";
 import { useFixRun, classifyFixError } from "./useFixRun";
 
@@ -34,6 +41,7 @@ function makeWrapper() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  autoFixGetState.mockResolvedValue({ status: "none", finding_id: "f-1" });
 });
 
 describe("classifyFixError", () => {
@@ -54,9 +62,13 @@ describe("classifyFixError", () => {
 });
 
 describe("useFixRun", () => {
-  it("stays idle with no calls on mount", () => {
+  it("hydrates a no-state finding from the server on mount", async () => {
     const { wrapper } = makeWrapper();
     const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    await waitFor(() =>
+      expect(autoFixGetState).toHaveBeenCalledWith({ scanId: "s1", findingId: "f-1" })
+    );
     expect(result.current.run).toBeNull();
     expect(result.current.error).toBeNull();
     expect(autoFixPropose).not.toHaveBeenCalled();
@@ -159,8 +171,9 @@ describe("useFixRun", () => {
     expect(result.current.run?.status).toBe("awaiting_approval");
   });
 
-  it("rejects client-side with a toast", async () => {
+  it("discards a pending proposal server-side on reject", async () => {
     autoFixPropose.mockResolvedValue(AWAITING);
+    autoFixDiscard.mockResolvedValue({ status: "discarded" });
     const { wrapper } = makeWrapper();
     const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
 
@@ -168,6 +181,7 @@ describe("useFixRun", () => {
     await waitFor(() => expect(result.current.run).not.toBeNull());
     act(() => result.current.reject());
     await waitFor(() => expect(result.current.run).toBeNull());
+    expect(autoFixDiscard).toHaveBeenCalledWith({ scanId: "s1", findingId: "f-1" });
     expect(result.current.history.at(-1)).toMatchObject({ action: "reject", status: "dismissed" });
     expect(toast.success).toHaveBeenCalledWith("Proposal rejected — nothing was applied");
   });
@@ -179,11 +193,13 @@ describe("useFixRun", () => {
     act(() => first.result.current.propose({ scanId: "s1", findingId: "f-1" }));
     await waitFor(() => expect(first.result.current.run).not.toBeNull());
     first.unmount();
+    autoFixGetState.mockClear();
     autoFixPropose.mockClear();
 
     const second = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
     expect(second.result.current.run?.status).toBe("awaiting_approval");
     expect(autoFixPropose).not.toHaveBeenCalled();
+    expect(autoFixGetState).not.toHaveBeenCalled();
   });
 
   it("scopes isProposing to the current finding", async () => {
@@ -211,5 +227,67 @@ describe("useFixRun", () => {
     expect(result.current.run).toBeNull();
 
     await act(async () => resolvePropose(AWAITING));
+  });
+
+  it("hydrates a pending proposal from the server on mount", async () => {
+    autoFixGetState.mockResolvedValue({
+      status: "awaiting_approval",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      diff: "@@ -1,1 +1,1 @@\n-a\n+b",
+      model_used: "groq/openai/gpt-oss-120b",
+      created_at: "2026-10-19T00:00:00Z",
+    });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    await waitFor(() => expect(result.current.run?.status).toBe("awaiting_approval"));
+    expect(result.current.run.diff).toContain("+b");
+    expect(result.current.run.model_used).toBe("groq/openai/gpt-oss-120b");
+    expect(result.current.history).toEqual([]);
+    expect(autoFixPropose).not.toHaveBeenCalled();
+    expect(autoFixApprove).not.toHaveBeenCalled();
+  });
+
+  it("hydrates an opened PR without diff or session history", async () => {
+    autoFixGetState.mockResolvedValue({
+      status: "verified",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      pr_url: "https://x/pull/1",
+    });
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    await waitFor(() => expect(result.current.run?.status).toBe("verified"));
+    expect(result.current.run.pr_url).toBe("https://x/pull/1");
+    expect(result.current.run.diff).toBe("");
+    expect(result.current.history).toEqual([]);
+  });
+
+  it("fails soft when the state read fails", async () => {
+    autoFixGetState.mockRejectedValue(axiosError(502, "Auto-fix failed"));
+    const { client, wrapper } = makeWrapper();
+    const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    await waitFor(() =>
+      expect(client.getQueryState(["fix-run", "s1", "f-1"])?.status).toBe("success")
+    );
+    expect(result.current.run).toBeNull();
+    expect(result.current.error).toBeNull();
+  });
+
+  it("keeps the run and warns when discard fails", async () => {
+    autoFixPropose.mockResolvedValue(AWAITING);
+    autoFixDiscard.mockRejectedValue(axiosError(502, "boom"));
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    act(() => result.current.propose({ scanId: "s1", findingId: "f-1" }));
+    await waitFor(() => expect(result.current.run).not.toBeNull());
+    act(() => result.current.reject());
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Could not discard the proposal"));
+    expect(result.current.run?.status).toBe("awaiting_approval");
+    expect(result.current.error).toBeNull();
   });
 });

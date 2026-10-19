@@ -1,6 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { autoFixApprove, autoFixPropose } from "../services/aiClient";
+import {
+  autoFixApprove,
+  autoFixDiscard,
+  autoFixGetState,
+  autoFixPropose,
+} from "../services/aiClient";
 
 const MAX_HISTORY = 10;
 const EMPTY_STATE = { run: null, error: null, history: [] };
@@ -33,14 +38,42 @@ const PROPOSE_TOASTS = {
   verified: "Fix verified by re-scan",
 };
 
+const mapStateToRun = (state) => {
+  if (!state || state.status === "none") return null;
+  if (state.status === "awaiting_approval") {
+    return {
+      status: state.status,
+      finding_id: state.finding_id,
+      file_path: state.file_path || "",
+      diff: state.diff || "",
+      model_used: state.model_used || "",
+      created_at: state.created_at ?? null,
+    };
+  }
+  return {
+    status: state.status,
+    finding_id: state.finding_id,
+    file_path: state.file_path || "",
+    diff: "",
+    pr_url: state.pr_url ?? null,
+  };
+};
+
 export function useFixRun({ scanId, findingId }) {
   const queryClient = useQueryClient();
   const queryKey = keyFor(scanId, findingId);
 
   const { data } = useQuery({
     queryKey,
-    queryFn: () => EMPTY_STATE,
-    enabled: false,
+    queryFn: async () => {
+      try {
+        const state = await autoFixGetState({ scanId, findingId });
+        return { ...EMPTY_STATE, run: mapStateToRun(state) };
+      } catch {
+        return EMPTY_STATE;
+      }
+    },
+    enabled: Boolean(scanId && findingId),
     staleTime: Infinity,
     gcTime: CACHE_MS,
     retry: false,
@@ -112,12 +145,26 @@ export function useFixRun({ scanId, findingId }) {
     },
   });
 
+  const discard = useMutation({
+    mutationFn: () => {
+      if (!scanId || !findingId) throw new Error("Fix run requires scanId and findingId");
+      return autoFixDiscard({ scanId, findingId });
+    },
+    retry: false,
+    onSuccess: () => {
+      update({ scanId, findingId }, (prev) =>
+        withHistory({ ...prev, run: null, error: null }, "reject", "dismissed", true)
+      );
+      toast.success("Proposal rejected — nothing was applied");
+    },
+    onError: () => {
+      toast.error("Could not discard the proposal");
+    },
+  });
+
   const reject = () => {
     if (!scanId || !findingId) return;
-    update({ scanId, findingId }, (prev) =>
-      withHistory({ ...prev, run: null, error: null }, "reject", "dismissed", true)
-    );
-    toast.success("Proposal rejected — nothing was applied");
+    discard.mutate();
   };
 
   const state = data ?? EMPTY_STATE;
