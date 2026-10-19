@@ -4,7 +4,13 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route, Link } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { reportsAPI, labelsAPI } from "../services/api";
-import { getAIFeatures, runInvestigate, autoFixPropose, autoFixApprove } from "@services/aiClient";
+import {
+  getAIFeatures,
+  runInvestigate,
+  autoFixPropose,
+  autoFixApprove,
+  autoFixGetState,
+} from "@services/aiClient";
 import FindingDetail from "./FindingDetail";
 
 vi.mock("../services/api", () => ({
@@ -23,6 +29,8 @@ vi.mock("@services/aiClient", async (importOriginal) => {
     runInvestigate: vi.fn(),
     autoFixPropose: vi.fn(),
     autoFixApprove: vi.fn(),
+    autoFixGetState: vi.fn(),
+    autoFixDiscard: vi.fn(),
   };
 });
 
@@ -114,6 +122,7 @@ beforeEach(() => {
   runInvestigate.mockResolvedValue(INVESTIGATE_ENVELOPE);
   autoFixPropose.mockResolvedValue(FIX_AWAITING);
   autoFixApprove.mockResolvedValue({ ...FIX_AWAITING, status: "verified" });
+  autoFixGetState.mockResolvedValue({ status: "none", finding_id: "f-1" });
 });
 
 describe("FindingDetail", () => {
@@ -290,5 +299,21 @@ describe("FindingDetail", () => {
     expect(autoFixPropose).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("Fix-PR review")).toBeNull();
     expect(screen.getByRole("button", { name: /Propose fix/ })).toBeInTheDocument();
+  });
+
+  it("re-hydrates a persisted pending proposal on load", async () => {
+    autoFixGetState.mockResolvedValue({
+      status: "awaiting_approval",
+      finding_id: "f-1",
+      file_path: "app.py",
+      diff: "@@ -1,1 +1,1 @@\n-old\n+new",
+      model_used: "groq/openai/gpt-oss-120b",
+      created_at: "2026-10-19T00:00:00Z",
+    });
+    renderPage();
+
+    await screen.findByText("Fix-PR review");
+    expect(screen.getByRole("button", { name: /Approve & open PR/ })).toBeInTheDocument();
+    expect(autoFixPropose).not.toHaveBeenCalled();
   });
 });

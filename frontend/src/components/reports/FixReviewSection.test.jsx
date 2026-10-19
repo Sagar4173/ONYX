@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 vi.mock("../../services/aiClient", () => ({
   autoFixPropose: vi.fn(),
   autoFixApprove: vi.fn(),
+  autoFixGetState: vi.fn(),
+  autoFixDiscard: vi.fn(),
   getAIFeatures: vi.fn(),
 }));
 vi.mock("react-hot-toast", () => ({ default: { success: vi.fn(), error: vi.fn() } }));
@@ -18,7 +20,13 @@ vi.mock("react-diff-viewer-continued", () => ({
   ),
 }));
 
-import { autoFixPropose, autoFixApprove, getAIFeatures } from "../../services/aiClient";
+import {
+  autoFixPropose,
+  autoFixApprove,
+  autoFixGetState,
+  autoFixDiscard,
+  getAIFeatures,
+} from "../../services/aiClient";
 import { useFixRun } from "../../hooks/useFixRun";
 import { FixTriggerCard } from "./FixTriggerCard";
 import { FixReviewSection } from "./FixReviewSection";
@@ -54,6 +62,7 @@ function renderHarness(props) {
 beforeEach(() => {
   vi.clearAllMocks();
   getAIFeatures.mockResolvedValue({ auto_fix_requires_approval: true });
+  autoFixGetState.mockResolvedValue({ status: "none", finding_id: "f-1" });
 });
 
 describe("fix-PR flow", () => {
@@ -212,7 +221,7 @@ describe("fix-PR flow", () => {
     expect(screen.queryByTestId("rdv")).toBeNull();
   });
 
-  it("rejects client-side after confirmation", async () => {
+  it("discards server-side after confirmation", async () => {
     const user = userEvent.setup();
     autoFixPropose.mockResolvedValue(AWAITING);
     renderHarness();
@@ -222,6 +231,7 @@ describe("fix-PR flow", () => {
     await user.click(screen.getByRole("button", { name: "Reject proposal" }));
 
     await waitFor(() => expect(screen.queryByText("Fix-PR review")).toBeNull());
+    expect(autoFixDiscard).toHaveBeenCalledWith({ scanId: "s1", findingId: "f-1" });
     expect(autoFixApprove).not.toHaveBeenCalled();
   });
 
@@ -254,5 +264,42 @@ describe("fix-PR flow", () => {
     expect(screen.getByText(/re-run auto-fix/)).toBeInTheDocument();
     expect(screen.getByTestId("rdv")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Propose again/ })).toBeInTheDocument();
+  });
+
+  it("renders a hydrated pending proposal with review actions and no propose call", async () => {
+    autoFixGetState.mockResolvedValue({
+      status: "awaiting_approval",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      diff: "@@ -1,1 +1,1 @@\n-old line\n+new line",
+      model_used: "groq/openai/gpt-oss-120b",
+      created_at: "2026-10-19T00:00:00Z",
+    });
+    renderHarness();
+
+    await screen.findByText("Fix-PR review");
+    expect(screen.getByTestId("rdv").textContent).toContain("new line");
+    expect(screen.getByRole("button", { name: /Approve & open PR/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reject" })).toBeInTheDocument();
+    expect(autoFixPropose).not.toHaveBeenCalled();
+  });
+
+  it("renders a hydrated opened PR without verification details", async () => {
+    autoFixGetState.mockResolvedValue({
+      status: "verified",
+      finding_id: "f-1",
+      file_path: "src/app.py",
+      pr_url: "https://x/pull/7",
+    });
+    renderHarness();
+
+    await screen.findByText("Fix-PR review");
+    expect(screen.getByRole("link", { name: /PR #open/ })).toHaveAttribute(
+      "href",
+      "https://x/pull/7"
+    );
+    expect(screen.getByText(/re-scan no longer detects/)).toBeInTheDocument();
+    expect(screen.queryByText("Verification could not run")).toBeNull();
+    expect(autoFixPropose).not.toHaveBeenCalled();
   });
 });
