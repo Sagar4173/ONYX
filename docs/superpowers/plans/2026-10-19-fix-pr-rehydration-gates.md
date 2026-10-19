@@ -8,13 +8,13 @@ Spec: `docs/superpowers/specs/2026-10-19-fix-pr-rehydration-design.md`. Plan: `d
 
 | Gate | Command | Expected | Actual | Status |
 |---|---|---|---|---|
-| Backend unit | `backend\.venv\Scripts\python.exe -m pytest` | 751 passed (Tasks 1–7) + 7 new (Task 8a) = 758 | **758 passed** in 55.82s | ok |
-| Frontend unit | `npx vitest run` | 405/405 (58 files) | 405/405 (58 files) | ok |
+| Backend unit | `backend\.venv\Scripts\python.exe -m pytest` | 751 passed (Tasks 1–7) + 7 new (Task 8a) = 758 | **758 passed** in 55.82s; **759 passed** after security follow-ups (+1) | ok |
+| Frontend unit | `npx vitest run` | 405/405 (58 files) | 405/405 (58 files); **406/406** after security follow-ups (+1) | ok |
 | Frontend lint | `npm run lint` | 0 err / 10 warn | 0 err / 10 warn | ok |
 | Frontend build | `npm run build` | exit 0 | exit 0 | ok |
 | Prettier | `npx prettier --check` on the four touched frontend files | clean | "All matched files use Prettier code style!" | ok |
 
-Suite growth: backend 734 → 751 (+17 across Tasks 1–4: `tests/test_fix_runner.py` 24, `tests/test_auto_fix_routes.py` 17), then 758 in Task 8a (+7: 4 implementer + 3 controller amendment → `test_fix_runner.py` 31). Frontend 396 → 405 (+9: `aiClient.test.js` 21, `useFixRun.test.jsx` 16, `FixReviewSection.test.jsx` 13, `FindingDetail.test.jsx` 9).
+Suite growth: backend 734 → 751 (+17 across Tasks 1–4: `tests/test_fix_runner.py` 24, `tests/test_auto_fix_routes.py` 17), then 758 in Task 8a (+7: 4 implementer + 3 controller amendment → `test_fix_runner.py` 31), then **759** in the security follow-up (+1 → `test_auto_fix_routes.py` 18). Frontend 396 → 405 (+9: `aiClient.test.js` 21, `useFixRun.test.jsx` 16, `FixReviewSection.test.jsx` 13, `FindingDetail.test.jsx` 9), then **406** in the security follow-up (+1 → `FixReviewSection.test.jsx` 14).
 
 ### TDD evidence
 
@@ -67,3 +67,19 @@ Scenarios, all PASS:
 - **Concurrency:** outcome writes are read-modify-write over the whole report (same pre-existing pattern as `approve_fix`); concurrent finishing fixes on one report can lose one outcome. Not exercised in QA; candidate for an atomic `$set` follow-up.
 - **Carried from the ML track:** `backend/.dockerignore` still does not exclude `.env` — do not publish images built from a working tree with a real `.env` until fixed.
 - **Pending user actions:** rotate QA passwords (`qa.admin@example.com`, `qa.live@example.com`); history purge (if ever wanted) requires explicit approval — nothing has been pushed (`origin/master` is still `bbaaba1`).
+
+## Security review + follow-ups (2026-10-20)
+
+A `security` subagent review over the track diff `d7fd218..HEAD` returned **ACCEPTABLE WITH CONCERNS** — no Critical or High findings. Verified clean: authorization parity across propose/approve/GET/DELETE (`_report_or_404`; 404 for foreign scans, no existence oracle; live IDOR check recorded above), the GET/DELETE safe-subset guarantee end-to-end for the new endpoints (service allowlist + Pydantic model + frontend whitelist; no error path echoes metadata), Task 8a as pure string matching with no content execution, DELETE semantics limited to `metadata.pending_fixes[finding_id]`, input handling (no NoSQL/regex/path injection; Bearer-header auth so no CSRF), frontend safety (`rel="noopener noreferrer"`, text-only diff rendering), and secret hygiene in the committed range.
+
+Findings and dispositions:
+
+1. **[Low, pre-existing] Raw report metadata side channel:** `GET /api/reports/{id}` (`routes/reports/detail.py:101`) and the JSON export (`routes/reports/export.py:83`) return `report.metadata` verbatim, including `pending_fixes[*].patched_content`/`base_sha` — so an authorized report viewer (owner/project member, same boundary as before this track) can read the full patch before approval, contradicting the spec's "stays server-side until approve" promise in the broader API. The new GET does not add this exposure. **Accepted as follow-up debt (out of track scope):** next track should strip `pending_fixes` (or at least `patched_content`/`base_sha`) from the detail/export metadata projection and add a regression test.
+2. **[Low] Duplicate `rule_id` ≠ unique finding id:** misattribution risk (only the first occurrence is addressable; state can show a sibling file's PR). Pre-existing; already documented under Risks above. Follow-up: composite/path-aware finding ids or a path-aware state endpoint.
+3. **[Low] Reject vs in-flight approve race:** DELETE could return "discarded"/"nothing was applied" while an already-running approve still opens the PR (approve's claim is in-memory until `_open_pr` completes). **UI part fixed in `869cec6`:** both "Approve & open PR" and "Reject" are now disabled while `isApproving` (this also closes the earlier double-submit nit), pinned by a new `FixReviewSection.test.jsx` test (13 → 14). Backend part (atomic approval claim / conflict response, gating Reject in other tabs) recorded as follow-up debt.
+4. **[Low] Whole-document `save()` in DELETE can lose concurrent updates** (same read-modify-write pattern as outcome writes, now with a fast new writer). Accepted debt: follow-up should use atomic `find_one_and_update` with `$set`/`$unset` on `metadata.pending_fixes.<finding_id>` plus a concurrency test.
+5. **[Info] Report-level authorization only** — any user with report access can read/discard another member's pending proposal; no audit log or rate limit on the new routes. Consistent with the existing propose/approve model; optional hardening if project membership is lower-trust.
+
+Verification gap closed in the follow-up commit: `test_discard_access_denied_for_foreign_scan` (mirrors the GET variant; asserts 404, pending untouched, no save) — `test_auto_fix_routes.py` 17 → 18.
+
+Post-follow-up gates: backend **759 passed**; frontend **406 passed** (58 files); lint 0 err / 10 warn; build exit 0. Follow-up commit: `869cec6` (fix) + this doc update.
