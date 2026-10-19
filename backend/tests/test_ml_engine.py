@@ -209,6 +209,77 @@ def test_no_hydration_without_row(tmp_path, monkeypatch):
     assert engine.models == {}
 
 
+def test_missing_artifact_fails_soft(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    _insert_model_row(seed.db_path, tmp_path / "models" / "gone.pkl")
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_corrupt_artifact_fails_soft(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "corrupt.pkl"
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    artifact.write_bytes(b"not a pickle")
+    _insert_model_row(seed.db_path, artifact)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_refuses_artifact_outside_models_dir(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    outside = tmp_path / "elsewhere" / "evil.pkl"
+    _write_artifact(outside)
+    _insert_model_row(seed.db_path, outside)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_refuses_feature_schema_drift(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "drifted.pkl"
+    _write_artifact(artifact, features=["total_findings"])
+    _insert_model_row(seed.db_path, artifact)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_refuses_feature_shape_mismatch(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "shape.pkl"
+    _write_artifact(artifact, n_cols=3)
+    _insert_model_row(seed.db_path, artifact)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_skips_legacy_row_without_honest_metrics(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "legacy.pkl"
+    _write_artifact(artifact)
+    _insert_model_row(seed.db_path, artifact, anomaly_rate=None, score_mean=None, score_std=None)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
 class _FieldExpr:
     """Offline stand-in for Beanie query expressions (class attr access).
 
