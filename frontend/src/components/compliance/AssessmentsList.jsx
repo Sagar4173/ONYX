@@ -20,38 +20,38 @@ const FrameworkResultCard = ({ result }) => {
       }}
     >
       <Card className="bg-gray-800/30">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-xl">{frameworkInfo?.icon}</span>
-        <span className="text-sm font-medium text-white">{frameworkInfo?.name}</span>
-      </div>
-      <div className="flex items-end justify-between">
-        <div>
-          <p className={`text-2xl font-bold ${isPassing ? "text-green-400" : "text-yellow-400"}`}>
-            {result.score?.toFixed(0)}%
-          </p>
-          <p className="text-xs text-gray-400">
-            {result.passed_controls}/{result.total_controls} controls
-          </p>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xl">{frameworkInfo?.icon}</span>
+          <span className="text-sm font-medium text-white">{frameworkInfo?.name}</span>
         </div>
-        <div className="w-12 h-12">
-          <svg className="transform -rotate-90" viewBox="0 0 36 36">
-            <path
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="3"
-            />
-            <path
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-              fill="none"
-              stroke={isPassing ? "#4ade80" : "#fbbf24"}
-              strokeWidth="3"
-              strokeDasharray={`${result.score}, 100`}
-            />
-          </svg>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className={`text-2xl font-bold ${isPassing ? "text-green-400" : "text-yellow-400"}`}>
+              {result.score?.toFixed(0)}%
+            </p>
+            <p className="text-xs text-gray-400">
+              {result.passed_controls}/{result.total_controls} controls
+            </p>
+          </div>
+          <div className="w-12 h-12">
+            <svg className="transform -rotate-90" viewBox="0 0 36 36">
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="rgba(255,255,255,0.1)"
+                strokeWidth="3"
+              />
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke={isPassing ? "#4ade80" : "#fbbf24"}
+                strokeWidth="3"
+                strokeDasharray={`${result.score}, 100`}
+              />
+            </svg>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
     </motion.div>
   );
 };

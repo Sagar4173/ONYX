@@ -135,12 +135,7 @@ const ApiTab = ({ user }) => {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <Button
-                    onClick={handleRotate}
-                    disabled={rotating}
-                    variant="warning"
-                    size="sm"
-                  >
+                  <Button onClick={handleRotate} disabled={rotating} variant="warning" size="sm">
                     {rotating ? "Rotating..." : "Rotate Secret"}
                   </Button>
                   {webhook.configured && (
@@ -155,9 +150,9 @@ const ApiTab = ({ user }) => {
             {rotatedSecret && (
               <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 space-y-2">
                 <p className="text-xs text-yellow-300">
-                  New secret (shown once): copy it now. The old secret stops working
-                  immediately. Update your GitHub webhook, then restart the backend
-                  service (<code>systemctl restart onyx-backend</code>) to apply it.
+                  New secret (shown once): copy it now. The old secret stops working immediately.
+                  Update your GitHub webhook, then restart the backend service (
+                  <code>systemctl restart onyx-backend</code>) to apply it.
                 </p>
                 <div className="flex items-center space-x-2">
                   <input

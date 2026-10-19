@@ -502,55 +502,55 @@ const ProjectDetails = () => {
               }}
             >
               <div className="flex space-x-6">
-            <ProjectSidebar
-              project={project}
-              vulnCounts={vulnCounts}
-              securityScore={securityScore}
-              isScanActive={isScanActive}
-              onEdit={openEditModal}
-              onDelete={() => setShowDeleteModal(true)}
-            />
+                <ProjectSidebar
+                  project={project}
+                  vulnCounts={vulnCounts}
+                  securityScore={securityScore}
+                  isScanActive={isScanActive}
+                  onEdit={openEditModal}
+                  onDelete={() => setShowDeleteModal(true)}
+                />
 
-            <div className="flex-1 min-w-0">
-              <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl mb-6">
-                <div className="flex border-b border-gray-700/50">
-                  {TABS.map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActiveTab(tab.key)}
-                      className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                        activeTab === tab.key
-                          ? "text-cyan-400 border-b-2 border-cyan-400"
-                          : "text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      <tab.icon className="h-4 w-4" />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <div className="p-6">
-                  {activeTab === "overview" && (
-                    <OverviewTab
-                      project={project}
-                      vulnCounts={vulnCounts}
-                      totalVulns={totalVulns}
-                      securityScore={securityScore}
-                    />
-                  )}
-                  {activeTab === "scans" && (
-                    <ScanHistoryTab
-                      scanHistory={scanHistory}
-                      scanHistoryLoading={scanHistoryLoading}
-                      onStartScan={handleStartScan}
-                      isStarting={startScanMutation.isPending}
-                    />
-                  )}
-                  {activeTab === "settings" && <SettingsTab />}
+                <div className="flex-1 min-w-0">
+                  <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl mb-6">
+                    <div className="flex border-b border-gray-700/50">
+                      {TABS.map((tab) => (
+                        <button
+                          key={tab.key}
+                          onClick={() => setActiveTab(tab.key)}
+                          className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                            activeTab === tab.key
+                              ? "text-cyan-400 border-b-2 border-cyan-400"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          <tab.icon className="h-4 w-4" />
+                          <span>{tab.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-6">
+                      {activeTab === "overview" && (
+                        <OverviewTab
+                          project={project}
+                          vulnCounts={vulnCounts}
+                          totalVulns={totalVulns}
+                          securityScore={securityScore}
+                        />
+                      )}
+                      {activeTab === "scans" && (
+                        <ScanHistoryTab
+                          scanHistory={scanHistory}
+                          scanHistoryLoading={scanHistoryLoading}
+                          onStartScan={handleStartScan}
+                          isStarting={startScanMutation.isPending}
+                        />
+                      )}
+                      {activeTab === "settings" && <SettingsTab />}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
             </motion.div>
           </motion.div>
 

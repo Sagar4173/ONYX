@@ -166,89 +166,91 @@ const NotificationsDropdown = ({ notifications = [], onClear, onDismiss }) => {
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
 
             <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-800/50">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 flex-shrink-0">
-                  <BellIcon className="w-5 h-5 text-white" />
+              <div className="flex items-center justify-between px-4 sm:px-5 py-4 border-b border-gray-800/50">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-600 flex-shrink-0">
+                    <BellIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold text-white text-base lg:text-lg truncate">
+                    Notifications
+                  </h3>
+                  {unreadCount > 0 && (
+                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
+                      {unreadCount}
+                    </span>
+                  )}
                 </div>
-                <h3 className="font-semibold text-white text-base lg:text-lg truncate">Notifications</h3>
-                {unreadCount > 0 && (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
-                    {unreadCount}
-                  </span>
+                {notifications.length > 0 && (
+                  <button
+                    onClick={onClear}
+                    className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                  >
+                    Clear all
+                  </button>
                 )}
               </div>
-              {notifications.length > 0 && (
-                <button
-                  onClick={onClear}
-                  className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded-lg hover:bg-gray-800/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-                >
-                  Clear all
-                </button>
-              )}
-            </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="px-5 py-12 text-center">
-                  <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
-                    <BellIcon className="w-8 h-8 text-gray-500" />
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="px-5 py-12 text-center">
+                    <div className="inline-flex p-4 rounded-2xl bg-gray-800/50 mb-4">
+                      <BellIcon className="w-8 h-8 text-gray-500" />
+                    </div>
+                    <p className="text-gray-400">No notifications yet</p>
+                    <p className="text-xs text-gray-600 mt-1">Real-time updates appear here</p>
                   </div>
-                  <p className="text-gray-400">No notifications yet</p>
-                  <p className="text-xs text-gray-600 mt-1">Real-time updates appear here</p>
-                </div>
-              ) : (
-                <div className="py-1">
-                  {displayedNotifications.map((notif) => {
-                    const { icon: Icon, bg, color } = getNotificationIcon(notif);
-                    return (
-                      <div
-                        key={notif.id}
-                        onClick={() => handleNotificationClick(notif)}
-                        className={`flex items-start gap-3 px-4 py-3 mx-1 rounded-xl transition-colors cursor-pointer
+                ) : (
+                  <div className="py-1">
+                    {displayedNotifications.map((notif) => {
+                      const { icon: Icon, bg, color } = getNotificationIcon(notif);
+                      return (
+                        <div
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif)}
+                          className={`flex items-start gap-3 px-4 py-3 mx-1 rounded-xl transition-colors cursor-pointer
                           ${notif.read ? "hover:bg-gray-800/30" : "bg-gray-800/20 hover:bg-gray-800/40"}
                           ${notif.type === "security_alert" && !notif.read ? "border-l-2 border-red-500/50" : ""}`}
-                      >
-                        <div className={`p-2 rounded-lg shrink-0 ${bg} ${color}`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className={`text-sm leading-snug ${notif.read ? "text-gray-400" : "text-white"}`}
-                          >
-                            {notif.message}
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {relativeTime(notif.timestamp)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDismiss?.(notif.id);
-                          }}
-                          className="p-1 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-all shrink-0 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-                          aria-label="Dismiss notification"
                         >
-                          <XMarkIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    );
-                  })}
+                          <div className={`p-2 rounded-lg shrink-0 ${bg} ${color}`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={`text-sm leading-snug ${notif.read ? "text-gray-400" : "text-white"}`}
+                            >
+                              {notif.message}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {relativeTime(notif.timestamp)}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDismiss?.(notif.id);
+                            }}
+                            className="p-1 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-all shrink-0 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                            aria-label="Dismiss notification"
+                          >
+                            <XMarkIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {notifications.length > 10 && (
+                <div className="px-5 py-3 border-t border-gray-800/50 text-center">
+                  <span className="text-xs text-gray-500">
+                    +{notifications.length - 10} more notifications
+                  </span>
                 </div>
               )}
             </div>
-
-            {notifications.length > 10 && (
-              <div className="px-5 py-3 border-t border-gray-800/50 text-center">
-                <span className="text-xs text-gray-500">
-                  +{notifications.length - 10} more notifications
-                </span>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
@@ -346,79 +348,83 @@ const UserMenu = ({ onProfileClick }) => {
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-violet-500/10 rounded-2xl blur-xl" />
 
             <div className="relative bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
-            {/* User Info Header */}
-            <div className="p-5 border-b border-gray-800/50">
-              <div className="flex items-center gap-4">
-                {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
-                ) : (
-                  <div
-                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-600 
+              {/* User Info Header */}
+              <div className="p-5 border-b border-gray-800/50">
+                <div className="flex items-center gap-4">
+                  {user?.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt=""
+                      className="w-12 h-12 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-600 
                                 flex items-center justify-center text-white font-semibold shadow-lg"
-                  >
-                    {getInitials()}
+                    >
+                      {getInitials()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white truncate text-base lg:text-lg">
+                      {user?.full_name || user?.name}
+                    </p>
+                    <p className="text-sm lg:text-base text-gray-400 truncate">{user?.email}</p>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white truncate text-base lg:text-lg">
-                    {user?.full_name || user?.name}
-                  </p>
-                  <p className="text-sm lg:text-base text-gray-400 truncate">{user?.email}</p>
                 </div>
               </div>
-            </div>
 
-            {/* Menu Items */}
-            <div className="p-2">
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  onProfileClick?.();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300
+              {/* Menu Items */}
+              <div className="p-2">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onProfileClick?.();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300
                          hover:text-white hover:bg-gray-800/50 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-              >
-                <div className="p-2 rounded-lg bg-gray-800/50">
-                  <UserIcon className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-sm lg:text-base">Profile</p>
-                  <p className="text-xs lg:text-sm text-gray-500">View and edit profile</p>
-                </div>
-              </button>
+                >
+                  <div className="p-2 rounded-lg bg-gray-800/50">
+                    <UserIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-sm lg:text-base">Profile</p>
+                    <p className="text-xs lg:text-sm text-gray-500">View and edit profile</p>
+                  </div>
+                </button>
 
-              <Link
-                to="/settings"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 
+                <Link
+                  to="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 
                          hover:text-white hover:bg-gray-800/50 rounded-xl transition-all"
-              >
-                <div className="p-2 rounded-lg bg-gray-800/50">
-                  <Cog6ToothIcon className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-sm lg:text-base">Settings</p>
-                  <p className="text-xs lg:text-sm text-gray-500">Preferences & security</p>
-                </div>
-              </Link>
-            </div>
+                >
+                  <div className="p-2 rounded-lg bg-gray-800/50">
+                    <Cog6ToothIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-sm lg:text-base">Settings</p>
+                    <p className="text-xs lg:text-sm text-gray-500">Preferences & security</p>
+                  </div>
+                </Link>
+              </div>
 
-            {/* Logout */}
-            <div className="p-2 border-t border-gray-800/50">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400
+              {/* Logout */}
+              <div className="p-2 border-t border-gray-800/50">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400
                          hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-              >
-                <div className="p-2 rounded-lg bg-red-500/10">
-                  <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                </div>
-                <span className="font-medium text-sm lg:text-base">Sign out</span>
-              </button>
+                >
+                  <div className="p-2 rounded-lg bg-red-500/10">
+                    <ArrowRightOnRectangleIcon className="w-5 h-5" />
+                  </div>
+                  <span className="font-medium text-sm lg:text-base">Sign out</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

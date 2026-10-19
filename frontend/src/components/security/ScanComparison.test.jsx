@@ -167,7 +167,14 @@ const mockScansData = {
 
 const emptyComparisonData = {
   data: {
-    summary: { fixed: 0, new: 0, reintroduced: 0, modified: 0, net_change: 0, improvement_score: 0 },
+    summary: {
+      fixed: 0,
+      new: 0,
+      reintroduced: 0,
+      modified: 0,
+      net_change: 0,
+      improvement_score: 0,
+    },
     base_scan: { timestamp: "2025-01-01T00:00:00Z", branch: "main", total_findings: 0 },
     compare_scan: { timestamp: "2025-01-15T00:00:00Z", branch: "main", total_findings: 0 },
     details: { fixed: [], new: [], reintroduced: [], modified: [] },
@@ -187,7 +194,9 @@ describe("ScanComparison", () => {
     renderWithClient(<ScanComparison />);
 
     expect(screen.getByText("Scan Comparison")).toBeInTheDocument();
-    expect(screen.getByText("Compare security scans to track remediation progress")).toBeInTheDocument();
+    expect(
+      screen.getByText("Compare security scans to track remediation progress")
+    ).toBeInTheDocument();
     expect(screen.getByText("Base Scan (Older)")).toBeInTheDocument();
     expect(screen.getByText("Compare Scan (Newer)")).toBeInTheDocument();
     expect(screen.getByText("Select two scans to compare")).toBeInTheDocument();
@@ -270,9 +279,7 @@ describe("ScanComparison", () => {
     expect(await screen.findByText("SQL Injection"));
 
     const modifiedButtons = screen.getAllByText("Modified");
-    const modifiedTab = modifiedButtons.find(
-      (el) => el.tagName === "BUTTON",
-    ) || modifiedButtons[1];
+    const modifiedTab = modifiedButtons.find((el) => el.tagName === "BUTTON") || modifiedButtons[1];
     await userEvent.click(modifiedTab);
 
     expect(screen.getByText("Deprecated API Usage")).toBeInTheDocument();
@@ -288,9 +295,8 @@ describe("ScanComparison", () => {
     await screen.findByText("SQL Injection");
 
     const fixedTabButtons = screen.getAllByText("Fixed");
-    const fixedTabButton = fixedTabButtons.find(
-      (el) => el.tagName === "BUTTON",
-    ) || fixedTabButtons[1];
+    const fixedTabButton =
+      fixedTabButtons.find((el) => el.tagName === "BUTTON") || fixedTabButtons[1];
     await userEvent.click(fixedTabButton);
 
     expect(screen.getByText("SQL Injection")).toBeInTheDocument();
@@ -298,9 +304,7 @@ describe("ScanComparison", () => {
     expect(screen.queryByText("Command Injection")).not.toBeInTheDocument();
 
     const newTabButtons = screen.getAllByText("New");
-    const newTabButton = newTabButtons.find(
-      (el) => el.tagName === "BUTTON",
-    ) || newTabButtons[1];
+    const newTabButton = newTabButtons.find((el) => el.tagName === "BUTTON") || newTabButtons[1];
     await userEvent.click(newTabButton);
 
     expect(screen.getByText("CSRF Token Missing")).toBeInTheDocument();
@@ -347,7 +351,9 @@ describe("ScanComparison", () => {
     enterpriseAPI.compareScans.mockResolvedValue(mockComparisonData);
     reportsAPI.getProjectReports.mockResolvedValue(mockScansData);
 
-    renderWithClient(<ScanComparison baseScanId="scan-001" compareScanId="scan-002" projectName="test-project" />);
+    renderWithClient(
+      <ScanComparison baseScanId="scan-001" compareScanId="scan-002" projectName="test-project" />
+    );
 
     await screen.findByText("Scan Comparison");
 

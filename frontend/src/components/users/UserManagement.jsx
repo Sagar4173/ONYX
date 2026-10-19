@@ -45,7 +45,11 @@ const UserManagement = () => {
 
   const hasAdminAccess = user?.role === "admin" || user?.role === "security_manager";
 
-  const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    error: usersError,
+  } = useQuery({
     queryKey: ["users", searchQuery, filters],
     queryFn: async () => {
       const params = new URLSearchParams({

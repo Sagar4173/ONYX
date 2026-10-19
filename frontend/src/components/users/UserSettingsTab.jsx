@@ -5,7 +5,10 @@ const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 const UserSettingsTab = () => (
   <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="show">
-    <motion.div variants={item} className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+    <motion.div
+      variants={item}
+      className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6"
+    >
       <h3 className="text-xl font-bold text-white mb-4">User Management Settings</h3>
       <div className="space-y-4">
         {[

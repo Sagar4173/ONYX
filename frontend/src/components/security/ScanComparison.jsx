@@ -286,60 +286,60 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectName =
             <h2 className="text-2xl font-bold text-white">Scan Comparison</h2>
             <p className="text-gray-400">Compare security scans to track remediation progress</p>
           </div>
-        <button
-          onClick={() => refetch()}
-          disabled={!selectedBaseScan || !selectedCompareScan}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-        >
-          <ArrowPathIcon className="w-4 h-4" />
-          Compare
-        </button>
-      </div>
+          <button
+            onClick={() => refetch()}
+            disabled={!selectedBaseScan || !selectedCompareScan}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 shadow-lg hover:shadow-xl hover:shadow-cyan-500/20 transition-all duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+            Compare
+          </button>
+        </div>
       </motion.div>
 
       <motion.div custom={1} variants={staggerVariants}>
         <Card padding="lg">
           <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-200 mb-2">
-              Base Scan (Older)
-            </label>
-            <select
-              value={selectedBaseScan || ""}
-              onChange={(e) => setSelectedBaseScan(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
-            >
-              <option value="">Select base scan...</option>
-              {scansData?.scans?.map((scan) => (
-                <option key={scan.id} value={scan.id}>
-                  {new Date(scan.timestamp).toLocaleDateString()} - {scan.branch} ({scan.findings}{" "}
-                  findings)
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Base Scan (Older)
+              </label>
+              <select
+                value={selectedBaseScan || ""}
+                onChange={(e) => setSelectedBaseScan(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
+              >
+                <option value="">Select base scan...</option>
+                {scansData?.scans?.map((scan) => (
+                  <option key={scan.id} value={scan.id}>
+                    {new Date(scan.timestamp).toLocaleDateString()} - {scan.branch} ({scan.findings}{" "}
+                    findings)
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <ArrowRightIcon className="w-6 h-6 text-gray-400 flex-shrink-0 mt-6" />
+            <ArrowRightIcon className="w-6 h-6 text-gray-400 flex-shrink-0 mt-6" />
 
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-200 mb-2">
-              Compare Scan (Newer)
-            </label>
-            <select
-              value={selectedCompareScan || ""}
-              onChange={(e) => setSelectedCompareScan(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
-            >
-              <option value="">Select compare scan...</option>
-              {scansData?.scans?.map((scan) => (
-                <option key={scan.id} value={scan.id}>
-                  {new Date(scan.timestamp).toLocaleDateString()} - {scan.branch} ({scan.findings}{" "}
-                  findings)
-                </option>
-              ))}
-            </select>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Compare Scan (Newer)
+              </label>
+              <select
+                value={selectedCompareScan || ""}
+                onChange={(e) => setSelectedCompareScan(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-700/50 rounded-lg focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
+              >
+                <option value="">Select compare scan...</option>
+                {scansData?.scans?.map((scan) => (
+                  <option key={scan.id} value={scan.id}>
+                    {new Date(scan.timestamp).toLocaleDateString()} - {scan.branch} ({scan.findings}{" "}
+                    findings)
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
         </Card>
       </motion.div>
 
@@ -356,7 +356,7 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectName =
           </motion.div>
         )}
 
-          {error && (
+        {error && (
           <motion.div
             key="error"
             initial={{ opacity: 0, y: -10 }}
@@ -364,9 +364,9 @@ const ScanComparison = ({ baseScanId = null, compareScanId = null, projectName =
             exit={{ opacity: 0 }}
             className="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400"
           >
-          <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
-          Error comparing scans: {error.message}
-        </motion.div>
+            <ExclamationTriangleIcon className="w-5 h-5 inline mr-2" />
+            Error comparing scans: {error.message}
+          </motion.div>
         )}
       </AnimatePresence>
 

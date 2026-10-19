@@ -1,10 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  CodeBracketIcon,
-  EyeIcon,
-  CubeIcon,
-  ServerIcon,
-} from "@heroicons/react/24/outline";
+import { CodeBracketIcon, EyeIcon, CubeIcon, ServerIcon } from "@heroicons/react/24/outline";
 import SettingCard from "./SettingCard";
 import Toggle from "./Toggle";
 

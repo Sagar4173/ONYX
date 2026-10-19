@@ -278,8 +278,8 @@ export const AISection = ({ aiAnalysis, aiLoading, aiError }) => {
                             : aiAnalysis.compliance_impact.overall_impact
                                   .toLowerCase()
                                   .includes("medium")
-                                ? "bg-yellow-500/20 text-yellow-400"
-                                : "bg-green-500/20 text-green-400"
+                              ? "bg-yellow-500/20 text-yellow-400"
+                              : "bg-green-500/20 text-green-400"
                         }`}
                       >
                         {aiAnalysis.compliance_impact.overall_impact}

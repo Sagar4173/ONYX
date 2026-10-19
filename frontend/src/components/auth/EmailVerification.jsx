@@ -177,8 +177,8 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Already Verified!</h2>
         <p className="text-gray-400 mb-6">
-          Your email <span className="text-white font-medium">{email}</span> is already
-          verified. You can log in to your account now.
+          Your email <span className="text-white font-medium">{email}</span> is already verified.
+          You can log in to your account now.
         </p>
         <button
           onClick={onError}
@@ -274,7 +274,15 @@ export const EmailVerification = ({ token, onSuccess, onError }) => {
 
   return (
     <AnimatePresence mode="wait">
-      {isVerifying ? loadingView : verificationStatus === "success" ? successView : alreadyVerified ? alreadyVerifiedView : verificationStatus === "error" ? errorView : null}
+      {isVerifying
+        ? loadingView
+        : verificationStatus === "success"
+          ? successView
+          : alreadyVerified
+            ? alreadyVerifiedView
+            : verificationStatus === "error"
+              ? errorView
+              : null}
     </AnimatePresence>
   );
 };

@@ -82,9 +82,7 @@ const UserModal = ({ user, isOpen, onClose }) => {
                       key={tab}
                       onClick={() => setActiveTab(tab)}
                       className={`relative flex-1 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                        activeTab === tab
-                          ? "text-white"
-                          : "text-gray-400 hover:text-gray-300"
+                        activeTab === tab ? "text-white" : "text-gray-400 hover:text-gray-300"
                       }`}
                     >
                       {activeTab === tab && (
@@ -151,7 +149,12 @@ const UserModal = ({ user, isOpen, onClose }) => {
                 )}
 
                 {activeTab === "sessions" && (
-                  <motion.div className="space-y-3" variants={listAnim} initial="hidden" animate="show">
+                  <motion.div
+                    className="space-y-3"
+                    variants={listAnim}
+                    initial="hidden"
+                    animate="show"
+                  >
                     {userSessions.map((session) => (
                       <motion.div
                         key={session.session_id}
@@ -178,7 +181,12 @@ const UserModal = ({ user, isOpen, onClose }) => {
                 )}
 
                 {activeTab === "tokens" && (
-                  <motion.div className="space-y-3" variants={listAnim} initial="hidden" animate="show">
+                  <motion.div
+                    className="space-y-3"
+                    variants={listAnim}
+                    initial="hidden"
+                    animate="show"
+                  >
                     {userTokens.map((token) => (
                       <motion.div
                         key={token.token_id}
@@ -203,7 +211,12 @@ const UserModal = ({ user, isOpen, onClose }) => {
                 )}
 
                 {activeTab === "activity" && (
-                  <motion.div className="space-y-3" variants={listAnim} initial="hidden" animate="show">
+                  <motion.div
+                    className="space-y-3"
+                    variants={listAnim}
+                    initial="hidden"
+                    animate="show"
+                  >
                     {userActivity.map((activity) => (
                       <motion.div
                         key={activity.id}

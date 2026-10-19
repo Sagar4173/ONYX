@@ -7,11 +7,7 @@ const AssessmentDetailModal = ({ assessment, onClose }) => {
 
   return (
     <Modal size="xl" isOpen={!!assessment} onClose={onClose} title="Assessment Details">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         <motion.div
           initial="hidden"
           animate="visible"
@@ -62,7 +58,9 @@ const AssessmentDetailModal = ({ assessment, onClose }) => {
             className="bg-gray-800/30 rounded-xl p-4"
           >
             <p className="text-sm text-gray-400 mb-1">Assessment Date</p>
-            <p className="text-sm font-medium text-white">{formatDate(assessment.assessment_date)}</p>
+            <p className="text-sm font-medium text-white">
+              {formatDate(assessment.assessment_date)}
+            </p>
           </motion.div>
         </motion.div>
 
@@ -102,7 +100,9 @@ const AssessmentDetailModal = ({ assessment, onClose }) => {
 
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-green-400">{result.passed_controls}</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {result.passed_controls}
+                        </p>
                         <p className="text-xs text-gray-400">Passed</p>
                       </div>
                       <div className="text-center">

@@ -91,13 +91,12 @@ const Settings = () => {
       const token = localStorage.getItem("access_token");
       const response = await fetch(settingsApiUrl, {
         method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-          body: JSON.stringify(settingsData),
-        }
-      );
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify(settingsData),
+      });
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || "Failed to save settings");

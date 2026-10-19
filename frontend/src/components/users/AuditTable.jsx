@@ -1,5 +1,11 @@
 import { motion } from "framer-motion";
-import { ClockIcon, UserIcon, GlobeAltIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import {
+  ClockIcon,
+  UserIcon,
+  GlobeAltIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { EmptyState } from "../../layouts";
 import { getSeverityColor, getSeverityIcon, formatTimestamp } from "./auditHelpers.jsx";
@@ -46,19 +52,22 @@ const AuditRow = ({ log, isExpanded, onToggle }) => (
       </td>
       <td className="px-6 py-4">
         <button
-          onClick={(e) => { e.stopPropagation(); onToggle(log.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(log.id);
+          }}
           className="text-cyan-400 hover:text-cyan-300 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         >
-          {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
+          {isExpanded ? (
+            <ChevronUpIcon className="w-4 h-4" />
+          ) : (
+            <ChevronDownIcon className="w-4 h-4" />
+          )}
         </button>
       </td>
     </motion.tr>
     {isExpanded && (
-      <motion.tr
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      >
+      <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
         <td colSpan="7" className="px-6 py-4 bg-gray-800/30">
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
@@ -106,7 +115,10 @@ const AuditTable = ({
       <div className="p-12 text-center">
         <div className="relative w-12 h-12 mx-auto mb-4">
           <div className="absolute inset-0 rounded-full border-2 border-gray-700 border-t-cyan-500 animate-spin" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-b-violet-500 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+          <div
+            className="absolute inset-0 rounded-full border-2 border-transparent border-b-violet-500 animate-spin"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+          />
         </div>
         <p className="text-gray-400">Loading audit logs...</p>
       </div>
@@ -124,11 +136,17 @@ const AuditTable = ({
           <thead>
             <tr className="border-b border-gray-700/50">
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Timestamp</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Event Type</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                Event Type
+              </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">User</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                Description
+              </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Severity</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">IP Address</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                IP Address
+              </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Details</th>
             </tr>
           </thead>

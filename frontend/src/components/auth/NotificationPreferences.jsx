@@ -144,129 +144,129 @@ export const NotificationPreferences = () => {
           <div className="relative flex items-center gap-4">
             <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-violet-500/20 rounded-xl">
               <BellIcon className="h-7 w-7 text-cyan-400" />
-          </div>
-          <div>
-            <h3 className="text-white font-bold text-lg">Notification Preferences</h3>
-            <p className="text-gray-400 text-sm">
-              {loadingNotifications
-                ? "Loading preferences..."
-                : "Control how and when you receive notifications"}
-            </p>
-          </div>
-          {savingNotifications && (
-            <div className="ml-auto">
-              <ArrowPathIcon className="h-5 w-5 text-cyan-400 animate-spin" />
             </div>
-          )}
+            <div>
+              <h3 className="text-white font-bold text-lg">Notification Preferences</h3>
+              <p className="text-gray-400 text-sm">
+                {loadingNotifications
+                  ? "Loading preferences..."
+                  : "Control how and when you receive notifications"}
+              </p>
+            </div>
+            {savingNotifications && (
+              <div className="ml-auto">
+                <ArrowPathIcon className="h-5 w-5 text-cyan-400 animate-spin" />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </motion.div>
 
       <motion.div custom={1} variants={staggerVariants}>
         <div className="space-y-4">
-        {loadingNotifications ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5 animate-pulse"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-700 rounded-xl" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-700 rounded w-1/4" />
-                    <div className="h-3 bg-gray-700 rounded w-1/2" />
-                  </div>
-                  <div className="w-14 h-8 bg-gray-700 rounded-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          categories.map((item) => (
-            <div
-              key={item.key}
-              className="group bg-gray-800/30 border border-gray-700/50 hover:border-gray-600/50 rounded-2xl p-5 transition-all duration-300"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`p-3 bg-gradient-to-br ${item.gradient} rounded-xl group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <item.icon className={`h-5 w-5 ${item.iconColor}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-white font-medium">{item.title}</h4>
-                      {item.recommended && (
-                        <span className="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">
-                          Recommended
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-400 text-sm mt-0.5">{item.description}</p>
-                  </div>
-                </div>
-                <button
-                  role="switch"
-                  aria-checked={notifications[item.key]}
-                  aria-label={`${item.title}: ${notifications[item.key] ? "enabled" : "disabled"}`}
-                  onClick={() => handleToggle(item.key)}
-                  disabled={savingNotifications}
-                  className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
-                    notifications[item.key]
-                      ? "bg-gradient-to-r from-cyan-500 to-violet-500"
-                      : "bg-gray-700"
-                  }`}
+          {loadingNotifications ? (
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5 animate-pulse"
                 >
-                  <div
-                    className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg transition-all duration-300 ${
-                      notifications[item.key] ? "left-7" : "left-1"
-                    }`}
-                  />
-                </button>
-              </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-700 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-700 rounded w-1/4" />
+                      <div className="h-3 bg-gray-700 rounded w-1/2" />
+                    </div>
+                    <div className="w-14 h-8 bg-gray-700 rounded-full" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            categories.map((item) => (
+              <div
+                key={item.key}
+                className="group bg-gray-800/30 border border-gray-700/50 hover:border-gray-600/50 rounded-2xl p-5 transition-all duration-300"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`p-3 bg-gradient-to-br ${item.gradient} rounded-xl group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <item.icon className={`h-5 w-5 ${item.iconColor}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-white font-medium">{item.title}</h4>
+                        {item.recommended && (
+                          <span className="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">
+                            Recommended
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-400 text-sm mt-0.5">{item.description}</p>
+                    </div>
+                  </div>
+                  <button
+                    role="switch"
+                    aria-checked={notifications[item.key]}
+                    aria-label={`${item.title}: ${notifications[item.key] ? "enabled" : "disabled"}`}
+                    onClick={() => handleToggle(item.key)}
+                    disabled={savingNotifications}
+                    className={`relative flex-shrink-0 w-14 h-8 rounded-full transition-all duration-300 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+                      notifications[item.key]
+                        ? "bg-gradient-to-r from-cyan-500 to-violet-500"
+                        : "bg-gray-700"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg transition-all duration-300 ${
+                        notifications[item.key] ? "left-7" : "left-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </motion.div>
 
       <motion.div custom={2} variants={staggerVariants}>
         <div className="bg-gray-800/30 border border-gray-700/50 rounded-2xl p-5">
-        <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <BoltIcon className="h-5 w-5 text-amber-400" />
-          Quick Actions
-        </h4>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() =>
-              setAll({ email: true, push: true, security: true, updates: true, marketing: true })
-            }
-            disabled={savingNotifications}
-            className="py-3 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 text-emerald-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-          >
-            <CheckCircleIcon className="h-5 w-5" />
-            Enable All
-          </button>
-          <button
-            onClick={() =>
-              setAll({
-                email: false,
-                push: false,
-                security: true,
-                updates: false,
-                marketing: false,
-              })
-            }
-            disabled={savingNotifications}
-            className="py-3 px-4 bg-gradient-to-r from-gray-700/50 to-gray-600/50 hover:from-gray-700 hover:to-gray-600 border border-gray-600/50 text-gray-300 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-          >
-            <XMarkIcon className="h-5 w-5" />
-            Minimal Only
-          </button>
+          <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+            <BoltIcon className="h-5 w-5 text-amber-400" />
+            Quick Actions
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() =>
+                setAll({ email: true, push: true, security: true, updates: true, marketing: true })
+              }
+              disabled={savingNotifications}
+              className="py-3 px-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 text-emerald-400 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <CheckCircleIcon className="h-5 w-5" />
+              Enable All
+            </button>
+            <button
+              onClick={() =>
+                setAll({
+                  email: false,
+                  push: false,
+                  security: true,
+                  updates: false,
+                  marketing: false,
+                })
+              }
+              disabled={savingNotifications}
+              className="py-3 px-4 bg-gradient-to-r from-gray-700/50 to-gray-600/50 hover:from-gray-700 hover:to-gray-600 border border-gray-600/50 text-gray-300 font-medium rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <XMarkIcon className="h-5 w-5" />
+              Minimal Only
+            </button>
+          </div>
         </div>
-      </div>
       </motion.div>
     </motion.div>
   );

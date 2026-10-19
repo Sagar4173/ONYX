@@ -10,7 +10,12 @@ const LEVEL_COLORS = {
   SCAN: "text-green-400",
 };
 
-const LiveConsole = ({ logLines = [], liveScanData, isExpanded: controlledExpanded, onToggle: controlledToggle }) => {
+const LiveConsole = ({
+  logLines = [],
+  liveScanData,
+  isExpanded: controlledExpanded,
+  onToggle: controlledToggle,
+}) => {
   const lines = logLines.length > 0 ? logLines : (liveScanData?.scanLog ?? []);
   const [localExpanded, setLocalExpanded] = useState(false);
   const bottomRef = useRef(null);

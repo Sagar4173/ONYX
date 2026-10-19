@@ -92,8 +92,8 @@ export const ForgotPasswordSuccess = ({ email, onSwitchToLogin }) => {
           </li>
         </ul>
         <p className="text-xs text-gray-400 mt-3">
-          <span className="text-violet-400">Note:</span> Check your spam folder if you don't see
-          the email within a few minutes.
+          <span className="text-violet-400">Note:</span> Check your spam folder if you don't see the
+          email within a few minutes.
         </p>
       </motion.div>
 

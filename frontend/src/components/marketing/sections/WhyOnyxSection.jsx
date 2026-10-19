@@ -58,7 +58,7 @@ const WhyOnyxSection = ({ currentTestimonial, setCurrentTestimonial }) => (
             {currentTestimonial === index && (
               <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
             )}
-            </motion.div>
+          </motion.div>
         ))}
       </motion.div>
 

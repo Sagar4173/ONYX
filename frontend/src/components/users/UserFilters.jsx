@@ -110,9 +110,7 @@ const UserFilters = ({
         >
           <div className="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-cyan-400 text-sm">
-                {selectedUsers.length} user(s) selected
-              </span>
+              <span className="text-cyan-400 text-sm">{selectedUsers.length} user(s) selected</span>
               <div className="flex space-x-2">
                 <button className="px-3 py-1 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-cyan-400 text-white text-sm font-semibold hover:from-cyan-300 hover:via-violet-400 hover:to-cyan-300 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900">
                   Bulk Actions

@@ -106,32 +106,32 @@ const LandingNavbar = ({ scrollY, isNavOpen, setIsNavOpen, scrollToSection }) =>
               className="md:hidden overflow-hidden"
             >
               <div className="mt-4 pb-4 border-t border-gray-800/50 pt-4">
-            <div className="flex flex-col space-y-3">
-              {navLinks.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className="text-gray-400 hover:text-white transition-colors text-sm font-medium text-left py-2"
-                >
-                  {item.name}
-                </button>
-              ))}
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => navigate("/login")}
-                  className="flex-1 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium border border-gray-700 rounded-lg"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => navigate("/register")}
-                  className="flex-1 py-2 bg-gradient-to-r from-cyan-500 to-violet-600 text-white text-sm font-medium rounded-lg"
-                >
-                  Start Free
-                </button>
+                <div className="flex flex-col space-y-3">
+                  {navLinks.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => scrollToSection(item.id)}
+                      className="text-gray-400 hover:text-white transition-colors text-sm font-medium text-left py-2"
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => navigate("/login")}
+                      className="flex-1 py-2 text-gray-300 hover:text-white transition-colors text-sm font-medium border border-gray-700 rounded-lg"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => navigate("/register")}
+                      className="flex-1 py-2 bg-gradient-to-r from-cyan-500 to-violet-600 text-white text-sm font-medium rounded-lg"
+                    >
+                      Start Free
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
             </motion.div>
           )}
         </AnimatePresence>

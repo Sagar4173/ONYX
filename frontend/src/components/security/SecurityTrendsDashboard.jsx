@@ -313,254 +313,256 @@ const SecurityTrendsDashboard = ({ projectId = null }) => {
             <h2 className="text-2xl font-bold text-white">Security Trends</h2>
             <p className="text-gray-400">Track your security posture over time</p>
           </div>
-        <div className="flex items-center gap-3">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
-          >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-          <button
-            onClick={() => refetch()}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
-          >
-            <ArrowPathIcon className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="px-3 py-2 border border-gray-700/50 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 bg-gray-800 text-white"
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            <button
+              onClick={() => refetch()}
+              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-      </div>
       </motion.div>
 
       <motion.div custom={1} variants={staggerVariants}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-400">Security Score</p>
-            <p className="text-3xl font-bold text-white">
-              {current.security_score?.toFixed(0) || 0}
-            </p>
-            <TrendIndicator direction={trends.direction} value={trends.improvement_pct} />
-          </div>
-          <CircularProgress
-            value={current.security_score || 0}
-            label="Score"
-            color={
-              current.security_score >= 80
-                ? "green"
-                : current.security_score >= 60
-                  ? "yellow"
-                  : "red"
-            }
-            size={80}
-          />
-        </Card>
-
-        <Card>
-          <p className="text-sm text-gray-400">Risk Score</p>
-          <p className="text-3xl font-bold text-white">{current.risk_score?.toFixed(0) || 0}</p>
-          <p className="text-xs text-gray-400 mt-1">Lower is better</p>
-          <div className="mt-2 w-full bg-gray-700 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full ${
-                current.risk_score <= 30
-                  ? "bg-green-900/300"
-                  : current.risk_score <= 60
-                    ? "bg-yellow-500"
-                    : "bg-red-500"
-              }`}
-              style={{ width: `${current.risk_score || 0}%` }}
+          <Card className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Security Score</p>
+              <p className="text-3xl font-bold text-white">
+                {current.security_score?.toFixed(0) || 0}
+              </p>
+              <TrendIndicator direction={trends.direction} value={trends.improvement_pct} />
+            </div>
+            <CircularProgress
+              value={current.security_score || 0}
+              label="Score"
+              color={
+                current.security_score >= 80
+                  ? "green"
+                  : current.security_score >= 60
+                    ? "yellow"
+                    : "red"
+              }
+              size={80}
             />
-          </div>
-        </Card>
+          </Card>
 
-        <MetricCard
-          title="Open Findings"
-          value={current.open_findings || 0}
-          subtitle={`${current.fixed_7d || 0} fixed this week`}
-          icon={ExclamationTriangleIcon}
-        />
+          <Card>
+            <p className="text-sm text-gray-400">Risk Score</p>
+            <p className="text-3xl font-bold text-white">{current.risk_score?.toFixed(0) || 0}</p>
+            <p className="text-xs text-gray-400 mt-1">Lower is better</p>
+            <div className="mt-2 w-full bg-gray-700 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  current.risk_score <= 30
+                    ? "bg-green-900/300"
+                    : current.risk_score <= 60
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
+                }`}
+                style={{ width: `${current.risk_score || 0}%` }}
+              />
+            </div>
+          </Card>
 
-        <MetricCard
-          title="Fix Rate"
-          value={`${((trends.fix_rate || 0) * 100).toFixed(0)}%`}
-          subtitle="Fixed vs New ratio"
-          icon={ViewfinderCircleIcon}
-          trend={trends.fix_rate > 1 ? { direction: "improving" } : { direction: "degrading" }}
-        />
-      </div>
+          <MetricCard
+            title="Open Findings"
+            value={current.open_findings || 0}
+            subtitle={`${current.fixed_7d || 0} fixed this week`}
+            icon={ExclamationTriangleIcon}
+          />
+
+          <MetricCard
+            title="Fix Rate"
+            value={`${((trends.fix_rate || 0) * 100).toFixed(0)}%`}
+            subtitle="Fixed vs New ratio"
+            icon={ViewfinderCircleIcon}
+            trend={trends.fix_rate > 1 ? { direction: "improving" } : { direction: "degrading" }}
+          />
+        </div>
       </motion.div>
 
       <motion.div custom={2} variants={staggerVariants}>
         <Card padding="lg">
-        <h3 className="font-semibold text-white mb-4">Current Severity Breakdown</h3>
-        <div className="grid grid-cols-5 gap-4">
-          {[
-            {
-              label: "Critical",
-              key: "critical",
-              color: "bg-red-500",
-              textColor: "text-red-400",
-            },
-            {
-              label: "High",
-              key: "high",
-              color: "bg-orange-500",
-              textColor: "text-orange-400",
-            },
-            {
-              label: "Medium",
-              key: "medium",
-              color: "bg-yellow-500",
-              textColor: "text-yellow-400",
-            },
-            {
-              label: "Low",
-              key: "low",
-              color: "bg-cyan-500",
-              textColor: "text-cyan-400",
-            },
-            {
-              label: "Info",
-              key: "info",
-              color: "bg-gray-400",
-              textColor: "text-gray-300",
-            },
-          ].map(({ label, key, color, textColor }) => (
-            <div key={key} className="text-center">
-              <div className={`w-full h-2 ${color} rounded-full mb-2`} />
-              <p className={`text-2xl font-bold ${textColor}`}>
-                {current.severity_counts?.[key] || 0}
-              </p>
-              <p className="text-sm text-gray-400">{label}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
+          <h3 className="font-semibold text-white mb-4">Current Severity Breakdown</h3>
+          <div className="grid grid-cols-5 gap-4">
+            {[
+              {
+                label: "Critical",
+                key: "critical",
+                color: "bg-red-500",
+                textColor: "text-red-400",
+              },
+              {
+                label: "High",
+                key: "high",
+                color: "bg-orange-500",
+                textColor: "text-orange-400",
+              },
+              {
+                label: "Medium",
+                key: "medium",
+                color: "bg-yellow-500",
+                textColor: "text-yellow-400",
+              },
+              {
+                label: "Low",
+                key: "low",
+                color: "bg-cyan-500",
+                textColor: "text-cyan-400",
+              },
+              {
+                label: "Info",
+                key: "info",
+                color: "bg-gray-400",
+                textColor: "text-gray-300",
+              },
+            ].map(({ label, key, color, textColor }) => (
+              <div key={key} className="text-center">
+                <div className={`w-full h-2 ${color} rounded-full mb-2`} />
+                <p className={`text-2xl font-bold ${textColor}`}>
+                  {current.severity_counts?.[key] || 0}
+                </p>
+                <p className="text-sm text-gray-400">{label}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
       </motion.div>
 
       <motion.div custom={3} variants={staggerVariants}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Trends */}
-        <Card padding="lg">
-          <h3 className="font-semibold text-white mb-4">Weekly Severity Trends</h3>
-          <SeverityTrendChart data={charts.weekly} />
-        </Card>
+          {/* Weekly Trends */}
+          <Card padding="lg">
+            <h3 className="font-semibold text-white mb-4">Weekly Severity Trends</h3>
+            <SeverityTrendChart data={charts.weekly} />
+          </Card>
 
-        {/* Quick Stats */}
-        <Card padding="lg">
-          <h3 className="font-semibold text-white mb-4">Quick Stats</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <ClockIcon className="w-5 h-5 text-cyan-500" />
-                <span className="text-gray-200">Mean Time to Remediate</span>
-              </div>
-              <span className="font-semibold">
-                {current.mttr_hours ? `${(current.mttr_hours / 24).toFixed(1)} days` : "N/A"}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                <span className="text-gray-200">Compliance Rate</span>
-              </div>
-              <span className="font-semibold">
-                {((current.compliance_rate || 0) * 100).toFixed(0)}%
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <ShieldCheckIcon className="w-5 h-5 text-violet-500" />
-                <span className="text-gray-200">Coverage</span>
-              </div>
-              <span className="font-semibold">{((current.coverage || 0) * 100).toFixed(0)}%</span>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <ViewfinderCircleIcon className="w-5 h-5 text-cyan-500" />
-                <span className="text-gray-200">Projected Score (30d)</span>
-              </div>
-              <span className="font-semibold text-cyan-400">
-                {trends.projected_score_30d?.toFixed(0) || "N/A"}
-              </span>
-            </div>
-
-            {trends.time_to_target && (
-              <div className="flex items-center justify-between p-3 bg-green-900/30 rounded-lg">
+          {/* Quick Stats */}
+          <Card padding="lg">
+            <h3 className="font-semibold text-white mb-4">Quick Stats</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <CalendarIcon className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-200">Days to Target Score (90)</span>
+                  <ClockIcon className="w-5 h-5 text-cyan-500" />
+                  <span className="text-gray-200">Mean Time to Remediate</span>
                 </div>
-                <span className="font-semibold text-green-400">~{trends.time_to_target} days</span>
+                <span className="font-semibold">
+                  {current.mttr_hours ? `${(current.mttr_hours / 24).toFixed(1)} days` : "N/A"}
+                </span>
               </div>
-            )}
-          </div>
-        </Card>
-      </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-200">Compliance Rate</span>
+                </div>
+                <span className="font-semibold">
+                  {((current.compliance_rate || 0) * 100).toFixed(0)}%
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <ShieldCheckIcon className="w-5 h-5 text-violet-500" />
+                  <span className="text-gray-200">Coverage</span>
+                </div>
+                <span className="font-semibold">{((current.coverage || 0) * 100).toFixed(0)}%</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <ViewfinderCircleIcon className="w-5 h-5 text-cyan-500" />
+                  <span className="text-gray-200">Projected Score (30d)</span>
+                </div>
+                <span className="font-semibold text-cyan-400">
+                  {trends.projected_score_30d?.toFixed(0) || "N/A"}
+                </span>
+              </div>
+
+              {trends.time_to_target && (
+                <div className="flex items-center justify-between p-3 bg-green-900/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <CalendarIcon className="w-5 h-5 text-green-500" />
+                    <span className="text-gray-200">Days to Target Score (90)</span>
+                  </div>
+                  <span className="font-semibold text-green-400">
+                    ~{trends.time_to_target} days
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
       </motion.div>
 
       {comparison.current_period && (
         <motion.div custom={4} variants={staggerVariants}>
           <Card padding="lg">
-          <h3 className="font-semibold text-white mb-4">Period-over-Period Comparison</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-gray-800/30 rounded-lg">
-              <p className="text-sm text-gray-400 mb-2">Security Score Change</p>
-              <p
-                className={`text-3xl font-bold ${
-                  comparison.changes?.security_score >= 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {comparison.changes?.security_score >= 0 ? "+" : ""}
-                {comparison.changes?.security_score?.toFixed(1) || 0}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">vs previous 30 days</p>
-            </div>
+            <h3 className="font-semibold text-white mb-4">Period-over-Period Comparison</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-800/30 rounded-lg">
+                <p className="text-sm text-gray-400 mb-2">Security Score Change</p>
+                <p
+                  className={`text-3xl font-bold ${
+                    comparison.changes?.security_score >= 0 ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {comparison.changes?.security_score >= 0 ? "+" : ""}
+                  {comparison.changes?.security_score?.toFixed(1) || 0}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">vs previous 30 days</p>
+              </div>
 
-            <div className="text-center p-4 bg-gray-800/30 rounded-lg">
-              <p className="text-sm text-gray-400 mb-2">Finding Change</p>
-              <p
-                className={`text-3xl font-bold ${
-                  comparison.changes?.findings_pct <= 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {comparison.changes?.findings_pct > 0 ? "+" : ""}
-                {comparison.changes?.findings_pct?.toFixed(1) || 0}%
-              </p>
-              <p className="text-xs text-gray-400 mt-1">vulnerability count</p>
-            </div>
+              <div className="text-center p-4 bg-gray-800/30 rounded-lg">
+                <p className="text-sm text-gray-400 mb-2">Finding Change</p>
+                <p
+                  className={`text-3xl font-bold ${
+                    comparison.changes?.findings_pct <= 0 ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  {comparison.changes?.findings_pct > 0 ? "+" : ""}
+                  {comparison.changes?.findings_pct?.toFixed(1) || 0}%
+                </p>
+                <p className="text-xs text-gray-400 mt-1">vulnerability count</p>
+              </div>
 
-            <div className="text-center p-4 bg-gray-800/30 rounded-lg">
-              <p className="text-sm text-gray-400 mb-2">Trend Direction</p>
-              <div className="flex items-center justify-center gap-2">
-                <TrendIndicator direction={comparison.changes?.direction || "stable"} />
-                <span className="text-lg font-medium capitalize">
-                  {comparison.changes?.direction || "Stable"}
-                </span>
+              <div className="text-center p-4 bg-gray-800/30 rounded-lg">
+                <p className="text-sm text-gray-400 mb-2">Trend Direction</p>
+                <div className="flex items-center justify-center gap-2">
+                  <TrendIndicator direction={comparison.changes?.direction || "stable"} />
+                  <span className="text-lg font-medium capitalize">
+                    {comparison.changes?.direction || "Stable"}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Insights */}
-          {comparison.insights && comparison.insights.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-700/50">
-              <h4 className="text-sm font-medium text-gray-200 mb-2">Key Insights</h4>
-              <ul className="space-y-1">
-                {comparison.insights.map((insight, index) => (
-                  <li key={index} className="text-sm text-gray-300 flex items-start gap-2">
-                    <ChartBarSquareIcon className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
-                    {insight}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Card>
+            {/* Insights */}
+            {comparison.insights && comparison.insights.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-700/50">
+                <h4 className="text-sm font-medium text-gray-200 mb-2">Key Insights</h4>
+                <ul className="space-y-1">
+                  {comparison.insights.map((insight, index) => (
+                    <li key={index} className="text-sm text-gray-300 flex items-start gap-2">
+                      <ChartBarSquareIcon className="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" />
+                      {insight}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
         </motion.div>
       )}
 

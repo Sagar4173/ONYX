@@ -39,32 +39,32 @@ const AdminRoleModal = ({ user, onClose }) => {
           className="bg-gray-900 border border-gray-700/50 rounded-2xl p-6 w-full max-w-md shadow-2xl shadow-cyan-500/10"
           onClick={(e) => e.stopPropagation()}
         >
-        <h3 className="text-lg font-semibold text-white mb-4">Change User Role</h3>
-        <p className="text-gray-400 mb-4">
-          Updating role for <span className="text-white font-medium">{user.username}</span>
-        </p>
-        <div className="space-y-2 mb-6">
-          {roles.map((role) => (
-            <button
-              key={role}
-              onClick={() => mutation.mutate({ userId: user.id, role })}
-              disabled={mutation.isPending}
-              className={`w-full p-3 rounded-lg border text-left transition-colors ${
-                user.role === role
-                  ? "border-cyan-500 bg-cyan-500/20 text-white"
-                  : "border-gray-700/50 hover:border-gray-600 text-gray-400 hover:text-white"
-              }`}
-            >
-              <span className="capitalize">{role.replace("_", " ")}</span>
-            </button>
-          ))}
-        </div>
-        <button
-          onClick={onClose}
-          className="w-full py-2 text-gray-400 hover:text-white transition-colors"
-        >
-          Cancel
-        </button>
+          <h3 className="text-lg font-semibold text-white mb-4">Change User Role</h3>
+          <p className="text-gray-400 mb-4">
+            Updating role for <span className="text-white font-medium">{user.username}</span>
+          </p>
+          <div className="space-y-2 mb-6">
+            {roles.map((role) => (
+              <button
+                key={role}
+                onClick={() => mutation.mutate({ userId: user.id, role })}
+                disabled={mutation.isPending}
+                className={`w-full p-3 rounded-lg border text-left transition-colors ${
+                  user.role === role
+                    ? "border-cyan-500 bg-cyan-500/20 text-white"
+                    : "border-gray-700/50 hover:border-gray-600 text-gray-400 hover:text-white"
+                }`}
+              >
+                <span className="capitalize">{role.replace("_", " ")}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full py-2 text-gray-400 hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
         </motion.div>
       </motion.div>
     </AnimatePresence>

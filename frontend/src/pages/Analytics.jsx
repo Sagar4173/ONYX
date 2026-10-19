@@ -9,13 +9,7 @@ import {
   CalendarDaysIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import {
-  PageContainer,
-  PageHeader,
-  GlassCard,
-  SectionHeader,
-  ErrorState,
-} from "../layouts";
+import { PageContainer, PageHeader, GlassCard, SectionHeader, ErrorState } from "../layouts";
 import ParticleBackground from "../components/projects/ParticleBackground";
 import MetricCard from "../components/projects/MetricCard";
 import useAnalyticsData from "../hooks/useAnalyticsData";
@@ -102,8 +96,7 @@ const Analytics = () => {
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 bg-gray-800/20 backdrop-blur-sm border border-gray-700/30 rounded-lg px-4 py-2">
               <CalendarDaysIcon className="h-4 w-4" />
               <span>
-                Showing data from{" "}
-                {new Date(analytics.period.start_date).toLocaleDateString()} to{" "}
+                Showing data from {new Date(analytics.period.start_date).toLocaleDateString()} to{" "}
                 {new Date(analytics.period.end_date).toLocaleDateString()}
               </span>
             </div>
@@ -171,10 +164,7 @@ const Analytics = () => {
             </motion.div>
             <motion.div variants={itemAnim}>
               <GlassCard>
-                <SectionHeader
-                  title="Scanner Activity"
-                  description="Breakdown by scanner type"
-                />
+                <SectionHeader title="Scanner Activity" description="Breakdown by scanner type" />
                 {isLoading ? (
                   <div className="h-[200px] bg-gray-800/30 rounded-xl animate-pulse" />
                 ) : (
@@ -199,10 +189,7 @@ const Analytics = () => {
                 {isLoading ? (
                   <div className="space-y-3">
                     {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-16 bg-gray-800/30 rounded-xl animate-pulse"
-                      />
+                      <div key={i} className="h-16 bg-gray-800/30 rounded-xl animate-pulse" />
                     ))}
                   </div>
                 ) : (
@@ -219,10 +206,7 @@ const Analytics = () => {
                 {isLoading ? (
                   <div className="space-y-3">
                     {[...Array(4)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-16 bg-gray-800/30 rounded-xl animate-pulse"
-                      />
+                      <div key={i} className="h-16 bg-gray-800/30 rounded-xl animate-pulse" />
                     ))}
                   </div>
                 ) : (

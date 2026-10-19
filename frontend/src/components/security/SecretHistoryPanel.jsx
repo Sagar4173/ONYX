@@ -41,7 +41,9 @@ function StatusBadge({ status }) {
 
 function SeverityIcon({ severity }) {
   return (
-    <span className={`inline-flex items-center ${severityColors[severity] || severityColors.medium}`}>
+    <span
+      className={`inline-flex items-center ${severityColors[severity] || severityColors.medium}`}
+    >
       <ShieldExclamationIcon className="h-4 w-4" />
     </span>
   );
@@ -55,7 +57,12 @@ export default function SecretHistoryPanel({ projectName: propProjectName }) {
   const [page, setPage] = useState(0);
   const pageSize = 20;
 
-  const { data: listData, isLoading: listLoading, error: listError, refetch: refetchList } = useQuery({
+  const {
+    data: listData,
+    isLoading: listLoading,
+    error: listError,
+    refetch: refetchList,
+  } = useQuery({
     queryKey: ["secret-history", projectName, filter, page],
     queryFn: () =>
       secretHistoryAPI.list(projectName, {
@@ -135,9 +142,21 @@ export default function SecretHistoryPanel({ projectName: propProjectName }) {
         ) : (
           <>
             {[
-              { label: "Total", value: summaryData?.total || 0, color: "text-gray-900 dark:text-white" },
-              { label: "Active", value: summaryData?.active || 0, color: "text-red-600 dark:text-red-400" },
-              { label: "Resolved", value: summaryData?.resolved || 0, color: "text-green-600 dark:text-green-400" },
+              {
+                label: "Total",
+                value: summaryData?.total || 0,
+                color: "text-gray-900 dark:text-white",
+              },
+              {
+                label: "Active",
+                value: summaryData?.active || 0,
+                color: "text-red-600 dark:text-red-400",
+              },
+              {
+                label: "Resolved",
+                value: summaryData?.resolved || 0,
+                color: "text-green-600 dark:text-green-400",
+              },
               { label: "Dismissed", value: summaryData?.dismissed || 0, color: "text-gray-500" },
             ].map((item) => (
               <div
@@ -157,7 +176,9 @@ export default function SecretHistoryPanel({ projectName: propProjectName }) {
         <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="mb-3 flex items-center gap-2">
             <ChartBarIcon className="h-5 w-5 text-gray-500" />
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">Secret Trends (Last 14 Days)</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+              Secret Trends (Last 14 Days)
+            </h3>
           </div>
           <div className="flex items-end gap-1" style={{ height: "80px" }}>
             {trendsData.trends.map((point, i) => {

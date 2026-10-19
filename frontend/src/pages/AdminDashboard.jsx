@@ -128,9 +128,9 @@ const AdminDashboard = () => {
               Your current role:{" "}
               <span className="text-cyan-400 font-medium">{user?.role || "Unknown"}</span>
             </p>
-            </div>
-            </div>
-            </motion.div>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 
@@ -215,164 +215,169 @@ const AdminDashboard = () => {
             >
               <motion.div custom={2} variants={staggerVariants}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard
-                title="Total Users"
-                value={stats?.users?.total || 0}
-                subtitle={`${stats?.users?.active_24h || 0} active today`}
-                icon={<UsersIcon className="h-5 w-5 text-white" />}
-                gradient={colorToGradient.blue}
-                bgGradient={colorToBgGradient.blue}
-              />
-              <StatCard
-                title="Total Projects"
-                value={stats?.projects?.total || 0}
-                subtitle="Across all users"
-                icon={<FolderIcon className="h-5 w-5 text-white" />}
-                gradient={colorToGradient.purple}
-                bgGradient={colorToBgGradient.purple}
-              />
-              <StatCard
-                title="Total Scans"
-                value={stats?.scans?.total || 0}
-                subtitle={`${stats?.scans?.last_24h || 0} in last 24h`}
-                icon={<ShieldCheckIcon className="h-5 w-5 text-white" />}
-                gradient={colorToGradient.cyan}
-                bgGradient={colorToBgGradient.cyan}
-              />
-              <StatCard
-                title="Total Findings"
-                value={stats?.scans?.total_findings || 0}
-                subtitle={`${stats?.scans?.findings_by_severity?.critical || 0} critical`}
-                icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
-                gradient={
-                  stats?.scans?.findings_by_severity?.critical > 0
-                    ? colorToGradient.red
-                    : colorToGradient.green
-                }
-                bgGradient={
-                  stats?.scans?.findings_by_severity?.critical > 0
-                    ? colorToBgGradient.red
-                    : colorToBgGradient.green
-                }
-              />
-            </div>
+                  <StatCard
+                    title="Total Users"
+                    value={stats?.users?.total || 0}
+                    subtitle={`${stats?.users?.active_24h || 0} active today`}
+                    icon={<UsersIcon className="h-5 w-5 text-white" />}
+                    gradient={colorToGradient.blue}
+                    bgGradient={colorToBgGradient.blue}
+                  />
+                  <StatCard
+                    title="Total Projects"
+                    value={stats?.projects?.total || 0}
+                    subtitle="Across all users"
+                    icon={<FolderIcon className="h-5 w-5 text-white" />}
+                    gradient={colorToGradient.purple}
+                    bgGradient={colorToBgGradient.purple}
+                  />
+                  <StatCard
+                    title="Total Scans"
+                    value={stats?.scans?.total || 0}
+                    subtitle={`${stats?.scans?.last_24h || 0} in last 24h`}
+                    icon={<ShieldCheckIcon className="h-5 w-5 text-white" />}
+                    gradient={colorToGradient.cyan}
+                    bgGradient={colorToBgGradient.cyan}
+                  />
+                  <StatCard
+                    title="Total Findings"
+                    value={stats?.scans?.total_findings || 0}
+                    subtitle={`${stats?.scans?.findings_by_severity?.critical || 0} critical`}
+                    icon={<ExclamationTriangleIcon className="h-5 w-5 text-white" />}
+                    gradient={
+                      stats?.scans?.findings_by_severity?.critical > 0
+                        ? colorToGradient.red
+                        : colorToGradient.green
+                    }
+                    bgGradient={
+                      stats?.scans?.findings_by_severity?.critical > 0
+                        ? colorToBgGradient.red
+                        : colorToBgGradient.green
+                    }
+                  />
+                </div>
               </motion.div>
 
               <motion.div custom={3} variants={staggerVariants}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatCard
-                title="New Users (7d)"
-                value={stats?.users?.new_7d || 0}
-                subtitle={`${stats?.users?.new_24h || 0} today`}
-                icon={<UserPlusIcon className="h-5 w-5 text-white" />}
-                gradient={colorToGradient.green}
-                bgGradient={colorToBgGradient.green}
-              />
-              <StatCard
-                title="Admin Users"
-                value={stats?.users?.admin_count || 0}
-                subtitle="System administrators"
-                icon={<StarIcon className="h-5 w-5 text-white" />}
-                gradient={colorToGradient.orange}
-                bgGradient={colorToBgGradient.orange}
-              />
-              <StatCard
-                title="Scan Success Rate"
-                value={`${stats?.scans?.success_rate || 0}%`}
-                subtitle={`${stats?.scans?.by_status?.completed || 0} completed`}
-                icon={<CheckCircleIcon className="h-5 w-5 text-white" />}
-                gradient={colorToGradient.green}
-                bgGradient={colorToBgGradient.green}
-              />
-            </div>
+                  <StatCard
+                    title="New Users (7d)"
+                    value={stats?.users?.new_7d || 0}
+                    subtitle={`${stats?.users?.new_24h || 0} today`}
+                    icon={<UserPlusIcon className="h-5 w-5 text-white" />}
+                    gradient={colorToGradient.green}
+                    bgGradient={colorToBgGradient.green}
+                  />
+                  <StatCard
+                    title="Admin Users"
+                    value={stats?.users?.admin_count || 0}
+                    subtitle="System administrators"
+                    icon={<StarIcon className="h-5 w-5 text-white" />}
+                    gradient={colorToGradient.orange}
+                    bgGradient={colorToBgGradient.orange}
+                  />
+                  <StatCard
+                    title="Scan Success Rate"
+                    value={`${stats?.scans?.success_rate || 0}%`}
+                    subtitle={`${stats?.scans?.by_status?.completed || 0} completed`}
+                    icon={<CheckCircleIcon className="h-5 w-5 text-white" />}
+                    gradient={colorToGradient.green}
+                    bgGradient={colorToBgGradient.green}
+                  />
+                </div>
               </motion.div>
 
               <motion.div custom={4} variants={staggerVariants}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                  <ServerIcon className="h-5 w-5 text-cyan-400" />
-                  System Health
-                </h3>
-                <div className="flex items-center justify-center mb-6">
-                  <HealthScoreRing score={stats?.system?.health_score || 0} />
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400">Users by Role</span>
-                  </div>
-                  {Object.entries(stats?.users?.by_role || {}).map(([role, count]) => (
-                    <div key={role} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500 capitalize">
-                        {role.replace("_", " ")}
-                      </span>
-                      <span className="text-sm text-white font-medium">{count}</span>
+                  <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                      <ServerIcon className="h-5 w-5 text-cyan-400" />
+                      System Health
+                    </h3>
+                    <div className="flex items-center justify-center mb-6">
+                      <HealthScoreRing score={stats?.system?.health_score || 0} />
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="lg:col-span-2 bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <BoltIcon className="h-5 w-5 text-amber-400" />
-                    Recent Activity
-                  </h3>
-                  <button
-                    onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-activity"] })}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
-                  >
-                    <ArrowPathIcon className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="space-y-1 max-h-80 overflow-y-auto">
-                  {activityLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Spinner size="lg" />
-                    </div>
-                  ) : (
-                    activityData?.activities
-                      ?.slice(0, 10)
-                      .map((activity) => (
-                        <ActivityItem key={activity.id || activity.timestamp} activity={activity} />
-                      ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <FireIcon className="h-5 w-5 text-red-400" />
-                Findings by Severity (All Projects)
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {["critical", "high", "medium", "low", "info"].map((severity) => {
-                  const count = stats?.scans?.findings_by_severity?.[severity] || 0;
-                  const total = stats?.scans?.total_findings || 1;
-                  const percentage = Math.round((count / total) * 100) || 0;
-                  const barColors = {
-                    critical: "bg-red-500",
-                    high: "bg-orange-500",
-                    medium: "bg-amber-500",
-                    low: "bg-cyan-500",
-                    info: "bg-gray-500",
-                  };
-                  return (
-                    <div key={severity} className="text-center">
-                      <div className="h-24 flex items-end justify-center mb-2">
-                        <div
-                          className={`w-full max-w-[60px] ${barColors[severity]} rounded-t-lg transition-all duration-500`}
-                          style={{ height: `${Math.max(percentage, 5)}%` }}
-                        />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Users by Role</span>
                       </div>
-                      <p className="text-2xl font-bold text-white">{count}</p>
-                      <p className="text-xs text-gray-500 capitalize">{severity}</p>
+                      {Object.entries(stats?.users?.by_role || {}).map(([role, count]) => (
+                        <div key={role} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500 capitalize">
+                            {role.replace("_", " ")}
+                          </span>
+                          <span className="text-sm text-white font-medium">{count}</span>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  </div>
+
+                  <div className="lg:col-span-2 bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                        <BoltIcon className="h-5 w-5 text-amber-400" />
+                        Recent Activity
+                      </h3>
+                      <button
+                        onClick={() =>
+                          queryClient.invalidateQueries({ queryKey: ["admin-activity"] })
+                        }
+                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+                      >
+                        <ArrowPathIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-1 max-h-80 overflow-y-auto">
+                      {activityLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Spinner size="lg" />
+                        </div>
+                      ) : (
+                        activityData?.activities
+                          ?.slice(0, 10)
+                          .map((activity) => (
+                            <ActivityItem
+                              key={activity.id || activity.timestamp}
+                              activity={activity}
+                            />
+                          ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <FireIcon className="h-5 w-5 text-red-400" />
+                    Findings by Severity (All Projects)
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {["critical", "high", "medium", "low", "info"].map((severity) => {
+                      const count = stats?.scans?.findings_by_severity?.[severity] || 0;
+                      const total = stats?.scans?.total_findings || 1;
+                      const percentage = Math.round((count / total) * 100) || 0;
+                      const barColors = {
+                        critical: "bg-red-500",
+                        high: "bg-orange-500",
+                        medium: "bg-amber-500",
+                        low: "bg-cyan-500",
+                        info: "bg-gray-500",
+                      };
+                      return (
+                        <div key={severity} className="text-center">
+                          <div className="h-24 flex items-end justify-center mb-2">
+                            <div
+                              className={`w-full max-w-[60px] ${barColors[severity]} rounded-t-lg transition-all duration-500`}
+                              style={{ height: `${Math.max(percentage, 5)}%` }}
+                            />
+                          </div>
+                          <p className="text-2xl font-bold text-white">{count}</p>
+                          <p className="text-xs text-gray-500 capitalize">{severity}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </motion.div>
             </motion.div>
           )}
@@ -387,81 +392,83 @@ const AdminDashboard = () => {
               exit={{ opacity: 0, y: -12 }}
             >
               <div className="space-y-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-md">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Search users by name, email..."
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
-                />
-              </div>
-              <button
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-users"] })}
-                className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors"
-              >
-                <ArrowPathIcon className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-800/50 border-b border-gray-700/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Activity
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Last Login
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersLoading ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center">
-                        <Spinner size="lg" />
-                      </td>
-                    </tr>
-                  ) : (
-                    usersData?.users?.map((u) => (
-                      <UserRow
-                        key={u.id}
-                        user={u}
-                        onEditRole={(u) => setEditModal({ type: "role", user: u })}
-                        onEditStatus={(u) => setEditModal({ type: "status", user: u })}
-                        onDelete={(u) => {
-                          if (confirm(`Are you sure you want to delete user "${u.username}"?`)) {
-                            deleteUserMutation.mutate(u.id);
-                          }
-                        }}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="relative flex-1 max-w-md">
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                      <input
+                        type="text"
+                        placeholder="Search users by name, email..."
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                       />
-                    ))
-                  )}
-                </tbody>
-              </table>
-              {usersData?.pagination && (
-                <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-500">
-                  Showing {usersData.users?.length || 0} of {usersData.pagination.total} users
+                    </div>
+                    <button
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-users"] })}
+                      className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors"
+                    >
+                      <ArrowPathIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-800/50 border-b border-gray-700/50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Role
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Activity
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Last Login
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usersLoading ? (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center">
+                              <Spinner size="lg" />
+                            </td>
+                          </tr>
+                        ) : (
+                          usersData?.users?.map((u) => (
+                            <UserRow
+                              key={u.id}
+                              user={u}
+                              onEditRole={(u) => setEditModal({ type: "role", user: u })}
+                              onEditStatus={(u) => setEditModal({ type: "status", user: u })}
+                              onDelete={(u) => {
+                                if (
+                                  confirm(`Are you sure you want to delete user "${u.username}"?`)
+                                ) {
+                                  deleteUserMutation.mutate(u.id);
+                                }
+                              }}
+                            />
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                    {usersData?.pagination && (
+                      <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-500">
+                        Showing {usersData.users?.length || 0} of {usersData.pagination.total} users
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-            </div>
               </div>
             </motion.div>
           )}
@@ -476,80 +483,84 @@ const AdminDashboard = () => {
               exit={{ opacity: 0, y: -12 }}
             >
               <div className="space-y-6">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-md">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Search projects..."
-                  value={projectSearch}
-                  onChange={(e) => setProjectSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
-                />
-              </div>
-              <button
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-projects"] })}
-                className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors"
-              >
-                <ArrowPathIcon className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-800/50 border-b border-gray-700/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Project
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Owner
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Scans
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Findings
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projectsLoading ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center">
-                        <Spinner size="lg" />
-                      </td>
-                    </tr>
-                  ) : (
-                    projectsData?.projects?.map((p) => (
-                      <ProjectRow
-                        key={p.id}
-                        project={p}
-                        onDelete={(p) => {
-                          if (confirm(`Are you sure you want to delete project "${p.name}"?`)) {
-                            deleteProjectMutation.mutate(p.id);
-                          }
-                        }}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="relative flex-1 max-w-md">
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                      <input
+                        type="text"
+                        placeholder="Search projects..."
+                        value={projectSearch}
+                        onChange={(e) => setProjectSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                       />
-                    ))
-                  )}
-                </tbody>
-              </table>
-              {projectsData?.pagination && (
-                <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-500">
-                  Showing {projectsData.projects?.length || 0} of {projectsData.pagination.total}{" "}
-                  projects
+                    </div>
+                    <button
+                      onClick={() =>
+                        queryClient.invalidateQueries({ queryKey: ["admin-projects"] })
+                      }
+                      className="p-2.5 text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-xl hover:bg-gray-700/50 transition-colors"
+                    >
+                      <ArrowPathIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-800/50 border-b border-gray-700/50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Project
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Owner
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Scans
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Findings
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Created
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {projectsLoading ? (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center">
+                              <Spinner size="lg" />
+                            </td>
+                          </tr>
+                        ) : (
+                          projectsData?.projects?.map((p) => (
+                            <ProjectRow
+                              key={p.id}
+                              project={p}
+                              onDelete={(p) => {
+                                if (
+                                  confirm(`Are you sure you want to delete project "${p.name}"?`)
+                                ) {
+                                  deleteProjectMutation.mutate(p.id);
+                                }
+                              }}
+                            />
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                    {projectsData?.pagination && (
+                      <div className="px-4 py-3 border-t border-gray-700/50 text-sm text-gray-500">
+                        Showing {projectsData.projects?.length || 0} of{" "}
+                        {projectsData.pagination.total} projects
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-            </div>
               </div>
             </motion.div>
           )}
@@ -564,33 +575,35 @@ const AdminDashboard = () => {
               exit={{ opacity: 0, y: -12 }}
             >
               <div className="space-y-6">
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <BoltIcon className="h-5 w-5 text-amber-400" />
-                System Activity Log
-              </h3>
-              <button
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-activity"] })}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-colors flex items-center gap-2"
-              >
-                <ArrowPathIcon className="h-4 w-4" />
-                Refresh
-              </button>
-            </div>
-            <div className="space-y-1">
-              {activityLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Spinner size="lg" />
+                <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800/50 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <BoltIcon className="h-5 w-5 text-amber-400" />
+                      System Activity Log
+                    </h3>
+                    <button
+                      onClick={() =>
+                        queryClient.invalidateQueries({ queryKey: ["admin-activity"] })
+                      }
+                      className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-gray-800/50 border border-gray-700 rounded-lg hover:bg-gray-700/50 transition-colors flex items-center gap-2"
+                    >
+                      <ArrowPathIcon className="h-4 w-4" />
+                      Refresh
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {activityLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Spinner size="lg" />
+                      </div>
+                    ) : (
+                      activityData?.activities?.map((activity) => (
+                        <ActivityItem key={activity.id || activity.timestamp} activity={activity} />
+                      ))
+                    )}
+                  </div>
                 </div>
-              ) : (
-                activityData?.activities?.map((activity) => (
-                  <ActivityItem key={activity.id || activity.timestamp} activity={activity} />
-                ))
-              )}
-            </div>
-            </div>
-            </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -27,8 +27,10 @@ export const getCronDescription = (cron) => {
   const parts = cron.split(" ");
   if (parts.length !== 5) return cron;
   const [min, hour, dom, mon, dow] = parts;
-  if (min === "0" && hour === "2" && dom === "*" && mon === "*" && dow === "*") return "Daily at 2 AM";
-  if (min === "0" && hour === "0" && dom === "*" && mon === "*" && dow === "*") return "Daily at midnight";
+  if (min === "0" && hour === "2" && dom === "*" && mon === "*" && dow === "*")
+    return "Daily at 2 AM";
+  if (min === "0" && hour === "0" && dom === "*" && mon === "*" && dow === "*")
+    return "Daily at midnight";
   if (min === "0" && hour === "*" && dom === "*" && mon === "*" && dow === "*") return "Every hour";
   return cron;
 };
@@ -122,7 +124,9 @@ const ScheduleCard = ({ schedule, onUpdate, onDelete }) => {
           {getStatusBadge(schedule.last_status)}
           <span
             className={`w-2 h-2 rounded-full ${
-              schedule.enabled ? "bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]" : "bg-gray-500"
+              schedule.enabled
+                ? "bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]"
+                : "bg-gray-500"
             }`}
           />
         </div>
@@ -238,7 +242,10 @@ const ScheduleHistory = ({ scheduleId }) => {
   return (
     <div className="space-y-1.5">
       {history.map((run, i) => (
-        <div key={run.scan_id || i} className="flex items-center justify-between text-xs py-1.5 px-2 rounded bg-gray-800/50">
+        <div
+          key={run.scan_id || i}
+          className="flex items-center justify-between text-xs py-1.5 px-2 rounded bg-gray-800/50"
+        >
           <div className="flex items-center gap-2">
             <span className="text-gray-400">{run.scan_id?.slice(0, 8)}...</span>
             {getStatusBadge(run.status)}

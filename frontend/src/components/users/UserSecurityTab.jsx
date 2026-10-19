@@ -1,5 +1,10 @@
 import { motion } from "framer-motion";
-import { ExclamationTriangleIcon, LockClosedIcon, ShieldCheckIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationTriangleIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
 import MetricCard from "../projects/MetricCard";
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
@@ -45,7 +50,10 @@ const UserSecurityTab = ({ securityOverview, securityLoading }) => {
         </motion.div>
       </motion.div>
 
-      <motion.div variants={item} className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+      <motion.div
+        variants={item}
+        className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6"
+      >
         <h3 className="text-xl font-bold text-white mb-4">Security Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-800/30 rounded-xl p-5 border border-gray-700/30">

@@ -73,7 +73,9 @@ const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
     if (!name.trim() || !target.trim()) return;
     if (scanTypes.length === 0) return;
     if (!isValidCron(cronExpression)) {
-      setCronError("Invalid cron expression — use 5 fields: minute hour day-of-month month day-of-week");
+      setCronError(
+        "Invalid cron expression — use 5 fields: minute hour day-of-month month day-of-week"
+      );
       return;
     }
     setCronError("");
@@ -155,7 +157,9 @@ const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">Target Repository URL</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">
+              Target Repository URL
+            </label>
             <input
               type="text"
               value={target}
@@ -191,7 +195,9 @@ const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">Schedule (Cron)</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">
+              Schedule (Cron)
+            </label>
             <div className="grid grid-cols-2 gap-1.5 mb-2">
               {CRON_PRESETS.map((preset) => {
                 const active = cronPreset === preset.value;
@@ -223,7 +229,9 @@ const ScheduleForm = ({ initial, onSubmit, onCancel }) => {
                   placeholder="min hour dom mon dow"
                   className="w-full px-3 py-2 bg-gray-800/80 border border-gray-700/50 rounded-lg text-sm text-white font-mono placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all"
                 />
-                <p className="text-[10px] text-gray-500 mt-1">Format: minute hour day-of-month month day-of-week</p>
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Format: minute hour day-of-month month day-of-week
+                </p>
               </div>
             )}
             {cronError && <p className="text-xs text-red-400 mt-1.5">{cronError}</p>}

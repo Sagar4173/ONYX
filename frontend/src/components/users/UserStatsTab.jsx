@@ -64,7 +64,10 @@ const UserStatsTab = ({ statistics, statsLoading }) => {
       </motion.div>
 
       {Object.keys(roleDist).length > 0 && (
-        <motion.div variants={item} className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6">
+        <motion.div
+          variants={item}
+          className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6"
+        >
           <h3 className="text-xl font-bold text-white mb-4">Role Distribution</h3>
           <div className="space-y-3">
             {Object.entries(roleDist).map(([role, count]) => {

@@ -103,7 +103,9 @@ const ScheduledScansPage = () => {
             className="w-full pl-9 pr-3 py-2 bg-gray-800/80 border border-gray-700/50 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all"
           />
         </div>
-        <span className="text-xs text-gray-500">{schedules.length} schedule{schedules.length !== 1 ? "s" : ""}</span>
+        <span className="text-xs text-gray-500">
+          {schedules.length} schedule{schedules.length !== 1 ? "s" : ""}
+        </span>
       </div>
 
       {schedules.length === 0 ? (
@@ -113,13 +115,24 @@ const ScheduledScansPage = () => {
           className="text-center py-20"
         >
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-800/80 border border-gray-700/50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-8 h-8 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-300 mb-2">No schedules yet</h3>
           <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
-            Create automated scan schedules to run security scans on your projects at regular intervals.
+            Create automated scan schedules to run security scans on your projects at regular
+            intervals.
           </p>
           <button
             onClick={() => setShowForm(true)}
@@ -168,12 +181,7 @@ const ScheduledScansPage = () => {
         </div>
       )}
 
-      {showForm && (
-        <ScheduleForm
-          onSubmit={handleCreate}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
+      {showForm && <ScheduleForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />}
 
       {editingSchedule && (
         <ScheduleForm
