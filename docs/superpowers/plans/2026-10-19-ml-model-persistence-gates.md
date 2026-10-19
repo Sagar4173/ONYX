@@ -8,13 +8,13 @@ Spec: `docs/superpowers/specs/2026-10-19-ml-model-persistence-design.md` (commit
 
 | Gate | Command | Expected | Actual | Status |
 |---|---|---|---|---|
-| Backend unit | `backend\.venv\Scripts\python.exe -m pytest` | 729 passed (720 + 9 new) | 729 passed in 80.60s | ok |
+| Backend unit | `backend\.venv\Scripts\python.exe -m pytest` | 729 passed (720 + 9 new) | 729 passed in 80.60s; **734 passed** after security follow-ups (+5) | ok |
 | Frontend unit | `npx vitest run` | 396/396 (58 files) | 396/396 | ok |
 | Frontend lint | `npm run lint` | 0 err / 10 warn | 0 err / 10 warn | ok |
 | Frontend build | `npm run build` | exit 0 | exit 0 | ok |
 | Prettier | `npx prettier --check` on the two touched files | clean | "All matched files use Prettier code style!" | ok |
 
-Suite growth: backend 720 → **729** (+9: 3 hydration tests in Task 1, 6 guard tests in Task 2 — `tests/test_ml_engine.py` 8 → 17 tests). Frontend count unchanged (Task 3 modified the existing lifecycle-copy assertion in `MLStatusPanel.test.jsx`; no new test).
+Suite growth: backend 720 → **729** (+9: 3 hydration tests in Task 1, 6 guard tests in Task 2 — `tests/test_ml_engine.py` 8 → 17 tests), then **734** after security follow-ups (+5 edge-case tests → 22 tests in that file). Frontend count unchanged (Task 3 modified the existing lifecycle-copy assertion in `MLStatusPanel.test.jsx`; no new test).
 
 ### TDD evidence
 
@@ -32,7 +32,7 @@ Suite growth: backend 720 → **729** (+9: 3 hydration tests in Task 1, 6 guard 
 
 ## Live QA walkthrough (2026-10-19 evening — Playwright MCP against uvicorn :8000 + Vite :5173)
 
-Environment: `ML_ISOLATION_FOREST_ENABLED` temporarily `true` + `ML_MIN_TRAINING_SCANS` temporarily `5` (`backend/.env` lines 165–166, restored to `false` / `30` after — `.env` is untracked, no git noise). Account: `qa.admin@example.com` / `QaAdmin!2026x`.
+Environment: `ML_ISOLATION_FOREST_ENABLED` temporarily `true` + `ML_MIN_TRAINING_SCANS` temporarily `5` (`backend/.env` lines 165–166, restored to `false` / `30` after — `.env` is untracked, no git noise). Account: `qa.admin@example.com` / `<redacted>`.
 
 Scan history (temp script `$TEMP\opencode\onyx-qa-scan-count.py`, mirrors the engine's exact collector query: `started_at >= now-90d`, `status=COMPLETED`, ≥1 finding): **13 completed reports total, 5 inside the 90-day window**.
 
@@ -60,6 +60,15 @@ Scenarios, all PASS:
 - Feature-schema drift (legacy artifacts trained on an older feature order) is intentionally treated as "retrain required" rather than mapped.
 - `ML_MIN_TRAINING_SCANS` improvements only apply to *which rows train*; stale models are never auto-retrained (spec decision).
 
-## Security checkpoint (pending)
+## Security review + follow-ups (2026-10-19)
 
-A `security` subagent review over the track diff `3685d16..HEAD` (pickle deserialization surface, path containment, fail-soft logging) is the final closure step for this track.
+A `security` subagent review over the track diff `3685d16..HEAD` returned **REQUEST CHANGES** — one blocker (committed plaintext QA credential) plus five lower-severity findings. All resolved in the follow-up commit (`fix(ml-persistence): security review follow-ups`) except the explicitly accepted residual risk:
+
+1. **[Medium, blocking] Plaintext QA credentials in tracked gates docs** — the `qa.admin` / `qa.live` passwords were recorded in this doc and the Phase 5 gates doc (commits `dad4a15`, `39b2bce`; both local-only — `origin/master` is still at `bbaaba1`, nothing was pushed). Fixed: credentials redacted to `<redacted>` across all docs (including untracked phase plans). **User action: rotate both QA passwords** — the literals remain in local git history; purging history before any future push requires explicit approval (rewrite is destructive).
+2. **[Medium] `pickle.load` is inherently an RCE surface; the post-load structure/schema/shape checks are data-integrity guards, not security controls** — accepted risk, now explicitly documented. Deployment precondition: `backend/ml_models/` must be writable only by the backend's own account, and the backend must not run with broader privileges than that account (no shared/multi-writer volume). Existing mitigations: gate off by default, admin-only trigger path, no user-controlled artifact path or bytes, git + Docker build-context exclusions. If the precondition cannot hold (shared volume, root container, untrusted backups), migrate to `skops` or add keyed integrity verification at train time (future work).
+3. **[Low] Relative `model_file_path` re-based containment to process CWD** — fixed: training now persists `str(model_file.resolve())` (absolute); regression test `test_trained_artifact_path_is_absolute` (RED → GREEN). Legacy rows with relative paths keep CWD-relative resolution (dev DB only; fail-soft on CWD move).
+4. **[Low] WARNING logs disclosed absolute filesystem paths** — fixed: containment/missing-artifact warnings now log only the artifact basename; unexpected failures still use `logger.exception`.
+5. **[Low] `backend/.dockerignore` did not exclude model artifacts** — fixed: added `ml_models/` and `*.pkl` (keeps stale/poisoned pickles out of Docker images; `docker-compose.yml` builds `./backend`). Pre-existing gap noted for a future hardening pass: `.dockerignore` does not exclude `.env` (only `.env.local`), so do not publish images built from a working tree with a real `.env` until fixed.
+6. **[Low] Guard edge-case test gaps** — fixed: +5 tests — sibling-prefix directory (`models_evil`), non-dict artifact structure, corrupt `feature_importance_json` fail-soft, NULL-metrics checked before any file access (spy on `pickle.load`), absolute-path persist. Junction/symlink escape was verified manually by the reviewer (Windows/Python 3.14) but is intentionally unpinned in CI (requires `mklink /J`).
+
+Post-follow-up gates: backend **734 passed**; frontend untouched (396/396 above); lint/build unchanged (no frontend changes).

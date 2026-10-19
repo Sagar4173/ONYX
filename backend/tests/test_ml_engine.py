@@ -1,6 +1,7 @@
 """IsolationForest hardening (Phase 4, spec 5.1 P4): activation gate, real data, honest metrics."""
 import pickle
 import sqlite3
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
@@ -278,6 +279,79 @@ def test_skips_legacy_row_without_honest_metrics(tmp_path, monkeypatch):
     revived = _make_engine(tmp_path)
 
     assert revived.models == {}
+
+
+def test_null_metrics_checked_before_file_access(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "legacy2.pkl"
+    _write_artifact(artifact)
+    _insert_model_row(seed.db_path, artifact, anomaly_rate=None, score_mean=None, score_std=None)
+
+    import services.ai.ml_anomaly_detection_engine as engine_module
+
+    calls = []
+    monkeypatch.setattr(engine_module.pickle, "load", lambda f: calls.append(f))
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+    assert calls == []
+
+
+def test_refuses_sibling_prefix_dir(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    outside = tmp_path / "models_evil" / "sneaky.pkl"
+    _write_artifact(outside)
+    _insert_model_row(seed.db_path, outside)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_refuses_unexpected_structure(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "not_a_dict.pkl"
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    with open(artifact, "wb") as f:
+        pickle.dump(["not", "a", "dict"], f)
+    _insert_model_row(seed.db_path, artifact)
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+def test_skips_row_with_corrupt_feature_importance_json(tmp_path, monkeypatch):
+    _train_settings(monkeypatch)
+    seed = _make_engine(tmp_path)
+    artifact = tmp_path / "models" / "bad_json.pkl"
+    _write_artifact(artifact)
+    _insert_model_row(seed.db_path, artifact, feature_importance_json="{not json")
+
+    revived = _make_engine(tmp_path)
+
+    assert revived.models == {}
+
+
+async def test_trained_artifact_path_is_absolute(tmp_path, monkeypatch):
+    _train_settings(monkeypatch, min_scans=10)
+    monkeypatch.chdir(tmp_path)
+    engine = MLAnomalyDetectionEngine(db_path="ml.db", models_path="ml_models")
+    monkeypatch.setattr(engine, "_collect_training_data", AsyncMock(return_value=_rows(40)))
+    metrics = await engine.train_anomaly_model()
+    assert metrics is not None
+
+    conn = sqlite3.connect("ml.db")
+    row = conn.execute(
+        "SELECT model_file_path FROM ml_models WHERE model_id = ?", (metrics.model_id,)
+    ).fetchone()
+    conn.close()
+
+    assert Path(row[0]).is_absolute()
 
 
 class _FieldExpr:

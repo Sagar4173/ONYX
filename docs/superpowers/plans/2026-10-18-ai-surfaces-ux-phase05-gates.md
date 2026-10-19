@@ -33,7 +33,7 @@ Notes:
 
 ## Live QA walkthrough (2026-10-18 late evening — Playwright MCP against uvicorn :8000 + Vite :5173)
 
-Environment: live backend with **`ML_ISOLATION_FOREST_ENABLED=false`** (`backend/.env` lines 165–167), scikit-learn installed (status honestly reports `Available`). Accounts: `qa.live@example.com` / `QaLive!2026x` (viewer — Phase 1 seeded user) for the non-admin path, and `qa.admin@example.com` / `QaAdmin!2026x` (admin — created directly in the dev DB via a temp script beside `$TEMP\opencode\onyx-qa-admin.py`, using the app's own `init_database()`; username `qa_admin` because the model rejects dots).
+Environment: live backend with **`ML_ISOLATION_FOREST_ENABLED=false`** (`backend/.env` lines 165–167), scikit-learn installed (status honestly reports `Available`). Accounts: `qa.live@example.com` / `<redacted>` (viewer — Phase 1 seeded user) for the non-admin path, and `qa.admin@example.com` / `<redacted>` (admin — created directly in the dev DB via a temp script beside `$TEMP\opencode\onyx-qa-admin.py`, using the app's own `init_database()`; username `qa_admin` because the model rejects dots).
 
 12 scenarios, all PASS:
 

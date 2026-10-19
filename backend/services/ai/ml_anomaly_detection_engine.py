@@ -136,12 +136,13 @@ class MLAnomalyDetectionEngine:
             models_root = self.models_path.resolve()
             if models_root not in artifact_path.parents:
                 logger.warning(
-                    "Refusing to load model artifact outside %s: %s", models_root, artifact_path
+                    "Refusing to load model artifact outside the models directory: %s",
+                    artifact_path.name,
                 )
                 return
 
             if not artifact_path.is_file():
-                logger.warning("Model artifact missing for %s: %s", model_id, artifact_path)
+                logger.warning("Model artifact missing for %s: %s", model_id, artifact_path.name)
                 return
 
             with open(artifact_path, "rb") as f:
@@ -506,7 +507,7 @@ class MLAnomalyDetectionEngine:
         with open(model_file, "wb") as f:
             pickle.dump({"model": model, "scaler": scaler, "features": feature_names}, f)
 
-        await self._store_model_metrics(metrics, str(model_file))
+        await self._store_model_metrics(metrics, str(model_file.resolve()))
         self.models["anomaly_detector"] = {
             "model": model, "scaler": scaler, "features": feature_names, "metrics": metrics,
         }

@@ -17,3 +17,7 @@ wheels/
 vendor/
 data/threats/
 data/policies/
+
+# ML model artifacts (generated at runtime)
+ml_models/
+*.pkl
