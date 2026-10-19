@@ -5,6 +5,8 @@ import {
   runInvestigate,
   autoFixPropose,
   autoFixApprove,
+  autoFixGetState,
+  autoFixDiscard,
   AIStreamError,
 } from "./aiClient";
 import { api } from "./api";
@@ -331,5 +333,34 @@ describe("autoFixApprove", () => {
     expect(postSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1/approve", undefined, {
       timeout: 600000,
     });
+  });
+});
+
+describe("autoFixGetState", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("gets the state endpoint and returns the payload", async () => {
+    const state = { status: "awaiting_approval", finding_id: "f-1", diff: "d", file_path: "a.py" };
+    const getSpy = vi.spyOn(api, "get").mockResolvedValue({ data: state });
+
+    await expect(autoFixGetState({ scanId: "s1", findingId: "f-1" })).resolves.toEqual(state);
+    expect(getSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1");
+  });
+});
+
+describe("autoFixDiscard", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("deletes the state endpoint and returns the payload", async () => {
+    const deleteSpy = vi.spyOn(api, "delete").mockResolvedValue({ data: { status: "discarded" } });
+
+    await expect(autoFixDiscard({ scanId: "s1", findingId: "f-1" })).resolves.toEqual({
+      status: "discarded",
+    });
+    expect(deleteSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1");
   });
 });

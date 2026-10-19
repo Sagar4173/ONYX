@@ -152,3 +152,13 @@ export async function autoFixApprove({ scanId, findingId }) {
   });
   return response.data;
 }
+
+export async function autoFixGetState({ scanId, findingId }) {
+  const response = await api.get(`/reports/${scanId}/auto-fix/${findingId}`);
+  return response.data;
+}
+
+export async function autoFixDiscard({ scanId, findingId }) {
+  const response = await api.delete(`/reports/${scanId}/auto-fix/${findingId}`);
+  return response.data;
+}
