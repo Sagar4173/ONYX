@@ -66,11 +66,13 @@ describe("MLStatusPanel", () => {
     expect(container.querySelector("svg.h-12.w-12")).toBeInTheDocument();
   });
 
-  it("documents the in-memory model lifecycle", () => {
+  it("documents the persisted model lifecycle", () => {
     render(<MLStatusPanel status={baseStatus} />);
 
     expect(
-      screen.getByText(/Model state is in-memory and resets on backend restart until retrained\./)
+      screen.getByText(
+        /The trained model is saved and reloaded on backend restart; retrain to incorporate new scan data\./
+      )
     ).toBeInTheDocument();
   });
 });

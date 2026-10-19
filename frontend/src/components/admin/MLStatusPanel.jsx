@@ -64,7 +64,8 @@ const MLStatusPanel = ({ status }) => {
       )}
 
       <p className="text-xs text-gray-500">
-        Model state is in-memory and resets on backend restart until retrained.
+        The trained model is saved and reloaded on backend restart; retrain to incorporate new scan
+        data.
       </p>
     </div>
   );
