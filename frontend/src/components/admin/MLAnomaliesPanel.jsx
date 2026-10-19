@@ -16,7 +16,7 @@ const MLAnomaliesPanel = ({ data }) => {
   if (data.anomaly_detection_status === "training_required") {
     return (
       <EmptyState
-        icon={BeakerIcon}
+        icon={<BeakerIcon className="h-12 w-12" />}
         title="No model trained yet"
         description="Train a model to enable anomaly alerts."
       />
@@ -24,23 +24,34 @@ const MLAnomaliesPanel = ({ data }) => {
   }
 
   const statistics = Object.entries(data.alert_statistics || {});
+  const total = data.total_recent_alerts ?? 0;
+  const recentCount = data.recent_alerts.length;
+  const countLabel =
+    total > recentCount
+      ? `Latest ${recentCount} of ${total} alerts in the last 7 days`
+      : `${total} alert${total === 1 ? "" : "s"} in the last 7 days`;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-gray-400">
-          {data.total_recent_alerts} alerts in the last 7 days
-        </span>
-        {statistics.map(([severity, count]) => (
-          <Badge key={severity} variant={severity.toLowerCase()}>
-            {`${severity} ${count}`}
-          </Badge>
-        ))}
+      <div className="space-y-2">
+        <p className="text-sm text-gray-400">{countLabel}</p>
+        {statistics.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              Last 30 days
+            </span>
+            {statistics.map(([severity, count]) => (
+              <Badge key={severity} variant={severity.toLowerCase()}>
+                {`${severity} ${count}`}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       {data.recent_alerts.length === 0 ? (
         <EmptyState
-          icon={BellAlertIcon}
+          icon={<BellAlertIcon className="h-12 w-12" />}
           title="No anomalies detected in the last 7 days"
           description="The model has not flagged any unusual scan activity."
         />

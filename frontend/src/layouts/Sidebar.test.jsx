@@ -48,4 +48,22 @@ describe("Sidebar administration navigation", () => {
     expect(active).toHaveLength(1);
     expect(active[0]).toHaveTextContent("ML Dashboard");
   });
+
+  it("highlights only the Admin Panel on /admin", () => {
+    renderSidebar("admin", "/admin");
+
+    const active = screen
+      .getAllByRole("link")
+      .filter((el) => el.getAttribute("aria-current") === "page");
+
+    expect(active).toHaveLength(1);
+    expect(active[0]).toHaveTextContent("Admin Panel");
+  });
+
+  it("does not mark the ML Dashboard active on a longer same-prefix path", () => {
+    renderSidebar("admin", "/admin/mlx");
+
+    const mlLink = screen.getByText("ML Dashboard").closest("a");
+    expect(mlLink).not.toHaveAttribute("aria-current", "page");
+  });
 });

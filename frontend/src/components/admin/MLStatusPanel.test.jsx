@@ -57,10 +57,13 @@ describe("MLStatusPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows an empty state when no model is trained", () => {
-    render(<MLStatusPanel status={{ ...baseStatus, model_trained: false, active_model: null }} />);
+  it("shows an empty state with the beaker icon when no model is trained", () => {
+    const { container } = render(
+      <MLStatusPanel status={{ ...baseStatus, model_trained: false, active_model: null }} />
+    );
 
     expect(screen.getByText("No model trained yet")).toBeInTheDocument();
+    expect(container.querySelector("svg.h-12.w-12")).toBeInTheDocument();
   });
 
   it("documents the in-memory model lifecycle", () => {

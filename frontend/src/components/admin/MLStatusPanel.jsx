@@ -57,7 +57,7 @@ const MLStatusPanel = ({ status }) => {
         </div>
       ) : (
         <EmptyState
-          icon={BeakerIcon}
+          icon={<BeakerIcon className="h-12 w-12" />}
           title="No model trained yet"
           description="Train a model to enable anomaly detection."
         />

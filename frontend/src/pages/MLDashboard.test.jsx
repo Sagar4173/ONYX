@@ -41,7 +41,7 @@ const ANOMALIES = {
       timestamp: "2026-10-17 10:30:00",
     },
   ],
-  alert_statistics: { HIGH: 1 },
+  alert_statistics: { HIGH: 3 },
   active_model: null,
   total_recent_alerts: 1,
   anomaly_detection_status: "active",
@@ -49,13 +49,14 @@ const ANOMALIES = {
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const utils = render(
     <MemoryRouter initialEntries={["/admin/ml"]}>
       <QueryClientProvider client={client}>
         <MLDashboard />
       </QueryClientProvider>
     </MemoryRouter>
   );
+  return { ...utils, client };
 }
 
 beforeEach(() => {
@@ -69,11 +70,27 @@ describe("MLDashboard", () => {
   it("blocks non-admins without calling the API", () => {
     useAuth.mockReturnValue({ user: { role: "analyst" } });
 
-    renderPage();
+    const { client } = renderPage();
 
     expect(screen.getByText("Admin Access Required")).toBeInTheDocument();
     expect(mlAPI.getStatus).not.toHaveBeenCalled();
     expect(mlAPI.getAnomalies).not.toHaveBeenCalled();
+    expect(client.getQueryCache().find({ queryKey: ["ml-status"] }).options.enabled).toBe(false);
+    expect(client.getQueryCache().find({ queryKey: ["ml-anomalies"] }).options.enabled).toBe(false);
+  });
+
+  it("polls both queries every 30 s without retries in admin mode", async () => {
+    const { client } = renderPage();
+
+    await screen.findByText("Enabled");
+
+    for (const key of ["ml-status", "ml-anomalies"]) {
+      const query = client.getQueryCache().find({ queryKey: [key] });
+      expect(query.options.enabled).toBe(true);
+      expect(query.options.refetchInterval).toBe(30000);
+      expect(query.options.staleTime).toBe(30000);
+      expect(query.options.retry).toBe(false);
+    }
   });
 
   it("shows loading states while fetching", () => {
@@ -94,7 +111,9 @@ describe("MLDashboard", () => {
     expect(screen.getByText("iso-forest-abc123")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /train model/i })).toBeEnabled();
     expect(screen.getByText("severity_spike")).toBeInTheDocument();
-    expect(screen.getByText("1 alerts in the last 7 days")).toBeInTheDocument();
+    expect(screen.getByText("1 alert in the last 7 days")).toBeInTheDocument();
+    expect(screen.getByText("Last 30 days")).toBeInTheDocument();
+    expect(screen.getByText("HIGH 3")).toBeInTheDocument();
   });
 
   it("surfaces a status failure with retry that recovers", async () => {
@@ -123,6 +142,17 @@ describe("MLDashboard", () => {
 
     expect(await screen.findByText("Failed to load anomaly data")).toBeInTheDocument();
     expect(screen.getByText("Enabled")).toBeInTheDocument();
+  });
+
+  it("isolates status failures from the anomalies panel", async () => {
+    mlAPI.getStatus.mockRejectedValueOnce({
+      response: { status: 500, data: { detail: "boom" } },
+    });
+
+    renderPage();
+
+    expect(await screen.findByText("Failed to load ML status")).toBeInTheDocument();
+    expect(await screen.findByText("severity_spike")).toBeInTheDocument();
   });
 
   it("renders the degraded anomaly state", async () => {

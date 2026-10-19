@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Routes, Route, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("../../services/api", () => ({
@@ -10,15 +11,24 @@ vi.mock("../../services/api", () => ({
 import { projectsAPI } from "../../services/api";
 import { CommandPalette } from "./CommandPalette";
 
-function renderPalette() {
+const LocationProbe = () => {
+  const location = useLocation();
+  return <span data-testid="location">{location.pathname}</span>;
+};
+
+function renderPalette(onClose = vi.fn()) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const utils = render(
     <MemoryRouter>
       <QueryClientProvider client={client}>
-        <CommandPalette isOpen onClose={vi.fn()} />
+        <CommandPalette isOpen onClose={onClose} />
+        <Routes>
+          <Route path="*" element={<LocationProbe />} />
+        </Routes>
       </QueryClientProvider>
     </MemoryRouter>
   );
+  return { ...utils, onClose };
 }
 
 beforeEach(() => {
@@ -31,5 +41,15 @@ describe("CommandPalette navigation actions", () => {
     renderPalette();
 
     expect(await screen.findByText("Go to ML Dashboard")).toBeInTheDocument();
+  });
+
+  it("navigates to the ML Dashboard and closes on selection", async () => {
+    const user = userEvent.setup();
+    const { onClose } = renderPalette();
+
+    await user.click(await screen.findByText("Go to ML Dashboard"));
+
+    expect(screen.getByTestId("location")).toHaveTextContent("/admin/ml");
+    expect(onClose).toHaveBeenCalled();
   });
 });

@@ -19,7 +19,7 @@ const ACTIVE_DATA = {
       timestamp: "2026-10-16 09:00:00",
     },
   ],
-  alert_statistics: { CRITICAL: 2, HIGH: 1 },
+  alert_statistics: { CRITICAL: 4, HIGH: 2 },
   active_model: {
     model_id: "m1",
     model_type: "isolation_forest",
@@ -29,7 +29,7 @@ const ACTIVE_DATA = {
     score_mean: -0.04,
     score_std: 0.01,
   },
-  total_recent_alerts: 3,
+  total_recent_alerts: 2,
   anomaly_detection_status: "active",
 };
 
@@ -52,8 +52,8 @@ describe("MLAnomaliesPanel", () => {
     expect(screen.getByText("no such table: anomaly_alerts")).toBeInTheDocument();
   });
 
-  it("renders the not-trained empty state", () => {
-    render(
+  it("renders the not-trained empty state with the beaker icon", () => {
+    const { container } = render(
       <MLAnomaliesPanel
         data={{
           recent_alerts: [],
@@ -67,6 +67,7 @@ describe("MLAnomaliesPanel", () => {
 
     expect(screen.getByText("No model trained yet")).toBeInTheDocument();
     expect(screen.getByText("Train a model to enable anomaly alerts.")).toBeInTheDocument();
+    expect(container.querySelector("svg.h-12.w-12")).toBeInTheDocument();
   });
 
   it("renders alert rows with severity, type, description, and timestamp", () => {
@@ -81,19 +82,34 @@ describe("MLAnomaliesPanel", () => {
     expect(screen.getByText(new Date("2026-10-17 10:30:00").toLocaleString())).toBeInTheDocument();
   });
 
-  it("renders the statistics and total count", () => {
+  it("renders the labeled 30-day statistics and the 7-day count", () => {
     render(<MLAnomaliesPanel data={ACTIVE_DATA} />);
 
-    expect(screen.getByText("3 alerts in the last 7 days")).toBeInTheDocument();
-    expect(screen.getByText("CRITICAL 2")).toBeInTheDocument();
-    expect(screen.getByText("HIGH 1")).toBeInTheDocument();
+    expect(screen.getByText("2 alerts in the last 7 days")).toBeInTheDocument();
+    expect(screen.getByText("Last 30 days")).toBeInTheDocument();
+    expect(screen.getByText("CRITICAL 4")).toBeInTheDocument();
+    expect(screen.getByText("HIGH 2")).toBeInTheDocument();
   });
 
-  it("renders an empty state when there are no recent alerts", () => {
-    render(
+  it("discloses truncation when the total exceeds the returned list", () => {
+    render(<MLAnomaliesPanel data={{ ...ACTIVE_DATA, total_recent_alerts: 23 }} />);
+
+    expect(screen.getByText("Latest 2 of 23 alerts in the last 7 days")).toBeInTheDocument();
+  });
+
+  it("uses singular grammar for a single alert", () => {
+    render(<MLAnomaliesPanel data={{ ...ACTIVE_DATA, total_recent_alerts: 1 }} />);
+
+    expect(screen.getByText("1 alert in the last 7 days")).toBeInTheDocument();
+    expect(screen.queryByText("1 alerts in the last 7 days")).not.toBeInTheDocument();
+  });
+
+  it("renders an empty state with the bell icon when there are no recent alerts", () => {
+    const { container } = render(
       <MLAnomaliesPanel data={{ ...ACTIVE_DATA, recent_alerts: [], total_recent_alerts: 0 }} />
     );
 
     expect(screen.getByText("No anomalies detected in the last 7 days")).toBeInTheDocument();
+    expect(container.querySelector("svg.h-12.w-12")).toBeInTheDocument();
   });
 });

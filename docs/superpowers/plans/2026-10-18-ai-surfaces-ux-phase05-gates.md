@@ -67,6 +67,19 @@ Environment: live backend with **`ML_ISOLATION_FOREST_ENABLED=false`** (`backend
 - The subagent review dispatch was aborted mid-run; an inline verification pass over the full phase range `fd92821..3829c4b` was performed instead (package: `.superpowers/sdd/review-package-phase05.md`): no stale imports of the deleted config modules (grep clean); Sidebar shadowing edge cases (`/admin` vs `/admin/ml`, prefix boundary, exact match, `/dashboard` special case); `mlAPI` contract + 300 s timeout; query config (`enabled: isAdmin`, 30 s poll, `retry: false`); per-section error isolation; non-admin no-call fallback; stories CSF3 consistency. No new defects found.
 - Recommendation: run the independent subagent review before merge if a third-party pass is desired; the phase is otherwise ready.
 
+## Independent subagent review + follow-ups (2026-10-19)
+
+The recommended subagent review over `fd92821..3829c4b` (same package) was run after the initial commit of this document: verdict **APPROVE WITH CONCERNS** — no Critical/High frontend defects. All findings resolved in the follow-up commit (`fix(ml-ui): independent review follow-ups`, companion to this addendum):
+
+1. **[Medium] Unlabeled 30-day statistics next to the 7-day count + undisclosed list truncation** (`MLAnomaliesPanel`, backend windows: statistics 30-day, `recent_alerts` 7-day capped at 10). Fixed: statistics row now labeled **"Last 30 days"** and separated from the 7-day count; truncation disclosed as **"Latest 10 of N alerts in the last 7 days"** when `total_recent_alerts` > returned rows; singular grammar fixed ("1 alert"). Fixtures updated to mismatched windows (stats `CRITICAL 4 / HIGH 2` vs 1–2 alerts) with new tests for truncation + singular; `MLDashboard` fixture also mismatched (`HIGH 3` stats vs 1 alert) plus "Last 30 days" assertion.
+2. **[Medium, pre-existing, out of phase range] `GET /api/ml/status` had no admin guard.** Fixed in `backend/routes/ml.py`: 403 "Admin access required", mirroring `/ml/train` and `/ml/anomalies`. Backend TDD: `test_status_requires_admin` (RED → GREEN) added; `test_status_ok` updated to an admin user. No frontend impact (queries were already admin-gated via `enabled: isAdmin`).
+3. **[Nit] `EmptyState` icon prop passed as component refs** (`MLStatusPanel`, `MLAnomaliesPanel`) — the component requires elements (`React.isValidElement`). Fixed to element form; component-ref usage in `MetricCard` / `PageHeader` verified correct (they destructure and render internally). Tests now assert the custom icon renders (`svg.h-12.w-12`).
+4. **[Nit] Test-coverage gaps.** Sidebar: +reverse-active on `/admin` and same-prefix boundary (`/admin/mlx` never activates ML Dashboard); CommandPalette: clicking "Go to ML Dashboard" navigates to `/admin/ml` and closes (location probe); MLDashboard: +direct `enabled/refetchInterval/staleTime/retry` assertions on both queries, +reverse isolation (status failure leaves anomalies rendering).
+5. **[Nit] T5 layout deviation** (stacked status/train vs planned two-column grid) — ratified as plan amendment **A8**; layout unchanged (live-QA-verified, reads as one status→train workflow).
+
+Post-follow-up gate re-run: vitest `396/396`, lint `0 err / 10 warn`, `npm run build` exit 0, backend `720 passed`.
+
+
 ## Behavioral notes (not defects)
 
 - After a 409 the gate panel persists until a successful train or a page reload (deliberate: the button stays disabled while the gate is known-blocked; reload clears it).

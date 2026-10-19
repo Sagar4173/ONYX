@@ -23,6 +23,8 @@ def _sklearn_available() -> bool:
 
 @router.get("/status")
 async def ml_status(user: User = Depends(get_current_user)):
+    if user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
     engine = get_ml_engine()
     active = engine.models.get("anomaly_detector")
     return {

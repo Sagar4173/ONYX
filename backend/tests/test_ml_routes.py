@@ -73,7 +73,7 @@ class TestMLRoutes:
     def test_status_ok(self, monkeypatch):
         monkeypatch.setattr(settings, "ml_isolation_forest_enabled", False)
         _stub_engine(monkeypatch)
-        client = _setup_client(_make_mock_user(UserRole.DEVELOPER))
+        client = _setup_client(_make_mock_user(UserRole.ADMIN))
 
         resp = client.get("/api/ml/status")
 
@@ -85,6 +85,15 @@ class TestMLRoutes:
         assert data["active_model"] is None
         assert data["min_training_scans"] == settings.ml_min_training_scans
         assert data["training_window_days"] == settings.ml_training_window_days
+
+    def test_status_requires_admin(self, monkeypatch):
+        stub = _stub_engine(monkeypatch)
+        client = _setup_client(_make_mock_user(UserRole.DEVELOPER))
+
+        resp = client.get("/api/ml/status")
+
+        assert resp.status_code == 403
+        assert resp.json()["detail"] == "Admin access required"
 
     def test_train_requires_admin(self, monkeypatch):
         stub = _stub_engine(monkeypatch, metrics=_metrics())
