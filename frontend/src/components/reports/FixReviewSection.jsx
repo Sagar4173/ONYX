@@ -85,7 +85,7 @@ export function FixReviewSection({ fix, scanId, findingId, filePath }) {
   const { data: features } = useAIFeatures();
   const [dialog, setDialog] = useState(null);
   const approvalRequired = features?.auto_fix_requires_approval !== false;
-  const { run, error, isProposing } = fix;
+  const { run, error, isProposing, isApproving } = fix;
 
   if (!isProposing && !run && !error) return null;
 
@@ -150,8 +150,14 @@ export function FixReviewSection({ fix, scanId, findingId, filePath }) {
 
             {run.status === "awaiting_approval" && approvalRequired && (
               <div className="flex flex-wrap gap-3">
-                <Button onClick={() => setDialog("approve")}>Approve & open PR</Button>
-                <Button variant="outline" onClick={() => setDialog("reject")}>
+                <Button onClick={() => setDialog("approve")} disabled={isApproving}>
+                  Approve & open PR
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setDialog("reject")}
+                  disabled={isApproving}
+                >
                   Reject
                 </Button>
               </div>

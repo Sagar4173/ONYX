@@ -235,6 +235,30 @@ describe("fix-PR flow", () => {
     expect(autoFixApprove).not.toHaveBeenCalled();
   });
 
+  it("disables review actions while approval is in flight", async () => {
+    const user = userEvent.setup();
+    autoFixPropose.mockResolvedValue(AWAITING);
+    let resolveApprove;
+    autoFixApprove.mockReturnValue(new Promise((resolve) => (resolveApprove = resolve)));
+    renderHarness();
+
+    await user.click(await screen.findByRole("button", { name: /Propose fix/ }));
+    await user.click(await screen.findByRole("button", { name: /Approve & open PR/ }));
+    await user.type(screen.getByRole("textbox"), "APPROVE");
+    await user.click(screen.getByRole("button", { name: "Open pull request" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reject" })).toBeDisabled());
+    expect(screen.getByRole("button", { name: /Approve & open PR/ })).toBeDisabled();
+
+    resolveApprove({
+      ...AWAITING,
+      status: "pr_created",
+      pr_url: "https://x/pull/11",
+      pr_number: 11,
+    });
+    await screen.findByRole("link", { name: /PR #11/ });
+  });
+
   it("goes explain-mode when the approval flow is disabled", async () => {
     getAIFeatures.mockResolvedValue({ auto_fix_requires_approval: false });
     renderHarness();

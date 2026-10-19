@@ -289,6 +289,21 @@ class TestAutoFixRoute:
             response = client.delete(self.state_url)
         assert response.status_code == 404
 
+    def test_discard_access_denied_for_foreign_scan(self):
+        foreign_report = self._make_report()
+        foreign_report.user_id = "someone-else"
+        foreign_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}}
+        foreign_report.save = AsyncMock()
+        client = _setup_client()
+        patchers = self._patch_access(foreign_report)
+        try:
+            response = client.delete(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert response.status_code == 404
+        assert "pending_fixes" in foreign_report.metadata
+        foreign_report.save.assert_not_awaited()
+
     def test_discard_unauthenticated(self):
         app.dependency_overrides.clear()
         client = TestClient(app)
