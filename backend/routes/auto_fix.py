@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_accessible_scan_report
-from services.ai.fix_runner import approve_fix, get_fix_state, propose_fix
+from services.ai.fix_runner import approve_fix, discard_pending, get_fix_state, propose_fix
 from services.scm.auto_fix_service import AutoFixError
 
 logger = logging.getLogger(__name__)
@@ -72,3 +72,14 @@ class FixStateResponse(BaseModel):
 async def get_auto_fix_state(scan_id: str, finding_id: str, user=Depends(get_current_user)):
     report = await _report_or_404(scan_id, user)
     return FixStateResponse(**get_fix_state(report, finding_id))
+
+
+class DiscardResponse(BaseModel):
+    status: str = "discarded"
+
+
+@router.delete("/{scan_id}/auto-fix/{finding_id}", response_model=DiscardResponse)
+async def discard_auto_fix(scan_id: str, finding_id: str, user=Depends(get_current_user)):
+    report = await _report_or_404(scan_id, user)
+    await discard_pending(report, finding_id)
+    return DiscardResponse()

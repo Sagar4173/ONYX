@@ -251,3 +251,46 @@ class TestAutoFixRoute:
         client = TestClient(app)
         response = client.get(self.state_url)
         assert response.status_code == 401
+
+    def test_discard_removes_pending(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}}
+        mock_report.save = AsyncMock()
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            resp = client.delete(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 200
+        assert resp.json() == {"status": "discarded"}
+        assert "pending_fixes" not in mock_report.metadata
+        mock_report.save.assert_awaited()
+
+    def test_discard_is_idempotent(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {}
+        mock_report.save = AsyncMock()
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            first = client.delete(self.state_url)
+            second = client.delete(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert first.status_code == 200 and second.status_code == 200
+        mock_report.save.assert_not_awaited()
+
+    def test_discard_scan_not_found(self):
+        from models.report import ScanReport as SR
+
+        client = _setup_client()
+        with patch.object(SR, "find_one", AsyncMock(return_value=None)):
+            response = client.delete(self.state_url)
+        assert response.status_code == 404
+
+    def test_discard_unauthenticated(self):
+        app.dependency_overrides.clear()
+        client = TestClient(app)
+        response = client.delete(self.state_url)
+        assert response.status_code == 401
