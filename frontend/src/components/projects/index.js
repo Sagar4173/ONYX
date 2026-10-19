@@ -1,4 +1,3 @@
-export { default as ProjectList } from "./ProjectList";
 export { default as ProjectManagement } from "./ProjectManagement";
 export { default as ProjectDetails } from "./ProjectDetails";
 export { default as ProjectCard } from "./ProjectCard";

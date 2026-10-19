@@ -47,7 +47,6 @@ const ApiTab = ({ user }) => {
     if (isAdmin) {
       loadWebhookStatus();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
   const handleCopy = (text, label) => {

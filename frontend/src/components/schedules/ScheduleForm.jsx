@@ -38,7 +38,7 @@ const TIMEZONES = [
   "Australia/Sydney",
 ];
 
-const CRON_FIELD_RE = /^[A-Za-z0-9*/,\-]+$/;
+const CRON_FIELD_RE = /^[A-Za-z0-9*/,-]+$/;
 
 const isValidCron = (expression) => {
   if (typeof expression !== "string") return false;

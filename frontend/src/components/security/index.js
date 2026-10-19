@@ -5,4 +5,3 @@
 
 export { default as SecurityTrendsDashboard } from "./SecurityTrendsDashboard";
 export { default as ScanComparison } from "./ScanComparison";
-export { default as SBOMViewer } from "./SBOMViewer";
