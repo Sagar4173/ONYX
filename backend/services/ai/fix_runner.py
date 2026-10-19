@@ -132,6 +132,38 @@ async def _record_fix_outcome(
         await scan_report.save()
 
 
+def get_fix_state(scan_report: ScanReport, finding_id: str) -> Dict[str, Any]:
+    """Persisted fix state as a safe subset (never patched_content/base_sha).
+
+    Outcome (findings entry fix_status) wins over a still-present pending key.
+    """
+    metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+    entries = metadata.get("findings")
+    if isinstance(entries, list):
+        for entry in entries:
+            if isinstance(entry, dict) and entry.get("id") == finding_id:
+                status = entry.get("fix_status")
+                if status in ("pr_created", "verified"):
+                    return {
+                        "status": status,
+                        "finding_id": finding_id,
+                        "file_path": entry.get("file_path"),
+                        "pr_url": entry.get("fix_pr_url"),
+                    }
+    pending = metadata.get(PENDING_FIXES)
+    if isinstance(pending, dict) and finding_id in pending:
+        entry = pending[finding_id] if isinstance(pending[finding_id], dict) else {}
+        return {
+            "status": "awaiting_approval",
+            "finding_id": finding_id,
+            "file_path": entry.get("file_path"),
+            "diff": entry.get("diff") or "",
+            "model_used": entry.get("model_used") or "",
+            "created_at": entry.get("created_at"),
+        }
+    return {"status": "none", "finding_id": finding_id}
+
+
 async def _open_pr(
     scan_report: ScanReport,
     finding: VulnerabilityFinding,

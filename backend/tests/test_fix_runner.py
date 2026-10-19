@@ -17,7 +17,7 @@ from models.report import (
 )
 from services.ai.fix_agent import FixAgentError, FixAgentResult, PatchProposal
 from services.ai.fix_gates import GateReport
-from services.ai.fix_runner import FixRunResult, approve_fix, propose_fix
+from services.ai.fix_runner import FixRunResult, approve_fix, get_fix_state, propose_fix
 from services.scm.auto_fix_service import AutoFixError
 
 GOOD = "import os\nimport shlex\n\ndef run(q):\n    return os.popen(shlex.quote(q))\n"
@@ -275,6 +275,69 @@ async def test_concurrent_approve_claims_pending_before_open_pr(scan_report, run
     assert len(losses) == 1 and "No pending fix" in str(losses[0]), results
     assert pending_at_open_pr == [False], pending_at_open_pr
     assert "finding-001" not in (scan_report.metadata.get("pending_fixes") or {})
+
+
+def test_get_fix_state_none(scan_report):
+    assert get_fix_state(scan_report, "finding-001") == {
+        "status": "none",
+        "finding_id": "finding-001",
+    }
+
+
+def test_get_fix_state_pending_returns_safe_subset(scan_report):
+    scan_report.metadata = {
+        "pending_fixes": {
+            "finding-001": {
+                "file_path": "app/run.py",
+                "patched_content": GOOD,
+                "base_sha": "sha",
+                "diff": "--- a\n+++ b\n",
+                "model_used": "groq/m",
+                "created_at": "2026-10-19T00:00:00+00:00",
+            }
+        }
+    }
+    state = get_fix_state(scan_report, "finding-001")
+    assert state == {
+        "status": "awaiting_approval",
+        "finding_id": "finding-001",
+        "file_path": "app/run.py",
+        "diff": "--- a\n+++ b\n",
+        "model_used": "groq/m",
+        "created_at": "2026-10-19T00:00:00+00:00",
+    }
+    assert "patched_content" not in state and "base_sha" not in state
+
+
+def test_get_fix_state_outcome_pr_created(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "id": "finding-001",
+                "file_path": "app/run.py",
+                "fix_pr_url": "https://x/pull/1",
+                "fix_status": "pr_created",
+            }
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001") == {
+        "status": "pr_created",
+        "finding_id": "finding-001",
+        "file_path": "app/run.py",
+        "pr_url": "https://x/pull/1",
+    }
+
+
+def test_get_fix_state_outcome_wins_over_pending(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {"id": "finding-001", "fix_pr_url": "https://x/pull/2", "fix_status": "verified"}
+        ],
+        "pending_fixes": {"finding-001": {"diff": "old", "file_path": "app/run.py"}},
+    }
+    state = get_fix_state(scan_report, "finding-001")
+    assert state["status"] == "verified"
+    assert state["pr_url"] == "https://x/pull/2"
 
 
 from services.ai.fix_runner import verification_markdown, verify_fix
