@@ -17,7 +17,13 @@ from models.report import (
 )
 from services.ai.fix_agent import FixAgentError, FixAgentResult, PatchProposal
 from services.ai.fix_gates import GateReport
-from services.ai.fix_runner import FixRunResult, approve_fix, get_fix_state, propose_fix
+from services.ai.fix_runner import (
+    FixRunResult,
+    approve_fix,
+    discard_pending,
+    get_fix_state,
+    propose_fix,
+)
 from services.scm.auto_fix_service import AutoFixError
 
 GOOD = "import os\nimport shlex\n\ndef run(q):\n    return os.popen(shlex.quote(q))\n"
@@ -338,6 +344,27 @@ def test_get_fix_state_outcome_wins_over_pending(scan_report):
     state = get_fix_state(scan_report, "finding-001")
     assert state["status"] == "verified"
     assert state["pr_url"] == "https://x/pull/2"
+
+
+async def test_discard_pending_removes_entry_and_saves(scan_report):
+    scan_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}, "other": {"diff": "x"}}}
+    assert await discard_pending(scan_report, "finding-001") is True
+    assert scan_report.metadata["pending_fixes"] == {"other": {"diff": "x"}}
+    scan_report.save.assert_awaited()
+
+
+async def test_discard_pending_absent_is_noop(scan_report):
+    scan_report.metadata = {"pending_fixes": {"other": {"diff": "x"}}}
+    assert await discard_pending(scan_report, "finding-001") is False
+    assert scan_report.metadata["pending_fixes"] == {"other": {"diff": "x"}}
+    scan_report.save.assert_not_awaited()
+
+
+async def test_discard_pending_drops_empty_map(scan_report):
+    scan_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}, "findings": []}
+    assert await discard_pending(scan_report, "finding-001") is True
+    assert "pending_fixes" not in scan_report.metadata
+    assert scan_report.metadata["findings"] == []
 
 
 from services.ai.fix_runner import verification_markdown, verify_fix

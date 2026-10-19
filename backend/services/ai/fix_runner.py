@@ -164,6 +164,23 @@ def get_fix_state(scan_report: ScanReport, finding_id: str) -> Dict[str, Any]:
     return {"status": "none", "finding_id": finding_id}
 
 
+async def discard_pending(scan_report: ScanReport, finding_id: str) -> bool:
+    """Remove a pending proposal (idempotent). Returns True when one existed."""
+    metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+    pending = metadata.get(PENDING_FIXES)
+    if not isinstance(pending, dict) or finding_id not in pending:
+        return False
+    remaining = {k: v for k, v in pending.items() if k != finding_id}
+    updated = {**metadata}
+    if remaining:
+        updated[PENDING_FIXES] = remaining
+    else:
+        updated.pop(PENDING_FIXES, None)
+    scan_report.metadata = updated
+    await scan_report.save()
+    return True
+
+
 async def _open_pr(
     scan_report: ScanReport,
     finding: VulnerabilityFinding,
