@@ -118,12 +118,14 @@ Residual findings (not introduced by this track unless noted):
 
 ## Final whole-branch review
 
-Verdict at `99e9206`: **APPROVE WITH CONCERNS** (no Critical/High). Mediums: `_store_pending`
-claim overwrite and post-PR removal restore; both fixed in `d01b192`. Low items (discard error
-classification, refresh/outcome diagnostics) fixed in `d01b192`; outcome no-op counter
-corrected in `2928aa0`. Lows kept as accepted debt: DELETE exhaustion copy, whole-metadata
-clobber, `_open_pr` post-PR window, doc/test gaps (real-Mongo integration, separate-instance
-concurrency), and the pre-existing security findings above.
+Verdict at `99e9206`: **APPROVE WITH CONCERNS** (no Critical/High). Both track-code Mediums
+(`_store_pending` claim overwrite and post-PR removal restore) were fixed in `d01b192`; the Low
+items (discard error classification, refresh/outcome diagnostics) were also fixed there, and
+the outcome no-op counter was corrected in `2928aa0`. Remaining accepted debt: Low-severity
+track items (DELETE exhaustion copy, `_open_pr` post-PR window, doc/test gaps — real-Mongo
+integration, separate-instance concurrency) plus the pre-existing security findings above
+(including the Medium auto-fix write-authorization gap and the whole-metadata clobber), which
+remain outside this track's scope.
 
 Re-review verdict after fixes: **APPROVE** (both Mediums closed, Lows closed, no regressions;
 full suites green).
