@@ -672,6 +672,72 @@ def test_get_fix_state_accepts_pathless_outcome_when_path_given(scan_report):
     }
 
 
+def test_get_fix_state_prefers_path_match_over_earlier_pathless(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "fix_pr_url": "https://x/pull/1",
+                "fix_status": "verified",
+            },
+            {
+                "rule_id": "finding-001",
+                "file_path": "app/run.py",
+                "fix_pr_url": "https://x/pull/2",
+                "fix_status": "pr_created",
+            },
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001", file_path="app/run.py") == {
+        "status": "pr_created",
+        "finding_id": "finding-001",
+        "file_path": "app/run.py",
+        "pr_url": "https://x/pull/2",
+    }
+
+
+def test_get_fix_state_suffix_path_match(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "file_path": "src/a.py",
+                "fix_pr_url": "https://x/pull/3",
+                "fix_status": "verified",
+            }
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001", file_path="a.py") == {
+        "status": "verified",
+        "finding_id": "finding-001",
+        "file_path": "src/a.py",
+        "pr_url": "https://x/pull/3",
+    }
+
+
+def test_get_fix_state_returns_pathless_entry_when_path_given(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "fix_pr_url": "https://x/pull/4",
+                "fix_status": "pr_created",
+            },
+            {
+                "rule_id": "finding-001",
+                "fix_pr_url": "https://x/pull/5",
+                "fix_status": "verified",
+            },
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001", file_path="app/run.py") == {
+        "status": "pr_created",
+        "finding_id": "finding-001",
+        "file_path": None,
+        "pr_url": "https://x/pull/4",
+    }
+
+
 def test_get_fix_state_pending_path_mismatch_reads_none(scan_report):
     scan_report.metadata = {
         "pending_fixes": {

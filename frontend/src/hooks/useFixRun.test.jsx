@@ -211,6 +211,54 @@ describe("useFixRun", () => {
     expect(autoFixGetState).toHaveBeenCalledTimes(1);
   });
 
+  it("writes mutation results to the key pinned at mutation start", async () => {
+    let resolvePropose;
+    autoFixPropose.mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolvePropose = r;
+        })
+    );
+    const { client, wrapper } = makeWrapper();
+    const { result, rerender } = renderHook(
+      ({ findingId, filePath }) => useFixRun({ scanId: "s1", findingId, filePath }),
+      { wrapper, initialProps: { findingId: "f-1", filePath: "app/run.py" } }
+    );
+
+    act(() => result.current.propose({ scanId: "s1", findingId: "f-1" }));
+    await waitFor(() => expect(result.current.isProposing).toBe(true));
+
+    rerender({ findingId: "f-2", filePath: "app/other.py" });
+    await waitFor(() =>
+      expect(client.getQueryState(["fix-run", "s1", "f-2", "app/other.py"])?.status).toBe("success")
+    );
+
+    await act(async () => resolvePropose({ ...AWAITING, finding_id: "f-1" }));
+    await waitFor(() =>
+      expect(client.getQueryData(["fix-run", "s1", "f-1", "app/run.py"])?.run?.status).toBe(
+        "awaiting_approval"
+      )
+    );
+    expect(client.getQueryData(["fix-run", "s1", "f-2", "app/other.py"])?.run ?? null).toBeNull();
+  });
+
+  it("writes mutation results to the filePath-scoped cache key", async () => {
+    autoFixPropose.mockResolvedValue(AWAITING);
+    const { client, wrapper } = makeWrapper();
+    const { result } = renderHook(
+      () => useFixRun({ scanId: "s1", findingId: "f-1", filePath: "app/run.py" }),
+      { wrapper }
+    );
+
+    act(() => result.current.propose({ scanId: "s1", findingId: "f-1" }));
+    await waitFor(() => expect(result.current.run).not.toBeNull());
+
+    expect(client.getQueryData(["fix-run", "s1", "f-1", "app/run.py"])?.run?.status).toBe(
+      "awaiting_approval"
+    );
+    expect(client.getQueryData(["fix-run", "s1", "f-1", null])).toBeUndefined();
+  });
+
   it("discards a pending proposal server-side on reject", async () => {
     autoFixPropose.mockResolvedValue(AWAITING);
     autoFixDiscard.mockResolvedValue({ status: "discarded" });

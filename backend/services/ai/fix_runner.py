@@ -233,22 +233,32 @@ def get_fix_state(
     metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
     entries = metadata.get("findings")
     if isinstance(entries, list):
-        for entry in entries:
-            if not isinstance(entry, dict):
-                continue
-            if (entry.get("id") or entry.get("rule_id")) != finding_id:
-                continue
-            status = entry.get("fix_status")
-            if status not in ("pr_created", "verified"):
-                continue
-            entry_path = entry.get("file_path")
-            if file_path and entry_path and not _path_matches(entry_path, file_path):
-                continue
+        candidates = [
+            entry
+            for entry in entries
+            if isinstance(entry, dict)
+            and (entry.get("id") or entry.get("rule_id")) == finding_id
+            and entry.get("fix_status") in ("pr_created", "verified")
+        ]
+        if file_path:
+            match = next(
+                (
+                    entry
+                    for entry in candidates
+                    if entry.get("file_path") and _path_matches(entry.get("file_path"), file_path)
+                ),
+                None,
+            )
+            if match is None:
+                match = next((entry for entry in candidates if not entry.get("file_path")), None)
+        else:
+            match = candidates[0] if candidates else None
+        if match is not None:
             return {
-                "status": status,
+                "status": match.get("fix_status"),
                 "finding_id": finding_id,
-                "file_path": entry.get("file_path"),
-                "pr_url": entry.get("fix_pr_url"),
+                "file_path": match.get("file_path"),
+                "pr_url": match.get("fix_pr_url"),
             }
     pending = metadata.get(PENDING_FIXES)
     if isinstance(pending, dict) and finding_id in pending:

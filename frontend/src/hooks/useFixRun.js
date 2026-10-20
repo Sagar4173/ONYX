@@ -82,8 +82,8 @@ export function useFixRun({ scanId, findingId, filePath }) {
     refetchOnReconnect: false,
   });
 
-  const update = (updater) => {
-    queryClient.setQueryData(queryKey, (prev) => updater(prev ?? EMPTY_STATE));
+  const update = (key, updater) => {
+    queryClient.setQueryData(key, (prev) => updater(prev ?? EMPTY_STATE));
   };
 
   const withHistory = (prev, action, status, ok) => ({
@@ -98,13 +98,16 @@ export function useFixRun({ scanId, findingId, filePath }) {
       return autoFixPropose({ scanId: vars.scanId, findingId: vars.findingId });
     },
     retry: false,
-    onSuccess: (run) => {
-      update((prev) => withHistory({ ...prev, run, error: null }, "propose", run.status, true));
+    onMutate: () => ({ key: keyFor(scanId, findingId, filePath) }),
+    onSuccess: (run, _vars, context) => {
+      update(context.key, (prev) =>
+        withHistory({ ...prev, run, error: null }, "propose", run.status, true)
+      );
       toast.success(PROPOSE_TOASTS[run.status] ?? "Fix status updated");
     },
-    onError: (error) => {
+    onError: (error, _vars, context) => {
       const classified = classifyFixError(error);
-      update((prev) =>
+      update(context.key, (prev) =>
         withHistory({ ...prev, run: null, error: classified }, "propose", "error", false)
       );
     },
@@ -117,8 +120,9 @@ export function useFixRun({ scanId, findingId, filePath }) {
       return autoFixApprove({ scanId: vars.scanId, findingId: vars.findingId });
     },
     retry: false,
-    onSuccess: (run) => {
-      update((prev) =>
+    onMutate: () => ({ key: keyFor(scanId, findingId, filePath) }),
+    onSuccess: (run, _vars, context) => {
+      update(context.key, (prev) =>
         withHistory(
           { ...prev, run: { ...run, diff: run.diff || prev.run?.diff || "" }, error: null },
           "approve",
@@ -128,10 +132,10 @@ export function useFixRun({ scanId, findingId, filePath }) {
       );
       toast.success(run.status === "verified" ? "Fix verified by re-scan" : "Pull request opened");
     },
-    onError: (error) => {
+    onError: (error, _vars, context) => {
       const classified = classifyFixError(error);
       const staleRun = classified.kind === "race" || classified.kind === "not_found";
-      update((prev) =>
+      update(context.key, (prev) =>
         withHistory(
           { ...prev, run: staleRun ? null : prev.run, error: classified },
           "approve",
@@ -148,8 +152,9 @@ export function useFixRun({ scanId, findingId, filePath }) {
       return autoFixDiscard({ scanId, findingId });
     },
     retry: false,
-    onSuccess: () => {
-      update((prev) =>
+    onMutate: () => ({ key: keyFor(scanId, findingId, filePath) }),
+    onSuccess: (data, _vars, context) => {
+      update(context.key, (prev) =>
         withHistory({ ...prev, run: null, error: null }, "reject", "dismissed", true)
       );
       toast.success("Proposal rejected — nothing was applied");

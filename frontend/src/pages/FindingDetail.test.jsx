@@ -131,7 +131,13 @@ describe("FindingDetail", () => {
     await waitFor(() =>
       expect(screen.getByRole("heading", { name: "SQL Injection" })).toBeInTheDocument()
     );
-
+    await waitFor(() =>
+      expect(autoFixGetState).toHaveBeenCalledWith({
+        scanId: "scan-1",
+        findingId: "f-1",
+        filePath: "app.py",
+      })
+    );
     expect(screen.getByText("High")).toBeInTheDocument();
     expect(screen.getByText("CWE-89")).toBeInTheDocument();
     expect(screen.getByText(/CVSS 9\.8/)).toBeInTheDocument();
