@@ -141,6 +141,27 @@ class TestReportExportDownload:
         assert resp.status_code == 403
         assert resp.json()["detail"] == "Access denied to this report"
 
+    def test_download_json_redacts_pending_fix_payloads(self):
+        client = _setup_client()
+        report = _make_report()
+        report.metadata = {
+            "pending_fixes": {
+                "f-1": {"patched_content": "SECRET PATCH", "base_sha": "s"}
+            },
+            "triage": {"cached": True},
+        }
+
+        with patch.object(ScanReport, "find_one", AsyncMock(return_value=report)), patch(
+            "routes.reports.export.get_user_project_ids", AsyncMock(return_value=[])
+        ):
+            resp = client.get(f"/api/reports/{CUSTOM_SCAN_ID}/download?format=json")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["metadata"] == {"triage": {"cached": True}}
+        assert "SECRET PATCH" not in resp.text
+        assert "pending_fixes" not in resp.text
+
     def test_download_unknown_report_returns_404(self):
         client = _setup_client()
 

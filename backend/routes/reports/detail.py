@@ -10,6 +10,7 @@ from models.user import User
 from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_user_project_ids
 from utils.error_handling import get_safe_error_detail
+from utils.report_metadata import redacted_report_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ async def get_report(
             },
             "scan_results": [],
             "tags": report.tags if report.tags else [],
-            "metadata": report.metadata if report.metadata else {},
+            "metadata": redacted_report_metadata(report.metadata),
         }
 
         if report.scan_results:
