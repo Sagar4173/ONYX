@@ -113,11 +113,12 @@ def runner_env(workspace, monkeypatch):
     return workspace
 
 
-def _fake_collection(matched_count=1):
+def _fake_collection(matched_count=1, modified_count=None):
     collection = MagicMock()
-    collection.update_one = AsyncMock(
-        return_value=SimpleNamespace(matched_count=matched_count)
-    )
+    result = SimpleNamespace(matched_count=matched_count)
+    if modified_count is not None:
+        result.modified_count = modified_count
+    collection.update_one = AsyncMock(return_value=result)
     return collection
 
 
@@ -1159,7 +1160,7 @@ async def test_record_outcome_warns_when_no_metadata_entry_matches(
 ):
     scan_report.id = "scan-oid"
     scan_report.metadata = {"findings": [{"rule_id": "finding-001", "file_path": "app/run.py"}]}
-    collection = _fake_collection(matched_count=0)
+    collection = _fake_collection(matched_count=1, modified_count=0)
     with (
         caplog.at_level(logging.WARNING, logger="services.ai.fix_runner"),
         patch.object(ScanReport, "get_motor_collection", return_value=collection),

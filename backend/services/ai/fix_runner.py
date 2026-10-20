@@ -215,7 +215,7 @@ async def _record_fix_outcome(
         }},
         array_filters=[array_filter],
     )
-    if getattr(result, "matched_count", 0) == 0:
+    if getattr(result, "modified_count", getattr(result, "matched_count", 0)) == 0:
         logger.warning(
             "Fix outcome not persisted for finding %s at %s — no matching metadata entry",
             finding.id,
