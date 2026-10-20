@@ -247,8 +247,12 @@ describe("fix-PR flow", () => {
     await user.type(screen.getByRole("textbox"), "APPROVE");
     await user.click(screen.getByRole("button", { name: "Open pull request" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Reject" })).toBeDisabled());
-    expect(screen.getByRole("button", { name: /Approve & open PR/ })).toBeDisabled();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Reject" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Approving…" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: /Propose again/ })).toBeDisabled();
+    });
+    expect(screen.queryByRole("button", { name: /Approve & open PR/ })).toBeNull();
 
     resolveApprove({
       ...AWAITING,
@@ -318,7 +322,7 @@ describe("fix-PR flow", () => {
     renderHarness();
 
     await screen.findByText("Fix-PR review");
-    expect(screen.getByRole("link", { name: /PR #open/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "View PR" })).toHaveAttribute(
       "href",
       "https://x/pull/7"
     );

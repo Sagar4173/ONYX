@@ -31,8 +31,10 @@ export function FixTriggerCard({ fix, scanId, findingId }) {
         size="sm"
         className="w-full"
         isLoading={fix.isProposing}
-        disabled={!approvalRequired}
-        title={!approvalRequired ? EXPLAIN_COPY : undefined}
+        disabled={!approvalRequired || fix.isApproving}
+        title={
+          !approvalRequired ? EXPLAIN_COPY : fix.isApproving ? "Approval in progress…" : undefined
+        }
         leftIcon={<SparklesIcon className="w-4 h-4" />}
         onClick={() => fix.propose({ scanId, findingId })}
       >

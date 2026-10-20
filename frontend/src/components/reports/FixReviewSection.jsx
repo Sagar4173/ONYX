@@ -51,7 +51,7 @@ function PrCard({ run }) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
         >
-          PR #{run.pr_number ?? "open"}
+          {run.pr_number != null ? `PR #${run.pr_number}` : "View PR"}
           <ArrowTopRightOnSquareIcon className="w-4 h-4" />
         </a>
       )}
@@ -151,7 +151,7 @@ export function FixReviewSection({ fix, scanId, findingId, filePath }) {
             {run.status === "awaiting_approval" && approvalRequired && (
               <div className="flex flex-wrap gap-3">
                 <Button onClick={() => setDialog("approve")} disabled={isApproving}>
-                  Approve & open PR
+                  {isApproving ? "Approving…" : "Approve & open PR"}
                 </Button>
                 <Button
                   variant="outline"
