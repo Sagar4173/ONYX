@@ -126,6 +126,23 @@ describe("fix-PR flow", () => {
     expect(screen.queryByRole("button", { name: /Propose again/ })).toBeNull();
   });
 
+  it("shows forbidden copy without retry when propose lacks scan permission", async () => {
+    const user = userEvent.setup();
+    autoFixPropose.mockRejectedValue({
+      response: {
+        status: 403,
+        data: { detail: "Auto-fix requires scan permission on this project" },
+      },
+    });
+    renderHarness();
+
+    await user.click(await screen.findByRole("button", { name: /Propose fix/ }));
+
+    await screen.findByText("Auto-fix not permitted");
+    expect(screen.getByText(/need scan permission on this project/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Propose again/ })).toBeNull();
+  });
+
   it("shows gate/agent 400s inline with a propose-again retry", async () => {
     const user = userEvent.setup();
     autoFixPropose.mockRejectedValue({

@@ -64,6 +64,12 @@ describe("classifyFixError", () => {
     expect(classified).toEqual({ status: 400, detail: "gate: secret detected", kind: "rejected" });
     expect(classified).not.toHaveProperty("config");
   });
+
+  it("maps 403 to forbidden", () => {
+    expect(
+      classifyFixError(axiosError(403, "Auto-fix requires scan permission on this project")).kind
+    ).toBe("forbidden");
+  });
 });
 
 describe("useFixRun", () => {

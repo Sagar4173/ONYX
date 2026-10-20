@@ -23,12 +23,14 @@ export function classifyFixError(error) {
       ? "network"
       : status === 404
         ? "not_found"
-        : (status === 400 || status === 409) &&
-            /no pending fix|already (approved|in progress)/i.test(detail)
-          ? "race"
-          : status === 400
-            ? "rejected"
-            : "server";
+        : status === 403
+          ? "forbidden"
+          : (status === 400 || status === 409) &&
+              /no pending fix|already (approved|in progress)/i.test(detail)
+            ? "race"
+            : status === 400
+              ? "rejected"
+              : "server";
   return { status, detail, kind };
 }
 
@@ -164,7 +166,9 @@ export function useFixRun({ scanId, findingId, filePath }) {
       toast.error(
         classified.kind === "race"
           ? "Approval already in progress — try again shortly"
-          : "Could not discard the proposal"
+          : classified.kind === "forbidden"
+            ? "You need scan permission on this project to change auto-fix"
+            : "Could not discard the proposal"
       );
     },
   });

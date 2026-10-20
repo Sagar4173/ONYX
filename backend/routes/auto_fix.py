@@ -5,7 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from routes.dependencies import get_current_user
-from routes.reports.report_dependencies import get_accessible_scan_report
+from routes.reports.report_dependencies import (
+    get_accessible_scan_report,
+    user_can_write_auto_fix,
+)
 from services.ai.fix_runner import (
     FixConflictError,
     approve_fix,
@@ -40,9 +43,19 @@ async def _report_or_404(scan_id: str, user):
     return report
 
 
+async def _write_report_or_403(scan_id: str, user):
+    report = await _report_or_404(scan_id, user)
+    if not await user_can_write_auto_fix(report, str(user.id)):
+        raise HTTPException(
+            status_code=403,
+            detail="Auto-fix requires scan permission on this project",
+        )
+    return report
+
+
 @router.post("/{scan_id}/auto-fix", response_model=FixRunResponse)
 async def trigger_auto_fix(scan_id: str, finding_id: str, user=Depends(get_current_user)):
-    report = await _report_or_404(scan_id, user)
+    report = await _write_report_or_403(scan_id, user)
     try:
         return FixRunResponse(**vars(await propose_fix(report, finding_id)))
     except FixConflictError as e:
@@ -56,7 +69,7 @@ async def trigger_auto_fix(scan_id: str, finding_id: str, user=Depends(get_curre
 
 @router.post("/{scan_id}/auto-fix/{finding_id}/approve", response_model=FixRunResponse)
 async def approve_auto_fix(scan_id: str, finding_id: str, user=Depends(get_current_user)):
-    report = await _report_or_404(scan_id, user)
+    report = await _write_report_or_403(scan_id, user)
     try:
         return FixRunResponse(**vars(await approve_fix(report, finding_id)))
     except AutoFixError as e:
@@ -93,7 +106,7 @@ class DiscardResponse(BaseModel):
 
 @router.delete("/{scan_id}/auto-fix/{finding_id}", response_model=DiscardResponse)
 async def discard_auto_fix(scan_id: str, finding_id: str, user=Depends(get_current_user)):
-    report = await _report_or_404(scan_id, user)
+    report = await _write_report_or_403(scan_id, user)
     try:
         await discard_pending(report, finding_id)
     except FixConflictError as e:

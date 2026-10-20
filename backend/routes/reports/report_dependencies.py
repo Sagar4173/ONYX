@@ -1,7 +1,15 @@
 """Shared dependencies for report route modules."""
+import logging
 from typing import List, Optional
 
+from bson import ObjectId
+
 from models.project import Project
+from services.infrastructure.project_service import ProjectService
+
+logger = logging.getLogger(__name__)
+
+AUTO_FIX_WRITE_PERMISSION = "scan"
 
 
 async def get_user_project_ids(user_id: str) -> List[str]:
@@ -53,3 +61,31 @@ async def get_accessible_scan_report(scan_id: str, user_id: str) -> Optional[obj
         or (report_project_id and report_project_id in accessible_project_ids)
     )
     return report if has_access else None
+
+
+async def user_can_write_auto_fix(report, user_id: str) -> bool:
+    """Check whether a user may run auto-fix write actions on a report."""
+    project_id = getattr(report, "project_id", None)
+    if not project_id:
+        return getattr(report, "user_id", None) == user_id
+
+    project = None
+    try:
+        if ObjectId.is_valid(str(project_id)):
+            project = await Project.get(ObjectId(str(project_id)))
+        else:
+            project = await Project.find_one({"project_id": str(project_id)})
+    except Exception:
+        logger.warning(
+            "Auto-fix permission lookup failed for report %s",
+            getattr(report, "scan_id", "unknown"),
+            exc_info=True,
+        )
+        return False
+
+    if project is None:
+        return getattr(report, "user_id", None) == user_id
+
+    return await ProjectService().user_has_permission(
+        project, user_id, AUTO_FIX_WRITE_PERMISSION
+    )

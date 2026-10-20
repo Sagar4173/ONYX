@@ -26,6 +26,10 @@ const ERROR_COPY = {
     title: "Finding no longer available",
     description: "This finding is not part of the report any more.",
   },
+  forbidden: {
+    title: "Auto-fix not permitted",
+    description: "You need scan permission on this project to run auto-fix.",
+  },
   rejected: {
     title: "Auto-fix could not run",
     description: "The fix agent or a safety gate rejected this attempt.",
@@ -89,7 +93,7 @@ export function FixReviewSection({ fix, scanId, findingId, filePath }) {
 
   if (!isProposing && !run && !error) return null;
 
-  const retryable = error && error.kind !== "race" && error.kind !== "not_found";
+  const retryable = error && !["race", "not_found", "forbidden"].includes(error.kind);
   const proposeAgain = () => fix.propose({ scanId, findingId });
 
   return (
