@@ -176,6 +176,41 @@ describe("useFixRun", () => {
     expect(result.current.run?.status).toBe("awaiting_approval");
   });
 
+  it("keys the state read by filePath", async () => {
+    const { wrapper } = makeWrapper();
+    const first = renderHook(
+      ({ filePath }) => useFixRun({ scanId: "s1", findingId: "f-1", filePath }),
+      { wrapper, initialProps: { filePath: "app/run.py" } }
+    );
+
+    await waitFor(() =>
+      expect(autoFixGetState).toHaveBeenCalledWith({
+        scanId: "s1",
+        findingId: "f-1",
+        filePath: "app/run.py",
+      })
+    );
+    await waitFor(() => expect(first.result.current.run).toBeNull());
+    first.unmount();
+    autoFixGetState.mockClear();
+
+    const second = renderHook(
+      ({ filePath }) => useFixRun({ scanId: "s1", findingId: "f-1", filePath }),
+      { wrapper, initialProps: { filePath: "app/run.py" } }
+    );
+    expect(autoFixGetState).not.toHaveBeenCalled();
+
+    second.rerender({ filePath: "app/other.py" });
+    await waitFor(() =>
+      expect(autoFixGetState).toHaveBeenCalledWith({
+        scanId: "s1",
+        findingId: "f-1",
+        filePath: "app/other.py",
+      })
+    );
+    expect(autoFixGetState).toHaveBeenCalledTimes(1);
+  });
+
   it("discards a pending proposal server-side on reject", async () => {
     autoFixPropose.mockResolvedValue(AWAITING);
     autoFixDiscard.mockResolvedValue({ status: "discarded" });
@@ -276,7 +311,7 @@ describe("useFixRun", () => {
     const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
 
     await waitFor(() =>
-      expect(client.getQueryState(["fix-run", "s1", "f-1"])?.status).toBe("success")
+      expect(client.getQueryState(["fix-run", "s1", "f-1", null])?.status).toBe("success")
     );
     expect(result.current.run).toBeNull();
     expect(result.current.error).toBeNull();

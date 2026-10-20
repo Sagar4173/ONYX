@@ -220,27 +220,42 @@ async def _record_fix_outcome(
         scan_report.metadata = {**metadata, "findings": updated}
 
 
-def get_fix_state(scan_report: ScanReport, finding_id: str) -> Dict[str, Any]:
+def get_fix_state(
+    scan_report: ScanReport, finding_id: str, file_path: Optional[str] = None
+) -> Dict[str, Any]:
     """Persisted fix state as a safe subset (never patched_content/base_sha).
 
     Outcome (findings entry fix_status) wins over a still-present pending key.
+    When file_path is given, entries are disambiguated by path; entries without
+    a path remain acceptable, and a pending entry whose path does not match is
+    treated as absent.
     """
     metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
     entries = metadata.get("findings")
     if isinstance(entries, list):
         for entry in entries:
-            if isinstance(entry, dict) and (entry.get("id") or entry.get("rule_id")) == finding_id:
-                status = entry.get("fix_status")
-                if status in ("pr_created", "verified"):
-                    return {
-                        "status": status,
-                        "finding_id": finding_id,
-                        "file_path": entry.get("file_path"),
-                        "pr_url": entry.get("fix_pr_url"),
-                    }
+            if not isinstance(entry, dict):
+                continue
+            if (entry.get("id") or entry.get("rule_id")) != finding_id:
+                continue
+            status = entry.get("fix_status")
+            if status not in ("pr_created", "verified"):
+                continue
+            entry_path = entry.get("file_path")
+            if file_path and entry_path and not _path_matches(entry_path, file_path):
+                continue
+            return {
+                "status": status,
+                "finding_id": finding_id,
+                "file_path": entry.get("file_path"),
+                "pr_url": entry.get("fix_pr_url"),
+            }
     pending = metadata.get(PENDING_FIXES)
     if isinstance(pending, dict) and finding_id in pending:
         entry = pending[finding_id] if isinstance(pending[finding_id], dict) else {}
+        entry_path = entry.get("file_path")
+        if file_path and entry_path and not _path_matches(entry_path, file_path):
+            return {"status": "none", "finding_id": finding_id}
         return {
             "status": "awaiting_approval",
             "finding_id": finding_id,

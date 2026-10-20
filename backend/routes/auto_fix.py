@@ -75,9 +75,14 @@ class FixStateResponse(BaseModel):
 
 
 @router.get("/{scan_id}/auto-fix/{finding_id}", response_model=FixStateResponse)
-async def get_auto_fix_state(scan_id: str, finding_id: str, user=Depends(get_current_user)):
+async def get_auto_fix_state(
+    scan_id: str,
+    finding_id: str,
+    file_path: Optional[str] = None,
+    user=Depends(get_current_user),
+):
     report = await _report_or_404(scan_id, user)
-    return FixStateResponse(**get_fix_state(report, finding_id))
+    return FixStateResponse(**get_fix_state(report, finding_id, file_path=file_path))
 
 
 class DiscardResponse(BaseModel):

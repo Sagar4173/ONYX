@@ -348,6 +348,18 @@ describe("autoFixGetState", () => {
     await expect(autoFixGetState({ scanId: "s1", findingId: "f-1" })).resolves.toEqual(state);
     expect(getSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1");
   });
+
+  it("passes file_path as a query param when provided", async () => {
+    const state = { status: "none", finding_id: "f-1" };
+    const getSpy = vi.spyOn(api, "get").mockResolvedValue({ data: state });
+
+    await expect(
+      autoFixGetState({ scanId: "s1", findingId: "f-1", filePath: "app/run.py" })
+    ).resolves.toEqual(state);
+    expect(getSpy).toHaveBeenCalledWith("/reports/s1/auto-fix/f-1", {
+      params: { file_path: "app/run.py" },
+    });
+  });
 });
 
 describe("autoFixDiscard", () => {

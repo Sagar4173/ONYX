@@ -65,7 +65,7 @@ export default function FindingDetail() {
   const finding = useMemo(() => findFinding(report, findingId), [report, findingId]);
   const findingIds = useMemo(() => allFindingIds(report), [report]);
   const { labelFinding, isPending } = useLabelFinding({ reportId, scanId: report?.scan_id });
-  const fix = useFixRun({ scanId: report?.scan_id, findingId });
+  const fix = useFixRun({ scanId: report?.scan_id, findingId, filePath: finding?.file_path });
 
   if (isLoading) {
     return (

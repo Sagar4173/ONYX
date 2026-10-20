@@ -153,8 +153,11 @@ export async function autoFixApprove({ scanId, findingId }) {
   return response.data;
 }
 
-export async function autoFixGetState({ scanId, findingId }) {
-  const response = await api.get(`/reports/${scanId}/auto-fix/${findingId}`);
+export async function autoFixGetState({ scanId, findingId, filePath }) {
+  const url = `/reports/${scanId}/auto-fix/${findingId}`;
+  const response = filePath
+    ? await api.get(url, { params: { file_path: filePath } })
+    : await api.get(url);
   return response.data;
 }
 

@@ -11,7 +11,7 @@ const MAX_HISTORY = 10;
 const EMPTY_STATE = { run: null, error: null, history: [] };
 const CACHE_MS = 30 * 60 * 1000;
 
-const keyFor = (scanId, findingId) => ["fix-run", scanId, findingId];
+const keyFor = (scanId, findingId, filePath) => ["fix-run", scanId, findingId, filePath ?? null];
 
 export function classifyFixError(error) {
   const status = error?.response?.status ?? 0;
@@ -60,15 +60,15 @@ const mapStateToRun = (state) => {
   };
 };
 
-export function useFixRun({ scanId, findingId }) {
+export function useFixRun({ scanId, findingId, filePath }) {
   const queryClient = useQueryClient();
-  const queryKey = keyFor(scanId, findingId);
+  const queryKey = keyFor(scanId, findingId, filePath);
 
   const { data } = useQuery({
     queryKey,
     queryFn: async () => {
       try {
-        const state = await autoFixGetState({ scanId, findingId });
+        const state = await autoFixGetState({ scanId, findingId, filePath });
         return { ...EMPTY_STATE, run: mapStateToRun(state) };
       } catch {
         return EMPTY_STATE;
@@ -82,10 +82,8 @@ export function useFixRun({ scanId, findingId }) {
     refetchOnReconnect: false,
   });
 
-  const update = (vars, updater) => {
-    queryClient.setQueryData(keyFor(vars.scanId, vars.findingId), (prev) =>
-      updater(prev ?? EMPTY_STATE)
-    );
+  const update = (updater) => {
+    queryClient.setQueryData(queryKey, (prev) => updater(prev ?? EMPTY_STATE));
   };
 
   const withHistory = (prev, action, status, ok) => ({
@@ -100,15 +98,13 @@ export function useFixRun({ scanId, findingId }) {
       return autoFixPropose({ scanId: vars.scanId, findingId: vars.findingId });
     },
     retry: false,
-    onSuccess: (run, vars) => {
-      update(vars, (prev) =>
-        withHistory({ ...prev, run, error: null }, "propose", run.status, true)
-      );
+    onSuccess: (run) => {
+      update((prev) => withHistory({ ...prev, run, error: null }, "propose", run.status, true));
       toast.success(PROPOSE_TOASTS[run.status] ?? "Fix status updated");
     },
-    onError: (error, vars) => {
+    onError: (error) => {
       const classified = classifyFixError(error);
-      update(vars, (prev) =>
+      update((prev) =>
         withHistory({ ...prev, run: null, error: classified }, "propose", "error", false)
       );
     },
@@ -121,8 +117,8 @@ export function useFixRun({ scanId, findingId }) {
       return autoFixApprove({ scanId: vars.scanId, findingId: vars.findingId });
     },
     retry: false,
-    onSuccess: (run, vars) => {
-      update(vars, (prev) =>
+    onSuccess: (run) => {
+      update((prev) =>
         withHistory(
           { ...prev, run: { ...run, diff: run.diff || prev.run?.diff || "" }, error: null },
           "approve",
@@ -132,10 +128,10 @@ export function useFixRun({ scanId, findingId }) {
       );
       toast.success(run.status === "verified" ? "Fix verified by re-scan" : "Pull request opened");
     },
-    onError: (error, vars) => {
+    onError: (error) => {
       const classified = classifyFixError(error);
       const staleRun = classified.kind === "race" || classified.kind === "not_found";
-      update(vars, (prev) =>
+      update((prev) =>
         withHistory(
           { ...prev, run: staleRun ? null : prev.run, error: classified },
           "approve",
@@ -153,7 +149,7 @@ export function useFixRun({ scanId, findingId }) {
     },
     retry: false,
     onSuccess: () => {
-      update({ scanId, findingId }, (prev) =>
+      update((prev) =>
         withHistory({ ...prev, run: null, error: null }, "reject", "dismissed", true)
       );
       toast.success("Proposal rejected — nothing was applied");

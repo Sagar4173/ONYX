@@ -228,6 +228,25 @@ class TestAutoFixRoute:
         assert resp.json()["pr_url"] == "https://x/pull/1"
         assert resp.json()["status"] == "pr_created"
 
+    def test_get_state_path_filters_pending(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {
+            "pending_fixes": {
+                "finding-001": {"file_path": "app/run.py", "diff": "--- a\n+++ b\n"}
+            }
+        }
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            mismatch = client.get(f"{self.state_url}?file_path=app/other.py")
+            match = client.get(f"{self.state_url}?file_path=app/run.py")
+        finally:
+            self._stop(patchers)
+        assert mismatch.status_code == 200
+        assert mismatch.json()["status"] == "none"
+        assert match.status_code == 200
+        assert match.json()["status"] == "awaiting_approval"
+
     def test_get_state_scan_not_found(self):
         from models.report import ScanReport as SR
 

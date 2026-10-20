@@ -626,6 +626,73 @@ def test_get_fix_state_outcome_wins_over_pending(scan_report):
     assert state["pr_url"] == "https://x/pull/2"
 
 
+def test_get_fix_state_path_disambiguates_duplicate_outcomes(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "file_path": "a.py",
+                "fix_pr_url": "https://x/pull/1",
+                "fix_status": "pr_created",
+            },
+            {
+                "rule_id": "finding-001",
+                "file_path": "b.py",
+                "fix_pr_url": "https://x/pull/2",
+                "fix_status": "pr_created",
+            },
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001", file_path="b.py") == {
+        "status": "pr_created",
+        "finding_id": "finding-001",
+        "file_path": "b.py",
+        "pr_url": "https://x/pull/2",
+    }
+    legacy = get_fix_state(scan_report, "finding-001")
+    assert legacy["file_path"] == "a.py"
+    assert legacy["pr_url"] == "https://x/pull/1"
+
+
+def test_get_fix_state_accepts_pathless_outcome_when_path_given(scan_report):
+    scan_report.metadata = {
+        "findings": [
+            {
+                "rule_id": "finding-001",
+                "fix_pr_url": "https://x/pull/4",
+                "fix_status": "verified",
+            }
+        ]
+    }
+    assert get_fix_state(scan_report, "finding-001", file_path="whatever.py") == {
+        "status": "verified",
+        "finding_id": "finding-001",
+        "file_path": None,
+        "pr_url": "https://x/pull/4",
+    }
+
+
+def test_get_fix_state_pending_path_mismatch_reads_none(scan_report):
+    scan_report.metadata = {
+        "pending_fixes": {
+            "finding-001": {
+                "file_path": "app/run.py",
+                "diff": "--- a\n+++ b\n",
+                "model_used": "groq/m",
+            }
+        }
+    }
+    assert get_fix_state(scan_report, "finding-001", file_path="app/other.py") == {
+        "status": "none",
+        "finding_id": "finding-001",
+    }
+    assert (
+        get_fix_state(scan_report, "finding-001", file_path="app/run.py")["status"]
+        == "awaiting_approval"
+    )
+    assert get_fix_state(scan_report, "finding-001")["status"] == "awaiting_approval"
+
+
 async def test_discard_pending_removes_entry_with_cas(scan_report, monkeypatch):
     scan_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}, "other": {"diff": "x"}}}
     cas = AsyncMock(return_value=True)
