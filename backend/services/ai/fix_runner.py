@@ -187,19 +187,37 @@ async def _record_fix_outcome(
     entries = metadata.get("findings")
     if not isinstance(entries, list):
         return
+    status = "verified" if verification.get("verified") else "pr_created"
+    ident = {"$or": [{"e.id": finding.id}, {"e.rule_id": finding.id}]}
+    if finding.file_path:
+        path = {"$or": [
+            {"e.file_path": {"$exists": False}},
+            {"e.file_path": None},
+            {"e.file_path": {"$in": [finding.file_path, _norm_path(finding.file_path)]}},
+        ]}
+        array_filter = {"$and": [ident, path]}
+    else:
+        array_filter = ident
+    await ScanReport.get_motor_collection().update_one(
+        {"_id": getattr(scan_report, "id", None)},
+        {"$set": {
+            "metadata.findings.$[e].fix_status": status,
+            "metadata.findings.$[e].fix_pr_url": pr_url,
+        }},
+        array_filters=[array_filter],
+    )
     updated, changed = [], False
     for entry in entries:
         if isinstance(entry, dict) and _entry_matches_finding(entry, finding):
             entry = {
                 **entry,
                 "fix_pr_url": pr_url,
-                "fix_status": "verified" if verification.get("verified") else "pr_created",
+                "fix_status": status,
             }
             changed = True
         updated.append(entry)
     if changed:
         scan_report.metadata = {**metadata, "findings": updated}
-        await scan_report.save()
 
 
 def get_fix_state(scan_report: ScanReport, finding_id: str) -> Dict[str, Any]:
@@ -342,40 +360,48 @@ async def propose_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
             shutil.rmtree(local_path, ignore_errors=True)
 
 
+async def _release_claim(scan_report: ScanReport, marked: dict, original: dict) -> None:
+    if await _cas_pending_map(scan_report, marked, original):
+        metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+        scan_report.metadata = {**metadata, PENDING_FIXES: original}
+
+
 async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
     if settings.auto_fix_dry_run:
         raise AutoFixError("AUTO_FIX_DRY_RUN is enabled — fixes are never applied")
-    metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
-    pending_map = dict(metadata.get(PENDING_FIXES) or {})
-    pending = pending_map.get(finding_id)
-    if not pending:
-        raise AutoFixError(f"No pending fix for finding {finding_id}")
-    # Claim the pending entry atomically before any await: a concurrent approve
-    # then loses with "No pending fix" instead of double-opening a PR. The
-    # read+pop above/below runs under the GIL with no suspension point, so it
-    # is a single synchronous operation.
-    pending_map.pop(finding_id)
-    scan_report.metadata = {**metadata, PENDING_FIXES: pending_map}
-
-    def _restore_pending() -> None:
-        # Put the entry back on any failure after the claim so the user can
-        # retry — but never clobber a newer pending fix added meanwhile.
-        current = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
-        remaining = dict(current.get(PENDING_FIXES) or {})
-        if finding_id not in remaining:
-            remaining[finding_id] = pending
-            scan_report.metadata = {**current, PENDING_FIXES: remaining}
-
-    finding = auto_fix_service._find_finding(scan_report, finding_id)
-    if not finding:
-        _restore_pending()
-        raise AutoFixError(f"Finding {finding_id} not found in scan report")
-
-    repo_url = scan_report.git_metadata.repository_url
-    branch = scan_report.git_metadata.branch
+    for attempt in range(_MAX_CAS_ATTEMPTS):
+        source = scan_report if attempt == 0 else await _refresh_report(scan_report)
+        metadata = source.metadata if isinstance(source.metadata, dict) else {}
+        pending_map = metadata.get(PENDING_FIXES)
+        pending = pending_map.get(finding_id) if isinstance(pending_map, dict) else None
+        if not isinstance(pending, dict):
+            raise AutoFixError(
+                f"No pending fix for finding {finding_id} — it may already have been approved"
+            )
+        if not _claim_is_stale(pending):
+            raise AutoFixError("Approval already in progress for this fix")
+        original = dict(pending_map)
+        marked = {
+            **original,
+            finding_id: {**pending, "_approving": True, "_approving_at": time.time()},
+        }
+        if await _cas_pending_map(scan_report, original, marked):
+            scan_report.metadata = {**metadata, PENDING_FIXES: marked}
+            break
+    else:
+        raise AutoFixError(
+            f"No pending fix for finding {finding_id} — it may already have been approved"
+        )
 
     local_path = None
     try:
+        finding = auto_fix_service._find_finding(scan_report, finding_id)
+        if not finding:
+            raise AutoFixError(f"Finding {finding_id} not found in scan report")
+
+        repo_url = scan_report.git_metadata.repository_url
+        branch = scan_report.git_metadata.branch
+
         # The pending content was gated against the propose-time path only
         # (single-file allowlist). If a rescan/metadata rewrite moved the
         # finding, committing it to the current path would bypass that gate.
@@ -393,10 +419,21 @@ async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
             patched_content=pending["patched_content"],
             model_used=pending.get("model_used", ""),
         )
-        await scan_report.save()
+        remaining = {k: v for k, v in marked.items() if k != finding_id}
+        if await _cas_pending_map(scan_report, marked, remaining):
+            metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+            if remaining:
+                scan_report.metadata = {**metadata, PENDING_FIXES: remaining}
+            else:
+                mirrored = {**metadata}
+                mirrored.pop(PENDING_FIXES, None)
+                scan_report.metadata = mirrored
         return result
     except BaseException:
-        _restore_pending()
+        try:
+            await _release_claim(scan_report, marked, original)
+        except Exception:
+            logger.exception("Failed to release auto-fix approval claim")
         raise
     finally:
         if local_path and os.path.exists(local_path):

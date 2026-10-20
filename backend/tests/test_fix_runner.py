@@ -119,6 +119,23 @@ def _fake_collection(matched_count=1):
     return collection
 
 
+@pytest.fixture
+def outcome_collection():
+    return _fake_collection()
+
+
+def _assert_outcome_update(collection, scan_report, *, status, pr_url):
+    collection.update_one.assert_awaited_once()
+    filter_doc, update_doc = collection.update_one.await_args.args
+    assert filter_doc == {"_id": getattr(scan_report, "id", None)}
+    assert update_doc == {"$set": {
+        "metadata.findings.$[e].fix_status": status,
+        "metadata.findings.$[e].fix_pr_url": pr_url,
+    }}
+    assert "array_filters" in collection.update_one.await_args.kwargs
+    scan_report.save.assert_not_awaited()
+
+
 async def test_cas_pending_map_expected_dict_matches_and_sets(scan_report):
     collection = _fake_collection()
     scan_report.id = "scan-oid"
@@ -229,13 +246,16 @@ async def test_propose_dry_run_returns_diff_without_persisting(scan_report, runn
     scan_report.save.assert_not_awaited()
 
 
-async def test_propose_approval_off_opens_pr_immediately(scan_report, runner_env, monkeypatch):
+async def test_propose_approval_off_opens_pr_immediately(
+    scan_report, runner_env, monkeypatch, outcome_collection
+):
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_requires_approval", False)
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
     scanner = MagicMock()
     scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
     with (
+        patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection),
         patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
         patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
               return_value="onyx-auto-fix/x"),
@@ -266,13 +286,19 @@ async def test_propose_agent_error_becomes_autofix_error(scan_report, runner_env
         await propose_fix(scan_report, "finding-001")
 
 
-async def test_approve_success_pushes_and_clears_pending(scan_report, runner_env, monkeypatch):
+async def test_approve_success_pushes_and_clears_pending(
+    scan_report, runner_env, monkeypatch, outcome_collection
+):
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
     await propose_fix(scan_report, "finding-001")  # approval default ON -> pending stored
+    original = dict(scan_report.metadata["pending_fixes"])
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
     scanner = MagicMock()
     scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
     with (
+        patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection),
         patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
         patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
               return_value="onyx-auto-fix/y"),
@@ -284,11 +310,77 @@ async def test_approve_success_pushes_and_clears_pending(scan_report, runner_env
     assert result.pr_url == "https://x/pull/2"
     assert push.called
     assert "finding-001" not in scan_report.metadata.get("pending_fixes", {})
+    scan_report.save.assert_not_awaited()
+    assert cas.await_count == 2
+    claim = cas.await_args_list[0].args
+    assert claim[0] is scan_report
+    assert claim[1] == original
+    marked = claim[2]
+    assert marked["finding-001"]["_approving"] is True
+    assert "_approving_at" in marked["finding-001"]
+    final = cas.await_args_list[1].args
+    assert final[1] == marked
+    assert final[2] == {}
 
 
 async def test_approve_without_pending_raises(scan_report, runner_env):
     with pytest.raises(AutoFixError, match="No pending fix"):
         await approve_fix(scan_report, "finding-001")
+
+
+async def test_approve_fresh_claim_raises_in_progress(scan_report, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    scan_report.metadata = {"pending_fixes": {"finding-001": {
+        "file_path": "app/run.py", "patched_content": GOOD, "base_sha": "sha",
+        "_approving": True, "_approving_at": time.time(),
+    }}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    with pytest.raises(AutoFixError, match="Approval already in progress"):
+        await approve_fix(scan_report, "finding-001")
+    cas.assert_not_awaited()
+
+
+async def test_approve_stale_claim_is_reclaimed(
+    scan_report, runner_env, monkeypatch, outcome_collection
+):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    await propose_fix(scan_report, "finding-001")
+    entry = scan_report.metadata["pending_fixes"]["finding-001"]
+    entry["_approving"] = True
+    entry["_approving_at"] = time.time() - 901
+    scanner = MagicMock()
+    scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
+    with (
+        patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection),
+        patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
+        patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
+              return_value="onyx-auto-fix/stale"),
+        patch("services.ai.fix_runner.auto_fix_service._push_branch"),
+        patch("services.ai.fix_runner.auto_fix_service._create_pr",
+              AsyncMock(return_value=("https://x/pull/12", 12))),
+    ):
+        result = await approve_fix(scan_report, "finding-001")
+    assert result.pr_url == "https://x/pull/12"
+    assert "finding-001" not in scan_report.metadata.get("pending_fixes", {})
+
+
+async def test_approve_claim_cas_exhaustion_raises_race(scan_report, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    scan_report.metadata = {"pending_fixes": {"finding-001": {
+        "file_path": "app/run.py", "patched_content": GOOD, "base_sha": "sha",
+    }}}
+    cas = AsyncMock(return_value=False)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    open_pr = AsyncMock()
+    with patch("services.ai.fix_runner._open_pr", new=open_pr):
+        with pytest.raises(AutoFixError, match="No pending fix"):
+            await approve_fix(scan_report, "finding-001")
+    assert cas.await_count == _MAX_CAS_ATTEMPTS
+    open_pr.assert_not_awaited()
 
 
 async def test_approve_refuses_when_dry_run_enabled(scan_report, runner_env, monkeypatch):
@@ -314,7 +406,7 @@ async def test_approve_stale_base_sha_rejects(scan_report, runner_env, monkeypat
 
 
 async def test_approve_rejects_path_changed_since_propose_and_restores_pending(
-    scan_report, runner_env, monkeypatch
+    scan_report, runner_env, monkeypatch, outcome_collection
 ):
     """Gated content was screened for the propose-time path only: if the
     finding's path changed between propose and approve, approval must refuse
@@ -322,8 +414,11 @@ async def test_approve_rejects_path_changed_since_propose_and_restores_pending(
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
     await propose_fix(scan_report, "finding-001")
-    stored = dict(scan_report.metadata["pending_fixes"]["finding-001"])
+    original = dict(scan_report.metadata["pending_fixes"])
+    stored = dict(original["finding-001"])
     assert stored["file_path"] == "app/run.py"
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
 
     # rescan/metadata rewrite points the finding at another file mid-flight
     scan_report.scan_results[0].findings[0].file_path = "app/other.py"
@@ -331,6 +426,7 @@ async def test_approve_rejects_path_changed_since_propose_and_restores_pending(
     scanner = MagicMock()
     scanner.scan_repository = AsyncMock(return_value={"total_findings": 0, "detailed_findings": []})
     with (
+        patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection),
         patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
         patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
               return_value="onyx-auto-fix/z"),
@@ -344,6 +440,16 @@ async def test_approve_rejects_path_changed_since_propose_and_restores_pending(
         # pending restored (key-absent-only) so the user can retry
         pending_now = scan_report.metadata.get("pending_fixes", {})
         assert pending_now.get("finding-001") == stored
+        assert "_approving" not in pending_now["finding-001"]
+        assert "_approving_at" not in pending_now["finding-001"]
+        assert cas.await_count == 2
+        claim = cas.await_args_list[0].args
+        marked = claim[2]
+        assert claim[1] == original
+        assert marked["finding-001"]["_approving"] is True
+        release = cas.await_args_list[1].args
+        assert release[1] == marked
+        assert release[2] == original
 
         # path restored -> the very same pending entry approves normally
         scan_report.scan_results[0].findings[0].file_path = "app/run.py"
@@ -353,9 +459,36 @@ async def test_approve_rejects_path_changed_since_propose_and_restores_pending(
     assert "finding-001" not in scan_report.metadata.get("pending_fixes", {})
 
 
+async def test_approve_release_never_clobbers_newer_map(
+    scan_report, runner_env, monkeypatch
+):
+    """If the release CAS misses, a newer map won: leave it untouched."""
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    await propose_fix(scan_report, "finding-001")
+    original = dict(scan_report.metadata["pending_fixes"])
+    cas = AsyncMock(side_effect=[True, False])
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    scan_report.scan_results[0].findings[0].file_path = "app/other.py"
+
+    with pytest.raises(AutoFixError, match="Finding path changed since propose"):
+        await approve_fix(scan_report, "finding-001")
+
+    assert cas.await_count == 2
+    claim = cas.await_args_list[0].args
+    marked = claim[2]
+    assert claim[1] == original
+    release = cas.await_args_list[1].args
+    assert release[1] == marked
+    assert release[2] == original
+    # release missed, so the in-memory mirror stays at the claimed state
+    assert scan_report.metadata["pending_fixes"]["finding-001"] == marked["finding-001"]
+    assert scan_report.metadata["pending_fixes"]["finding-001"]["_approving"] is True
+
+
 async def test_concurrent_approve_claims_pending_before_open_pr(scan_report, runner_env, monkeypatch):
     """Concurrent approves: the pending entry is claimed before any await into
-    _open_pr, so exactly one call wins and the other gets "No pending fix"."""
+    _open_pr, so exactly one call wins and the other sees the fresh marker."""
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
     await propose_fix(scan_report, "finding-001")  # pending stored
@@ -389,8 +522,8 @@ async def test_concurrent_approve_claims_pending_before_open_pr(scan_report, run
     wins = [r for r in results if isinstance(r, FixRunResult)]
     losses = [r for r in results if isinstance(r, AutoFixError)]
     assert len(wins) == 1, results
-    assert len(losses) == 1 and "No pending fix" in str(losses[0]), results
-    assert pending_at_open_pr == [False], pending_at_open_pr
+    assert len(losses) == 1 and "Approval already in progress" in str(losses[0]), results
+    assert pending_at_open_pr == [True], pending_at_open_pr
     assert "finding-001" not in (scan_report.metadata.get("pending_fixes") or {})
 
 
@@ -612,10 +745,13 @@ def test_verification_markdown_covers_all_states():
     assert "Unknown" in verification_markdown({"verified": None, "error": "x"})
 
 
-async def test_open_pr_records_verification_and_status(scan_report, runner_env, monkeypatch):
+async def test_open_pr_records_verification_and_status(
+    scan_report, runner_env, monkeypatch, outcome_collection
+):
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_requires_approval", False)
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    scan_report.id = "scan-oid"
     # metadata.findings holds the raw scanner dict shape written by
     # process_real_scan: rule_id + file_path, no id
     scan_report.metadata = {"findings": [{
@@ -629,6 +765,7 @@ async def test_open_pr_records_verification_and_status(scan_report, runner_env, 
         "detailed_findings": [{"rule_id": "OTHER", "file_path": "elsewhere.py", "id": "fx"}],
     })
     with (
+        patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection),
         patch("services.scanning.scanners.real_scanner.RealSecurityScanner", return_value=scanner),
         patch("services.ai.fix_runner.auto_fix_service._create_branch_and_commit",
               return_value="onyx-auto-fix/v"),
@@ -647,70 +784,166 @@ async def test_open_pr_records_verification_and_status(scan_report, runner_env, 
     assert entry["title"] == "Shell injection"
     assert entry["rule_id"] == "finding-001"
     assert entry["file_path"] == "app/run.py"
+    _assert_outcome_update(
+        outcome_collection, scan_report, status="verified", pr_url="https://x/pull/9"
+    )
+    assert outcome_collection.update_one.await_args.kwargs["array_filters"] == [{
+        "$and": [
+            {"$or": [{"e.id": "finding-001"}, {"e.rule_id": "finding-001"}]},
+            {"$or": [
+                {"e.file_path": {"$exists": False}},
+                {"e.file_path": None},
+                {"e.file_path": {"$in": ["app/run.py", "app/run.py"]}},
+            ]},
+        ]
+    }]
 
 
-async def test_record_outcome_disambiguates_duplicate_rule_id_by_path(scan_report, finding):
+async def test_record_outcome_disambiguates_duplicate_rule_id_by_path(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
     finding.file_path = "b.py"
     scan_report.metadata = {"findings": [
         {"rule_id": "finding-001", "file_path": "a.py", "title": "A"},
         {"rule_id": "finding-001", "file_path": "b.py", "title": "B"},
     ]}
-    await _record_fix_outcome(
-        scan_report, finding, pr_url="https://x/pull/4", verification={"verified": False}
-    )
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/4", verification={"verified": False}
+        )
     a_entry, b_entry = scan_report.metadata["findings"]
     assert a_entry == {"rule_id": "finding-001", "file_path": "a.py", "title": "A"}
     assert b_entry["fix_status"] == "pr_created"
     assert b_entry["fix_pr_url"] == "https://x/pull/4"
     assert b_entry["title"] == "B"
-    scan_report.save.assert_awaited()
+    _assert_outcome_update(
+        outcome_collection, scan_report, status="pr_created", pr_url="https://x/pull/4"
+    )
 
 
-async def test_record_outcome_updates_all_matching_duplicates(scan_report, finding):
+async def test_record_outcome_adds_path_filter(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
+    finding.file_path = "b.py"
+    scan_report.metadata = {"findings": [
+        {"rule_id": "finding-001", "file_path": "a.py", "title": "A"},
+        {"rule_id": "finding-001", "file_path": "b.py", "title": "B"},
+    ]}
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/10", verification={"verified": False}
+        )
+    array_filter, = outcome_collection.update_one.await_args.kwargs["array_filters"]
+    assert array_filter == {"$and": [
+        {"$or": [{"e.id": "finding-001"}, {"e.rule_id": "finding-001"}]},
+        {"$or": [
+            {"e.file_path": {"$exists": False}},
+            {"e.file_path": None},
+            {"e.file_path": {"$in": ["b.py", "b.py"]}},
+        ]},
+    ]}
+
+
+async def test_record_outcome_without_file_path_uses_ident_only(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
+    finding.file_path = ""
+    scan_report.metadata = {"findings": [{"rule_id": "finding-001", "title": "x"}]}
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/11", verification={"verified": True}
+        )
+    assert outcome_collection.update_one.await_args.kwargs["array_filters"] == [
+        {"$or": [{"e.id": "finding-001"}, {"e.rule_id": "finding-001"}]}
+    ]
+    assert scan_report.metadata["findings"][0]["fix_status"] == "verified"
+    scan_report.save.assert_not_awaited()
+
+
+async def test_record_outcome_no_findings_list_skips_db(
+    scan_report, finding, outcome_collection
+):
+    scan_report.metadata = {}
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/12", verification={"verified": True}
+        )
+    outcome_collection.update_one.assert_not_awaited()
+    scan_report.save.assert_not_awaited()
+
+
+async def test_record_outcome_updates_all_matching_duplicates(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
     scan_report.metadata = {"findings": [
         {"rule_id": "finding-001", "file_path": "app/run.py", "title": "A"},
         {"rule_id": "finding-001", "file_path": "app/run.py", "title": "B"},
     ]}
-    await _record_fix_outcome(
-        scan_report, finding, pr_url="https://x/pull/5", verification={"verified": True}
-    )
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/5", verification={"verified": True}
+        )
     entries = scan_report.metadata["findings"]
     assert [e["fix_status"] for e in entries] == ["verified", "verified"]
     assert [e["fix_pr_url"] for e in entries] == ["https://x/pull/5", "https://x/pull/5"]
     assert [e["title"] for e in entries] == ["A", "B"]
-    scan_report.save.assert_awaited()
+    _assert_outcome_update(
+        outcome_collection, scan_report, status="verified", pr_url="https://x/pull/5"
+    )
 
 
-async def test_record_outcome_matches_semantic_production_shape(scan_report, finding):
+async def test_record_outcome_matches_semantic_production_shape(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
     # production invariant: VulnerabilityFinding.id is assigned the raw rule_id
     finding.id = "B608"
     scan_report.metadata = {"findings": [
         {"rule_id": "B608", "file_path": "app/run.py", "title": "Shell injection"},
     ]}
-    await _record_fix_outcome(
-        scan_report, finding, pr_url="https://x/pull/6", verification={"verified": True}
-    )
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/6", verification={"verified": True}
+        )
     entry = scan_report.metadata["findings"][0]
     assert entry["fix_status"] == "verified"
     assert entry["fix_pr_url"] == "https://x/pull/6"
-    scan_report.save.assert_awaited()
-
-
-async def test_record_outcome_legacy_id_entry_still_matches(scan_report, finding):
-    scan_report.metadata = {"findings": [{"id": "finding-001", "file_path": "app/run.py"}]}
-    await _record_fix_outcome(
-        scan_report, finding, pr_url="https://x/pull/7", verification={"verified": False}
+    _assert_outcome_update(
+        outcome_collection, scan_report, status="verified", pr_url="https://x/pull/6"
     )
+
+
+async def test_record_outcome_legacy_id_entry_still_matches(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
+    scan_report.metadata = {"findings": [{"id": "finding-001", "file_path": "app/run.py"}]}
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/7", verification={"verified": False}
+        )
     entry = scan_report.metadata["findings"][0]
     assert entry["fix_status"] == "pr_created"
     assert entry["fix_pr_url"] == "https://x/pull/7"
-    scan_report.save.assert_awaited()
-
-
-async def test_record_outcome_matches_when_entry_lacks_path(scan_report, finding):
-    scan_report.metadata = {"findings": [{"rule_id": "finding-001", "title": "no path"}]}
-    await _record_fix_outcome(
-        scan_report, finding, pr_url="https://x/pull/8", verification={"verified": True}
+    _assert_outcome_update(
+        outcome_collection, scan_report, status="pr_created", pr_url="https://x/pull/7"
     )
+
+
+async def test_record_outcome_matches_when_entry_lacks_path(
+    scan_report, finding, outcome_collection
+):
+    scan_report.id = "scan-oid"
+    scan_report.metadata = {"findings": [{"rule_id": "finding-001", "title": "no path"}]}
+    with patch.object(ScanReport, "get_motor_collection", return_value=outcome_collection):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/8", verification={"verified": True}
+        )
     assert scan_report.metadata["findings"][0]["fix_status"] == "verified"
-    scan_report.save.assert_awaited()
+    _assert_outcome_update(
+        outcome_collection, scan_report, status="verified", pr_url="https://x/pull/8"
+    )
