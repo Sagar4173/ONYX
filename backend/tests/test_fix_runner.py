@@ -1,6 +1,8 @@
 """Fix runner: propose/approve with approval gate + dry-run (spec 4.3.4)."""
 import asyncio
 import shutil
+import time
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
@@ -18,7 +20,10 @@ from models.report import (
 from services.ai.fix_agent import FixAgentError, FixAgentResult, PatchProposal
 from services.ai.fix_gates import GateReport
 from services.ai.fix_runner import (
+    FixConflictError,
     FixRunResult,
+    _MAX_CAS_ATTEMPTS,
+    _cas_pending_map,
     _record_fix_outcome,
     approve_fix,
     discard_pending,
@@ -50,6 +55,13 @@ def scan_report(finding):
     sr.metadata = {}
     sr.save = AsyncMock()
     return sr
+
+
+@pytest.fixture(autouse=True)
+def _default_cas(monkeypatch):
+    monkeypatch.setattr(
+        "services.ai.fix_runner._cas_pending_map", AsyncMock(return_value=True)
+    )
 
 
 @pytest.fixture
@@ -97,16 +109,94 @@ def runner_env(workspace, monkeypatch):
     return workspace
 
 
+def _fake_collection(matched_count=1):
+    collection = MagicMock()
+    collection.update_one = AsyncMock(
+        return_value=SimpleNamespace(matched_count=matched_count)
+    )
+    return collection
+
+
+async def test_cas_pending_map_expected_dict_matches_and_sets(scan_report):
+    collection = _fake_collection()
+    scan_report.id = "scan-oid"
+    expected = {"finding.001": {"diff": "old"}}
+    updated = {"finding.001": {"diff": "new"}}
+    with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+        assert await _cas_pending_map(scan_report, expected, updated) is True
+    filter_doc, update_doc = collection.update_one.await_args.args
+    assert filter_doc["_id"] == "scan-oid"
+    assert filter_doc["metadata.pending_fixes"] == expected
+    assert update_doc == {"$set": {"metadata.pending_fixes": updated}}
+
+
+async def test_cas_pending_map_expected_none_requires_absent_map(scan_report):
+    collection = _fake_collection()
+    updated = {"finding-001": {"diff": "d"}}
+    with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+        assert await _cas_pending_map(scan_report, None, updated) is True
+    filter_doc, update_doc = collection.update_one.await_args.args
+    assert filter_doc["metadata.pending_fixes"] == {"$exists": False}
+    assert update_doc == {"$set": {"metadata.pending_fixes": updated}}
+
+
+async def test_cas_pending_map_empty_update_unsets(scan_report):
+    collection = _fake_collection()
+    expected = {"finding-001": {"diff": "d"}}
+    with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+        assert await _cas_pending_map(scan_report, expected, {}) is True
+    _, update_doc = collection.update_one.await_args.args
+    assert update_doc == {"$unset": {"metadata.pending_fixes": ""}}
+
+
+async def test_cas_pending_map_miss_returns_false(scan_report):
+    collection = _fake_collection(matched_count=0)
+    with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+        assert await _cas_pending_map(scan_report, None, {"x": {}}) is False
+
+
 async def test_propose_default_approval_stores_pending(scan_report, runner_env, monkeypatch):
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_requires_approval", True)
     monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
     result = await propose_fix(scan_report, "finding-001")
     assert result.status == "awaiting_approval"
     pending = scan_report.metadata["pending_fixes"]["finding-001"]
     assert pending["patched_content"] == GOOD
     assert pending["base_sha"]
-    scan_report.save.assert_awaited()
+    scan_report.save.assert_not_awaited()
+    cas.assert_awaited_once()
+    assert cas.await_args.args[0] is scan_report
+    assert cas.await_args.args[1] is None
+    assert cas.await_args.args[2]["finding-001"]["patched_content"] == GOOD
+
+
+async def test_propose_retries_cas_then_stores(scan_report, runner_env, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_requires_approval", True)
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    cas = AsyncMock(side_effect=[False, True])
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    result = await propose_fix(scan_report, "finding-001")
+    assert result.status == "awaiting_approval"
+    assert cas.await_count == 2
+    assert scan_report.metadata["pending_fixes"]["finding-001"]["patched_content"] == GOOD
+    scan_report.save.assert_not_awaited()
+
+
+async def test_propose_cas_exhaustion_raises(scan_report, runner_env, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_requires_approval", True)
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    cas = AsyncMock(return_value=False)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    with pytest.raises(AutoFixError, match="Could not persist"):
+        await propose_fix(scan_report, "finding-001")
+    assert cas.await_count == _MAX_CAS_ATTEMPTS
+    assert "pending_fixes" not in scan_report.metadata
+    scan_report.save.assert_not_awaited()
 
 
 async def test_propose_dry_run_returns_diff_without_persisting(scan_report, runner_env, monkeypatch):
@@ -383,25 +473,74 @@ def test_get_fix_state_outcome_wins_over_pending(scan_report):
     assert state["pr_url"] == "https://x/pull/2"
 
 
-async def test_discard_pending_removes_entry_and_saves(scan_report):
+async def test_discard_pending_removes_entry_with_cas(scan_report, monkeypatch):
     scan_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}, "other": {"diff": "x"}}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
     assert await discard_pending(scan_report, "finding-001") is True
     assert scan_report.metadata["pending_fixes"] == {"other": {"diff": "x"}}
-    scan_report.save.assert_awaited()
+    scan_report.save.assert_not_awaited()
+    cas.assert_awaited_once_with(
+        scan_report,
+        {"finding-001": {"diff": "d"}, "other": {"diff": "x"}},
+        {"other": {"diff": "x"}},
+    )
 
 
-async def test_discard_pending_absent_is_noop(scan_report):
+async def test_discard_pending_absent_is_noop(scan_report, monkeypatch):
     scan_report.metadata = {"pending_fixes": {"other": {"diff": "x"}}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
     assert await discard_pending(scan_report, "finding-001") is False
     assert scan_report.metadata["pending_fixes"] == {"other": {"diff": "x"}}
     scan_report.save.assert_not_awaited()
+    cas.assert_not_awaited()
 
 
-async def test_discard_pending_drops_empty_map(scan_report):
+async def test_discard_pending_drops_empty_map(scan_report, monkeypatch):
     scan_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}, "findings": []}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
     assert await discard_pending(scan_report, "finding-001") is True
     assert "pending_fixes" not in scan_report.metadata
     assert scan_report.metadata["findings"] == []
+    scan_report.save.assert_not_awaited()
+    cas.assert_awaited_once_with(
+        scan_report, {"finding-001": {"diff": "d"}}, {}
+    )
+
+
+async def test_discard_pending_fresh_claim_conflicts(scan_report, monkeypatch):
+    entry = {"diff": "d", "_approving": True, "_approving_at": time.time()}
+    scan_report.metadata = {"pending_fixes": {"finding-001": entry}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    with pytest.raises(FixConflictError, match="already in progress"):
+        await discard_pending(scan_report, "finding-001")
+    cas.assert_not_awaited()
+    assert scan_report.metadata["pending_fixes"]["finding-001"] == entry
+    scan_report.save.assert_not_awaited()
+
+
+async def test_discard_pending_stale_claim_discards(scan_report, monkeypatch):
+    entry = {"diff": "d", "_approving": True, "_approving_at": time.time() - 901}
+    scan_report.metadata = {"pending_fixes": {"finding-001": entry}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    assert await discard_pending(scan_report, "finding-001") is True
+    assert "pending_fixes" not in scan_report.metadata
+    cas.assert_awaited_once_with(scan_report, {"finding-001": entry}, {})
+    scan_report.save.assert_not_awaited()
+
+
+async def test_discard_pending_cas_exhaustion_returns_false(scan_report, monkeypatch):
+    scan_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}}
+    cas = AsyncMock(return_value=False)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    assert await discard_pending(scan_report, "finding-001") is False
+    assert cas.await_count == _MAX_CAS_ATTEMPTS
+    assert scan_report.metadata["pending_fixes"] == {"finding-001": {"diff": "d"}}
+    scan_report.save.assert_not_awaited()
 
 
 from services.ai.fix_runner import verification_markdown, verify_fix

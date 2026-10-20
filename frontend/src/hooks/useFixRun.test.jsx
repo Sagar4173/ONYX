@@ -50,6 +50,11 @@ describe("classifyFixError", () => {
     expect(classifyFixError(axiosError(404, "Report not found")).kind).toBe("not_found");
     expect(classifyFixError(axiosError(400, "No pending fix for finding f-1")).kind).toBe("race");
     expect(classifyFixError(axiosError(409, "Already approved")).kind).toBe("race");
+    expect(
+      classifyFixError(
+        axiosError(409, "Approval already in progress for this fix — try again shortly")
+      ).kind
+    ).toBe("race");
     expect(classifyFixError(axiosError(400, "Daily AI quota exhausted")).kind).toBe("rejected");
     expect(classifyFixError(axiosError(502, "Auto-fix failed")).kind).toBe("server");
   });

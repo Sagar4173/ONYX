@@ -1,3 +1,4 @@
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -256,16 +257,45 @@ class TestAutoFixRoute:
         mock_report = self._make_report()
         mock_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}}
         mock_report.save = AsyncMock()
+        cas = AsyncMock(return_value=True)
         client = _setup_client()
         patchers = self._patch_access(mock_report)
         try:
-            resp = client.delete(self.state_url)
+            with patch("services.ai.fix_runner._cas_pending_map", cas):
+                resp = client.delete(self.state_url)
         finally:
             self._stop(patchers)
         assert resp.status_code == 200
         assert resp.json() == {"status": "discarded"}
         assert "pending_fixes" not in mock_report.metadata
-        mock_report.save.assert_awaited()
+        mock_report.save.assert_not_awaited()
+        cas.assert_awaited_once()
+
+    def test_discard_conflicts_with_fresh_approval_claim(self):
+        mock_report = self._make_report()
+        mock_report.metadata = {
+            "pending_fixes": {
+                "finding-001": {
+                    "diff": "d",
+                    "_approving": True,
+                    "_approving_at": time.time(),
+                }
+            }
+        }
+        mock_report.save = AsyncMock()
+        cas = AsyncMock(return_value=True)
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        try:
+            with patch("services.ai.fix_runner._cas_pending_map", cas):
+                resp = client.delete(self.state_url)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 409
+        assert "already in progress" in resp.json()["detail"]
+        cas.assert_not_awaited()
+        assert "pending_fixes" in mock_report.metadata
+        mock_report.save.assert_not_awaited()
 
     def test_discard_is_idempotent(self):
         mock_report = self._make_report()
@@ -294,15 +324,18 @@ class TestAutoFixRoute:
         foreign_report.user_id = "someone-else"
         foreign_report.metadata = {"pending_fixes": {"finding-001": {"diff": "d"}}}
         foreign_report.save = AsyncMock()
+        cas = AsyncMock(return_value=True)
         client = _setup_client()
         patchers = self._patch_access(foreign_report)
         try:
-            response = client.delete(self.state_url)
+            with patch("services.ai.fix_runner._cas_pending_map", cas):
+                response = client.delete(self.state_url)
         finally:
             self._stop(patchers)
         assert response.status_code == 404
         assert "pending_fixes" in foreign_report.metadata
         foreign_report.save.assert_not_awaited()
+        cas.assert_not_awaited()
 
     def test_discard_unauthenticated(self):
         app.dependency_overrides.clear()

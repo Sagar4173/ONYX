@@ -23,7 +23,8 @@ export function classifyFixError(error) {
       ? "network"
       : status === 404
         ? "not_found"
-        : (status === 400 || status === 409) && /no pending fix|already approved/i.test(detail)
+        : (status === 400 || status === 409) &&
+            /no pending fix|already (approved|in progress)/i.test(detail)
           ? "race"
           : status === 400
             ? "rejected"

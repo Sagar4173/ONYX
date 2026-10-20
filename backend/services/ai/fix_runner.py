@@ -9,10 +9,13 @@ side-effect free.
 import logging
 import os
 import shutil
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from bson import ObjectId
 
 from config import settings
 from models.report import ScanReport, VulnerabilityFinding
@@ -24,6 +27,52 @@ from services.scm.auto_fix_service import AutoFixError, auto_fix_service
 logger = logging.getLogger(__name__)
 
 PENDING_FIXES = "pending_fixes"
+
+_MAX_CAS_ATTEMPTS = 3
+APPROVAL_CLAIM_TTL_SECONDS = 900
+
+
+class FixConflictError(Exception):
+    """A conflicting operation is already in progress (maps to HTTP 409)."""
+
+
+def _claim_is_stale(entry: Any, now: Optional[float] = None) -> bool:
+    """True when the entry carries no fresh approval claim."""
+    if not isinstance(entry, dict) or not entry.get("_approving"):
+        return True
+    try:
+        claimed_at = float(entry.get("_approving_at"))
+    except (TypeError, ValueError):
+        return True
+    current = time.time() if now is None else now
+    return current - claimed_at > APPROVAL_CLAIM_TTL_SECONDS
+
+
+async def _refresh_report(scan_report: ScanReport) -> ScanReport:
+    scan_id = getattr(scan_report, "id", None)
+    if not isinstance(scan_id, ObjectId):
+        return scan_report
+    try:
+        refreshed = await ScanReport.get(scan_id)
+    except Exception:
+        return scan_report
+    return refreshed or scan_report
+
+
+async def _cas_pending_map(
+    scan_report: ScanReport, expected: Optional[dict], updated: dict
+) -> bool:
+    filter_doc: Dict[str, Any] = {"_id": getattr(scan_report, "id", None)}
+    if expected is None:
+        filter_doc["metadata.pending_fixes"] = {"$exists": False}
+    else:
+        filter_doc["metadata.pending_fixes"] = expected
+    if updated:
+        update_doc: Dict[str, Any] = {"$set": {"metadata.pending_fixes": updated}}
+    else:
+        update_doc = {"$unset": {"metadata.pending_fixes": ""}}
+    result = await ScanReport.get_motor_collection().update_one(filter_doc, update_doc)
+    return getattr(result, "matched_count", 0) == 1
 
 
 @dataclass
@@ -52,11 +101,16 @@ async def _guidance_for(finding: VulnerabilityFinding) -> str:
 
 
 async def _store_pending(scan_report: ScanReport, finding_id: str, payload: Dict[str, Any]) -> None:
-    metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
-    pending = dict(metadata.get(PENDING_FIXES) or {})
-    pending[finding_id] = payload
-    scan_report.metadata = {**metadata, PENDING_FIXES: pending}
-    await scan_report.save()
+    for attempt in range(_MAX_CAS_ATTEMPTS):
+        source = scan_report if attempt == 0 else await _refresh_report(scan_report)
+        metadata = source.metadata if isinstance(source.metadata, dict) else {}
+        raw_pending = metadata.get(PENDING_FIXES)
+        current = dict(raw_pending) if isinstance(raw_pending, dict) else None
+        updated = {**(current or {}), finding_id: payload}
+        if await _cas_pending_map(scan_report, current, updated):
+            scan_report.metadata = {**metadata, PENDING_FIXES: updated}
+            return
+    raise AutoFixError("Could not persist the proposal — try again")
 
 
 def _norm_path(p: Any) -> str:
@@ -182,19 +236,27 @@ def get_fix_state(scan_report: ScanReport, finding_id: str) -> Dict[str, Any]:
 
 async def discard_pending(scan_report: ScanReport, finding_id: str) -> bool:
     """Remove a pending proposal (idempotent). Returns True when one existed."""
-    metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
-    pending = metadata.get(PENDING_FIXES)
-    if not isinstance(pending, dict) or finding_id not in pending:
-        return False
-    remaining = {k: v for k, v in pending.items() if k != finding_id}
-    updated = {**metadata}
-    if remaining:
-        updated[PENDING_FIXES] = remaining
-    else:
-        updated.pop(PENDING_FIXES, None)
-    scan_report.metadata = updated
-    await scan_report.save()
-    return True
+    for attempt in range(_MAX_CAS_ATTEMPTS):
+        source = scan_report if attempt == 0 else await _refresh_report(scan_report)
+        metadata = source.metadata if isinstance(source.metadata, dict) else {}
+        pending = metadata.get(PENDING_FIXES)
+        if not isinstance(pending, dict) or finding_id not in pending:
+            return False
+        if not _claim_is_stale(pending[finding_id]):
+            raise FixConflictError(
+                "Approval already in progress for this fix — try again shortly"
+            )
+        current = dict(pending)
+        remaining = {k: v for k, v in current.items() if k != finding_id}
+        if await _cas_pending_map(scan_report, current, remaining):
+            if remaining:
+                scan_report.metadata = {**metadata, PENDING_FIXES: remaining}
+            else:
+                mirrored = {**metadata}
+                mirrored.pop(PENDING_FIXES, None)
+                scan_report.metadata = mirrored
+            return True
+    return False
 
 
 async def _open_pr(
