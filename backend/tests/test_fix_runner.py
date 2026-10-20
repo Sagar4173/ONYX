@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from bson import ObjectId
 
 from models.report import (
     GitMetadata,
@@ -25,6 +26,7 @@ from services.ai.fix_runner import (
     _MAX_CAS_ATTEMPTS,
     _cas_pending_map,
     _record_fix_outcome,
+    _store_pending,
     approve_fix,
     discard_pending,
     get_fix_state,
@@ -153,6 +155,24 @@ async def test_cas_pending_map_miss_returns_false(scan_report):
     collection = _fake_collection(matched_count=0)
     with patch.object(ScanReport, "get_motor_collection", return_value=collection):
         assert await _cas_pending_map(scan_report, None, {"x": {}}) is False
+
+
+async def test_store_pending_retry_reads_refreshed_map(scan_report, monkeypatch):
+    scan_report.id = ObjectId()
+    fresh = MagicMock(spec=ScanReport)
+    fresh.metadata = {"pending_fixes": {"other.finding": {"diff": "existing"}}}
+    cas = AsyncMock(side_effect=[False, True])
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    get_mock = AsyncMock(return_value=fresh)
+    with patch.object(ScanReport, "get", get_mock):
+        await _store_pending(scan_report, "finding-001", {"diff": "new"})
+    get_mock.assert_awaited_once_with(scan_report.id)
+    assert cas.await_count == 2
+    expected, updated = cas.await_args.args[1], cas.await_args.args[2]
+    assert expected == {"other.finding": {"diff": "existing"}}
+    assert updated["other.finding"] == {"diff": "existing"}
+    assert updated["finding-001"] == {"diff": "new"}
+    assert scan_report.metadata["pending_fixes"]["finding-001"] == {"diff": "new"}
 
 
 async def test_propose_default_approval_stores_pending(scan_report, runner_env, monkeypatch):

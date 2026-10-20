@@ -292,7 +292,9 @@ class TestAutoFixRoute:
         finally:
             self._stop(patchers)
         assert resp.status_code == 409
-        assert "already in progress" in resp.json()["detail"]
+        assert resp.json()["detail"] == (
+            "Approval already in progress for this fix — try again shortly"
+        )
         cas.assert_not_awaited()
         assert "pending_fixes" in mock_report.metadata
         mock_report.save.assert_not_awaited()
