@@ -45,6 +45,8 @@ async def trigger_auto_fix(scan_id: str, finding_id: str, user=Depends(get_curre
     report = await _report_or_404(scan_id, user)
     try:
         return FixRunResponse(**vars(await propose_fix(report, finding_id)))
+    except FixConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except AutoFixError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

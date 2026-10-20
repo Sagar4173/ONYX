@@ -1,5 +1,6 @@
 """Fix runner: propose/approve with approval gate + dry-run (spec 4.3.4)."""
 import asyncio
+import logging
 import shutil
 import time
 from types import SimpleNamespace
@@ -26,6 +27,7 @@ from services.ai.fix_runner import (
     _MAX_CAS_ATTEMPTS,
     _cas_pending_map,
     _record_fix_outcome,
+    _refresh_report,
     _store_pending,
     approve_fix,
     discard_pending,
@@ -236,6 +238,51 @@ async def test_propose_cas_exhaustion_raises(scan_report, runner_env, monkeypatc
     scan_report.save.assert_not_awaited()
 
 
+async def test_propose_refuses_fresh_approval_claim(scan_report, runner_env, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_requires_approval", True)
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    entry = {
+        "file_path": "app/run.py",
+        "diff": "old",
+        "_approving": True,
+        "_approving_at": time.time(),
+    }
+    scan_report.metadata = {"pending_fixes": {"finding-001": entry}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    with pytest.raises(FixConflictError, match="already in progress"):
+        await propose_fix(scan_report, "finding-001")
+    cas.assert_not_awaited()
+    assert scan_report.metadata["pending_fixes"]["finding-001"] == entry
+    scan_report.save.assert_not_awaited()
+
+
+async def test_propose_replaces_stale_approval_claim(scan_report, runner_env, monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_requires_approval", True)
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    entry = {
+        "file_path": "app/run.py",
+        "diff": "old",
+        "_approving": True,
+        "_approving_at": time.time() - 901,
+    }
+    scan_report.metadata = {"pending_fixes": {"finding-001": entry}}
+    cas = AsyncMock(return_value=True)
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    result = await propose_fix(scan_report, "finding-001")
+    assert result.status == "awaiting_approval"
+    pending = scan_report.metadata["pending_fixes"]["finding-001"]
+    assert pending["patched_content"] == GOOD
+    assert "_approving" not in pending
+    assert "_approving_at" not in pending
+    cas.assert_awaited_once()
+    assert cas.await_args.args[1] == {"finding-001": entry}
+    assert cas.await_args.args[2]["finding-001"] == pending
+    scan_report.save.assert_not_awaited()
+
+
 async def test_propose_dry_run_returns_diff_without_persisting(scan_report, runner_env, monkeypatch):
     from config import settings
     monkeypatch.setattr(settings, "auto_fix_dry_run", True)
@@ -321,6 +368,31 @@ async def test_approve_success_pushes_and_clears_pending(
     final = cas.await_args_list[1].args
     assert final[1] == marked
     assert final[2] == {}
+
+
+async def test_approve_removal_failure_after_pr_does_not_restore_pending(
+    scan_report, runner_env, monkeypatch
+):
+    from config import settings
+    monkeypatch.setattr(settings, "auto_fix_dry_run", False)
+    await propose_fix(scan_report, "finding-001")
+    cas = AsyncMock(side_effect=[True, RuntimeError("db down")])
+    monkeypatch.setattr("services.ai.fix_runner._cas_pending_map", cas)
+    opened = FixRunResult(
+        status="pr_created",
+        finding_id="finding-001",
+        file_path="app/run.py",
+        pr_url="https://x/pull/13",
+        pr_number=13,
+    )
+    with patch("services.ai.fix_runner._open_pr", AsyncMock(return_value=opened)):
+        result = await approve_fix(scan_report, "finding-001")
+    assert result is opened
+    assert cas.await_count == 2
+    pending = scan_report.metadata["pending_fixes"]["finding-001"]
+    assert pending["_approving"] is True
+    assert "_approving_at" in pending
+    scan_report.save.assert_not_awaited()
 
 
 async def test_approve_without_pending_raises(scan_report, runner_env):
@@ -1080,3 +1152,48 @@ async def test_record_outcome_matches_when_entry_lacks_path(
     _assert_outcome_update(
         outcome_collection, scan_report, status="verified", pr_url="https://x/pull/8"
     )
+
+
+async def test_record_outcome_warns_when_no_metadata_entry_matches(
+    scan_report, finding, caplog
+):
+    scan_report.id = "scan-oid"
+    scan_report.metadata = {"findings": [{"rule_id": "finding-001", "file_path": "app/run.py"}]}
+    collection = _fake_collection(matched_count=0)
+    with (
+        caplog.at_level(logging.WARNING, logger="services.ai.fix_runner"),
+        patch.object(ScanReport, "get_motor_collection", return_value=collection),
+    ):
+        await _record_fix_outcome(
+            scan_report, finding, pr_url="https://x/pull/13", verification={"verified": True}
+        )
+    assert scan_report.metadata["findings"][0]["fix_status"] == "verified"
+    assert scan_report.metadata["findings"][0]["fix_pr_url"] == "https://x/pull/13"
+    scan_report.save.assert_not_awaited()
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno == logging.WARNING
+    ]
+    assert warnings == [
+        "Fix outcome not persisted for finding finding-001 at app/run.py "
+        "— no matching metadata entry"
+    ]
+
+
+async def test_refresh_report_warns_without_raw_exception(scan_report, caplog):
+    scan_report.id = ObjectId()
+    with (
+        caplog.at_level(logging.WARNING, logger="services.ai.fix_runner"),
+        patch.object(ScanReport, "get", AsyncMock(side_effect=RuntimeError("db secret"))),
+    ):
+        assert await _refresh_report(scan_report) is scan_report
+    warnings = [
+        record.getMessage()
+        for record in caplog.records
+        if record.levelno == logging.WARNING
+    ]
+    assert warnings == [
+        f"Could not refresh scan report {scan_report.id} (RuntimeError)"
+    ]
+    assert all("db secret" not in message for message in warnings)

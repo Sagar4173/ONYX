@@ -159,8 +159,13 @@ export function useFixRun({ scanId, findingId, filePath }) {
       );
       toast.success("Proposal rejected — nothing was applied");
     },
-    onError: () => {
-      toast.error("Could not discard the proposal");
+    onError: (error) => {
+      const classified = classifyFixError(error);
+      toast.error(
+        classified.kind === "race"
+          ? "Approval already in progress — try again shortly"
+          : "Could not discard the proposal"
+      );
     },
   });
 

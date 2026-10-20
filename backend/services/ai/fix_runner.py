@@ -54,7 +54,8 @@ async def _refresh_report(scan_report: ScanReport) -> ScanReport:
         return scan_report
     try:
         refreshed = await ScanReport.get(scan_id)
-    except Exception:
+    except Exception as e:
+        logger.warning("Could not refresh scan report %s (%s)", scan_id, type(e).__name__)
         return scan_report
     return refreshed or scan_report
 
@@ -106,6 +107,14 @@ async def _store_pending(scan_report: ScanReport, finding_id: str, payload: Dict
         metadata = source.metadata if isinstance(source.metadata, dict) else {}
         raw_pending = metadata.get(PENDING_FIXES)
         current = dict(raw_pending) if isinstance(raw_pending, dict) else None
+        if (
+            current
+            and finding_id in current
+            and not _claim_is_stale(current.get(finding_id))
+        ):
+            raise FixConflictError(
+                "Approval already in progress for this fix — try again shortly"
+            )
         updated = {**(current or {}), finding_id: payload}
         if await _cas_pending_map(scan_report, current, updated):
             scan_report.metadata = {**metadata, PENDING_FIXES: updated}
@@ -198,7 +207,7 @@ async def _record_fix_outcome(
         array_filter = {"$and": [ident, path]}
     else:
         array_filter = ident
-    await ScanReport.get_motor_collection().update_one(
+    result = await ScanReport.get_motor_collection().update_one(
         {"_id": getattr(scan_report, "id", None)},
         {"$set": {
             "metadata.findings.$[e].fix_status": status,
@@ -206,6 +215,12 @@ async def _record_fix_outcome(
         }},
         array_filters=[array_filter],
     )
+    if getattr(result, "matched_count", 0) == 0:
+        logger.warning(
+            "Fix outcome not persisted for finding %s at %s — no matching metadata entry",
+            finding.id,
+            finding.file_path,
+        )
     updated, changed = [], False
     for entry in entries:
         if isinstance(entry, dict) and _entry_matches_finding(entry, finding):
@@ -419,6 +434,7 @@ async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
         )
 
     local_path = None
+    pr_created = False
     try:
         finding = auto_fix_service._find_finding(scan_report, finding_id)
         if not finding:
@@ -444,21 +460,28 @@ async def approve_fix(scan_report: ScanReport, finding_id: str) -> FixRunResult:
             patched_content=pending["patched_content"],
             model_used=pending.get("model_used", ""),
         )
+        pr_created = True
         remaining = {k: v for k, v in marked.items() if k != finding_id}
-        if await _cas_pending_map(scan_report, marked, remaining):
-            metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
-            if remaining:
-                scan_report.metadata = {**metadata, PENDING_FIXES: remaining}
-            else:
-                mirrored = {**metadata}
-                mirrored.pop(PENDING_FIXES, None)
-                scan_report.metadata = mirrored
+        try:
+            if await _cas_pending_map(scan_report, marked, remaining):
+                metadata = scan_report.metadata if isinstance(scan_report.metadata, dict) else {}
+                if remaining:
+                    scan_report.metadata = {**metadata, PENDING_FIXES: remaining}
+                else:
+                    mirrored = {**metadata}
+                    mirrored.pop(PENDING_FIXES, None)
+                    scan_report.metadata = mirrored
+        except Exception:
+            logger.exception(
+                "Failed to remove approved fix from pending after PR creation"
+            )
         return result
     except BaseException:
-        try:
-            await _release_claim(scan_report, marked, original)
-        except Exception:
-            logger.exception("Failed to release auto-fix approval claim")
+        if not pr_created:
+            try:
+                await _release_claim(scan_report, marked, original)
+            except Exception:
+                logger.exception("Failed to release auto-fix approval claim")
         raise
     finally:
         if local_path and os.path.exists(local_path):

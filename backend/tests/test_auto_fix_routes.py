@@ -8,6 +8,7 @@ from app import app
 from models.report import GitMetadata, ScanReport
 from models.user import User, UserRole
 from routes.dependencies import get_current_user
+from services.ai.fix_runner import FixConflictError
 from services.scm.auto_fix_service import AutoFixError
 
 
@@ -103,6 +104,22 @@ class TestAutoFixRoute:
             self._stop(patchers)
         assert resp.status_code == 400
         assert "boom" in resp.json()["detail"]
+
+    def test_propose_conflict_returns_409(self):
+        mock_report = self._make_report()
+        client = _setup_client()
+        patchers = self._patch_access(mock_report)
+        detail = "Approval already in progress for this fix — try again shortly"
+        try:
+            with patch(
+                "routes.auto_fix.propose_fix",
+                AsyncMock(side_effect=FixConflictError(detail)),
+            ):
+                resp = client.post(self.endpoint)
+        finally:
+            self._stop(patchers)
+        assert resp.status_code == 409
+        assert resp.json()["detail"] == detail
 
     def test_approve_happy_path(self):
         mock_report = self._make_report()

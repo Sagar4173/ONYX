@@ -365,6 +365,23 @@ describe("useFixRun", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("distinguishes a discard conflict and preserves the run", async () => {
+    autoFixPropose.mockResolvedValue(AWAITING);
+    autoFixDiscard.mockRejectedValue(
+      axiosError(409, "Approval already in progress for this fix — try again shortly")
+    );
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useFixRun({ scanId: "s1", findingId: "f-1" }), { wrapper });
+
+    act(() => result.current.propose({ scanId: "s1", findingId: "f-1" }));
+    await waitFor(() => expect(result.current.run).not.toBeNull());
+    act(() => result.current.reject());
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Approval already in progress — try again shortly")
+    );
+    expect(result.current.run?.status).toBe("awaiting_approval");
+  });
+
   it("keeps the run and warns when discard fails", async () => {
     autoFixPropose.mockResolvedValue(AWAITING);
     autoFixDiscard.mockRejectedValue(axiosError(502, "boom"));
