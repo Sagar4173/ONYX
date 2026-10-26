@@ -12,6 +12,7 @@ from services.notifications.websocket_manager import ws_manager
 from services.scanning.workflow import enhanced_workflow
 from utils.error_handling import get_safe_error_detail
 from utils.repo_clone import repo_cloner
+from utils.scrub import scrub_text
 
 logger = logging.getLogger(__name__)
 
@@ -333,7 +334,7 @@ class WebhookProcessor:
                     progress_callback=_progress
                 )
 
-                logger.info(f"Enhanced scan workflow completed successfully for {git_metadata.repository_url}")
+                logger.info(f"Enhanced scan workflow completed successfully for {scrub_text(git_metadata.repository_url, limit=500)}")
 
             finally:
                 if settings.cleanup_after_scan:

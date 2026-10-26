@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from utils.repo_clone import RepoCloneError, validate_repo_url
+from utils.repo_clone import GitRepoCloner, RepoCloneError, validate_repo_url
 
 
 class TestValidateRepoUrl:
@@ -17,6 +17,43 @@ class TestValidateRepoUrl:
 
     def test_accepts_ssh_scheme(self):
         validate_repo_url("ssh://git@github.com/owner/repo.git")
+
+    def test_rejects_https_user_and_password(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("https://user:pass@github.com/owner/repo.git")
+
+    def test_rejects_https_token_userinfo(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("https://ghp_secret@github.com/owner/repo.git")
+
+    def test_rejects_ssh_password(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("ssh://git:secret@github.com/owner/repo.git")
+
+    def test_rejects_git_scheme_userinfo(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("git://user:pass@github.com/owner/repo.git")
+
+    def test_rejects_uppercase_https_userinfo(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("HTTPS://ghp_secret@github.com/owner/repo.git")
+
+    def test_rejects_encoded_userinfo(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("https://user%40token@github.com/owner/repo.git")
+
+    def test_rejects_malformed_url(self):
+        with pytest.raises(RepoCloneError, match="Invalid repository URL"):
+            validate_repo_url("https://[bad")
+
+
+class TestRepoName:
+    def test_query_credentials_do_not_reach_repo_name(self):
+        cloner = GitRepoCloner.__new__(GitRepoCloner)
+        name = cloner._get_repo_name(
+            "https://github.com/owner/repo.git?access_token=secret"
+        )
+        assert name == "repo"
 
     def test_rejects_file_scheme(self):
         with pytest.raises(RepoCloneError):

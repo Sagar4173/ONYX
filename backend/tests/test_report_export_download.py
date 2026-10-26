@@ -19,6 +19,8 @@ from routes.dependencies import get_current_user
 OBJECT_ID = "64b7f1a2c3d4e5f6a7b8c9d0"
 # Custom scan_id used by seeded QA scans -> resolved via ScanReport.find_one
 CUSTOM_SCAN_ID = "qa-live-check-001"
+CREDENTIAL_URL = "https://ghp_secret@github.com/test/repo.git"
+REDACTED_URL = "https://github.com/test/repo.git"
 
 
 def _make_mock_user():
@@ -48,7 +50,11 @@ def _clear_overrides():
     app.dependency_overrides.clear()
 
 
-def _make_report(user_id="user-test-123", scan_id=CUSTOM_SCAN_ID):
+def _make_report(
+    user_id="user-test-123",
+    scan_id=CUSTOM_SCAN_ID,
+    repository_url="https://github.com/test/repo.git",
+):
     finding = VulnerabilityFinding(
         id="f-1",
         scanner=ScannerType.SEMGREP,
@@ -69,7 +75,7 @@ def _make_report(user_id="user-test-123", scan_id=CUSTOM_SCAN_ID):
         completed_at=None,
         duration_seconds=120,
         git_metadata=GitMetadata(
-            repository_url="https://github.com/test/repo.git",
+            repository_url=repository_url,
             branch="main",
             commit_hash="abc123",
             event_type="push",
@@ -170,3 +176,72 @@ class TestReportExportDownload:
 
         assert resp.status_code == 404
         assert resp.json()["detail"] == f"Report {CUSTOM_SCAN_ID} not found"
+
+
+class TestReportUrlCredentialRedaction:
+    def test_download_json_strips_repository_url_credentials(self):
+        client = _setup_client()
+        report = _make_report(repository_url=CREDENTIAL_URL)
+
+        with patch.object(ScanReport, "find_one", AsyncMock(return_value=report)), patch(
+            "routes.reports.export.get_user_project_ids", AsyncMock(return_value=[])
+        ):
+            resp = client.get(f"/api/reports/{CUSTOM_SCAN_ID}/download?format=json")
+
+        assert resp.status_code == 200
+        assert resp.json()["git_metadata"]["repository_url"] == REDACTED_URL
+        assert "ghp_secret" not in resp.text
+
+    def test_download_csv_strips_repository_url_credentials(self):
+        client = _setup_client()
+        report = _make_report(repository_url=CREDENTIAL_URL)
+
+        with patch.object(ScanReport, "find_one", AsyncMock(return_value=report)), patch(
+            "routes.reports.export.get_user_project_ids", AsyncMock(return_value=[])
+        ):
+            resp = client.get(f"/api/reports/{CUSTOM_SCAN_ID}/download?format=csv")
+
+        assert resp.status_code == 200
+        assert REDACTED_URL in resp.text
+        assert "ghp_secret" not in resp.text
+
+    def test_detail_strips_repository_url_credentials(self):
+        client = _setup_client()
+        report = _make_report(repository_url=CREDENTIAL_URL)
+
+        with patch("routes.reports.detail.ScanReport") as mock_report_cls, patch(
+            "routes.reports.detail.get_user_project_ids", AsyncMock(return_value=[])
+        ):
+            mock_report_cls.find_one = AsyncMock(return_value=report)
+            resp = client.get(f"/api/reports/{CUSTOM_SCAN_ID}")
+
+        assert resp.status_code == 200
+        assert resp.json()["git_metadata"]["repository_url"] == REDACTED_URL
+        assert "ghp_secret" not in resp.text
+
+    @pytest.mark.asyncio
+    async def test_pdf_generation_succeeds_with_credential_url(self):
+        from utils.pdf_generator import generate_report_pdf
+
+        report = _make_report(repository_url=CREDENTIAL_URL)
+
+        with patch.object(ScanReport, "find_one", AsyncMock(return_value=report)):
+            content = await generate_report_pdf(CUSTOM_SCAN_ID)
+
+        assert content is not None
+        assert content.startswith(b"%PDF")
+
+    def test_pdf_report_data_redacts_credentials_and_pending_fixes(self):
+        from utils.report_data import build_report_data
+
+        report = _make_report(repository_url=CREDENTIAL_URL)
+        report.metadata = {
+            "pending_fixes": {"f-1": {"diff": "secret"}},
+            "triage": {"f-1": {"label": "TP"}},
+        }
+
+        data = build_report_data(report)
+
+        assert data["git_metadata"]["repository_url"] == REDACTED_URL
+        assert "pending_fixes" not in data["metadata"]
+        assert data["metadata"]["triage"] == {"f-1": {"label": "TP"}}

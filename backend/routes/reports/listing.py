@@ -10,6 +10,7 @@ from models.user import User
 from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_user_project_ids
 from utils.error_handling import SafeHTTPException
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ async def list_reports(
                     "id": str(report.id),
                     "project_name": report.project_name,
                     "scan_id": report.scan_id,
-                    "repository_url": report.git_metadata.repository_url if report.git_metadata else "",
+                    "repository_url": strip_url_credentials(report.git_metadata.repository_url) if report.git_metadata else "",
                     "branch": report.git_metadata.branch if report.git_metadata else "main",
                     "status": report.status.value if hasattr(report.status, "value") else report.status,
                     "created_at": report.created_at.isoformat() if report.created_at else datetime.now(timezone.utc).isoformat(),

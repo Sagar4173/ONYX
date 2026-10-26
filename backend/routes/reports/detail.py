@@ -11,6 +11,7 @@ from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_user_project_ids
 from utils.error_handling import get_safe_error_detail
 from utils.report_metadata import redacted_report_metadata
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ async def get_report(
             "updated_at": report.updated_at.isoformat() if report.updated_at else None,
             "duration_seconds": report.duration_seconds,
             "git_metadata": {
-                "repository_url": report.git_metadata.repository_url if report.git_metadata else "",
+                "repository_url": strip_url_credentials(report.git_metadata.repository_url) if report.git_metadata else "",
                 "branch": report.git_metadata.branch if report.git_metadata else "",
                 "commit_hash": report.git_metadata.commit_hash if report.git_metadata else "",
                 "commit_message": report.git_metadata.commit_message if report.git_metadata else "",
@@ -182,7 +183,7 @@ async def get_report_summary(
             "project_name": report.project_name,
             "scan_id": report.scan_id,
             "status": report.status.value,
-            "repository_url": report.git_metadata.repository_url,
+            "repository_url": strip_url_credentials(report.git_metadata.repository_url),
             "branch": report.git_metadata.branch,
             "commit_hash": report.git_metadata.commit_hash,
             "created_at": report.created_at,

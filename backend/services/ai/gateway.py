@@ -11,7 +11,6 @@ ledger is Mongo-backed and therefore shared.
 """
 import json
 import logging
-import re
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -23,6 +22,7 @@ from config import settings
 from services.ai.schemas import parse_json_model
 from services.ai.stores import QuotaLedger, ResponseCache
 from services.ai.trace import InvocationTracer
+from utils.scrub import scrub_text
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +33,9 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 AdapterFn = Callable[..., Awaitable[tuple[str, dict]]]
 
-_SECRET_RE = re.compile(
-    r"(sk-[A-Za-z0-9_\-]{8,}|AIza[A-Za-z0-9_\-]{10,}|Bearer\s+[A-Za-z0-9._\-]+|ghp_[A-Za-z0-9]{10,})"
-)
-
-
 def _scrub(text: Any, limit: int = 300) -> str:
     """Redact credential-looking substrings and bound the length of provider errors."""
-    return _SECRET_RE.sub("[REDACTED]", str(text))[:limit]
+    return scrub_text(text, limit=limit)
 
 
 class GatewayError(Exception):

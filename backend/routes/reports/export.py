@@ -14,7 +14,7 @@ from models.user import User
 from routes.dependencies import get_current_user
 from routes.reports.report_dependencies import get_user_project_ids
 from utils.error_handling import get_safe_error_detail
-from utils.report_metadata import redacted_report_metadata
+from utils.report_data import build_report_data
 
 logger = logging.getLogger(__name__)
 
@@ -60,29 +60,7 @@ async def download_report(
         if not has_access:
             raise HTTPException(status_code=403, detail="Access denied to this report")
 
-        report_data = {
-            "id": str(report.id),
-            "project_name": report.project_name,
-            "scan_id": report.scan_id,
-            "status": report.status.value if hasattr(report.status, "value") else report.status,
-            "created_at": report.created_at.isoformat() if report.created_at else None,
-            "started_at": report.started_at.isoformat() if report.started_at else None,
-            "completed_at": report.completed_at.isoformat() if report.completed_at else None,
-            "duration_seconds": report.duration_seconds,
-            "total_findings": report.total_findings,
-            "findings_by_severity": report.findings_by_severity,
-            "scan_results": report.scan_results if report.scan_results else [],
-            "git_metadata": {
-                "repository_url": report.git_metadata.repository_url if report.git_metadata else "",
-                "branch": report.git_metadata.branch if report.git_metadata else "main",
-                "commit_hash": report.git_metadata.commit_hash if report.git_metadata else "",
-                "commit_message": report.git_metadata.commit_message if report.git_metadata else "",
-                "commit_author": report.git_metadata.commit_author if report.git_metadata else "",
-                "event_type": report.git_metadata.event_type if report.git_metadata else "",
-            },
-            "tags": report.tags if report.tags else [],
-            "metadata": redacted_report_metadata(report.metadata),
-        }
+        report_data = build_report_data(report)
 
         findings = []
         if report_data.get("findings"):

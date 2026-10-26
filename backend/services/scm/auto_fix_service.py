@@ -11,6 +11,7 @@ from config import settings
 from models.project import Project
 from models.report import ScanReport, VulnerabilityFinding
 from utils.repo_clone import validate_repo_url
+from utils.scrub import scrub_text
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,8 @@ class AutoFixService:
         clone_url = repo_url
         if token:
             parsed = urlparse(repo_url)
-            clone_url = f"https://{token}@{parsed.netloc}{parsed.path}"
+            if parsed.scheme.lower() in ("http", "https"):
+                clone_url = f"https://{token}@{parsed.netloc}{parsed.path}"
 
         local_path = tempfile.mkdtemp(prefix="onyx-autofix-")
         try:
@@ -56,7 +58,10 @@ class AutoFixService:
             if os.path.exists(local_path):
                 import shutil
                 shutil.rmtree(local_path, ignore_errors=True)
-            raise AutoFixError(f"Git clone failed: {e}")
+            logger.warning("Git clone failed: %s", scrub_text(e, limit=500))
+            raise AutoFixError(
+                "Git clone failed - check repository access and try again"
+            )
 
     def _create_branch_and_commit(
         self,
@@ -102,12 +107,16 @@ class AutoFixService:
         push_url = repo_url
         if token:
             parsed = urlparse(repo_url)
-            push_url = f"https://{token}@{parsed.netloc}{parsed.path}"
+            if parsed.scheme.lower() in ("http", "https"):
+                push_url = f"https://{token}@{parsed.netloc}{parsed.path}"
 
         try:
             origin.push(refspec=f"{branch_name}:{branch_name}", push_url=push_url)
         except GitCommandError as e:
-            raise AutoFixError(f"Git push failed: {e}")
+            logger.warning("Git push failed: %s", scrub_text(e, limit=500))
+            raise AutoFixError(
+                "Git push failed - check repository access and try again"
+            )
 
     async def _create_pr(
         self,
@@ -160,7 +169,7 @@ class AutoFixService:
             return "gitlab"
         elif "bitbucket" in host:
             return "bitbucket"
-        raise AutoFixError(f"Unsupported SCM platform in URL: {repo_url}")
+        raise AutoFixError("Unsupported SCM platform")
 
     def _parse_repo_info(self, repo_url: str) -> tuple:
         path = urlparse(repo_url).path.strip("/")
@@ -168,7 +177,7 @@ class AutoFixService:
             path = path[:-4]
         parts = path.split("/")
         if len(parts) < 2:
-            raise AutoFixError(f"Could not parse owner/repo from: {repo_url}")
+            raise AutoFixError("Could not parse repository owner/name from URL")
         return parts[0], parts[1]
 
     async def _create_github_pr(
@@ -198,8 +207,13 @@ class AutoFixService:
             response = await client.post(api_url, json=payload, headers=headers)
 
         if response.status_code not in (201,):
+            logger.warning(
+                "GitHub PR creation failed (HTTP %s): %s",
+                response.status_code,
+                scrub_text(response.text, limit=500),
+            )
             raise AutoFixError(
-                f"GitHub PR creation failed (HTTP {response.status_code}): {response.text}"
+                f"GitHub PR creation failed (HTTP {response.status_code})"
             )
 
         data = response.json()
@@ -237,8 +251,13 @@ class AutoFixService:
             response = await client.post(api_url, json=payload, headers=headers)
 
         if response.status_code not in (201,):
+            logger.warning(
+                "GitLab MR creation failed (HTTP %s): %s",
+                response.status_code,
+                scrub_text(response.text, limit=500),
+            )
             raise AutoFixError(
-                f"GitLab MR creation failed (HTTP {response.status_code}): {response.text}"
+                f"GitLab MR creation failed (HTTP {response.status_code})"
             )
 
         data = response.json()

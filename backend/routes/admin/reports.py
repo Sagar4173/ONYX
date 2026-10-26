@@ -1,12 +1,14 @@
 import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status as fastapi_status
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import status as fastapi_status
 
 from models.report import ScanReport
 from models.user import User
 from routes.dependencies import require_admin
 from utils.error_handling import get_safe_error_detail
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +69,11 @@ async def get_all_reports_admin(
                 "created_at": r.created_at.isoformat() if r.created_at else None,
                 "completed_at": r.completed_at.isoformat() if r.completed_at else None,
                 "duration_seconds": r.duration_seconds,
-                "repository_url": r.git_metadata.repository_url if r.git_metadata else None,
+                "repository_url": (
+                    strip_url_credentials(str(r.git_metadata.repository_url))
+                    if r.git_metadata and r.git_metadata.repository_url
+                    else None
+                ),
                 "branch": r.git_metadata.branch if r.git_metadata else None,
                 "user": {
                     "id": str(user.id) if user else None,

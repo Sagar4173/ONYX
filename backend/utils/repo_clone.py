@@ -15,6 +15,8 @@ from git import GitCommandError, InvalidGitRepositoryError, Repo
 
 from config import settings
 from utils.datetime_utils import utc_now
+from utils.scrub import scrub_text
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -67,11 +69,24 @@ def validate_repo_url(repo_url: str) -> None:
     if not url:
         raise RepoCloneError("Repository URL is required")
 
-    parsed = urlparse(url)
-
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        raise RepoCloneError("Invalid repository URL") from None
     if parsed.scheme:
-        if parsed.scheme.lower() not in ALLOWED_GIT_SCHEMES:
+        scheme = parsed.scheme.lower()
+        if scheme not in ALLOWED_GIT_SCHEMES:
             raise RepoCloneError(f"Unsupported repository URL scheme: {parsed.scheme}")
+        if scheme in ("http", "https", "git") and (
+            parsed.username is not None or parsed.password is not None
+        ):
+            raise RepoCloneError(
+                "Repository URL must not embed credentials - use a project access token"
+            )
+        if scheme == "ssh" and parsed.password is not None:
+            raise RepoCloneError(
+                "Repository URL must not embed credentials - use a project access token"
+            )
         host = parsed.hostname
         if not host:
             raise RepoCloneError("Repository URL has no host")
@@ -99,6 +114,7 @@ class GitRepoCloner:
     def _get_repo_name(self, repo_url: str) -> str:
         """Extract repository name from URL"""
         # Handle various Git URL formats
+        repo_url = repo_url.split("?", 1)[0].split("#", 1)[0]
         if repo_url.endswith('.git'):
             repo_url = repo_url[:-4]
         
@@ -148,7 +164,7 @@ class GitRepoCloner:
         clone_dir = self.base_temp_dir / f"{sanitized_name}_{timestamp}"
         
         try:
-            logger.info(f"Cloning repository {repo_url} to {clone_dir}")
+            logger.info(f"Cloning repository {scrub_text(repo_url, limit=500)} to {clone_dir}")
             
             # Prepare clone options
             clone_kwargs = {
@@ -195,7 +211,7 @@ class GitRepoCloner:
             # Get repository metadata
             head_commit = repo.head.commit
             metadata = {
-                'repository_url': repo_url,
+                'repository_url': strip_url_credentials(repo_url),
                 'local_path': str(clone_dir),
                 'branch': branch or repo.active_branch.name,
                 'commit_hash': head_commit.hexsha,
@@ -213,19 +229,19 @@ class GitRepoCloner:
             return metadata
             
         except GitCommandError as e:
-            error_msg = f"Git command failed: {e}"
+            error_msg = f"Git command failed: {scrub_text(e, limit=500)}"
             logger.error(error_msg)
             self._cleanup_directory(clone_dir)
             raise RepoCloneError(error_msg) from e
             
         except InvalidGitRepositoryError as e:
-            error_msg = f"Invalid git repository: {e}"
+            error_msg = f"Invalid git repository: {scrub_text(e, limit=500)}"
             logger.error(error_msg)
             self._cleanup_directory(clone_dir)
             raise RepoCloneError(error_msg) from e
             
         except Exception as e:
-            error_msg = f"Unexpected error during clone: {e}"
+            error_msg = f"Unexpected error during clone: {scrub_text(e, limit=500)}"
             logger.error(error_msg)
             self._cleanup_directory(clone_dir)
             raise RepoCloneError(error_msg) from e

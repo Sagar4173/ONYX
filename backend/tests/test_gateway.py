@@ -271,6 +271,21 @@ async def test_cache_key_includes_model_name(gw_settings, monkeypatch):
     assert calls == 2  # model change must invalidate the cached response
 
 
+async def test_url_userinfo_is_scrubbed(gw_settings):
+    async def leaky(spec, messages, max_tokens, temperature, json_mode):
+        raise RuntimeError(
+            "clone failed: https://ghp_secret1234567890@github.com/owner/repo.git"
+        )
+
+    gw = _gateway({"gemini": leaky})
+    with pytest.raises(GatewayError) as excinfo:
+        await gw.complete(system="s", user="u", purpose="analysis")
+
+    msg = str(excinfo.value)
+    assert "ghp_secret1234567890" not in msg
+    assert "https://[REDACTED]@github.com/owner/repo.git" in msg
+
+
 async def test_error_strings_are_scrubbed(gw_settings):
     async def leaky(spec, messages, max_tokens, temperature, json_mode):
         raise RuntimeError("401 Bearer sk-abc1234567890DEF authorization failed")
