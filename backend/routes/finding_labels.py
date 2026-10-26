@@ -50,13 +50,34 @@ async def set_finding_label(
         raise HTTPException(status_code=404, detail="Finding not found")
 
     new_label = None if body.label in (None, "untriaged") else body.label
-    finding.triage_label = new_label
 
     # Cached triage was computed without this label - drop it so the next
-    # GET /triage re-ranks with the new signal (A3).
+    # GET /triage re-ranks with the new signal (A3). Both writes are targeted
+    # so unrelated metadata (pending fixes, approval markers) is preserved.
+    result = await ScanReport.get_motor_collection().update_one(
+        {"_id": report.id, "scan_results.findings.id": finding_id},
+        {
+            "$set": {
+                "scan_results.$[sr].findings.$[f].triage_label": new_label
+            },
+            "$unset": {"metadata.triage": ""},
+        },
+        array_filters=[
+            {"sr.findings.id": finding_id},
+            {"f.id": finding_id},
+        ],
+    )
+    if getattr(result, "matched_count", 0) != 1:
+        logger.warning(
+            "Finding %s on scan %s not persisted - report changed concurrently",
+            finding_id,
+            scan_id,
+        )
+        raise HTTPException(status_code=404, detail="Finding not found")
+
+    finding.triage_label = new_label
     metadata = report.metadata if isinstance(report.metadata, dict) else {}
     if TRIAGE_CACHE_KEY in metadata:
         report.metadata = {k: v for k, v in metadata.items() if k != TRIAGE_CACHE_KEY}
-    await report.save()
     logger.info("Finding %s on scan %s labeled %r", finding_id, scan_id, new_label)
     return LabelResponse(scan_id=scan_id, finding_id=finding_id, triage_label=new_label)

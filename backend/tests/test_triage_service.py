@@ -3,15 +3,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from models.report import ScanReport
 from models.triage import BusinessContext
 from services.scanning.vulnerability.manager import EPSSData
 from services.service_registry import ServiceRegistry
 from services.triage.triage_service import (
     TriageService,
     _context_hash,
-    _get_severity_score,
     _get_priority_label,
-    PRIORITY_MAP,
+    _get_severity_score,
 )
 
 
@@ -451,3 +451,43 @@ class TestLabelIntegration:
         labels = {rf.finding_id: rf.triage_label for rf in result.ranked_findings}
         assert labels["f-1"] == "accepted"
         assert labels["f-2"] is None
+
+
+class TestCacheResult:
+    async def test_cache_uses_targeted_metadata_update(self, service):
+        report = _make_report([])
+        report.id = "scan-oid"
+        result = MagicMock()
+        result.ranked_findings = [
+            MagicMock(finding_id="f-1", ai_triage_summary="summary one")
+        ]
+        result.executive_summary = "exec"
+        result.generated_at = "2026-01-01T00:00:00+00:00"
+        collection = MagicMock()
+        collection.update_one = AsyncMock()
+
+        with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+            await service._cache_result(report, result, "ctx-hash")
+
+        filter_doc, update_doc = collection.update_one.await_args.args
+        assert filter_doc == {"_id": "scan-oid"}
+        assert update_doc == {
+            "$set": {
+                "metadata.triage": {
+                    "context_hash": "ctx-hash",
+                    "summaries": {"f-1": "summary one"},
+                    "executive_summary": "exec",
+                    "generated_at": "2026-01-01T00:00:00+00:00",
+                }
+            }
+        }
+
+    async def test_cache_failure_is_swallowed(self, service):
+        report = _make_report([])
+        result = MagicMock()
+        result.ranked_findings = []
+        collection = MagicMock()
+        collection.update_one = AsyncMock(side_effect=RuntimeError("db down"))
+
+        with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+            await service._cache_result(report, result, "ctx-hash")

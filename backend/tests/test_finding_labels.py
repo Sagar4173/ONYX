@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app import app
-from models.base import ScannerType, ScanStatus, SeverityLevel, CVSSScore
+from models.base import CVSSScore, ScannerType, ScanStatus, SeverityLevel
 from models.report import GitMetadata, ScanReport, ScanResult, VulnerabilityFinding
 from models.user import User, UserRole
 from routes.dependencies import get_current_user
@@ -60,6 +60,7 @@ def _make_report(finding=None):
     if finding is None:
         finding = _make_finding()
     report = ScanReport.model_construct(
+        id=SCAN_ID,
         project_name="test-project",
         user_id="user-test-123",
         scan_id=SCAN_ID,
@@ -92,27 +93,47 @@ class TestFindingLabelEndpoint:
             "routes.finding_labels.get_accessible_scan_report",
             AsyncMock(return_value=report),
         )
+        collection = MagicMock()
+        collection.update_one = AsyncMock(return_value=MagicMock(matched_count=1))
 
-        resp = client.post(
-            f"/api/reports/{SCAN_ID}/findings/f-1/label",
-            json={"label": "false_positive"},
-        )
+        with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+            resp = client.post(
+                f"/api/reports/{SCAN_ID}/findings/f-1/label",
+                json={"label": "false_positive"},
+            )
 
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["scan_id"] == SCAN_ID
-        assert data["finding_id"] == "f-1"
-        assert data["triage_label"] == "false_positive"
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["scan_id"] == SCAN_ID
+            assert data["finding_id"] == "f-1"
+            assert data["triage_label"] == "false_positive"
 
-        finding = report.scan_results[0].findings[0]
-        assert finding.triage_label == "false_positive"
-        assert "triage" not in report.metadata
-        report.save.assert_awaited()
+            finding = report.scan_results[0].findings[0]
+            assert finding.triage_label == "false_positive"
+            assert "triage" not in report.metadata
+            report.save.assert_not_awaited()
 
-        resp2 = client.post(
-            f"/api/reports/{SCAN_ID}/findings/f-1/label",
-            json={"label": "untriaged"},
-        )
+            filter_doc, update_doc = collection.update_one.await_args.args
+            assert filter_doc == {
+                "_id": SCAN_ID,
+                "scan_results.findings.id": "f-1",
+            }
+            assert update_doc == {
+                "$set": {
+                    "scan_results.$[sr].findings.$[f].triage_label": "false_positive"
+                },
+                "$unset": {"metadata.triage": ""},
+            }
+            assert collection.update_one.await_args.kwargs["array_filters"] == [
+                {"sr.findings.id": "f-1"},
+                {"f.id": "f-1"},
+            ]
+
+            resp2 = client.post(
+                f"/api/reports/{SCAN_ID}/findings/f-1/label",
+                json={"label": "untriaged"},
+            )
+
         assert resp2.status_code == 200
         assert resp2.json()["triage_label"] is None
         assert finding.triage_label is None
@@ -132,6 +153,26 @@ class TestFindingLabelEndpoint:
 
         assert resp.status_code == 404
         assert resp.json()["detail"] == "Finding not found"
+
+    async def test_label_not_persisted_when_report_changed_404(self, monkeypatch):
+        client = _setup_client()
+        report = _make_report()
+        monkeypatch.setattr(
+            "routes.finding_labels.get_accessible_scan_report",
+            AsyncMock(return_value=report),
+        )
+        collection = MagicMock()
+        collection.update_one = AsyncMock(return_value=MagicMock(matched_count=0))
+
+        with patch.object(ScanReport, "get_motor_collection", return_value=collection):
+            resp = client.post(
+                f"/api/reports/{SCAN_ID}/findings/f-1/label",
+                json={"label": "accepted"},
+            )
+
+        assert resp.status_code == 404
+        assert resp.json()["detail"] == "Finding not found"
+        assert report.scan_results[0].findings[0].triage_label is None
 
     async def test_label_inaccessible_scan_404(self, monkeypatch):
         client = _setup_client()

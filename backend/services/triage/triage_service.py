@@ -1,8 +1,7 @@
-import json
 import logging
 from datetime import datetime, timezone
 from hashlib import md5
-from typing import Any, Optional
+from typing import Optional
 
 from config import settings
 from models.report import ScanReport, VulnerabilityFinding
@@ -394,10 +393,9 @@ class TriageService:
                 "executive_summary": result.executive_summary,
                 "generated_at": result.generated_at,
             }
-            meta = dict(report.metadata or {})
-            meta[CACHE_KEY] = cache
-            await ScanReport.find_one(ScanReport.scan_id == report.scan_id).update(
-                {"$set": {"metadata": meta}}
+            await ScanReport.get_motor_collection().update_one(
+                {"_id": report.id},
+                {"$set": {"metadata.triage": cache}},
             )
         except Exception as e:
             logger.warning(f"Failed to cache triage result: {e}")
