@@ -129,13 +129,17 @@ class RealSecurityScanner:
         
         # Run blocking git clone in thread pool to avoid blocking event loop
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            _executor, 
-            self._clone_repository_sync, 
-            repository_url, 
-            branch, 
-            clone_path
-        )
+        try:
+            return await loop.run_in_executor(
+                _executor,
+                self._clone_repository_sync,
+                repository_url,
+                branch,
+                clone_path,
+            )
+        except Exception:
+            await self._cleanup(clone_path)
+            raise
     
     async def _run_sast_scan(self, repo_path: str) -> List[Dict[str, Any]]:
         """Run Static Application Security Testing using Bandit (Python)"""

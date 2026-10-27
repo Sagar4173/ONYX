@@ -6,7 +6,9 @@ _QUERY_SECRET_RE = re.compile(
     r"([?&](?:access_token|private_token|token|api_key|key)=)[^&#\s]*",
     re.IGNORECASE,
 )
-_SCP_CREDENTIAL_RE = re.compile(r"^(?P<user>[^@/\s]+)@[^@/\s]+@(?P<rest>.+)$")
+_SCP_CREDENTIAL_RE = re.compile(
+    r"^(?P<user>[^@/\s]+)@(?:[^@/\s]+@)+(?P<rest>.+)$"
+)
 
 
 def strip_url_credentials(url: str) -> str:
