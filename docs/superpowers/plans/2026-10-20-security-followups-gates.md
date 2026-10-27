@@ -5,7 +5,7 @@ Spec: `docs/superpowers/specs/2026-10-20-security-followups-design.md`
 Plan: `docs/superpowers/plans/2026-10-20-security-followups.md`
 Branch: `master` (nothing pushed during this track)
 Start: `0f9ef31` (post-QA hardening closure, pushed)
-Finish: `2a40ef9`
+Finish: `16100de`
 Workflow: one implementer task at a time with an independent `reviewer` pass, controller-run
 gates, a `security` review at closure, and a final whole-branch review. Post-review fixes
 were re-reviewed by `security`.
@@ -19,6 +19,7 @@ were re-reviewed by `security`.
 | 3 | Targeted triage/label metadata writes | `f81304e` | APPROVE WITH CONCERNS |
 | 4 | Frontend image env exclusion | `fb4abfd` | Gate-only |
 | 5 | Security-review fixes: project-bound tokens, path traversal, SCP/URL redaction, host allowlist | `2a40ef9` | Security re-review: ACCEPTABLE WITH CONCERNS |
+| 6 | Review follow-ups: SSH multi-`@`, scanner clone paths/cleanup, legacy token lookup, repeated-scp redaction | `ee579e1` + `16100de` | Reviewer follow-up: APPROVE WITH CONCERNS; non-residual lows fixed |
 
 Design/plan commit: `e3fb6e2`.
 
@@ -32,11 +33,11 @@ At frontend commit `fb4abfd`:
 - `cmd /c "npm run build"` -> **exit 0** (existing chunk-size warning only).
 - `npx prettier --check <T1 frontend files>` -> clean.
 
-At final code HEAD `2a40ef9`:
+At final code HEAD `16100de`:
 
-- `pytest -q` (backend) -> **892 passed** (42.76s).
+- `pytest -q` (backend) -> **903 passed** (35.00s).
 - Focused security suites (`test_auto_fix_service`, `test_repo_clone_validation`,
-  `test_scrub`, `test_url_redaction`) -> **95 passed**.
+  `test_scrub`, `test_url_redaction`, `test_real_scanner_paths`) -> **106 passed**.
 - `ruff check` on all touched backend files -> clean.
 - `git diff --check 0f9ef31..HEAD` -> clean.
 - Frontend gates not re-run after `fb4abfd` because no frontend files changed afterwards.
@@ -58,10 +59,14 @@ level with mocked external boundaries.
   creation). Self-hosted/lookalike hosts fail closed instead of sending tokens to a public
   SaaS API.
 - Clone paths are derived from parsed URL/scp paths, sanitized to `[A-Za-z0-9._-]`, and
-  the resolved clone directory is checked against the temp base directory.
-- Multiple-`@` scp URLs and bracketed IPv6 scp hosts are rejected or validated before
-  cloning; standard, protocol-relative, repeated-userinfo, and scp credentials are
-  redacted by `scrub_text`.
+  the resolved clone directory is checked against the temp base directory. The scanner
+  creates a unique per-scan directory with `tempfile.mkdtemp` and removes it on clone
+  failure.
+- Multiple-`@`/encoded SSH userinfo, bracketed IPv6 scp hosts, and credential-bearing scp
+  URLs are rejected; standard, protocol-relative, repeated-userinfo, and repeated-scp
+  credentials are redacted by `scrub_text`/`strip_url_credentials`.
+- Legacy non-ObjectId report project ids use the same `project_id` lookup as the T1
+  authorization helper; the repository-URL match still gates token release.
 - Triage cache and finding-label writes use targeted `$set`/`$unset`/array-filter updates
   instead of whole `metadata` or whole-report saves.
 
@@ -80,7 +85,9 @@ Re-review of `2a40ef9`: **ACCEPTABLE WITH CONCERNS**. Confirmed resolved:
 - LOW scp/multiple-`@` credential leakage and protocol-relative scrub gaps.
 - LOW bracketed IPv6 scp host validation.
 
-No new critical/high issue was found. Residual findings are listed below.
+No new critical/high issue was found. A reviewer follow-up on `ee579e1` confirmed the
+targeted fixes and found one temp-directory cleanup regression plus a repeated-scp display
+redaction gap; both were fixed in `16100de`. Residual findings are listed below.
 
 ## Accepted limitations / follow-up debt
 
@@ -89,8 +96,9 @@ No new critical/high issue was found. Residual findings are listed below.
   `GIT_ASKPASS`/credential helper and repository-scoped short-lived tokens.
 - **MEDIUM (pre-existing, final review finding 1)** - Credential-bearing repository URLs
   can still reach surfaces outside clone-time validation: project create/update
-  (`models/project.py`, `routes/projects/crud.py`), report submission/response
-  (`routes/webhook/scan_operations.py`), and scanner logging/naming
+  (`models/project.py`, `routes/projects/crud.py`), report submission/schema/response/logs
+  (`routes/webhook/schemas.py`, `routes/webhook/scan_operations.py`), webhook event
+  responses (`routes/webhook/events.py`), and scanner logs/naming
   (`services/scanning/scanners/real_scanner.py`). The final review output was truncated
   after this finding in the controller transcript; retrieve the full task result if a
   complete list is required.
