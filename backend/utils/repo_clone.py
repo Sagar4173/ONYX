@@ -4,6 +4,7 @@ Git repository cloning utilities
 import asyncio
 import ipaddress
 import logging
+import re
 import shutil
 import socket
 from datetime import datetime, timezone
@@ -95,9 +96,16 @@ def validate_repo_url(repo_url: str) -> None:
     else:
         # scp-like syntax: git@github.com:owner/repo.git OR a local path
         at_parts = url.split("@")
+        if len(at_parts) > 2:
+            raise RepoCloneError(
+                "Repository URL must not embed credentials - use a project access token"
+            )
         user_host = at_parts[-1]
         if ":" in user_host and not user_host.startswith(":"):
-            host = user_host.split(":", 1)[0]
+            if user_host.startswith("[") and "]:" in user_host:
+                host = user_host[1 : user_host.index("]:")]
+            else:
+                host = user_host.split(":", 1)[0]
             if _is_private_host(host):
                 raise RepoCloneError(f"Repository host is not allowed: {host}")
         else:
@@ -113,27 +121,25 @@ class GitRepoCloner:
     
     def _get_repo_name(self, repo_url: str) -> str:
         """Extract repository name from URL"""
-        # Handle various Git URL formats
-        repo_url = repo_url.split("?", 1)[0].split("#", 1)[0]
-        if repo_url.endswith('.git'):
-            repo_url = repo_url[:-4]
-        
-        if '/' in repo_url:
-            return repo_url.split('/')[-1]
-        
-        return repo_url
-    
+        raw = repo_url.split("?", 1)[0].split("#", 1)[0].rstrip("/")
+        if "://" in raw:
+            path = urlparse(raw).path
+        elif "@" in raw and ":" in raw.rsplit("@", 1)[-1]:
+            path = raw.rsplit("@", 1)[-1].split(":", 1)[1]
+        else:
+            path = raw
+        path = path.replace("\\", "/")
+        name = path.rsplit("/", 1)[-1]
+        if name.endswith(".git"):
+            name = name[:-4]
+        return name
+
     def _sanitize_path(self, path: str) -> str:
         """Sanitize path for filesystem safety"""
-        # Remove or replace unsafe characters
-        unsafe_chars = ['<', '>', ':', '"', '|', '?', '*', '\0']
-        for char in unsafe_chars:
-            path = path.replace(char, '_')
-        
-        # Remove leading/trailing dots and spaces
-        path = path.strip('. ')
-        
-        return path
+        path = path.replace("\\", "_").replace("/", "_")
+        path = re.sub(r"[^A-Za-z0-9._-]", "_", path)
+        path = re.sub(r"\.{2,}", "_", path).strip(". ")
+        return path or "repo"
     
     async def clone_repository(
         self,
@@ -162,6 +168,10 @@ class GitRepoCloner:
         # Create unique directory with timestamp
         timestamp = utc_now().strftime("%Y%m%d_%H%M%S_%f")
         clone_dir = self.base_temp_dir / f"{sanitized_name}_{timestamp}"
+        try:
+            clone_dir.resolve().relative_to(self.base_temp_dir.resolve())
+        except ValueError:
+            raise RepoCloneError("Invalid repository name") from None
         
         try:
             logger.info(f"Cloning repository {scrub_text(repo_url, limit=500)} to {clone_dir}")

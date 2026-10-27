@@ -99,6 +99,18 @@ class TestDetectPlatform:
         with pytest.raises(AutoFixError):
             service._detect_platform("https://example.com/owner/repo")
 
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://github.enterprise.example/owner/repo",
+            "https://gitlab.corp.example/owner/repo",
+            "https://github.com.evil.example/owner/repo",
+        ],
+    )
+    def test_self_hosted_or_lookalike_hosts_rejected(self, service, url):
+        with pytest.raises(AutoFixError):
+            service._detect_platform(url)
+
 
 class TestParseRepoInfo:
     def test_standard_url(self, service):
@@ -126,6 +138,52 @@ def _mock_httpx_client(status_code, text):
     context.__aenter__ = AsyncMock(return_value=client)
     context.__aexit__ = AsyncMock(return_value=False)
     return context
+
+
+class TestResolveToken:
+    @staticmethod
+    def _project(url, token):
+        project = MagicMock()
+        project.repository.url = url
+        project.repository.access_token = token
+        return project
+
+    async def test_personal_report_never_uses_global_token(self, service, scan_report):
+        scan_report.project_id = None
+        assert await service._resolve_token(scan_report) is None
+
+    async def test_project_token_used_for_matching_repository(
+        self, service, scan_report
+    ):
+        scan_report.project_id = "507f1f77bcf86cd799439011"
+        project = self._project("https://github.com/owner/test-repo.git", "project-token")
+        with patch(
+            "services.scm.auto_fix_service.Project.get",
+            AsyncMock(return_value=project),
+        ):
+            assert await service._resolve_token(scan_report) == "project-token"
+
+    async def test_token_withheld_when_repository_does_not_match(
+        self, service, scan_report
+    ):
+        scan_report.project_id = "507f1f77bcf86cd799439011"
+        project = self._project("https://github.com/owner/other-repo.git", "project-token")
+        with patch(
+            "services.scm.auto_fix_service.Project.get",
+            AsyncMock(return_value=project),
+        ):
+            assert await service._resolve_token(scan_report) is None
+
+    async def test_project_without_token_does_not_fall_back(
+        self, service, scan_report
+    ):
+        scan_report.project_id = "507f1f77bcf86cd799439011"
+        project = self._project("https://github.com/owner/test-repo", None)
+        with patch(
+            "services.scm.auto_fix_service.Project.get",
+            AsyncMock(return_value=project),
+        ):
+            assert await service._resolve_token(scan_report) is None
 
 
 class TestCredentialHygiene:

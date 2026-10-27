@@ -55,6 +55,26 @@ class TestRepoName:
         )
         assert name == "repo"
 
+    def test_backslash_traversal_does_not_reach_repo_name(self):
+        cloner = GitRepoCloner.__new__(GitRepoCloner)
+        name = cloner._get_repo_name("https://github.com/..\\..\\evil")
+        assert name == "evil"
+
+    def test_sanitize_path_removes_separators_and_dot_segments(self):
+        cloner = GitRepoCloner.__new__(GitRepoCloner)
+        sanitized = cloner._sanitize_path("..\\..\\evil")
+        assert "\\" not in sanitized
+        assert "/" not in sanitized
+        assert sanitized not in {".", ".."}
+
+    def test_rejects_scp_style_embedded_credentials(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("git@user:pass@github.com:owner/repo.git")
+
+    def test_rejects_scp_style_loopback_ipv6(self):
+        with pytest.raises(RepoCloneError, match="host is not allowed"):
+            validate_repo_url("git@[::1]:owner/repo.git")
+
     def test_rejects_file_scheme(self):
         with pytest.raises(RepoCloneError):
             validate_repo_url("file:///etc/passwd")

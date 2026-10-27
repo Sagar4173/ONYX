@@ -6,12 +6,14 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import httpx
+from bson import ObjectId
 
 from config import settings
 from models.project import Project
 from models.report import ScanReport, VulnerabilityFinding
 from utils.repo_clone import validate_repo_url
 from utils.scrub import scrub_text
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +34,38 @@ class AutoFixService:
         return None
 
     async def _resolve_token(self, scan_report: ScanReport) -> Optional[str]:
-        if scan_report.project_id:
-            project = await Project.find_one({"project_id": scan_report.project_id})
-            if project and project.repository and project.repository.access_token:
-                return project.repository.access_token
-        return settings.auto_fix_token
+        project_id = getattr(scan_report, "project_id", None)
+        if not project_id:
+            return None
+
+        try:
+            if ObjectId.is_valid(str(project_id)):
+                project = await Project.get(ObjectId(str(project_id)))
+            else:
+                project = await Project.find_one({"_id": project_id})
+        except Exception:
+            logger.warning("Auto-fix token lookup failed", exc_info=True)
+            return None
+
+        if not project or not project.repository:
+            return None
+
+        report_metadata = getattr(scan_report, "git_metadata", None)
+        report_url = strip_url_credentials(
+            (getattr(report_metadata, "repository_url", "") or "")
+        )
+        project_url = strip_url_credentials(project.repository.url or "")
+
+        def normalize(value: str) -> str:
+            return value.strip().rstrip("/").removesuffix(".git")
+
+        if not report_url or normalize(report_url) != normalize(project_url):
+            logger.warning(
+                "Auto-fix token withheld: report repository does not match project"
+            )
+            return None
+
+        return project.repository.access_token or None
 
     def _clone_repo(self, repo_url: str, branch: str, token: Optional[str]) -> str:
         from git import Repo
@@ -130,8 +159,8 @@ class AutoFixService:
     ) -> tuple:
         if not token:
             raise AutoFixError(
-                "No SCM token available — cannot create PR. "
-                "Set per-project access_token or AUTO_FIX_TOKEN env var."
+                "No SCM token available - cannot create PR. "
+                "Set a per-project access_token."
             )
 
         platform = self._detect_platform(repo_url)
@@ -162,12 +191,12 @@ class AutoFixService:
             raise AutoFixError(f"Unsupported SCM platform: {platform}")
 
     def _detect_platform(self, repo_url: str) -> str:
-        host = urlparse(repo_url).hostname or ""
-        if "github" in host:
+        host = (urlparse(repo_url).hostname or "").lower()
+        if host in ("github.com", "www.github.com"):
             return "github"
-        elif "gitlab" in host:
+        elif host in ("gitlab.com", "www.gitlab.com"):
             return "gitlab"
-        elif "bitbucket" in host:
+        elif host == "bitbucket.org":
             return "bitbucket"
         raise AutoFixError("Unsupported SCM platform")
 

@@ -197,7 +197,6 @@ class Settings(BaseSettings):
     # Auto-Fix PRs
     auto_fix_branch_prefix: str = Field(default="onyx-auto-fix/", env="AUTO_FIX_BRANCH_PREFIX")
     auto_fix_pr_title_prefix: str = Field(default="[ONYX Auto-Fix] ", env="AUTO_FIX_PR_TITLE_PREFIX")
-    auto_fix_token: Optional[str] = Field(default=None, env="AUTO_FIX_TOKEN")
 
     # --- Phase 3: Agentic fix-agent + AI safety (spec 4.2-4.5) ------------
     # Human approval ON by default: propose -> gates -> pending fix stored;

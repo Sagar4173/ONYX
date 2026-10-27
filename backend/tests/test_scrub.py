@@ -14,6 +14,23 @@ class TestUrlUserinfo:
         result = scrub_text("clone failed: https://user:pass@example.com/owner/repo.git")
         assert result == "clone failed: https://[REDACTED]@example.com/owner/repo.git"
 
+    def test_redacts_scp_style_credentials(self):
+        result = scrub_text("clone failed: git@user:pass@github.com:owner/repo.git")
+        assert "user:pass" not in result
+        assert "git@[REDACTED]@github.com:owner/repo.git" in result
+
+    def test_redacts_protocol_relative_userinfo(self):
+        result = scrub_text("clone failed: //user:pass@example.com/owner/repo.git")
+        assert "user:pass" not in result
+        assert "//[REDACTED]@example.com/owner/repo.git" in result
+
+    def test_redacts_userinfo_with_multiple_at_signs(self):
+        result = scrub_text(
+            "clone failed: ssh://git@user:pass@github.com/owner/repo.git"
+        )
+        assert "user:pass" not in result
+        assert "ssh://[REDACTED]@github.com/owner/repo.git" in result
+
 
 @pytest.mark.parametrize(
     "secret",

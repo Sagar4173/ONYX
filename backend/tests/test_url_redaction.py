@@ -45,6 +45,18 @@ class TestStripUrlCredentials:
             == "git://github.com/owner/repo.git"
         )
 
+    def test_removes_scp_style_credentials(self):
+        assert (
+            strip_url_credentials("git@user:pass@github.com:owner/repo.git")
+            == "git@github.com:owner/repo.git"
+        )
+
+    def test_removes_protocol_relative_userinfo(self):
+        assert (
+            strip_url_credentials("//user:pass@host/owner/repo.git")
+            == "//host/owner/repo.git"
+        )
+
     def test_redacts_query_credentials(self):
         assert (
             strip_url_credentials(
