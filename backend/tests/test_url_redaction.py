@@ -33,6 +33,18 @@ class TestStripUrlCredentials:
         url = "ssh://git@github.com/owner/repo.git"
         assert strip_url_credentials(url) == url
 
+    def test_removes_ssh_multi_at_userinfo(self):
+        assert (
+            strip_url_credentials("ssh://git@token@github.com/owner/repo.git")
+            == "ssh://github.com/owner/repo.git"
+        )
+
+    def test_removes_ssh_encoded_userinfo(self):
+        assert (
+            strip_url_credentials("ssh://git%40token@github.com/owner/repo.git")
+            == "ssh://github.com/owner/repo.git"
+        )
+
     def test_removes_ssh_password(self):
         assert (
             strip_url_credentials("ssh://git:secret@github.com/owner/repo.git")

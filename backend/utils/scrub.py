@@ -4,7 +4,9 @@ from typing import Any
 
 _URL_USERINFO_RE = re.compile(r"([a-zA-Z][a-zA-Z0-9+.\-]*://)(?:[^\s/@]+@)+")
 _PROTOCOL_RELATIVE_USERINFO_RE = re.compile(r"(?<!:)//(?:[^\s/@]+@)+")
-_SCP_CREDENTIAL_RE = re.compile(r"(?<!\S)([^\s@]+@)[^\s@]+@(?=[^\s@]+:)", re.MULTILINE)
+_SCP_CREDENTIAL_RE = re.compile(
+    r"(?<!\S)([^\s@]+@)(?:[^\s@]+@)+(?=[^\s@]+:)", re.MULTILINE
+)
 _QUERY_SECRET_RE = re.compile(
     r"([?&](?:access_token|private_token|token|api_key|key)=)[^&\s]+",
     re.IGNORECASE,

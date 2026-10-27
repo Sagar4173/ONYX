@@ -163,6 +163,18 @@ class TestResolveToken:
         ):
             assert await service._resolve_token(scan_report) == "project-token"
 
+    async def test_legacy_project_lookup_uses_project_id_field(
+        self, service, scan_report
+    ):
+        scan_report.project_id = "proj-1"
+        project = self._project("https://github.com/owner/test-repo", "project-token")
+        with patch(
+            "services.scm.auto_fix_service.Project.find_one",
+            AsyncMock(return_value=project),
+        ) as find_one:
+            assert await service._resolve_token(scan_report) == "project-token"
+        find_one.assert_awaited_once_with({"project_id": "proj-1"})
+
     async def test_token_withheld_when_repository_does_not_match(
         self, service, scan_report
     ):

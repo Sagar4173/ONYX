@@ -88,6 +88,12 @@ def validate_repo_url(repo_url: str) -> None:
             raise RepoCloneError(
                 "Repository URL must not embed credentials - use a project access token"
             )
+        if scheme == "ssh":
+            userinfo = parsed.netloc.rsplit("@", 1)[0] if "@" in parsed.netloc else ""
+            if parsed.netloc.count("@") > 1 or "%40" in userinfo.lower():
+                raise RepoCloneError(
+                    "Repository URL must not embed credentials - use a project access token"
+                )
         host = parsed.hostname
         if not host:
             raise RepoCloneError("Repository URL has no host")

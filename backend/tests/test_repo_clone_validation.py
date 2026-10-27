@@ -75,6 +75,14 @@ class TestRepoName:
         with pytest.raises(RepoCloneError, match="host is not allowed"):
             validate_repo_url("git@[::1]:owner/repo.git")
 
+    def test_rejects_ssh_multi_at_userinfo(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("ssh://git@token@github.com/owner/repo.git")
+
+    def test_rejects_ssh_encoded_at_userinfo(self):
+        with pytest.raises(RepoCloneError, match="must not embed credentials"):
+            validate_repo_url("ssh://git%40token@github.com/owner/repo.git")
+
     def test_rejects_file_scheme(self):
         with pytest.raises(RepoCloneError):
             validate_repo_url("file:///etc/passwd")

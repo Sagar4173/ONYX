@@ -19,6 +19,11 @@ class TestUrlUserinfo:
         assert "user:pass" not in result
         assert "git@[REDACTED]@github.com:owner/repo.git" in result
 
+    def test_redacts_repeated_scp_userinfo(self):
+        result = scrub_text("clone failed: git@a@b@github.com:owner/repo.git")
+        assert "a@b" not in result
+        assert "git@[REDACTED]@github.com:owner/repo.git" in result
+
     def test_redacts_protocol_relative_userinfo(self):
         result = scrub_text("clone failed: //user:pass@example.com/owner/repo.git")
         assert "user:pass" not in result

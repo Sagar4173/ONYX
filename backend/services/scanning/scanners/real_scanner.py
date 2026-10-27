@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -121,8 +122,10 @@ class RealSecurityScanner:
     async def _clone_repository(self, repository_url: str, branch: str) -> str:
         """Clone repository to temporary directory (non-blocking)"""
         validate_repo_url(repository_url)
-        repo_name = repository_url.split('/')[-1].replace('.git', '')
-        clone_path = os.path.join(self.temp_dir, repo_name)
+        repo_name = repository_url.split("/")[-1].replace(".git", "")
+        repo_name = re.sub(r"[^A-Za-z0-9._-]", "_", repo_name.replace("\\", "_"))
+        repo_name = re.sub(r"\.{2,}", "_", repo_name).strip(". ")[:40] or "repo"
+        clone_path = tempfile.mkdtemp(prefix=f"{repo_name}_", dir=self.temp_dir)
         
         # Run blocking git clone in thread pool to avoid blocking event loop
         loop = asyncio.get_event_loop()

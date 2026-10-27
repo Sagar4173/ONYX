@@ -42,7 +42,7 @@ class AutoFixService:
             if ObjectId.is_valid(str(project_id)):
                 project = await Project.get(ObjectId(str(project_id)))
             else:
-                project = await Project.find_one({"_id": project_id})
+                project = await Project.find_one({"project_id": str(project_id)})
         except Exception:
             logger.warning("Auto-fix token lookup failed", exc_info=True)
             return None

@@ -22,7 +22,13 @@ def strip_url_credentials(url: str) -> str:
     has_userinfo = parsed.username is not None or parsed.password is not None
     if has_userinfo and parsed.netloc:
         scheme = parsed.scheme.lower()
-        if not (scheme == "ssh" and parsed.password is None):
+        preserve_ssh_user = (
+            scheme == "ssh"
+            and parsed.password is None
+            and parsed.username == "git"
+            and parsed.netloc.count("@") == 1
+        )
+        if not preserve_ssh_user:
             netloc = parsed.netloc.rsplit("@", 1)[1]
             url = urlunparse(parsed._replace(netloc=netloc))
     return _QUERY_SECRET_RE.sub(r"\1[REDACTED]", url)
