@@ -199,6 +199,46 @@ class TestEmailVerificationEnforcement:
         assert not auth.verify_password("wrong_password", hashed)
 
 
+class TestPendingUserAccess:
+    """PENDING_VERIFICATION access must follow the verification setting"""
+
+    def _credentials(self):
+        from fastapi.security import HTTPAuthorizationCredentials
+
+        return HTTPAuthorizationCredentials(scheme="Bearer", credentials="token-123")
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("require_email_verification", "expected_status"),
+        [(False, None), (True, 403)],
+    )
+    async def test_pending_user_access_follows_verification_setting(
+        self, require_email_verification, expected_status
+    ):
+        from fastapi import HTTPException
+
+        from config import settings
+        from models.user import User, UserSession, UserStatus
+        from services.auth.auth_service import auth_service
+
+        user = MagicMock(id="pending-1", status=UserStatus.PENDING_VERIFICATION)
+        session = MagicMock(save=AsyncMock())
+
+        with (
+            patch.object(settings, "require_email_verification", require_email_verification),
+            patch.object(auth_service, "verify_token", return_value={"sub": user.id}),
+            patch.object(User, "get", new=AsyncMock(return_value=user)),
+            patch.object(UserSession, "find_one", new=AsyncMock(return_value=session)),
+        ):
+            if expected_status is None:
+                assert await auth_service.get_current_user(self._credentials()) is user
+                session.save.assert_awaited_once()
+            else:
+                with pytest.raises(HTTPException) as exc_info:
+                    await auth_service.get_current_user(self._credentials())
+                assert exc_info.value.status_code == expected_status
+
+
 class TestUserRoles:
     """Test role-based access control"""
     

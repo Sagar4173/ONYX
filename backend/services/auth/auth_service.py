@@ -765,7 +765,10 @@ class AuthService:
                 detail="User not found"
             )
         
-        if user.status != UserStatus.ACTIVE:
+        if user.status != UserStatus.ACTIVE and not (
+            user.status == UserStatus.PENDING_VERIFICATION
+            and not settings.require_email_verification
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User account is not active"
