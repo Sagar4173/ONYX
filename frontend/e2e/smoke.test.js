@@ -1,13 +1,15 @@
 import { test, expect } from "@playwright/test";
 
+const apiURL = process.env.E2E_API_URL || "http://localhost:8000";
+
 test.describe("Backend Health", () => {
   test("API docs endpoint returns 200", async ({ request }) => {
-    const response = await request.get("/docs");
+    const response = await request.get(`${apiURL}/docs`);
     expect(response.ok()).toBeTruthy();
   });
 
   test("OpenAPI spec is valid", async ({ request }) => {
-    const response = await request.get("/openapi.json");
+    const response = await request.get(`${apiURL}/openapi.json`);
     expect(response.ok()).toBeTruthy();
     const spec = await response.json();
     expect(spec.info.title).toContain("ONYX");
@@ -23,21 +25,24 @@ test.describe("Frontend Pages", () => {
 
   test("Login page has form elements", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.locator("text=Sign in").first()).toBeVisible({ timeout: 10000 });
-    const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="email" i]').first();
-    await expect(emailInput).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible({ timeout: 10000 });
+    const identifierInput = page
+      .locator('input[autocomplete="username"], input[placeholder*="email or username" i]')
+      .first();
+    await expect(identifierInput).toBeVisible({ timeout: 5000 });
   });
 
   test("Register page has registration form", async ({ page }) => {
     await page.goto("/register");
-    await expect(page.locator("text=Join ONYX").first()).toBeVisible({ timeout: 10000 });
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+    await expect(page.getByText(/join onyx/i).first()).toBeVisible({ timeout: 10000 });
+    const emailInput = page.locator('input[type="email"]').first();
     await expect(emailInput).toBeVisible({ timeout: 5000 });
   });
 
-  test("404 page shown for unknown routes", async ({ page }) => {
-    const response = await page.goto("/nonexistent-route-12345");
-    expect(response?.status()).toBe(404);
+  test("Unknown routes redirect unauthenticated visitors to landing", async ({ page }) => {
+    await page.goto("/nonexistent-route-12345");
+    await page.waitForURL((url) => url.pathname === "/");
+    await expect(page.locator("text=ONYX").first()).toBeVisible();
   });
 });
 
@@ -69,10 +74,12 @@ test.describe("Dashboard (Authenticated)", () => {
   test("Login form submits and redirects to dashboard", async ({ page }) => {
     await page.goto("/login");
 
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
+    const emailInput = page
+      .locator('input[autocomplete="username"], input[placeholder*="email or username" i]')
+      .first();
+    const passwordInput = page.locator('input[type="password"]').first();
     const submitButton = page.locator(
-      'button[type="submit"], button:has-text("Sign in"), button:has-text("Login")'
+      'button[type="submit"], button:has-text("Sign in"), button:has-text("Sign In")'
     ).first();
 
     await expect(emailInput).toBeVisible({ timeout: 5000 });
@@ -105,11 +112,10 @@ test.describe("Dashboard (Authenticated)", () => {
 test.describe("Sidebar Navigation", () => {
   test("Navigation links render after authentication", async ({ page }) => {
     await page.goto("/dashboard");
+    await page.waitForTimeout(1000);
 
-    const isUnauthenticated = page.url().includes("login");
-    if (isUnauthenticated) {
-      test.skip();
-    }
+    const path = new URL(page.url()).pathname;
+    test.skip(!path.startsWith("/dashboard"), "Requires an authenticated session");
 
     const navLinks = [
       { name: "Dashboard", href: "/dashboard" },
@@ -129,11 +135,10 @@ test.describe("Sidebar Navigation", () => {
 
   test("Each nav link navigates to correct page", async ({ page }) => {
     await page.goto("/dashboard");
+    await page.waitForTimeout(1000);
 
-    const isUnauthenticated = page.url().includes("login");
-    if (isUnauthenticated) {
-      test.skip();
-    }
+    const path = new URL(page.url()).pathname;
+    test.skip(!path.startsWith("/dashboard"), "Requires an authenticated session");
 
     const pages = ["/projects", "/reports", "/compliance", "/settings"];
     for (const path of pages) {

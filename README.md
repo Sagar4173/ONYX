@@ -2,153 +2,239 @@
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.139-green.svg)](https://fastapi.tiangolo.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.0+-green.svg)](https://www.mongodb.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-The Open Source Alternative to GitHub Advanced Security & Snyk.  
-AI-Powered Security Scanning Free & Self-Hosted Enterprise-Ready.
+Open-source, self-hosted security scanning and intelligence. ONYX combines
+multi-tool scanning, AI-assisted triage and remediation, compliance reporting,
+and enterprise controls in one platform.
 
 ---
 
-## Why ONYX Over GHAS & Snyk
+## What ONYX Provides
 
-| Feature | ONYX | GHAS | Snyk |
-|---|---|---|---|
-| AI Analysis | Ollama (local) + GPT-4 + Gemini | None | Basic |
-| Cost | Free & Open Source | $49/user/mo | $52/user/mo |
-| Self-Hosted | Full control | SaaS only | Enterprise only |
-| Multi-SCM | GitHub, GitLab, Bitbucket | GitHub only | Yes |
-| Real-time Updates | WebSocket | Polling | Polling |
-| Custom Rules | Full engine | Limited | Limited |
-| Compliance Frameworks | 10 | 3-4 | 5-6 |
+### Security scanning
 
----
+ONYX orchestrates 13 scanner integrations:
 
-## Key Features
+- **Core:** Semgrep, Bandit, Safety, GitLeaks, Detect-Secrets, SOPS, Dependency
+  Governance
+- **Optional:** Trivy, OWASP ZAP, Nuclei, CodeQL, Checkov, Lynis
 
-### Security Scanning
+Bandit, Safety, and Detect-Secrets ship with the backend requirements.
+Semgrep is installed on demand. External binaries such as GitLeaks, SOPS, Trivy,
+ZAP, Nuclei, CodeQL, Checkov, and Lynis must be installed separately and be on
+`PATH`. `GET /api/scanners/health` reports the availability of Semgrep, Trivy,
+GitLeaks, Bandit, and Safety.
 
-**Core Scanners (Built-in):**
-- Semgrep, Bandit, Safety, GitLeaks, Detect-Secrets, SOPS, Dependency Governance
+### AI analysis
 
-**Optional Scanners (require external tooling):**
-- Trivy (container), ZAP (DAST), Nuclei, CodeQL, Checkov (IaC), Lynis (infrastructure)
+- Vulnerability explanations, severity/risk assessment, and remediation guidance
+- Retrieval-augmented chat with citations from the local knowledge corpus
+- Prompt-injection screening before AI analysis
+- Investigation and triage workflows
+- Approval-gated auto-fix generation and pull/merge request creation
+- Optional IsolationForest anomaly detection for unusual scan results
 
-### AI-Powered
-- Vulnerability explanation & risk assessment
-- Automated remediation & code fix generation
-- False positive detection
-- AI Chat Assistant for natural-language vulnerability questions
-- Intelligent Triage with business-context prioritization
+`AI_PROVIDER=auto` follows `AI_PROVIDER_CHAIN` from left to right. The default
+chain is **Gemini → Groq → OpenRouter → Ollama**, with OpenAI available as a
+legacy provider. Ollama is the final fallback and is used when it is reachable;
+it is not required in production.
 
-### Automation
-- Auto-Fix PRs (AI generates and submits fix PRs via GitHub/GitLab REST APIs)
-- Scheduled Scans (cron-based automatic scanning)
-- Real-time WebSocket notifications (Slack, Teams, Email)
+### Automation and reporting
 
-### Reporting & Compliance
-- Unified scan reports with 6 tabs
-- PDF export with executive summary
-- 10 compliance frameworks: OWASP, NIST, ISO 27001, PCI-DSS, HIPAA, SOC2, GDPR, CIS, SOX, MITRE ATT&CK
-- SBOM generation (SPDX, CycloneDX)
-- Secret history tracking across scans
+- Scheduled scans with run history
+- GitHub, GitLab, and Bitbucket push/merge-request webhooks
+- Real-time WebSocket notifications plus Slack, Teams, and email integrations
+- SBOM generation in SPDX and CycloneDX formats
+- PDF reports, scan trends, branch comparisons, and remediation tracking
+- Compliance mappings, control status, risk summaries, and trends across major
+  frameworks plus custom identifiers
+- Secret-history tracking across scans
 
-### Enterprise
-- Role-based access control (Admin, Security Manager, Developer, Viewer)
-- Google Single Sign-On (OAuth 2.0 ID tokens) with optional domain allowlist
-- Admin dashboard with system-wide monitoring
+### Enterprise controls
+
+- Role-based access control: Admin, Security Manager, Developer, Viewer
+- JWT access/refresh tokens, session management, API tokens, and TOTP 2FA
+- Google SSO with an optional email-domain allowlist
 - Audit logging with integrity verification
-- Data retention policies
-- Webhook integrations
-- Sentry error tracking + Prometheus metrics
+- Retention policies and configurable data cleanup
+- Sentry error tracking and Prometheus metrics
+- Admin dashboard and user/project administration
 
 ---
 
-## Tech Stack
+## Technology
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, Vite 5, Tailwind CSS |
-| Backend | FastAPI, Python 3.13 |
-| Database | MongoDB 7+ (via Beanie ODM) |
-| AI | Ollama (local), OpenAI GPT-4, Google Gemini |
+| Frontend | React 18, Vite 5, Tailwind CSS, TanStack Query |
+| Backend | FastAPI, Python 3.13, Pydantic |
+| Database | MongoDB 7+ with Beanie |
+| AI | Google Gemini, Groq, OpenRouter, OpenAI, Ollama |
 | Monitoring | Sentry, Prometheus |
-| Infra | Docker, GitHub Actions CI |
+| Deployment | Jenkins on EC2 with nginx; Docker Compose alternative |
+
+MongoDB is required. Redis is present in configuration but is not required for
+current functionality. Optional ML state is stored on local disk and is not
+persisted by the default Compose volumes.
 
 ---
 
 ## Quick Start
 
-```bash
+### Prerequisites
+
+- Python 3.13+
+- Node.js 22+
+- MongoDB 7+ (local, Atlas, or Docker)
+- Git
+
+### Backend
+
+```powershell
 git clone https://github.com/Sagar4173/ONYX.git
-cd ONYX
-
-# Backend
-cd backend
-cp .env.example .env
+cd ONYX\backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python main.py
+Copy-Item .env.example .env
+```
 
-# Frontend
-cd frontend
+Set at least `SECRET_KEY` and `MONGODB_URI` in `backend/.env`. Generate a key
+with:
+
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Start the API:
+
+```powershell
+python main.py
+```
+
+### Frontend
+
+```powershell
+cd ..\frontend
 npm install
 npm run dev
 ```
 
-**Frontend:** http://localhost:5173  
-**API Docs:** http://localhost:8000/docs
+In development, the frontend connects directly to
+`http://127.0.0.1:8000/api`; `VITE_API_URL` is used by production builds. Create
+`frontend/.env` from `.env.example` only when a production build needs a
+non-default API or WebSocket URL.
 
-For detailed setup, see [Installation Guide](docs/INSTALLATION.md).  
-For Docker deployment, see [Deployment Guide](docs/DEPLOYMENT.md).  
+- Frontend: http://localhost:5173
+- API: http://localhost:8000
+- OpenAPI UI: http://localhost:8000/docs
 
-> **Zero-cost AI**: Set `AI_PROVIDER=auto` and run Ollama alongside ONYX. All AI features run locally with no API fees.
+Detailed setup: [Installation Guide](docs/INSTALLATION.md).
 
-### Google SSO (optional)
+---
 
-Create an OAuth 2.0 **Web application** client ID in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (authorized JS origin: your ONYX domain), then configure the backend:
+## Docker Compose
 
-```bash
-GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
-GOOGLE_ALLOWED_DOMAINS=yourcompany.com          # optional comma-separated allowlist
+```powershell
+Copy-Item backend\.env.example backend\.env
+# Edit backend/.env: SECRET_KEY, FRONTEND_URL, and optional AI keys
+docker compose up -d
+docker compose exec ollama ollama pull qwen2.5-coder:7b
 ```
 
-Setting `GOOGLE_CLIENT_ID` enables SSO; a **Sign in with Google** button then appears on the login page. SSO users are auto-provisioned as Viewers (when registration is enabled) and still pass through the 2FA, suspension, and email-verification gates.
+The frontend is published on port 80. The backend, MongoDB, and Ollama are only
+reachable on the Compose network; nginx proxies same-origin `/api`, `/ws`,
+`/health`, `/docs`, and `/openapi.json` requests. If `AI_PROVIDER=auto` and no
+cloud AI key is configured, pull the Ollama model before relying on local AI.
+
+For HTTPS and production settings, see [Deployment](docs/DEPLOYMENT.md).
+
+---
+
+## Google SSO
+
+Create an OAuth 2.0 **Web application** client ID in the
+[Google Cloud Console](https://console.cloud.google.com/apis/credentials), then
+configure the backend:
+
+```env
+GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+GOOGLE_ALLOWED_DOMAINS=yourcompany.com
+```
+
+Setting `GOOGLE_CLIENT_ID` enables the **Sign in with Google** button. SSO users
+are auto-provisioned as Viewers when registration is enabled and still pass
+through 2FA, suspension, and email-verification checks.
+
+---
+
+## Testing
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest -q
+
+cd ..\frontend
+cmd /c "npm test -- --reporter=dot"
+cmd /c "npm run lint"
+cmd /c "npm run build"
+```
+
+Current verified counts: **938 backend tests** and **413 frontend tests**.
 
 ---
 
 ## Project Structure
 
-```
+```text
 ONYX/
 ├── backend/
-│   ├── app.py               # FastAPI entry point
-│   ├── config.py             # Settings via pydantic-settings
-│   ├── database.py           # MongoDB + Beanie init
-│   ├── models/               # Beanie documents + Pydantic schemas
-│   ├── routes/               # API endpoints (auth, reports, scanning, admin, ...)
-│   ├── services/             # Business logic
-│   │   ├── ai/               # AI processors (Ollama + OpenAI + Gemini)
-│   │   ├── scanning/         # Scanner orchestrator + all scanners
-│   │   ├── compliance/       # Compliance engine
-│   │   ├── notifications/    # Slack, Teams, Email, WebSocket
-│   │   ├── auth/             # JWT authentication
-│   │   ├── scheduling/       # Cron-based scan scheduler
-│   │   ├── scm/              # Git operations + auto-fix PRs
-│   │   └── infrastructure/   # Encryption, Monitoring
+│   ├── app.py                 # FastAPI entry point and router composition
+│   ├── config.py              # Pydantic settings
+│   ├── database.py            # MongoDB and Beanie initialization
+│   ├── models/                # Documents and request/response schemas
+│   ├── routes/                # API route packages
+│   ├── services/
+│   │   ├── ai/                # Providers, RAG, agents, ML, enrichment
+│   │   ├── scanning/          # Scanner orchestration and implementations
+│   │   ├── compliance/        # Compliance mappings and reporting
+│   │   ├── notifications/     # WebSocket, Slack, Teams, email
+│   │   ├── auth/              # JWT, sessions, 2FA
+│   │   ├── scheduling/        # Scheduled scans
+│   │   ├── scm/               # Git operations and auto-fix PRs
+│   │   └── infrastructure/    # Encryption and monitoring
+│   ├── knowledge/             # RAG corpus sources and ingestion notes
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── components/       # React components
-│   │   ├── layouts/          # MainLayout, Sidebar, Header
-│   │   ├── services/         # API client (axios)
-│   │   └── styles/           # Tailwind theme
+│   ├── e2e/
 │   ├── Dockerfile
 │   └── nginx.conf
-├── docker-compose.yml
+├── Jenkinsfile                # Current EC2 deployment pipeline
+├── docker-compose.yml         # Self-hosted alternative
 ├── .github/workflows/ci.yml
 └── docs/
 ```
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [Installation](docs/INSTALLATION.md) | Local development and Docker setup |
+| [API Reference](docs/API.md) | Authentication, conventions, and route inventory |
+| [Architecture](docs/ARCHITECTURE.md) | Components, data flow, and design |
+| [Deployment](docs/DEPLOYMENT.md) | Jenkins/EC2 and Docker production paths |
+| [User Guide](docs/USER_GUIDE.md) | End-user workflows and features |
+| [Security](SECURITY.md) | Security model and deployment checklist |
+| [Contributing](docs/CONTRIBUTING.md) | Development workflow and verification |
+| [Team Guide](docs/TEAM_GUIDE.md) | Ownership, runtime context, and operations |
+| [Roadmap](docs/ROADMAP.md) | Current priorities and known issues |
+| [Project Status](docs/PROJECT_STATUS.md) | Implemented capabilities and known gaps |
 
 ---
 
@@ -162,16 +248,11 @@ ONYX/
 
 ---
 
-## Documentation
+## Security
 
-| Document | Description |
-|---|---|
-| [Installation](docs/INSTALLATION.md) | Local & Docker setup |
-| [API Reference](docs/API.md) | Full API documentation |
-| [Architecture](docs/ARCHITECTURE.md) | System design |
-| [Deployment](docs/DEPLOYMENT.md) | Production deployment |
-| [Contributing](docs/CONTRIBUTING.md) | Contribution guide |
-| [Project Status](docs/PROJECT_STATUS.md) | Feature completeness |
+Report vulnerabilities privately through
+[GitHub Security Advisories](https://github.com/Sagar4173/ONYX/security/advisories/new).
+Do not open a public issue for an undisclosed vulnerability.
 
 ---
 

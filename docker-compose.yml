@@ -3,8 +3,6 @@ services:
     image: mongo:7
     container_name: onyx-mongodb
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
@@ -34,7 +32,7 @@ services:
       - HOST=0.0.0.0
       - PORT=8000
       - BACKEND_URL=http://localhost:8000
-      - FRONTEND_URL=http://localhost:80
+      - AI_LOCAL_BASE_URL=http://ollama:11434/v1
     depends_on:
       mongodb:
         condition: service_healthy
@@ -42,13 +40,17 @@ services:
       - backend_data:/app/data
     networks:
       - onyx-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   ollama:
     image: ollama/ollama:latest
     container_name: onyx-ollama
     restart: unless-stopped
-    ports:
-      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     networks:
@@ -73,7 +75,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - onyx-network
 

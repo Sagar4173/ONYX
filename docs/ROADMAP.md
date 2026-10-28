@@ -1,98 +1,87 @@
 # ONYX Development Roadmap
 
-**Last Updated**: July 2026  
-**Mission**: #1 alternative to GHAS & Snyk
+- **Updated:** 2026-10-28
+- **Baseline:** `master` with 938 backend and 413 frontend tests passing
+
+This roadmap describes work that is not yet complete. Implemented capabilities
+are recorded in [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ---
 
-## Competitive Position
+## Guiding Priorities
 
-| Our Advantage | Impact | Status |
-|---|---|---|
-| AI-Powered Analysis | GPT-4 + Gemini (competitors have none) | Live |
-| Zero Cost | Open source vs $49-52/user/month | Live |
-| Multi-SCM | GitHub + GitLab + Bitbucket | Live |
-| Real-time WebSocket | Live scan progress (competitors poll) | Live |
-| Custom Rule Engine | Full customization (competitors limited) | Live |
-| Self-Hosted | Full data control | Live |
+1. Correctness and security before new surface area.
+2. Verified deployments before additional enterprise features.
+3. Measured AI behavior before expanding autonomous actions.
+4. Operational simplicity before horizontal-scale architecture.
 
 ---
 
 ## Completed
 
-### Phase 1: AI Advantages (Q1-Q2 2026)
-
-- Ollama local LLM integration — zero-cost self-hosted AI (Qwen2.5-Coder:7B)
-- Automatic provider fallback: Ollama → Gemini → OpenAI
-- All AI features run fully offline when Ollama is available
-
-- AI Chat Assistant - Natural-language vulnerability Q&A
-- Auto-Fix PRs - AI generates and submits fix PRs
-- Intelligent Triage - AI prioritizes by business impact
-- Dual AI provider (OpenAI + Gemini) with fallback
-
-### Phase 1: Scanning
-
-- Parallel scanner execution
-- 11 scanners integrated (7 core + 6 optional)
-- Scheduled scans (cron-based)
-- SOPS encryption auditing scanner
-- Dependency governance scanner (malicious package blocklist)
-- Secret history tracking across scans
-- ZAP DAST real integration
-- Lynis infrastructure scanner
-- Detect-Secrets scanner
-
-### Phase 1: Enterprise
-
-- Admin dashboard with system monitoring
-- Audit logging with integrity verification
-- Data retention policies
-- Webhook integrations (GitHub, GitLab)
-- Slack + Teams notifications
-- Email notifications
-- 10 compliance frameworks (incl. MITRE ATT&CK)
-
-### Phase 1: Infrastructure
-
-- Docker Compose deployment
-- GitHub Actions CI (3 jobs + E2E)
-- Sentry error tracking
-- Prometheus metrics
-- Encryption service
+- Multi-scanner orchestration with 13 integrations
+- Manual, scheduled, and webhook-triggered scans
+- JWT, refresh sessions, API tokens, TOTP 2FA, Google SSO, RBAC
+- AI provider failover, RAG chat, triage, investigation, and approval-gated fix
+- Reports, PDF, SBOM, secret history, analytics, and compliance mappings
+- Audit logging, retention, admin tooling, notifications, and monitoring
+- Docker images and Compose deployment
+- Compose hardening: private MongoDB/Ollama, same-origin nginx proxy, healthcheck
+- GitHub Actions CI and the current Jenkins/EC2 deployment pipeline
+- Jenkins backend/frontend test stages and fail-closed health checks
+- E2E smoke tests aligned with current public routes and API endpoints
+- Security regression fixes for credential-bearing repository URLs
 
 ---
 
-## In Progress
+## Now
 
-| Task | Priority |
-|---|---|
-| Playwright E2E smoke tests | High |
-| Secret scanning enhancements | Medium |
+| Work | Priority | Why |
+|---|---|---|
+| Verify hosted deployment and DNS | Critical | The documented hostname did not resolve during the audit |
+| Jenkins rollback strategy | Critical | Test gates are present, but the pipeline has no automatic rollback |
+| Live MongoDB and SCM integration tests | High | Unit tests do not prove persistence or provider behavior |
+| Authenticated E2E flows | High | Current coverage is smoke-level and skips protected pages |
+| Verify Compose hardening on a Docker host | High | Static validation cannot prove runtime networking |
+| Rotate legacy SCM credentials | High | Older records may contain credentials even though new URLs reject them |
 
 ---
 
-## Planned
+## Next
 
-### Q3-Q4 2026
-
-| Feature | Notes |
+| Work | Notes |
 |---|---|
-| Multi-tenant organizations | User isolation per org |
-| SSO/SAML | Enterprise auth |
-| VS Code extension | IDE security |
-| Redis caching | Performance |
-| Custom dashboards | User-configurable widgets |
-| Jira integration | Auto-create tickets |
-| Vulnerability prediction | ML-based forecasting |
-| Mobile app | iOS/Android |
+| Shared scheduler/rate-limit state | Required before multiple backend workers |
+| Durable ML storage | Add a dedicated volume and retention policy |
+| Backups and restore drills | MongoDB, knowledge DB, ML state, environment |
+| Dependency update policy | Automate audit review and pinned upgrades |
+| Optional scanner installation | Document host packages or build scanner images |
+| Better E2E test isolation | Dedicated test database and seeded accounts |
 
-### Future
+---
 
-- Plugin architecture for third-party scanners
-- GraphQL API
-- Real-time collaboration
-- CI/CD plugin for Jenkins, Azure DevOps, CircleCI
+## Later
+
+| Work | Notes |
+|---|---|
+| SAML/OIDC beyond Google | Enterprise identity-provider support |
+| Organization/multi-tenant isolation | Requires data-model and authorization work |
+| Jira and issue-tracker integrations | Approval and credential model required |
+| Plugin API for scanners | Stable extension contract and sandboxing |
+| Horizontal WebSocket/scan workers | Queue, shared state, sticky sessions |
+| Custom dashboards | User-configurable reporting widgets |
+| IDE extension | Reuse API and auth model |
+| Vulnerability forecasting | Only with a measurable evaluation plan |
+
+---
+
+## Non-Goals for Now
+
+- Claiming compliance certification from mapping features
+- Running autonomous code changes without human approval
+- Supporting multiple backend workers with the current scheduler
+- Marketing comparisons based on competitor pricing that changes frequently
+- Adding Redis, S3, or a queue without a concrete requirement and tests
 
 ---
 
@@ -100,6 +89,9 @@
 
 | Issue | Priority | Notes |
 |---|---|---|
-| Large repo timeout (>100MB) | Medium | Needs streaming scan |
-| PDF generation slow for large reports | Low | |
-| Duplicate findings across scanners | Low | Partially handled by dedup engine |
+| Large repository timeouts | Medium | Streaming scan and resource limits needed |
+| Slow PDF generation for large reports | Low | Profile before changing architecture |
+| Partial cross-scanner deduplication | Low | Improve normalization rules |
+| Container has no optional scanner binaries | Medium | Document or build a scanner-enabled image |
+| ML state not persisted by default Compose volume | Medium | Add explicit volume |
+| Hosted instance not independently verified | High | Verify DNS, TLS, services, and callbacks |

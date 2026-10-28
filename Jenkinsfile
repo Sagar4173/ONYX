@@ -4,9 +4,9 @@ pipeline {
     // =========================================================================
     // ONYX Security Intelligence Platform - CI/CD Pipeline
     // =========================================================================
-    // Jenkins + App on SAME EC2 server
-    // Repo: https://github.com/rushiphalke247/ONYX.git (public)
-    // Trigger: Push to 'master' branch → auto-deploy
+    // Jenkins + App on the same EC2 server.
+    // Repo: https://github.com/Sagar4173/ONYX.git (public)
+    // Trigger: Push to 'master' branch -> auto-deploy
     // =========================================================================
 
     environment {
@@ -149,7 +149,21 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 5: Install Scanners (idempotent - skips if already installed)
+        // Stage 5: Backend Tests (fail the deploy before touching services)
+        // =====================================================================
+        stage('Backend Tests') {
+            steps {
+                echo 'Running backend tests...'
+                sh '''
+                    cd /home/ec2-user/ONYX/backend
+                    source venv/bin/activate
+                    python -m pytest -q
+                '''
+            }
+        }
+
+        // =====================================================================
+        // Stage 6: Install Scanners (idempotent - skips if already installed)
         // =====================================================================
         stage('Install Scanners') {
             steps {
@@ -188,7 +202,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 6: Setup Ollama (local AI, zero-cost)
+        // Stage 7: Setup Ollama (local AI, zero-cost)
         // =====================================================================
         stage('Setup Ollama') {
             steps {
@@ -283,22 +297,23 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 6: Build Frontend
+        // Stage 8: Test and Build Frontend
         // =====================================================================
         stage('Build Frontend') {
             steps {
-                echo '🎨 Building frontend...'
+                echo '🎨 Testing and building frontend...'
                 sh '''
                     cd /home/ec2-user/ONYX/frontend
                     npm install --legacy-peer-deps
+                    npm test -- --reporter=dot
                     npm run build
-                    echo "✅ Frontend built successfully"
+                    echo "✅ Frontend tests and build passed"
                 '''
             }
         }
 
         // =====================================================================
-        // Stage 7: Restart Services
+        // Stage 9: Restart Services
         // =====================================================================
         stage('Restart Services') {
             steps {
@@ -332,7 +347,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 8: Health Check
+        // Stage 10: Health Check
         // =====================================================================
         stage('Health Check') {
             steps {
@@ -341,25 +356,39 @@ pipeline {
                     sleep 8
 
                     echo "--- Backend Health ---"
-                    curl -sf http://localhost:8000/health && echo "" || echo "❌ Backend not responding"
-
-                    echo "--- Nginx ---"
-                    curl -sf -o /dev/null -w "HTTP %{http_code}" http://localhost/ && echo "" || echo "❌ Nginx not responding"
-
-                    echo "--- Ollama ---"
-                    curl -sf http://localhost:11434/api/tags > /dev/null && echo "✅ Ollama responding" || echo "❌ Ollama not responding"
-
-                    echo "--- Service Status ---"
-                    systemctl is-active onyx-backend || echo "(non-zero exit: service may still be starting)"
-                    systemctl is-active nginx || echo "(non-zero exit)"
-                    OLLAMA_PID_FILE="/tmp/ollama.pid"
-                    if [ -f "$OLLAMA_PID_FILE" ] && kill -0 "$(cat "$OLLAMA_PID_FILE")" 2>/dev/null; then
-                        echo "ollama (PID: $(cat $OLLAMA_PID_FILE)) running"
+                    if curl -sf http://localhost:8000/health; then
+                        echo ""
                     else
-                        echo "⚠️ ollama not running"
+                        echo "❌ Backend not responding"
+                        exit 1
                     fi
 
-                    echo "✅ All health checks passed"
+                    echo "--- Nginx ---"
+                    if curl -sf -o /dev/null http://localhost/; then
+                        echo "✅ Nginx responding"
+                    else
+                        echo "❌ Nginx not responding"
+                        exit 1
+                    fi
+
+                    echo "--- Service Status ---"
+                    systemctl is-active --quiet onyx-backend || {
+                        echo "❌ onyx-backend is not active"
+                        exit 1
+                    }
+                    systemctl is-active --quiet nginx || {
+                        echo "❌ nginx is not active"
+                        exit 1
+                    }
+
+                    echo "--- Ollama (optional) ---"
+                    if curl -sf http://localhost:11434/api/tags > /dev/null; then
+                        echo "✅ Ollama responding"
+                    else
+                        echo "⚠️ Ollama not responding; cloud AI fallback is required"
+                    fi
+
+                    echo "✅ Required health checks passed"
                 '''
             }
         }

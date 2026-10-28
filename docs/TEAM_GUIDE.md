@@ -1,214 +1,261 @@
 # ONYX Team Guide
 
-**Last Updated**: July 2026  
-**Mission**: Build a better platform than GitHub Advanced Security (GHAS) & Snyk
+- **Updated:** 2026-10-28
+- **Purpose:** Shared operating context for developers, security engineers, and
+  deployment owners.
 
 ---
 
-## Why We're Building This
-
-| Issue | GHAS | Snyk | ONYX |
-|---|---|---|---|
-| Cost | $49/user/month | $52/user/month | Free |
-| AI Analysis | None | Basic | GPT-4 + Gemini |
-| Platform Lock-in | GitHub only | Fragmented | Any SCM |
-| Custom Rules | Limited | Limited | Full rule engine |
-| Self-Hosting | Impossible | Enterprise $$$ | Free |
-| Real-time Updates | Polling | Polling | WebSocket |
-
----
-
-## Team Members
+## Team Ownership
 
 ### Sagar Wavhal - Lead Developer
-**GitHub**: [@Sagar4173](https://github.com/Sagar4173)
 
-**Responsibilities:**
-- Platform architecture
-- Backend API (FastAPI)
-- Frontend (React)
-- AI integration (OpenAI/Gemini)
-- Database design (MongoDB)
+GitHub: [@Sagar4173](https://github.com/Sagar4173)
 
-**Key features delivered:**
-- AI Chat Assistant
-- Auto-Fix PRs
-- Intelligent Triage
-- Secret History
-- Sentry + Prometheus monitoring
-- Docker + CI infrastructure
-- Route standardization & codebase cleanup
+Primary ownership:
 
-**Key files:**
-```
-backend/app.py, config.py
-backend/services/ai/
-backend/routes/
-frontend/src/App.jsx
-frontend/src/services/api.js
-```
+- backend architecture and API composition
+- frontend application and integration
+- AI providers, retrieval, agents, and triage
+- MongoDB models and service boundaries
+- security-sensitive application changes
+
+Key files: `backend/app.py`, `backend/config.py`, `backend/routes/`,
+`backend/services/ai/`, `frontend/src/App.jsx`, `frontend/src/services/api.js`.
 
 ### Piyush More - Security Expert
-**GitHub**: [@MorePiyush55](https://github.com/MorePiyush55)
 
-**Responsibilities:**
-- Security scanner integration
-- Vulnerability assessment rules
-- Compliance framework mapping
-- Security testing
-- Threat analysis
+GitHub: [@MorePiyush55](https://github.com/MorePiyush55)
 
-**Key features delivered:**
-- 10 compliance frameworks (OWASP, NIST, ISO 27001, PCI-DSS, HIPAA, SOC2, GDPR, CIS, SOX, MITRE)
-- ZAP DAST scanner integration
-- Lynis infrastructure scanner
-- Detect-Secrets scanner
-- MITRE ATT&CK compliance
-- Threat intelligence engine (NVD, OSV, GitHub Advisory)
+Primary ownership:
 
-**Key files:**
-```
-backend/services/scanning/
-backend/services/compliance/
-backend/services/security/
-backend/services/rules/
-```
+- scanner integrations and finding normalization
+- compliance mappings and reporting
+- security rules, baselines, and drift analysis
+- threat intelligence and vulnerability assessment
+- security review of scanner and AI workflows
+
+Key files: `backend/services/scanning/`, `backend/services/compliance/`,
+`backend/services/security/`, `backend/services/rules/`.
 
 ### Rushikesh Phalke - DevOps Engineer
-**GitHub**: [@rushiphalke247](https://github.com/rushiphalke247)
 
-**Responsibilities:**
-- Deployment automation
-- Infrastructure management
-- CI/CD pipelines
-- Performance monitoring
-- Server administration
+GitHub: [@rushiphalke247](https://github.com/rushiphalke247)
 
-**Key features delivered:**
-- Docker Compose (MongoDB + Backend + Frontend)
-- Multi-stage Dockerfiles
-- GitHub Actions CI (3 jobs)
-- nginx reverse proxy config
-- AWS deployment
-- .env.example documentation
+Primary ownership:
 
-**Key files:**
-```
-backend/Dockerfile
-frontend/Dockerfile, nginx.conf
-docker-compose.yml
-.github/workflows/ci.yml
-.env.example
-```
+- Jenkins/EC2 deployment and rollback procedures
+- Docker images, Compose, and nginx
+- GitHub Actions CI
+- host capacity, logs, backups, and monitoring
+- environment configuration and secret handling
+
+Key files: `Jenkinsfile`, `docker-compose.yml`, `backend/Dockerfile`,
+`frontend/Dockerfile`, `frontend/nginx.conf`, `.github/workflows/ci.yml`.
 
 ---
 
-## Development Setup
+## Current Runtime Shape
 
-```bash
-# Prerequisites: Python 3.13+, Node.js 22+, MongoDB 7+
+- Frontend: React 18 SPA built with Vite, served by nginx.
+- Backend: FastAPI on Python 3.13, run by systemd on EC2 or by Uvicorn in
+  Compose.
+- Database: MongoDB 7+; required.
+- AI: Gemini → Groq → OpenRouter → Ollama by default when `AI_PROVIDER=auto`.
+  OpenAI is legacy/explicit.
+- Scanning: 13 integrations; external binaries are optional and degrade
+  gracefully when absent.
+- Current deployment: Jenkins + EC2 + systemd + nginx, optionally Ollama.
+- Alternative deployment: Docker Compose with internal backend/MongoDB and
+  frontend nginx.
 
+---
+
+## Local Setup
+
+```powershell
 git clone https://github.com/Sagar4173/ONYX.git
-cd ONYX
-
-# Backend
-cd backend
-cp .env.example .env
+cd ONYX\backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+Copy-Item .env.example .env
 python main.py
+```
 
-# Frontend
-cd frontend
+In another terminal:
+
+```powershell
+cd ONYX\frontend
 npm install
 npm run dev
 ```
 
+URLs: frontend `http://localhost:5173`, API `http://localhost:8000`, OpenAPI
+`http://localhost:8000/docs`.
+
+Set `SECRET_KEY` and `MONGODB_URI` before starting. Do not use the example
+secret outside local development.
+
 ---
 
-## Codebase Structure
+## Repository Map
 
-### Backend
-```
+```text
 backend/
-├── app.py                 # FastAPI entry, lifespan, router includes
-├── config.py              # pydantic-settings (all env vars)
-├── database.py            # MongoDB + Beanie init
-├── main.py                # Uvicorn runner
-├── models/                # Beanie documents + Pydantic schemas
-├── routes/                # 30+ route modules (auth, reports, scanning, triage, ...)
-├── services/              # 15+ service modules
-│   ├── ai/                # AI processors
-│   ├── scanning/          # Orchestrator, 11 scanners
-│   ├── compliance/        # Compliance analyzer
-│   ├── notifications/     # Slack, Teams, Email, WebSocket
-│   ├── infrastructure/    # Encryption, Monitoring
-│   ├── scheduling/        # Cron scheduler
-│   └── scm/               # Git + auto-fix
-├── tests/                 # 347 tests
+├── app.py                 # middleware, router composition, WebSocket
+├── config.py              # settings and AI provider chain
+├── database.py            # Beanie initialization
+├── models/                # documents and schemas
+├── routes/                # domain route packages
+├── services/              # business logic
+│   ├── ai/                # providers, RAG, agents, ML, enrichment
+│   ├── scanning/          # orchestrator and scanner implementations
+│   ├── compliance/
+│   ├── notifications/
+│   ├── infrastructure/    # encryption and monitoring
+│   ├── scheduling/
+│   ├── scm/
+│   ├── auth/
+│   ├── analytics/
+│   ├── rules/
+│   ├── security/
+│   └── triage/
+├── knowledge/             # RAG corpus sources
+├── data/                  # runtime SQLite and generated artifacts
+└── tests/                 # pytest suite
+
+frontend/
+├── src/components/
+├── src/layouts/
+├── src/pages/
+├── src/services/api.js
+├── src/styles/
+├── e2e/                   # Playwright smoke tests
+├── nginx.conf
 └── Dockerfile
 ```
 
-### Frontend
+---
+
+## Verification Commands
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m pytest -q
+
+cd ..\frontend
+cmd /c "npm test -- --reporter=dot"
+cmd /c "npm run lint"
+cmd /c "npm run build"
+
+cd ..
+git diff --check
 ```
-frontend/src/
-├── components/            # auth, compliance, reports, security, schedules, triage, ...
-├── layouts/               # MainLayout, Sidebar, Header
-├── services/              # api.js (all API modules)
-├── styles/                # Tailwind theme
-├── App.jsx                # Routes + providers
-└── main.jsx               # Entry point
-```
+
+Current verified counts: 938 backend tests, 413 frontend tests.
+
+Before declaring a change complete:
+
+1. Run targeted tests for the changed area.
+2. Run the broader suite when the change crosses modules.
+3. Check authentication/authorization on new routes.
+4. Check external input, secrets, URLs, and error messages.
+5. Update living docs and route inventories.
+6. Record anything not verified.
 
 ---
 
-## Testing
+## Git and Review Rules
+
+- Default branch: `master`.
+- Use focused branches: `feature/*`, `fix/*`, `docs/*`, `refactor/*`.
+- Commit format: `type(scope): description`.
+- Stage explicit paths; never stage `.env`, credentials, generated artifacts, or
+  `.superpowers/` ledgers.
+- Do not force-push shared branches.
+- Do not merge with unresolved critical correctness or security findings.
+- Deployment changes need rollback and verification steps.
+
+---
+
+## Operational Checks
+
+### Health
 
 ```bash
-# Backend
-cd backend
-pytest tests/ -q    # 347 tests
-
-# Frontend
-cd frontend
-npm test             # 172 tests
-npm run build        # Production build
+curl -fsS http://localhost:8000/health
+curl -fsS http://localhost/health
+curl -fsS http://localhost:11434/api/tags   # only for local Ollama
 ```
 
+### Scanner availability
+
+```bash
+curl -fsS http://localhost:8000/api/scanners/health
+```
+
+This checks Semgrep, Trivy, GitLeaks, Bandit, and Safety. Other scanner
+integrations may still be available.
+
+### AI configuration
+
+The backend logs the configured provider chain at startup. Confirm which
+providers have usable keys and whether Ollama is reachable at
+`AI_LOCAL_BASE_URL`.
+
+### Logs
+
+- systemd: `journalctl -u onyx-backend`
+- Compose: `docker compose logs -f backend`
+- nginx: `/var/log/nginx/error.log`
+- Ollama: `$HOME/ollama/ollama.log` in the current Jenkins setup
+
 ---
 
-## Git Workflow
+## Deployment Ownership
 
-| Branch | Purpose |
-|---|---|
-| `main` | Production |
-| `feature/*` | New features |
-| `fix/*` | Bug fixes |
+Before deploying:
 
-Commit convention: `type(scope): description`
+- confirm database backup
+- confirm `SECRET_KEY`, `MONGODB_URI`, `FRONTEND_URL`, `CORS_ORIGINS`, and
+  `WEBHOOK_SECRET` are set
+- confirm frontend production URL is not `127.0.0.1`
+- confirm optional scanner binaries and AI model availability
+- run tests locally or in CI
+
+After deploying:
+
+- verify `/health` through nginx
+- verify login and one authenticated page
+- verify a manual scan and webhook event in a non-production project
+- verify WebSocket updates
+- check backend and nginx logs
+- record the deployed commit
+
+There is no automatic rollback. Keep the previous commit and a database backup
+before changing production.
 
 ---
 
-## Competitive Position
+## Secrets and Data
 
-### Features GHAS Doesn't Have
-- AI Analysis (GPT-4/Gemini)
-- Multi-SCM support
-- Custom rule engine
-- Real-time WebSocket
-- Self-hosted
-- Free & open source
+- Never place secrets in code, docs, logs, or issue reports.
+- Use least-privilege SCM tokens.
+- Rotate `AUTO_FIX_TOKEN` after exposure or team changes.
+- Rotate `WEBHOOK_SECRET` through the admin endpoint, restart the backend, then
+  update the SCM webhook.
+- Avoid changing `SECRET_KEY` without a migration plan: it signs JWTs and
+  derives the field-encryption key.
+- Treat AI output and fetched repository content as untrusted input.
 
-### Features Snyk Doesn't Have
-- GPT-4 + Gemini AI
-- Unified dashboard
-- Free self-hosting
-- WebSocket real-time
-- Full custom rules
+---
 
-### What We've Built That Competitors Don't Have
-- AI Chat Assistant
-- Auto-Fix PRs
-- Intelligent Triage by business impact
-- Secret history tracking
-- SOPS encryption auditing
-- Dependency governance blocklist
+## Documentation Responsibilities
+
+- API routes: update `docs/API.md`.
+- Feature status: update `docs/PROJECT_STATUS.md`.
+- Deployment behavior: update `docs/DEPLOYMENT.md` and `SECURITY.md`.
+- Architecture: update `docs/ARCHITECTURE.md` when data flow or components change.
+- Dated plans under `docs/superpowers/` are historical records. Do not rewrite
+  them; add a new dated note when superseded.

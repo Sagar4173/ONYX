@@ -1,260 +1,171 @@
 # ONYX Project Status
 
-**Last Updated**: July 2026  
-**Version**: 1.0.0  
-**Status**: Production Ready
+- **Last verified:** 2026-10-28
+- **Branch:** `master`
+- **Status:** Active development; deployed environments exist but are not verified by
+  this document.
 
 ---
 
-## Completed Features
+## Verified Metrics
 
-### Authentication & Authorization
-- JWT-based authentication (access + refresh tokens)
-- User registration with email verification
-- Password reset via email
-- Role-based access control (Admin, Security Manager, Developer, Viewer)
-- Session management
-- Account lockout after failed attempts
+| Metric | Current value |
+|---|---|
+| Backend tests | 938 passing |
+| Frontend tests | 413 passing |
+| OpenAPI paths | 191 |
+| OpenAPI operations | 213 |
+| Scanner integrations | 13 |
+| Deployment pipeline | Jenkins on EC2; Docker Compose alternative |
 
-### User Management
-- User CRUD operations
-- Profile management with avatar upload
-- Role assignment
-- User status management (Active, Inactive, Suspended)
-- Audit logging for user actions
+Metrics describe the repository at the verified commit, not a promise about any
+externally hosted instance.
 
-### Project Management
-- Create/Edit/Delete projects
-- Git repository integration (GitHub, GitLab, Bitbucket)
-- Project categories and tags
-- Project-level scan configuration
-- Team collaboration (multi-user access)
+---
 
-### Security Scanning
+## Implemented
 
-**Core Scanners (Built-in):**
-- Semgrep - Static Application Security Testing (SAST)
-- Bandit - Python security analysis
-- Safety - Python dependency vulnerabilities
-- GitLeaks - Secret detection
-- Detect-Secrets - High-entropy secret detection
-- SOPS - SOPS encryption configuration auditing
-- Dependency Governance - Malicious/deprecated package blocklist
+### Identity and access
 
-**Optional Scanners (require external tooling):**
-- Trivy - Container & dependency scanning
-- ZAP - Dynamic Application Security Testing (OWASP ZAP)
-- Nuclei - Vulnerability scanning
-- CodeQL - Advanced SAST
-- Checkov - Infrastructure as Code scanning
-- Lynis - Infrastructure auditing
+- JWT access/refresh authentication and session revocation
+- Registration, email verification, password reset
+- bcrypt password hashing and failed-login lockout
+- TOTP 2FA setup, enable, disable, and status
+- Google SSO with optional domain allowlist
+- Role-based access: Admin, Security Manager, Developer, Viewer
+- Hashed API tokens with expiration; scopes/IP allowlists are stored but not yet
+  enforced at the route layer
 
-**Scanning Infrastructure:**
+### Projects and scanning
+
+- Project CRUD, templates, categories, team membership, and analytics
+- Manual scans, scheduled scans, and SCM-triggered scans
 - Parallel scanner execution with graceful degradation
-- Real-time scan progress via WebSocket
-- Scan history and comparison
-- Centralized Service Registry
-- Suppression engine (inline + file-based)
-- Deduplication across scanners
+- 13 integrations: Semgrep, Bandit, Safety, GitLeaks, Detect-Secrets, SOPS,
+  Dependency Governance, Trivy, ZAP, Nuclei, CodeQL, Checkov, Lynis
+- Deduplication, suppressions, scan history, and progress updates
+- GitHub, GitLab, and Bitbucket webhook payload handling
+- Repository URL credential rejection and redaction
 
-### AI-Powered Analysis
-- Ollama local LLM integration (primary, zero-cost, self-hosted with Qwen2.5-Coder:7B)
-- OpenAI GPT-4 integration (fallback)
-- Google Gemini integration (fallback)
-- Automatic provider fallback chain: Ollama → Gemini → OpenAI
-- Vulnerability explanation and risk assessment
-- Automated remediation suggestions
-- Code fix generation
-- False positive detection
-- AI Chat Assistant - natural-language vulnerability Q&A
-- Intelligent Triage - business-context priority scoring
+### AI and triage
 
-### AI Chat Assistant (USP)
-- Natural-language questions about vulnerabilities
-- Scan-aware context injection
-- Secure code examples inline
+- Provider failover: Gemini, Groq, OpenRouter, Ollama; OpenAI legacy support
+- Vulnerability explanation, risk assessment, and remediation guidance
+- RAG chat with citations over the local knowledge corpus
+- Prompt-injection screening
+- Investigation and triage workflows
+- Approval-gated auto-fix generation and PR/MR creation
+- Optional IsolationForest anomaly detection (disabled by default)
 
-### Auto-Fix PRs (USP)
-- AI generates fix patches
-- Clones repo, applies patch, commits, pushes branch
-- Creates Pull Request via GitHub/GitLab REST APIs
-- Configurable branch/PR title prefix
+### Reporting and compliance
 
-### Intelligent Triage (USP)
-- 6-factor weighted priority scoring (severity, exploitability, CVSS, business impact, trend, age)
-- AI-generated triage summaries
-- Interactive TriageDashboard with score breakdown bars
-- Business context editor per scan
+- Multi-section scan reports and PDF download
+- Severity, trend, branch comparison, and remediation analytics
+- SBOM generation in SPDX and CycloneDX
+- Secret history, status updates, summaries, and trends
+- Compliance frameworks, controls, risk summaries, trends, assessments, and
+  reports, including custom identifiers
 
-### Scheduled Scans
-- Cron-based automatic scanning
-- MongoDB-persisted schedules with AsyncIOScheduler
-- 8 REST endpoints for CRUD + toggle + run-now
-- Frontend ScheduleCard/ScheduleForm with cron presets + timezone
+### Enterprise operations
 
-### Secret History Tracking
-- Persistent secret tracking across scans (fingerprinted by hashed_secret + file_path)
-- Auto-resolve secrets not found in latest scan
-- Trend chart (active/resolved over time)
-- Status management (active/resolved/dismissed)
-- Frontend SecretHistoryPanel with filterable table
+- Admin dashboard, user/project/report administration
+- Audit logging, query, export, and event-hash verification
+- Retention policies and execution statistics
+- Notification integrations for Slack, Teams, email, and WebSocket
+- Sentry and Prometheus integration
+- Fernet field encryption and URL/log scrubbing
 
-### Reporting & Analytics
-- Unified multi-tab security reports
-- PDF report generation with executive summary
-- Compliance mapping (10 frameworks)
-- Security score calculation
-- Trend analysis dashboard
-- Severity breakdown charts
-- SBOM generation (SPDX, CycloneDX)
+### Delivery
 
-### Enterprise Features
-- Admin Dashboard - system-wide monitoring
-- User management with role/status controls from admin panel
-- Project oversight across all users
-- Activity monitoring and audit trail
-- Admin-protected routes with access control
-- Audit logging with integrity verification
-- Data retention policies
-- Data isolation per user/project
-- Webhook integrations
-- Email notifications (Gmail SMTP)
-- Real-time WebSocket notifications
-- Slack & Teams notification integration
-
-### Advanced Security
-- Custom rule engine
-- Rule template library
-- Baseline scanning with drift detection
-- Policy-as-Code enforcement
-- Security boundary protection
-
-### Infrastructure
-- Docker Compose (MongoDB + Backend + Frontend + nginx)
-- Multi-stage Dockerfiles
-- GitHub Actions CI (backend tests, frontend tests/build/lint, Docker build)
-- Sentry error tracking
-- Prometheus metrics via prometheus-fastapi-instrumentator
-- Encryption service (Fernet AES-128-CBC+HMAC via PBKDF2)
-
-### Compliance Frameworks (10)
-OWASP, NIST, ISO 27001, PCI-DSS, HIPAA, SOC2, GDPR, CIS, SOX, MITRE ATT&CK
+- Backend and frontend Docker images
+- Docker Compose with internal MongoDB/backend and same-origin nginx proxy
+- GitHub Actions CI for backend, frontend, E2E smoke, and image builds
+- Jenkins deployment pipeline for the current EC2 path
+- 938 backend and 413 frontend tests
 
 ---
 
-## Technical Stack
+## Current Limitations
 
-### Backend
-| Component | Technology |
-|---|---|
-| Framework | FastAPI |
-| Python | 3.13 |
-| Database | MongoDB 7+ |
-| ODM | Beanie |
-| Auth | JWT (PyJWT) |
-| AI | Ollama (local) / OpenAI GPT-4 / Google Gemini 1.5 |
-| Monitoring | Sentry SDK / Prometheus |
-| Notifications | Slack, Teams, Email, WebSocket |
-
-### Frontend
-| Component | Technology |
-|---|---|
-| Framework | React 18 |
-| Build Tool | Vite 5 |
-| Styling | Tailwind CSS 3 |
-| State | React Query 5 |
-| Router | React Router 6 |
-| Testing | Vitest + Playwright (E2E) |
-
-### Infrastructure
-| Component | Technology |
-|---|---|
-| Hosting | AWS |
-| Database | MongoDB Atlas |
-| CI/CD | GitHub Actions |
-| Containers | Docker + Docker Compose |
+- The current production deployment is not verified from this workspace.
+  `onyx.ajuna.website` did not resolve during the documentation audit.
+- Jenkins deploys without an automatic rollback. A failed deployment relies on
+  service restart with the checked-out code.
+- CI runs on `main` and `master`; E2E coverage is smoke-level, not a full
+  authenticated end-to-end flow.
+- Horizontal scaling is not production-ready: scheduler, WebSocket registry,
+  scan cancellation state, and default rate limits are process-local.
+- Optional scanner binaries must be installed on the host or added to the
+  backend image.
+- The default Compose Ollama service is started even when cloud AI is used.
+  Pull a model before relying on local inference.
+- ML databases/models are not persisted by a default dedicated volume.
+- Redis settings exist but no current feature requires Redis.
+- There is no S3/object-storage integration.
+- Clone/push URLs created by older versions may still contain credentials;
+  rotate affected tokens. New URLs reject embedded credentials.
+- Compliance features produce mappings and reports; they do not certify an
+  organization.
+- No formal penetration test or live SCM/Mongo integration test is included in
+  this repository.
 
 ---
 
-## Metrics
+## Technology
 
-| Metric | Count |
+| Layer | Technology |
 |---|---|
-| Backend Python files | 100+ |
-| API Endpoints | 100+ routes |
-| Frontend Components | 50+ |
-| Security Scanners | 11 (7 core + 6 optional) |
-| Compliance Frameworks | 10 |
-| Backend Tests | 347 (all passing) |
-| Frontend Tests | 172 (all passing) |
-| Lines of Code | ~60,000+ |
+| Frontend | React 18, Vite 5, Tailwind CSS 3, TanStack Query 5 |
+| Backend | FastAPI, Python 3.13, Pydantic v2 |
+| Database | MongoDB 7+, Beanie |
+| Authentication | PyJWT, bcrypt, TOTP, Google Identity Services |
+| AI | Gemini, Groq, OpenRouter, OpenAI, Ollama |
+| Retrieval | SQLite FTS5 and sqlite-vec |
+| Real-time | FastAPI WebSocket |
+| Monitoring | Sentry, Prometheus |
+| Current deployment | Jenkins, EC2, systemd, nginx, MongoDB, optional Ollama |
+| Alternative deployment | Docker Compose with nginx frontend |
+| CI | GitHub Actions |
 
 ---
 
-## Feature Comparison
+## Compatibility Notes
 
-### vs GitHub Advanced Security (GHAS)
-| Category | ONYX Advantage |
-|---|---|
-| Secret Scanning | GitLeaks + detect-secrets + SOPS (GHAS: basic patterns) |
-| Code Scanning | Semgrep + Bandit + AI remediation (GHAS: CodeQL only) |
-| Dependency Scan | Safety + Trivy + Dependency Governance + SBOM (GHAS: Dependabot only) |
-| AI Analysis | Full GPT-4/Gemini integration (GHAS: none) |
-| Platform Lock-in | Works with any Git provider (GHAS: GitHub only) |
-| Pricing | Free & Open Source (GHAS: $49/user/month) |
-
-### vs Snyk
-| Category | ONYX Advantage |
-|---|---|
-| AI Remediation | Intelligent code fixes with context (Snyk: template-based) |
-| Unified Dashboard | All tools in one view (Snyk: separate products) |
-| Custom Rules | Full rule engine with templates (Snyk: limited) |
-| Self-Hosting | Free (Snyk: Enterprise tier only) |
-| Real-time Updates | WebSocket (Snyk: polling) |
-| Pricing | Free (Snyk: $52/developer/month) |
+- Python 3.13 is the supported backend runtime.
+- Node.js 22 is the supported frontend build runtime.
+- MongoDB 7+ is required; the backend will not start without `MONGODB_URI`.
+- FastAPI is pinned below 0.140 because direct route introspection relies on the
+  older included-router structure. Use `app.openapi()["paths"]` for inventories.
+- The frontend development server uses a hardcoded local backend URL; production
+  values are build-time Vite variables.
 
 ---
 
-## Project Structure
+## Next Work
 
-```
-ONYX/
-├── backend/
-│   ├── app.py
-│   ├── config.py
-│   ├── database.py
-│   ├── models/            # Beanie documents (report, user, project, secret_history, ...)
-│   ├── routes/            # 30+ route modules
-│   ├── services/          # 15+ service modules
-│   │   ├── ai/
-│   │   ├── scanning/      # Orchestrator, engines, 11 scanners
-│   │   ├── compliance/
-│   │   ├── notifications/
-│   │   ├── infrastructure/ # encryption_service, monitoring
-│   │   ├── scheduling/    # ScanSchedulerService
-│   │   ├── scm/           # Auto-fix PRs
-│   │   └── ...
-│   ├── tests/             # 347 tests
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── components/    # auth, compliance, reports, security, schedules, ...
-│   │   ├── layouts/       # MainLayout, Sidebar, Header
-│   │   ├── services/      # api.js with all API modules
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── Dockerfile
-│   └── nginx.conf
-├── docker-compose.yml
-└── .github/workflows/ci.yml
-```
+Priority items, in practical order:
+
+1. Verify the hosted deployment, DNS, TLS, systemd, nginx, and SCM callbacks.
+2. Verify the new Jenkins backend/frontend test stages on the EC2 host and add a
+   deployment rollback strategy.
+3. Add authenticated E2E flows; the smoke suite now uses current public routes
+   and API paths.
+4. Add shared rate-limit, scheduler, and WebSocket coordination before scaling
+   beyond one backend worker.
+5. Persist ML state and add backup/restore procedures for all runtime data.
+6. Decide whether Redis and object storage are required, or remove unused
+   configuration.
+7. Add live integration tests for MongoDB and at least one SCM provider.
+8. Rotate any credentials that may remain in historical repository URLs.
 
 ---
 
-## Quick Links
+## Documentation
 
-- [Installation Guide](INSTALLATION.md)
-- [API Documentation](API.md)
-- [Architecture Overview](ARCHITECTURE.md)
-- [Deployment Guide](DEPLOYMENT.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
+- [Installation](INSTALLATION.md)
+- [API Reference](API.md)
+- [Architecture](ARCHITECTURE.md)
+- [Deployment](DEPLOYMENT.md)
+- [User Guide](USER_GUIDE.md)
+- [Security Policy](../SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
