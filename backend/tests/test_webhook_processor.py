@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from bson import ObjectId
 
 from models.report import GitMetadata, ScanReport, ScanStatus, WebhookEvent
@@ -194,3 +195,40 @@ class TestProcessScanWorkflow:
         assert created[0].duration_seconds >= 0
         event_save.assert_awaited()
         report_save.assert_awaited()
+
+    @pytest.mark.asyncio
+    async def test_process_webhook_event_redacts_repository_url(self):
+        processor = WebhookProcessor()
+        metadata = GitMetadata(
+            repository_url="https://ghp_secret@github.com/test/repo",
+            branch="main",
+            commit_hash="abc123",
+            commit_message="Test commit",
+            commit_author="Test",
+            event_type="push",
+        )
+
+        with (
+            patch.object(processor, "_parse_webhook_data", return_value=metadata),
+            patch.object(processor, "_process_scan_workflow", new_callable=AsyncMock),
+            patch("routes.webhook.processor.WebhookEvent") as mock_event_cls,
+        ):
+            mock_event = MagicMock()
+            mock_event_cls.return_value = mock_event
+            mock_event.insert = AsyncMock()
+
+            await processor.process_webhook_event(
+                {
+                    "repository": {
+                        "clone_url": "https://ghp_secret@github.com/test/repo",
+                        "html_url": "https://github.com/test/repo",
+                    }
+                },
+                {},
+            )
+
+        event_kwargs = mock_event_cls.call_args.kwargs
+        assert event_kwargs["repository_url"] == "https://github.com/test/repo"
+        assert event_kwargs["payload"]["repository"]["clone_url"] == (
+            "https://github.com/test/repo"
+        )

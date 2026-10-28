@@ -6,8 +6,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pymongo import IndexModel
+
+from utils.url_redaction import has_embedded_credentials, strip_url_credentials
 
 # Import shared enums from the single source of truth
 from .base import ProjectCategory, ProjectPriority, ProjectStatus
@@ -203,7 +205,7 @@ class Project(Document):
             "category": self.category,
             "priority": self.priority,
             "status": self.status,
-            "repository_url": self.repository.url,
+            "repository_url": strip_url_credentials(self.repository.url),
             "total_scans": self.stats.total_scans,
             "last_scan": self.stats.last_scan_date,
             "security_score": self.stats.security_score,
@@ -228,7 +230,16 @@ class ProjectCreateRequest(BaseModel):
     repository: RepositoryConfig = Field(..., description="Repository configuration")
     scan_config: Optional[ScanConfiguration] = Field(default=None, description="Scan configuration")
     tags: List[str] = Field(default_factory=list, description="Project tags")
-    
+
+    @field_validator("repository")
+    @classmethod
+    def _reject_embedded_credentials(cls, value: RepositoryConfig) -> RepositoryConfig:
+        if has_embedded_credentials(value.url):
+            raise ValueError(
+                "Repository URL must not embed credentials; use access_token instead"
+            )
+        return value
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -257,6 +268,17 @@ class ProjectUpdateRequest(BaseModel):
     scan_config: Optional[ScanConfiguration] = Field(default=None)
     tags: Optional[List[str]] = Field(default=None)
 
+    @field_validator("repository")
+    @classmethod
+    def _reject_embedded_credentials(
+        cls, value: Optional[RepositoryConfig]
+    ) -> Optional[RepositoryConfig]:
+        if value is not None and has_embedded_credentials(value.url):
+            raise ValueError(
+                "Repository URL must not embed credentials; use access_token instead"
+            )
+        return value
+
 
 class TeamMemberRequest(BaseModel):
     """Request model for adding/updating team members"""
@@ -280,6 +302,11 @@ class RepositoryConfigResponse(BaseModel):
     branch: str
     scan_paths: List[str]
     exclude_paths: List[str]
+
+    @field_validator("url")
+    @classmethod
+    def _redact_url_credentials(cls, value: str) -> str:
+        return strip_url_credentials(value)
 
     class Config:
         json_schema_extra = {

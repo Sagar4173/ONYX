@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional
 from git import Repo
 
 from utils.repo_clone import validate_repo_url
+from utils.scrub import scrub_text
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,10 @@ class RealSecurityScanner:
         Returns:
             Dictionary containing scan results and findings
         """
-        logger.info(f"🔍 Starting real security scan of {repository_url}")
+        logger.info(
+            "Starting real security scan of %s",
+            scrub_text(repository_url, limit=500),
+        )
         
         try:
             # Clone repository
@@ -102,7 +106,7 @@ class RealSecurityScanner:
             return result
             
         except Exception as e:
-            logger.error(f"❌ Scan failed: {e}")
+            logger.error("Scan failed: %s", scrub_text(str(e), limit=500))
             raise
         finally:
             # Cleanup
@@ -116,7 +120,9 @@ class RealSecurityScanner:
             logger.info("✅ Repository cloned successfully")
             return clone_path
         except Exception as e:
-            logger.error(f"❌ Failed to clone repository: {e}")
+            logger.error(
+                "Failed to clone repository: %s", scrub_text(str(e), limit=500)
+            )
             raise
     
     async def _clone_repository(self, repository_url: str, branch: str) -> str:

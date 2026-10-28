@@ -36,6 +36,13 @@ class TestUrlUserinfo:
         assert "user:pass" not in result
         assert "ssh://[REDACTED]@github.com/owner/repo.git" in result
 
+    def test_redacts_password_before_scp_username(self):
+        result = scrub_text(
+            "clone failed: user:pass@git@github.com:owner/repo.git"
+        )
+        assert "user:pass" not in result
+        assert "[REDACTED]@" in result
+
 
 @pytest.mark.parametrize(
     "secret",
@@ -64,6 +71,10 @@ def test_redacts_known_token_shapes(secret):
         "https://x.test/repo?access_token=secret123",
         "https://x.test/repo?private_token=secret123&x=1",
         "https://x.test/repo?api_key=secret123",
+        "https://x.test/repo?password=secret123",
+        "https://x.test/repo?oauth_token=secret123",
+        "https://x.test/repo?access-token=secret123",
+        "https://x.test/repo?client_secret=secret123",
     ],
 )
 def test_redacts_query_credentials(url):

@@ -9,6 +9,8 @@ import git
 
 from database import db_manager
 from utils.repo_clone import validate_repo_url
+from utils.scrub import scrub_text
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +22,14 @@ async def start_comprehensive_scan_task(
     user_id: str
 ):
     temp_dir = None
+    safe_repository_url = strip_url_credentials(repository_url)
     try:
         temp_dir = tempfile.mkdtemp(prefix='advanced_scan_')
-        logger.info(f"Cloning repository {repository_url} to {temp_dir}")
+        logger.info(
+            "Cloning repository %s to %s",
+            scrub_text(repository_url, limit=500),
+            temp_dir,
+        )
         validate_repo_url(repository_url)
         _repo = git.Repo.clone_from(repository_url, temp_dir)
 
@@ -32,13 +39,16 @@ async def start_comprehensive_scan_task(
             from .engine import update_scanner_config
             update_scanner_config(engine.config, scan_config)
 
-        logger.info(f"Starting comprehensive scan for {repository_url}")
+        logger.info(
+            "Starting comprehensive scan for %s",
+            scrub_text(repository_url, limit=500),
+        )
         scan_results = await engine.scan_repository(temp_dir, target_url)
 
         report_data = {
             'scan_id': scan_results['scan_id'],
             'user_id': user_id,
-            'repository_url': repository_url,
+            'repository_url': safe_repository_url,
             'target_url': target_url,
             'scan_type': 'comprehensive',
             'results': scan_results,
@@ -49,7 +59,10 @@ async def start_comprehensive_scan_task(
         logger.info(f"Comprehensive scan {scan_results['scan_id']} completed")
 
     except Exception as e:
-        logger.error(f"Background comprehensive scan failed: {e}")
+        logger.error(
+            "Background comprehensive scan failed: %s",
+            scrub_text(str(e), limit=500),
+        )
     finally:
         if temp_dir:
             try:
@@ -64,6 +77,7 @@ async def start_sast_scan_task(
     user_id: str
 ):
     temp_dir = None
+    safe_repository_url = strip_url_credentials(repository_url)
     try:
         temp_dir = tempfile.mkdtemp(prefix='sast_scan_')
         validate_repo_url(repository_url)
@@ -86,7 +100,7 @@ async def start_sast_scan_task(
         results = {
             'scan_id': scan_id,
             'scan_type': 'sast',
-            'repository_url': repository_url,
+            'repository_url': safe_repository_url,
             'findings': [finding.__dict__ for finding in findings],
             'summary': generate_findings_summary(findings)
         }
@@ -103,7 +117,10 @@ async def start_sast_scan_task(
         logger.info(f"SAST scan {scan_id} completed")
 
     except Exception as e:
-        logger.error(f"Background SAST scan failed: {e}")
+        logger.error(
+            "Background SAST scan failed: %s",
+            scrub_text(str(e), limit=500),
+        )
     finally:
         if temp_dir:
             shutil.rmtree(temp_dir, ignore_errors=True)
@@ -169,6 +186,7 @@ async def start_iac_scan_task(
     user_id: str
 ):
     temp_dir = None
+    safe_repository_url = strip_url_credentials(repository_url)
     try:
         temp_dir = tempfile.mkdtemp(prefix='iac_scan_')
         validate_repo_url(repository_url)
@@ -191,7 +209,7 @@ async def start_iac_scan_task(
         results = {
             'scan_id': scan_id,
             'scan_type': 'iac',
-            'repository_url': repository_url,
+            'repository_url': safe_repository_url,
             'findings': [finding.__dict__ for finding in findings],
             'summary': generate_findings_summary(findings)
         }
@@ -208,7 +226,10 @@ async def start_iac_scan_task(
         logger.info(f"IaC scan {scan_id} completed")
 
     except Exception as e:
-        logger.error(f"Background IaC scan failed: {e}")
+        logger.error(
+            "Background IaC scan failed: %s",
+            scrub_text(str(e), limit=500),
+        )
     finally:
         if temp_dir:
             shutil.rmtree(temp_dir, ignore_errors=True)

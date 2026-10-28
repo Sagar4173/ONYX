@@ -7,6 +7,8 @@ from database import db_manager
 from models.user import User
 from routes.dependencies import get_current_user
 from utils.error_handling import get_safe_error_detail
+from utils.scrub import scrub_text
+from utils.url_redaction import strip_url_credentials
 
 from .schemas import SuppressionRuleRequest
 
@@ -22,6 +24,17 @@ async def get_suppressions(
 ):
     try:
         suppressions = await db_manager.get_suppression_rules(repository_url)
+        suppressions = [
+            {
+                **rule,
+                "repository_url": strip_url_credentials(
+                    rule.get("repository_url", "")
+                ),
+            }
+            if isinstance(rule, dict)
+            else rule
+            for rule in suppressions
+        ]
 
         return {
             'success': True,
@@ -29,7 +42,9 @@ async def get_suppressions(
         }
 
     except Exception as e:
-        logger.error(f"Failed to get suppressions: {e}")
+        logger.error(
+            "Failed to get suppressions: %s", scrub_text(str(e), limit=500)
+        )
         raise HTTPException(status_code=500, detail=get_safe_error_detail(e, "Failed to get suppressions"))
 
 
@@ -63,5 +78,7 @@ async def create_suppression(
         }
 
     except Exception as e:
-        logger.error(f"Failed to create suppression: {e}")
+        logger.error(
+            "Failed to create suppression: %s", scrub_text(str(e), limit=500)
+        )
         raise HTTPException(status_code=500, detail=get_safe_error_detail(e, "Failed to create suppression"))

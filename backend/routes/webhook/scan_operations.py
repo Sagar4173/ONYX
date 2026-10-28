@@ -2,6 +2,7 @@ import asyncio
 import logging
 import random
 import re
+import traceback
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict
@@ -30,6 +31,8 @@ from services.scanning.scanners import RealSecurityScanner
 from services.service_registry import ServiceRegistry
 from utils.error_handling import get_safe_error_detail
 from utils.rate_limit import limiter
+from utils.scrub import scrub_text
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -199,8 +202,14 @@ async def submit_scan(
             )
 
         except Exception as creation_error:
-            logger.error(f"Error creating scan report: {creation_error}")
-            logger.exception("Full creation error:")
+            logger.error(
+                "Error creating scan report: %s",
+                scrub_text(str(creation_error), limit=500),
+            )
+            logger.error(
+                "Full creation error: %s",
+                scrub_text(traceback.format_exc(), limit=4000),
+            )
             raise creation_error
 
         return JSONResponse(
@@ -210,15 +219,20 @@ async def submit_scan(
                 "scan_id": scan_id,
                 "status": "pending",
                 "project_name": project_name,
-                "repository_url": str(scan_request.repository_url),
+                "repository_url": strip_url_credentials(str(scan_request.repository_url)),
                 "branch": scan_request.branch,
                 "scan_types": scan_request.scan_types
             }
         )
 
     except Exception as e:
-        logger.error(f"Failed to submit scan: {str(e)}")
-        logger.exception("Full scan submission error traceback:")
+        logger.error(
+            "Failed to submit scan: %s", scrub_text(str(e), limit=500)
+        )
+        logger.error(
+            "Full scan submission error: %s",
+            scrub_text(traceback.format_exc(), limit=4000),
+        )
         raise HTTPException(
             status_code=500,
             detail=get_safe_error_detail(e, "Failed to submit scan")
@@ -523,9 +537,15 @@ async def process_real_scan(
             if updated_project:
                 logger.info(f"Updated project stats for: {updated_project.name}")
             else:
-                logger.warning(f"Could not find project to update stats for repo: {scan_request.repository_url}")
+                logger.warning(
+                    "Could not find project to update stats for repo: %s",
+                    scrub_text(str(scan_request.repository_url), limit=500),
+                )
         except Exception as proj_error:
-            logger.warning(f"Could not update project stats: {str(proj_error)}")
+            logger.warning(
+                "Could not update project stats: %s",
+                scrub_text(str(proj_error), limit=500),
+            )
 
         if scan_id in active_scans:
             del active_scans[scan_id]
@@ -587,8 +607,16 @@ async def process_real_scan(
         else:
             user_error = error_str[:200] if len(error_str) > 200 else error_str
 
-        logger.error(f"Real scan {scan_id} failed: {error_str}")
-        logger.exception("Full real scan error:")
+        user_error = scrub_text(user_error, limit=200)
+        logger.error(
+            "Real scan %s failed: %s",
+            scan_id,
+            scrub_text(error_str, limit=500),
+        )
+        logger.error(
+            "Full real scan error: %s",
+            scrub_text(traceback.format_exc(), limit=4000),
+        )
 
         if scan_id in active_scans:
             del active_scans[scan_id]

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -13,6 +14,7 @@ from services.scanning.workflow import enhanced_workflow
 from utils.error_handling import get_safe_error_detail
 from utils.repo_clone import repo_cloner
 from utils.scrub import scrub_text
+from utils.url_redaction import has_embedded_credentials, strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,24 @@ logger = logging.getLogger(__name__)
 scan_logs: Dict[str, List[Dict[str, Any]]] = {}
 
 MAX_SCAN_LOG_LINES = 500
+
+_URL_FIELD_RE = re.compile(r"(?:url|uri|href|link)s?$", re.IGNORECASE)
+
+
+def _sanitize_webhook_payload(value: Any) -> Any:
+    """Recursively redact credentials from URL-bearing webhook payload fields."""
+    if isinstance(value, dict):
+        return {
+            key: (
+                strip_url_credentials(item)
+                if isinstance(item, str) and _URL_FIELD_RE.search(str(key))
+                else _sanitize_webhook_payload(item)
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_sanitize_webhook_payload(item) for item in value]
+    return value
 
 
 def add_scan_log(scan_id: str, level: str, message: str) -> None:
@@ -57,6 +77,15 @@ class WebhookProcessor:
             if not git_metadata:
                 raise HTTPException(status_code=400, detail="Invalid webhook payload")
 
+            if has_embedded_credentials(git_metadata.repository_url):
+                git_metadata = git_metadata.model_copy(
+                    update={
+                        "repository_url": strip_url_credentials(
+                            git_metadata.repository_url
+                        )
+                    }
+                )
+
             webhook_event = WebhookEvent(
                 event_id=event_id,
                 event_type=git_metadata.event_type,
@@ -65,7 +94,7 @@ class WebhookProcessor:
                 commit_hash=git_metadata.commit_hash,
                 pr_number=git_metadata.pr_number,
                 headers=headers,
-                payload=event_data,
+                payload=_sanitize_webhook_payload(event_data),
                 status="received"
             )
 
@@ -82,7 +111,9 @@ class WebhookProcessor:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Webhook processing failed: {e}")
+            logger.error(
+                "Webhook processing failed: %s", scrub_text(str(e), limit=500)
+            )
             raise HTTPException(status_code=500, detail=get_safe_error_detail(e))
 
     def _parse_webhook_data(
@@ -358,8 +389,8 @@ class WebhookProcessor:
                 logger.warning("Failed to broadcast scan completion: %s", e)
 
         except Exception as e:
-            error_msg = f"Scan workflow failed: {e}"
-            logger.error(error_msg, exc_info=True)
+            error_msg = scrub_text(f"Scan workflow failed: {e}", limit=500)
+            logger.error("Scan workflow failed: %s", scrub_text(str(e), limit=500))
 
             webhook_event.status = "failed"
             webhook_event.error_message = error_msg

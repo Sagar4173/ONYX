@@ -13,6 +13,8 @@ from routes.dependencies import get_current_user
 from routes.webhook.processor import webhook_processor
 from utils.error_handling import get_safe_error_detail
 from utils.rate_limit import limiter
+from utils.scrub import scrub_text
+from utils.url_redaction import strip_url_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -116,13 +118,17 @@ async def get_webhook_event(
         result = {
             "event_id": webhook_event.event_id,
             "event_type": webhook_event.event_type,
-            "repository_url": webhook_event.repository_url,
+            "repository_url": strip_url_credentials(webhook_event.repository_url),
             "branch": webhook_event.branch,
             "commit_hash": webhook_event.commit_hash,
             "status": webhook_event.status,
             "created_at": webhook_event.created_at,
             "processed_at": webhook_event.processed_at,
-            "error_message": webhook_event.error_message
+            "error_message": (
+                scrub_text(webhook_event.error_message, limit=500)
+                if webhook_event.error_message
+                else None
+            ),
         }
 
         if webhook_event.scan_report_id:
@@ -159,7 +165,7 @@ async def list_webhook_events(
                 {
                     "event_id": event.event_id,
                     "event_type": event.event_type,
-                    "repository_url": event.repository_url,
+                    "repository_url": strip_url_credentials(event.repository_url),
                     "branch": event.branch,
                     "status": event.status,
                     "created_at": event.created_at,
