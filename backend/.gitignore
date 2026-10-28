@@ -56,6 +56,7 @@ security-reports/
 
 # Runtime output
 output.txt
+data/policies/policy_repo/
 
 # ML model artifacts (generated at runtime)
 ml_models/

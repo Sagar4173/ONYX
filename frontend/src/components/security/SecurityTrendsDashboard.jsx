@@ -4,7 +4,7 @@
  * Features: severity trends, fix velocity, period comparison, projections
  */
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowTrendingUpIcon,

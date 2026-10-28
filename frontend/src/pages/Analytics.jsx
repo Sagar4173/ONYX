@@ -42,7 +42,6 @@ const Analytics = () => {
     vulnSummary,
     totalVulnerabilities,
     totalScans,
-    successRate,
     avgSecurityScore,
     totalProjects,
     topProjects,

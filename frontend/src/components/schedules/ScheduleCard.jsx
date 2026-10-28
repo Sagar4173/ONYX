@@ -21,7 +21,7 @@ const CRON_PRESETS = [
   { label: "Custom", value: "custom" },
 ];
 
-export const getCronDescription = (cron) => {
+const getCronDescription = (cron) => {
   const preset = CRON_PRESETS.find((p) => p.value === cron);
   if (preset && preset.label !== "Custom") return preset.label;
   const parts = cron.split(" ");
@@ -35,7 +35,7 @@ export const getCronDescription = (cron) => {
   return cron;
 };
 
-export const getStatusBadge = (status) => {
+const getStatusBadge = (status) => {
   const badges = {
     success: "bg-green-500/20 text-green-300 border-green-500/30",
     failed: "bg-red-500/20 text-red-300 border-red-500/30",

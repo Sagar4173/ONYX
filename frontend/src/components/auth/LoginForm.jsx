@@ -113,20 +113,6 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
     };
   }, []);
 
-  // Initialize GSI once the script is loaded and the server nonce is available.
-  // Re-initializes only when the nonce changes (stale-nonce recovery).
-  useEffect(() => {
-    if (!googleReady || !ssoEnabled || !ssoNonce || !window.google?.accounts) return;
-    if (gsiInitNonceRef.current === ssoNonce) return;
-    gsiInitNonceRef.current = ssoNonce;
-    window.google.accounts.id.initialize({
-      client_id: window.__ONYX_GOOGLE_CLIENT_ID__,
-      callback: handleGoogleCredential,
-      auto_select: false,
-      nonce: ssoNonce,
-    });
-  }, [googleReady, ssoEnabled, ssoNonce]);
-
   // The backend rejects nonces it never issued (e.g. a browser still running a
   // cached pre-upgrade bundle, or a Google credential minted for an earlier
   // session). Fetch a fresh nonce and re-initialize GSI so the next click
@@ -177,6 +163,20 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister, onSwitchToForgotPassw
     },
     [googleLogin, onSuccess, ssoNonce, refreshSsoNonce]
   );
+
+  // Initialize GSI once the script is loaded and the server nonce is available.
+  // Re-initializes only when the nonce changes (stale-nonce recovery).
+  useEffect(() => {
+    if (!googleReady || !ssoEnabled || !ssoNonce || !window.google?.accounts) return;
+    if (gsiInitNonceRef.current === ssoNonce) return;
+    gsiInitNonceRef.current = ssoNonce;
+    window.google.accounts.id.initialize({
+      client_id: window.__ONYX_GOOGLE_CLIENT_ID__,
+      callback: handleGoogleCredential,
+      auto_select: false,
+      nonce: ssoNonce,
+    });
+  }, [googleReady, ssoEnabled, ssoNonce, handleGoogleCredential]);
 
   // Render the Google button once the container + GSI are both available
   useEffect(() => {

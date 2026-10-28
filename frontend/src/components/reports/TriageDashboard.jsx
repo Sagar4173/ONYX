@@ -220,7 +220,7 @@ export default function TriageDashboard({ scanId, reportId = scanId }) {
   const handleRescore = async () => {
     setRescoreLoading(true);
     try {
-      const result = await triageAPI.rescoreTriage(scanId, context);
+      await triageAPI.rescoreTriage(scanId, context);
       toast.success("Triage re-scored with updated context");
       refetch();
     } catch (err) {

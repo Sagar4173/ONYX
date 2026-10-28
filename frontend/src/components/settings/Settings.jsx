@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { useAuth } from "../auth";
-import { Button } from "../ui/StyleComponents";
 import { PageContainer, PageHeader, GlassCard } from "../../layouts";
 import ParticleBackground from "../projects/ParticleBackground";
 import SecurityTab from "./SecurityTab";
