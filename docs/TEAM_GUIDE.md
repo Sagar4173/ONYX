@@ -153,7 +153,7 @@ cd ..
 git diff --check
 ```
 
-Current verified counts: 938 backend tests, 413 frontend tests.
+Current verified counts: 940 backend tests, 413 frontend tests.
 
 Before declaring a change complete:
 

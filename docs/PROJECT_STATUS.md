@@ -11,7 +11,7 @@
 
 | Metric | Current value |
 |---|---|
-| Backend tests | 938 passing |
+| Backend tests | 940 passing |
 | Frontend tests | 413 passing |
 | OpenAPI paths | 191 |
 | OpenAPI operations | 213 |
@@ -83,7 +83,7 @@ externally hosted instance.
   builds, and a Compose runtime smoke test
 - Jenkins deployment pipeline with previous-commit tracking and a marker-gated
   rollback script
-- 938 backend and 413 frontend tests, plus public and authenticated E2E flows
+- 940 backend and 413 frontend tests, plus public and authenticated E2E flows
 
 ---
 

@@ -1,7 +1,7 @@
 # ONYX Development Roadmap
 
 - **Updated:** 2026-10-28
-- **Baseline:** `master` with 938 backend and 413 frontend tests passing
+- **Baseline:** `master` with 940 backend and 413 frontend tests passing
 
 This roadmap describes work that is not yet complete. Implemented capabilities
 are recorded in [PROJECT_STATUS.md](PROJECT_STATUS.md).
