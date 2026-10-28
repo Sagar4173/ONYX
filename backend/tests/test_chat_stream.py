@@ -232,7 +232,11 @@ def test_stream_gateway_exhausted_yields_error_frame():
 
 # --- gateway-level stream tests -------------------------------------------
 
-async def test_gateway_stream_happy_path_records_trace():
+async def test_gateway_stream_happy_path_records_trace(monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "ai_provider", "gemini")
+    monkeypatch.setattr(settings, "gemini_api_key", "g" * 20)
+
     async def _adapter(spec, messages, max_tokens, temperature):
         yield "a"
         yield "b"
@@ -263,7 +267,11 @@ async def test_gateway_stream_fails_over_before_first_delta(monkeypatch):
     assert not any(e.error for e in events)
 
 
-async def test_gateway_stream_midstream_error_yields_error_then_done():
+async def test_gateway_stream_midstream_error_yields_error_then_done(monkeypatch):
+    from config import settings
+    monkeypatch.setattr(settings, "ai_provider", "gemini")
+    monkeypatch.setattr(settings, "gemini_api_key", "g" * 20)
+
     async def _half(spec, messages, max_tokens, temperature):
         yield "partial"
         raise RuntimeError("connection reset")
