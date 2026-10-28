@@ -1,14 +1,15 @@
 # Security Follow-Ups - Gates & Verification Record
 
-Date closed: 2026-10-27
+Date closed: 2026-10-28
 Spec: `docs/superpowers/specs/2026-10-20-security-followups-design.md`
 Plan: `docs/superpowers/plans/2026-10-20-security-followups.md`
-Branch: `master` (nothing pushed during this track)
+Branch: `master`
 Start: `0f9ef31` (post-QA hardening closure, pushed)
-Finish: `16100de`
+Finish: `c0ffee6` (final-review credential-boundary follow-up)
 Workflow: one implementer task at a time with an independent `reviewer` pass, controller-run
 gates, a `security` review at closure, and a final whole-branch review. Post-review fixes
-were re-reviewed by `security`.
+were re-reviewed by `security`; the final review's credential-boundary findings were
+remediated in `c0ffee6`.
 
 ## Tasks
 
@@ -20,6 +21,7 @@ were re-reviewed by `security`.
 | 4 | Frontend image env exclusion | `fb4abfd` | Gate-only |
 | 5 | Security-review fixes: project-bound tokens, path traversal, SCP/URL redaction, host allowlist | `2a40ef9` | Security re-review: ACCEPTABLE WITH CONCERNS |
 | 6 | Review follow-ups: SSH multi-`@`, scanner clone paths/cleanup, legacy token lookup, repeated-scp redaction | `ee579e1` + `16100de` | Reviewer follow-up: APPROVE WITH CONCERNS; non-residual lows fixed |
+| 7 | Final-review credential boundaries: query secrets, webhook payload, 422 echo, suppressions, exception logs, malformed scp | `c0ffee6` | Reviewer found CHANGES REQUIRED; findings remediated and covered by new tests |
 
 Design/plan commit: `e3fb6e2`.
 
@@ -41,6 +43,19 @@ At final code HEAD `16100de`:
 - `ruff check` on all touched backend files -> clean.
 - `git diff --check 0f9ef31..HEAD` -> clean.
 - Frontend gates not re-run after `fb4abfd` because no frontend files changed afterwards.
+
+At final follow-up `c0ffee6`:
+
+- `pytest -q` (backend) -> **938 passed** (62.02s).
+- Focused credential suites (`test_credential_url_boundaries`, `test_scrub`,
+  `test_url_redaction`) -> **61 passed**.
+- Focused route regressions (`test_webhook_routes`, `test_projects_routes`,
+  `test_scanners_routes`, `test_real_scanner_paths`, `test_webhook_auth`,
+  `test_admin_webhook`, `test_webhook_event_redaction`) -> **65 passed**.
+- `ruff check` on touched modules and tests -> clean; `app.py` has only pre-existing
+  `E402/I001/F401` import-layout findings.
+- App validation regressions (`test_api`, `test_ai_chat`, `test_schedules`,
+  `test_schedule_routes`, `test_sso`) -> **77 passed**.
 
 No live MongoDB, SCM host, or clone/push operation was used; verification is unit/route
 level with mocked external boundaries.
@@ -94,14 +109,12 @@ redaction gap; both were fixed in `16100de`. Residual findings are listed below.
 - **LOW (security)** - SCM tokens are still embedded in clone/push URLs; Git records the
   clone URL in `.git/config` and it can appear in process diagnostics. Prefer
   `GIT_ASKPASS`/credential helper and repository-scoped short-lived tokens.
-- **MEDIUM (pre-existing, final review finding 1)** - Credential-bearing repository URLs
-  can still reach surfaces outside clone-time validation: project create/update
-  (`models/project.py`, `routes/projects/crud.py`), report submission/schema/response/logs
-  (`routes/webhook/schemas.py`, `routes/webhook/scan_operations.py`), webhook event
-  responses (`routes/webhook/events.py`), and scanner logs/naming
-  (`services/scanning/scanners/real_scanner.py`). The final review output was truncated
-  after this finding in the controller transcript; retrieve the full task result if a
-  complete list is required.
+- **RESOLVED (final review finding 1)** - Credential-bearing repository URLs are now
+  rejected at webhook/project/advanced-scan request boundaries, redacted in project,
+  scan, suppression, and webhook event responses, removed from stored webhook payloads,
+  and scrubbed from submission/processing logs and tracebacks. Validation errors no longer
+  echo submitted `input`/`ctx`, and malformed scp userinfo is stripped. Covered by
+  `c0ffee6` tests.
 - **LOW (spec-mandated)** - `user_can_write_auto_fix` falls back to owner-only when a
   project lookup definitively returns no project. The security review flags this
   fail-open behavior; it is retained because the approved spec and T1 tests require it.
@@ -109,9 +122,10 @@ redaction gap; both were fixed in `16100de`. Residual findings are listed below.
   project-permission behavior in the spec; the spec is authoritative.
 - **MEDIUM (pre-existing)** - The finding-label endpoint requires only report read access,
   so a project viewer can still label/hide findings. Follow-up authorization change.
-- **LOW** - Remaining T2 gaps: other raw webhook-processor URL logs, missing route-level
-  admin/listing redaction tests, query parameters beyond the five known keys not scrubbed,
-  PDF binary not parsed, and approve/discard 403 responses still expose retry affordances.
+- **LOW** - Unknown query parameter names that carry secrets (outside the expanded
+  credential key list) are not detected; arbitrary payload fields not named like URLs are
+  not sanitized. Missing route-level admin/listing redaction tests, PDF binary not parsed,
+  and approve/discard 403 responses still expose retry affordances.
 - **LOW** - No real-Mongo integration test for the array-filtered label update or the
   project-bound token path; filters and lookups are asserted with fakes/mocks.
 - **Operational** - Removing `AUTO_FIX_TOKEN` is a behavior change for deployments that
@@ -126,8 +140,8 @@ redaction gap; both were fixed in `16100de`. Residual findings are listed below.
 
 - Authorization: viewer gets 403 on auto-fix writes and can read state; owner/scanner
   behavior covered by tests.
-- No client-visible raw SCM error text; credential URLs are rejected at clone validation
-  and redacted at the covered display/log surfaces.
+- No client-visible raw SCM error text; credential URLs are rejected at request/clone
+  validation and redacted at storage, response, validation-error, and log surfaces.
 - Triage/label writes preserve unrelated metadata keys.
 - Gates pass; security review accepted with documented residuals; final review approved
   with concerns; ledger updated.
