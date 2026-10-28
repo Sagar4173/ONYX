@@ -1,6 +1,7 @@
 import { test, expect, request as playwrightRequest } from "@playwright/test";
 
 const apiURL = process.env.E2E_API_URL || "http://localhost:8000";
+const apiBaseURL = `${apiURL}/api`;
 const E2E_PASSWORD = "E2ePassword123!";
 
 test.describe("Backend Health", () => {
@@ -80,7 +81,7 @@ test.describe("Authenticated E2E", () => {
   let testUser;
 
   test.beforeAll(async () => {
-    apiContext = await playwrightRequest.newContext({ baseURL: `${apiURL}/api` });
+    apiContext = await playwrightRequest.newContext();
 
     const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     testUser = {
@@ -90,7 +91,7 @@ test.describe("Authenticated E2E", () => {
       password: E2E_PASSWORD,
     };
 
-    const response = await apiContext.post("/auth/register", { data: testUser });
+    const response = await apiContext.post(`${apiBaseURL}/auth/register`, { data: testUser });
     expect(response.status(), await response.text()).toBe(201);
   });
 
@@ -99,7 +100,7 @@ test.describe("Authenticated E2E", () => {
   });
 
   async function authenticatePage(page) {
-    const response = await apiContext.post("/auth/login", {
+    const response = await apiContext.post(`${apiBaseURL}/auth/login`, {
       data: {
         username_or_email: testUser.email,
         password: testUser.password,
