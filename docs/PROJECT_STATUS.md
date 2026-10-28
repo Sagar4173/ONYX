@@ -16,7 +16,7 @@
 | OpenAPI paths | 191 |
 | OpenAPI operations | 213 |
 | Scanner integrations | 13 |
-| Deployment pipeline | Jenkins on EC2; Docker Compose alternative |
+| Deployment pipeline | Jenkins on EC2 with rollback; Docker Compose alternative |
 
 Metrics describe the repository at the verified commit, not a promise about any
 externally hosted instance.
@@ -79,9 +79,11 @@ externally hosted instance.
 
 - Backend and frontend Docker images
 - Docker Compose with internal MongoDB/backend and same-origin nginx proxy
-- GitHub Actions CI for backend, frontend, E2E smoke, and image builds
-- Jenkins deployment pipeline for the current EC2 path
-- 938 backend and 413 frontend tests
+- GitHub Actions CI for backend, frontend, public and authenticated E2E, image
+  builds, and a Compose runtime smoke test
+- Jenkins deployment pipeline with previous-commit tracking and a marker-gated
+  rollback script
+- 938 backend and 413 frontend tests, plus public and authenticated E2E flows
 
 ---
 
@@ -89,10 +91,12 @@ externally hosted instance.
 
 - The current production deployment is not verified from this workspace.
   `onyx.ajuna.website` did not resolve during the documentation audit.
-- Jenkins deploys without an automatic rollback. A failed deployment relies on
-  service restart with the checked-out code.
-- CI runs on `main` and `master`; E2E coverage is smoke-level, not a full
-  authenticated end-to-end flow.
+- Jenkins rollback is implemented and shell-tested, but it has not been
+  exercised on the EC2 host. It restores code and services only; MongoDB data
+  still requires a separate backup.
+- E2E coverage now includes registration, login, dashboard, and sidebar
+  navigation, but scan, WebSocket, and webhook flows are not authenticated E2E
+  tests.
 - Horizontal scaling is not production-ready: scheduler, WebSocket registry,
   scan cancellation state, and default rate limits are process-local.
 - Optional scanner binaries must be installed on the host or added to the
@@ -146,10 +150,10 @@ externally hosted instance.
 Priority items, in practical order:
 
 1. Verify the hosted deployment, DNS, TLS, systemd, nginx, and SCM callbacks.
-2. Verify the new Jenkins backend/frontend test stages on the EC2 host and add a
-   deployment rollback strategy.
-3. Add authenticated E2E flows; the smoke suite now uses current public routes
-   and API paths.
+2. Exercise the Jenkins rollback on the EC2 host, including state-file
+   permissions, a health-check failure, and a database backup drill.
+3. Expand authenticated E2E coverage to scans, WebSocket updates, and webhook
+   events, preferably with a dedicated seeded test account.
 4. Add shared rate-limit, scheduler, and WebSocket coordination before scaling
    beyond one backend worker.
 5. Persist ML state and add backup/restore procedures for all runtime data.

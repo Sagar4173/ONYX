@@ -29,7 +29,9 @@ are recorded in [PROJECT_STATUS.md](PROJECT_STATUS.md).
 - Compose hardening: private MongoDB/Ollama, same-origin nginx proxy, healthcheck
 - GitHub Actions CI and the current Jenkins/EC2 deployment pipeline
 - Jenkins backend/frontend test stages and fail-closed health checks
-- E2E smoke tests aligned with current public routes and API endpoints
+- Jenkins previous-commit tracking and marker-gated rollback script
+- Public E2E smoke tests and authenticated registration/login/sidebar flows
+- Compose runtime smoke test in GitHub Actions
 - Security regression fixes for credential-bearing repository URLs
 
 ---
@@ -39,10 +41,9 @@ are recorded in [PROJECT_STATUS.md](PROJECT_STATUS.md).
 | Work | Priority | Why |
 |---|---|---|
 | Verify hosted deployment and DNS | Critical | The documented hostname did not resolve during the audit |
-| Jenkins rollback strategy | Critical | Test gates are present, but the pipeline has no automatic rollback |
+| Exercise Jenkins rollback on EC2 | Critical | The script is implemented but has not run against the real host |
 | Live MongoDB and SCM integration tests | High | Unit tests do not prove persistence or provider behavior |
-| Authenticated E2E flows | High | Current coverage is smoke-level and skips protected pages |
-| Verify Compose hardening on a Docker host | High | Static validation cannot prove runtime networking |
+| Verify Compose on the production host | High | CI proves runtime networking in a clean runner, not the target host |
 | Rotate legacy SCM credentials | High | Older records may contain credentials even though new URLs reject them |
 
 ---
@@ -56,6 +57,7 @@ are recorded in [PROJECT_STATUS.md](PROJECT_STATUS.md).
 | Backups and restore drills | MongoDB, knowledge DB, ML state, environment |
 | Dependency update policy | Automate audit review and pinned upgrades |
 | Optional scanner installation | Document host packages or build scanner images |
+| Expand authenticated E2E | Cover scans, WebSocket updates, and webhooks with a seeded account |
 | Better E2E test isolation | Dedicated test database and seeded accounts |
 
 ---

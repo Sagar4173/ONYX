@@ -62,20 +62,31 @@ access to restart `onyx-backend` and reload nginx.
 `Jenkinsfile` currently:
 
 1. Cleans old workspaces, package caches, logs, and old backups.
-2. Fetches and hard-resets the host checkout to `origin/master`.
-3. Verifies backend and frontend `.env` files exist.
-4. Installs backend dependencies in `backend/venv`.
-5. Runs backend tests.
-6. Installs scanner binaries.
-7. Sets up and starts Ollama, pulling the configured small model if absent.
-8. Installs frontend dependencies, runs tests, and builds the frontend.
-9. Restarts Ollama, `onyx-backend`, and nginx.
-10. Checks backend, nginx, and Ollama health; backend or nginx failures stop the
-    build, while Ollama is reported as optional.
+2. Records the currently deployed commit in `$HOME/.onyx_previous_commit` and
+   clears any stale deploy marker.
+3. Fetches and hard-resets the host checkout to `origin/master`.
+4. Verifies backend and frontend `.env` files exist.
+5. Installs backend dependencies in `backend/venv`.
+6. Runs backend tests.
+7. Installs scanner binaries.
+8. Sets up and starts Ollama, pulling the configured small model if absent.
+9. Installs frontend dependencies, runs tests, and builds the frontend.
+10. Marks the deployment in progress, then restarts Ollama, `onyx-backend`, and
+    nginx.
+11. Retries backend health checks, then checks nginx, services, and optional
+    Ollama; required failures stop the build.
+12. Clears the deploy marker after all checks pass.
 
-The pipeline runs tests before deployment, but it has no automatic rollback.
-The previous commit is not preserved as a deployable release. Keep the deployed
-commit and a database backup before each release.
+If a failure occurs after the deploy marker is set, the `post` block runs
+`scripts/rollback.sh`. The script resets the checkout to
+`$HOME/.onyx_previous_commit`, reinstalls backend dependencies, rebuilds the
+frontend, restarts services, and retries the backend health check. If rollback
+fails, Jenkins restarts the current services as a last resort.
+
+Rollback restores code and services, not MongoDB data. Take a database backup
+before each release. The state files must be writable by the Jenkins user, and
+the rollback path should be exercised once on the EC2 host because service names
+and permissions are host-specific.
 
 The Jenkins pipeline uses `qwen2.5-coder:3b` to fit the host; the backend example
 configuration uses `qwen2.5-coder:7b`. Set the model explicitly in
@@ -322,8 +333,12 @@ Recommended alerts:
 
 1. backend pytest
 2. frontend lint, tests, and production build
-3. Playwright smoke tests
+3. Playwright smoke and authenticated flows: registration, login, dashboard,
+   and sidebar navigation
 4. backend and frontend Docker image builds
+5. Compose smoke test: starts MongoDB, backend, and frontend, then checks nginx
+   health, API docs, security headers, and that backend port 8000 is not
+   published on the host
 
 GitHub Actions is verification, not the current deployment mechanism. The
 Jenkins pipeline is the current EC2 deployment path.

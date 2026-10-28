@@ -101,6 +101,14 @@ pipeline {
                 sh '''
                     cd /home/ec2-user/ONYX
 
+                    # Remember the commit that is currently deployed. This is
+                    # used by scripts/rollback.sh if the new deployment fails.
+                    if [ -d .git ]; then
+                        git rev-parse HEAD > "$HOME/.onyx_previous_commit"
+                        echo "Previous deployed commit: $(cat "$HOME/.onyx_previous_commit")"
+                    fi
+                    rm -f "$HOME/.onyx_deploy_in_progress"
+
                     # Pull latest code (.env files are untracked/gitignored,
                     # so git reset cannot touch them - no backup/restore needed)
                     git fetch origin master
@@ -319,6 +327,10 @@ pipeline {
             steps {
                 echo '🔄 Restarting services...'
                 sh '''
+                    # Mark the deploy as in progress so a later failure triggers
+                    # scripts/rollback.sh instead of only restarting broken code.
+                    touch "$HOME/.onyx_deploy_in_progress"
+
                     OLLAMA_BIN="$HOME/ollama/bin/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
                     if [ -f "$OLLAMA_BIN" ]; then
@@ -353,13 +365,19 @@ pipeline {
             steps {
                 echo '🏥 Running health checks...'
                 sh '''
-                    sleep 8
-
                     echo "--- Backend Health ---"
-                    if curl -sf http://localhost:8000/health; then
-                        echo ""
-                    else
-                        echo "❌ Backend not responding"
+                    BACKEND_READY=0
+                    for attempt in $(seq 1 20); do
+                        if curl -sf http://localhost:8000/health; then
+                            echo ""
+                            BACKEND_READY=1
+                            break
+                        fi
+                        sleep 2
+                    done
+
+                    if [ "$BACKEND_READY" -ne 1 ]; then
+                        echo "ERROR: Backend not responding after 20 attempts"
                         exit 1
                     fi
 
@@ -396,6 +414,7 @@ pipeline {
 
     post {
         success {
+            sh 'rm -f "$HOME/.onyx_deploy_in_progress"'
             echo """
             ✅ ============================================
             ✅  DEPLOYMENT SUCCESSFUL
@@ -410,10 +429,23 @@ pipeline {
             ❌  DEPLOYMENT FAILED — Build #${env.BUILD_NUMBER}
             ❌ ============================================
             """
-            // Try to restart services with existing code
+            // Restore the last known-good commit when the failure happened
+            // after services were restarted. If no rollback script exists yet,
+            // fall back to restarting the current services.
             sh '''
-                sudo systemctl restart onyx-backend || true
-                sudo systemctl reload nginx || true
+                if [ -f /home/ec2-user/ONYX/scripts/rollback.sh ]; then
+                    if bash /home/ec2-user/ONYX/scripts/rollback.sh; then
+                        echo "Deployment rollback completed"
+                    else
+                        echo "Rollback failed; restarting current services"
+                        sudo systemctl restart onyx-backend || true
+                        sudo systemctl reload nginx || true
+                    fi
+                else
+                    echo "No rollback script found; restarting current services"
+                    sudo systemctl restart onyx-backend || true
+                    sudo systemctl reload nginx || true
+                fi
             '''
         }
         always {

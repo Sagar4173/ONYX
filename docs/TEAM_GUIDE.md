@@ -233,8 +233,10 @@ After deploying:
 - check backend and nginx logs
 - record the deployed commit
 
-There is no automatic rollback. Keep the previous commit and a database backup
-before changing production.
+The Jenkins pipeline records the previous commit and invokes
+`scripts/rollback.sh` when a post-restart failure occurs. Rollback restores code
+and services only; keep a database backup before changing production. Verify the
+rollback path on the EC2 host after pipeline changes.
 
 ---
 
