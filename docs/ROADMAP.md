@@ -29,7 +29,9 @@ are recorded in [PROJECT_STATUS.md](PROJECT_STATUS.md).
 - Compose hardening: private MongoDB/Ollama, same-origin nginx proxy, healthcheck
 - GitHub Actions CI and the current Jenkins/EC2 deployment pipeline
 - Jenkins backend/frontend test stages and fail-closed health checks
-- Jenkins previous-commit tracking and marker-gated rollback script
+- Jenkins last-successful-commit tracking and marker-gated rollback script
+- Reusable EC2 host assets: systemd/nginx templates, production env examples,
+  AL2023 package install, bootstrap, preflight, smoke test, and TLS scripts
 - Public E2E smoke tests and authenticated registration/login/sidebar flows
 - Compose runtime smoke test in GitHub Actions
 - Security regression fixes for credential-bearing repository URLs

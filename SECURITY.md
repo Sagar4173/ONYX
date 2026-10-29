@@ -96,6 +96,8 @@ Additional recommendations:
   least-privilege token and rotate it after suspected exposure.
 - Configure SMTP for password reset and email verification.
 - Configure `GOOGLE_CLIENT_ID` and, preferably, `GOOGLE_ALLOWED_DOMAINS` for SSO.
+- After provisioning the first administrator, set `ALLOW_REGISTRATION=false`
+  unless self-service signup is intended. The backend default is `true`.
 
 Repository and deployment secrets must be supplied through the environment,
 not committed to the repository.
@@ -162,7 +164,21 @@ not committed to the repository.
   Compose network but still requires a trusted host.
 - ML training data and models are stored on local disk and are not covered by
   the default Compose volume for ML state.
-- No automatic deployment rollback. Back up before deploys.
+- Jenkins rolls back code and frontend assets after a deployment failure or
+  abort once the deploy marker is set, but it does not restore MongoDB data.
+  Back up the database before deploys.
+- The documented host setup runs Jenkins and the application as the same
+  `ec2-user`. A compromise of either is a compromise of both; a separate
+  Jenkins agent user is preferable for stronger isolation.
+- The pipeline downloads Trivy and Gitleaks release installers remotely. Pin
+  versions and verify checksums or mirror the archives for reproducible,
+  supply-chain-resistant builds.
+- Frontend publication replaces `/var/www/onyx` non-atomically, so a request
+  during a deploy can see a mix of old and new assets.
+- WebSocket tokens are sent in the query string. Access logging is suppressed,
+  but nginx error logs can still record the URI on upstream errors.
+- Setting `ALLOW_REGISTRATION=false` blocks backend registration and SSO
+  auto-provisioning, but the current frontend can still display the signup UI.
 - No formal certifications or compliance attestations are claimed by the
   project. Compliance features produce mappings and reports, not certification.
 - Automated tests do not replace a live deployment, penetration test, or

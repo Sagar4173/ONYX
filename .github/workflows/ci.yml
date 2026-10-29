@@ -77,6 +77,37 @@ jobs:
       - name: Build
         run: npm run build
 
+  deploy-assets:
+    name: Deploy Assets
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate shell syntax
+        run: |
+          bash -n deploy/scripts/*.sh
+          bash -n scripts/rollback.sh
+
+      - name: Validate nginx template
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nginx
+          sed 's/__ONYX_DOMAIN__/onyx.ajuna.website/g' deploy/nginx/onyx.conf.template > /tmp/onyx-site.conf
+          {
+            echo "events {}"
+            echo "http {"
+            echo "  include /etc/nginx/mime.types;"
+            sed 's/^/  /' /tmp/onyx-site.conf
+            echo "}"
+          } | sudo tee /tmp/onyx-nginx-test.conf > /dev/null
+          sudo nginx -t -c /tmp/onyx-nginx-test.conf
+
+      - name: Validate deployment placeholders
+        run: |
+          grep -q '__ONYX_DOMAIN__' deploy/nginx/onyx.conf.template
+          grep -q '__ONYX_USER__' deploy/systemd/onyx-backend.service.template
+          grep -q '__ONYX_PROJECT_DIR__' deploy/systemd/onyx-backend.service.template
+
   e2e:
     name: E2E Smoke Tests
     runs-on: ubuntu-24.04

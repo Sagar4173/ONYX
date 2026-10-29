@@ -8,11 +8,12 @@ ONYX has two supported deployment shapes:
 2. **Self-hosted path:** Docker Compose runs the frontend, backend, MongoDB, and
    optional Ollama on one host.
 
-The repository does not contain the systemd unit, host nginx configuration, or
-credentials for the EC2 deployment. The `Jenkinsfile` is the source of truth for
-the current pipeline. The configured production hostname
-`onyx.ajuna.website` did not resolve during the October 2026 audit; verify DNS,
-TLS, and service health before treating that instance as live.
+Reusable systemd, nginx, environment, and bootstrap assets live under `deploy/`.
+The operator runbook is `deploy/README.md`. Credentials are not stored in the
+repository. The `Jenkinsfile` is the source of truth for the current pipeline.
+The configured production hostname `onyx.ajuna.website` did not resolve during
+the October 2026 audit; verify DNS, TLS, and service health before treating that
+instance as live.
 
 ---
 
@@ -35,119 +36,194 @@ backups, a least-privilege SCM token, and external monitoring.
 
 ## Option A: Current Jenkins/EC2 Deployment
 
-### Host layout assumed by `Jenkinsfile`
+### Reusable host assets
+
+| Path | Purpose |
+|---|---|
+| `deploy/systemd/onyx-backend.service.template` | systemd unit for Uvicorn |
+| `deploy/nginx/onyx.conf.template` | host nginx site and API/WebSocket proxies |
+| `deploy/env/backend.production.env.example` | production backend env template |
+| `deploy/env/frontend.production.env.example` | production frontend build env |
+| `deploy/scripts/install-packages.sh` | install AL2023 runtime packages |
+| `deploy/scripts/bootstrap-app.sh` | create venv, install deps, build, publish |
+| `deploy/scripts/install-host-config.sh` | install systemd/nginx and restart |
+| `deploy/scripts/preflight.sh` | read-only host readiness check |
+| `deploy/scripts/smoke-test.sh` | verify services through nginx |
+| `deploy/scripts/enable-tls.sh` | request and install Let's Encrypt TLS |
+| `deploy/README.md` | complete operator runbook |
+
+Templates use `__ONYX_DOMAIN__`, `__ONYX_USER__`, `__ONYX_PROJECT_DIR__`, and
+`REPLACE_WITH_...` placeholders. Never commit filled-in production files.
+
+### Host layout
 
 ```text
 /home/ec2-user/ONYX/
 ├── backend/
-│   ├── .env
+│   ├── .env                 # untracked, not in Git
 │   ├── venv/
 │   └── app.py
 ├── frontend/
-│   ├── .env
+│   ├── .env                 # untracked, not in Git
 │   └── dist/
+├── deploy/
 └── Jenkinsfile
 
-systemd service: onyx-backend
-nginx: serves the frontend build and proxies /api, /ws, /health, /docs
-MongoDB: reachable through MONGODB_URI
-Ollama: optional, installed under $HOME/ollama
+/var/www/onyx/               # nginx document root, rebuilt from frontend/dist
+/etc/systemd/system/onyx-backend.service
+/etc/nginx/conf.d/onyx.conf
+MongoDB                      # MONGODB_URI
+Ollama                       # optional, $HOME/ollama
 ```
 
-The pipeline runs on the same EC2 host as the application and assumes sudo
-access to restart `onyx-backend` and reload nginx.
+Nginx serves `/var/www/onyx` rather than a directory under
+`/home/ec2-user/ONYX` to avoid home-directory traversal restrictions. The
+pipeline publishes the frontend there after a successful build.
+
+### First-time host setup
+
+```bash
+git clone https://github.com/Sagar4173/ONYX.git /home/ec2-user/ONYX
+cd /home/ec2-user/ONYX
+chmod +x deploy/scripts/*.sh
+./deploy/scripts/install-packages.sh
+
+cp deploy/env/backend.production.env.example backend/.env
+cp deploy/env/frontend.production.env.example frontend/.env
+chmod 600 backend/.env frontend/.env
+# Fill in real values, then:
+./deploy/scripts/bootstrap-app.sh
+./deploy/scripts/preflight.sh
+
+sudo env \
+  ONYX_DOMAIN=onyx.ajuna.website \
+  ONYX_USER=ec2-user \
+  ONYX_PROJECT_DIR=/home/ec2-user/ONYX \
+  ./deploy/scripts/install-host-config.sh
+
+./deploy/scripts/smoke-test.sh
+```
+
+After DNS points at the Elastic IP:
+
+```bash
+sudo env ONYX_EMAIL=admin@example.com \
+  ./deploy/scripts/enable-tls.sh onyx.ajuna.website
+```
+
+See `deploy/README.md` for prerequisites, security-group rules, MongoDB setup,
+Jenkins configuration, and the handoff checklist.
 
 ### Pipeline behavior
 
 `Jenkinsfile` currently:
 
 1. Cleans old workspaces, package caches, logs, and old backups.
-2. Records the currently deployed commit in `$HOME/.onyx_previous_commit` and
-   clears any stale deploy marker.
-3. Fetches and hard-resets the host checkout to `origin/master`.
-4. Verifies backend and frontend `.env` files exist.
-5. Installs backend dependencies in `backend/venv`.
-6. Runs backend tests.
-7. Installs scanner binaries.
-8. Sets up and starts Ollama, pulling the configured small model if absent.
-9. Installs frontend dependencies, runs tests, and builds the frontend.
-10. Marks the deployment in progress, then restarts Ollama, `onyx-backend`, and
-    nginx.
-11. Retries backend health checks, then checks nginx, services, and optional
-    Ollama; required failures stop the build.
-12. Clears the deploy marker after all checks pass.
+2. Clones `/home/ec2-user/ONYX` on a fresh host, or records the last successful
+   deployment, marks the deploy in progress, and hard-resets an existing
+   checkout to `origin/master`.
+3. Verifies production env files, rejects untouched environment templates, and
+   checks that the host systemd/nginx configuration is installed.
+4. Creates or validates the backend venv and installs backend dependencies.
+5. Runs backend tests.
+6. Installs scanner binaries.
+7. Sets up and starts Ollama, pulling the configured small model if absent.
+8. Installs frontend dependencies with `npm ci`, runs tests, and builds.
+9. Publishes `frontend/dist/` to `/var/www/onyx`.
+10. Restarts Ollama, `onyx-backend`, and nginx.
+11. Checks the backend directly and through nginx, then checks service status
+    and optional Ollama.
+12. Records the current commit as the last successful deployment and clears the
+    deploy marker after all checks pass.
 
-If a failure occurs after the deploy marker is set, the `post` block runs
-`scripts/rollback.sh`. The script resets the checkout to
-`$HOME/.onyx_previous_commit`, reinstalls backend dependencies, rebuilds the
-frontend, restarts services, and retries the backend health check. If rollback
-fails, Jenkins restarts the current services as a last resort.
+The deployment checkout is intentionally separate from the Jenkins workspace so
+workspace cleanup cannot delete `.env` files or the venv.
 
-Rollback restores code and services, not MongoDB data. Take a database backup
-before each release. The state files must be writable by the Jenkins user, and
-the rollback path should be exercised once on the EC2 host because service names
-and permissions are host-specific.
+Jenkins records the last successful deployment in
+`$HOME/.onyx_deployed_commit` and copies it to `$HOME/.onyx_previous_commit` at
+the start of each deploy. It sets the deploy marker before resetting the
+checkout, so failures and aborts after that point trigger
+`scripts/rollback.sh`. The script resets to the previous commit, reinstalls
+backend dependencies, rebuilds and republishes the frontend, restarts services,
+and retries the backend health check. A successful rollback records the
+restored commit as the last successful deployment. If rollback fails, Jenkins
+restarts the current services as a last resort.
+
+Rollback restores code and frontend assets, not MongoDB data. Take a database
+backup before each release. The state files must be writable by the Jenkins
+agent user, and the rollback path should be exercised once on the EC2 host.
 
 The Jenkins pipeline uses `qwen2.5-coder:3b` to fit the host; the backend example
-configuration uses `qwen2.5-coder:7b`. Set the model explicitly in
+configuration uses `qwen2.5-coder:3b`. Set the model explicitly in
 `backend/.env` and confirm it exists in Ollama.
 
 ### Required host configuration
 
-Create `backend/.env` with at least:
+Create `backend/.env` from
+`deploy/env/backend.production.env.example`. At minimum, set:
 
 ```env
 ENVIRONMENT=production
 DEBUG=false
 SECRET_KEY=<random-32+-character-secret>
 MONGODB_URI=<authenticated MongoDB URI>
-FRONTEND_URL=https://your-domain.example
-CORS_ORIGINS=https://your-domain.example
+FRONTEND_URL=https://onyx.ajuna.website
+CORS_ORIGINS=https://onyx.ajuna.website
+ALLOWED_ORIGINS=https://onyx.ajuna.website
 WEBHOOK_SECRET=<random-secret>
 ```
 
-Create `frontend/.env` for the production build:
+Create `frontend/.env` from
+`deploy/env/frontend.production.env.example`:
 
 ```env
 VITE_API_URL=/api
-VITE_WS_URL=wss://your-domain.example
+VITE_WS_URL=
 VITE_ENVIRONMENT=production
 ```
 
-For a same-origin nginx deployment, `VITE_API_URL=/api` is usually correct.
-For a split API domain, use its full HTTPS URL.
+For a same-origin nginx deployment, `VITE_API_URL=/api` is correct. For a split
+API domain, use its full HTTPS URL.
 
-The host nginx must:
+The installed nginx site:
 
-- serve `frontend/dist` and fall back to `index.html` for SPA routes
-- proxy `/api/` to the backend
-- proxy `/ws` with HTTP/1.1 upgrade headers
-- proxy `/health`, `/docs`, and `/openapi.json` if those should be public
-- enforce HTTPS and suitable security headers
-- limit request bodies consistently with the backend's 10 MB limit
+- serves `/var/www/onyx` (published `root:root`, readable by nginx) and falls
+  back to `index.html` for SPA routes
+- proxies `/api/` to the backend
+- proxies `/ws` with HTTP/1.1 upgrade headers
+- proxies `/health`, `/docs`, `/docs/oauth2-redirect`, `/redoc`, and
+  `/openapi.json`
+- limits request bodies to 10 MB
+- adds security headers and static asset caching
 
-The backend systemd service should:
+The installed systemd unit:
 
-- run as a non-root user
-- load `backend/.env`
-- start Uvicorn/Gunicorn on `127.0.0.1:8000`
-- restart on failure
-- send logs to journald
-- have a working directory of `/home/ec2-user/ONYX/backend`
-
-The repository does not include a reusable systemd unit; add one if the host is
-rebuilt.
+- runs as the deployment user
+- loads `backend/.env`
+- starts Uvicorn on `127.0.0.1:8000` with one worker
+- restarts on failure
+- sends logs to journald with Uvicorn access logging disabled
+- prepends the backend venv to `PATH` so Jenkins-installed scanners are visible
+- uses `PrivateTmp`, `ProtectSystem=full`, and `NoNewPrivileges`
 
 ### Configure Jenkins
 
 - Point the job at `https://github.com/Sagar4173/ONYX.git`.
-- Trigger on `master`.
-- Ensure the Jenkins user can write the deploy directory, restart
-  `onyx-backend`, and reload nginx.
-- Keep `.env` files out of Git; they are untracked and must survive the
-  hard-reset deployment.
+- Use branch `*/master` and script path `Jenkinsfile`.
+- Prefer a Jenkins SSH agent running as `ec2-user`; the pipeline writes the
+  deployment checkout and `$HOME/.onyx_*` state files.
+- Grant narrowly scoped passwordless sudo for the commands in `Jenkinsfile`.
+  Verify with `sudo -l -U <agent-user>`. Unrestricted `sudo rsync`, `install`,
+  `chmod`, or `tee` rules are effectively root-equivalent; scope them to exact
+  paths and arguments.
+- Keep `.env` files out of Git; they are untracked and survive the hard reset.
+  Preflight and Jenkins require `backend/.env` and `frontend/.env` to be mode
+  `600` or `400`.
 - Do not store credentials in the Jenkinsfile or console output.
 - Confirm the health check can actually fail the build.
+
+If the repository becomes private, configure a read-only SCM credential; the
+current pipeline performs a plain `git clone` of the public repository.
 
 ---
 
@@ -208,7 +284,8 @@ curl.exe -fsS http://localhost/health
 curl.exe -fsS http://localhost/api/stats/public
 ```
 
-Open http://localhost. API documentation is at http://localhost/docs.
+Open http://localhost. API documentation is at http://localhost/docs and
+http://localhost/redoc.
 
 ---
 
@@ -241,19 +318,36 @@ Do not use `vite preview` as a production server.
 
 ## TLS and Firewall
 
-```bash
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.example
-```
+On Amazon Linux 2023, install packages once:
 
 ```bash
-sudo ufw allow OpenSSH
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
+./deploy/scripts/install-packages.sh
 ```
 
-Do not expose MongoDB or Ollama publicly. Restrict SSH to trusted addresses.
+After DNS points at the Elastic IP and HTTP health passes:
+
+```bash
+sudo env ONYX_EMAIL=admin@example.com \
+  ./deploy/scripts/enable-tls.sh your-domain.example
+```
+
+The script runs `certbot --nginx --redirect`, enables the renewal timer, and
+checks HTTPS. Verify renewal:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+Use the EC2 security group rather than host `ufw`:
+
+| Port | Source |
+|---|---|
+| 22 | administrator IP only |
+| 80 | anywhere, for HTTP and ACME |
+| 443 | anywhere, for HTTPS |
+
+Do not expose MongoDB (27017), Ollama (11434), or the backend (8000) publicly.
+Restrict SSH to trusted addresses.
 
 ---
 
@@ -308,10 +402,14 @@ Restore-test backups. A backup that has never been restored is unverified.
 
 ## Monitoring
 
-- Health: `GET /health` through nginx or directly on the backend
+- Health: `GET /health` through nginx or directly on the backend; require
+  `"status": "healthy"`
 - Metrics: `GET /metrics` on the backend port; nginx does not proxy it by default
 - Errors: configure `SENTRY_DSN`
-- Logs: journald, nginx logs, Docker logs, and Ollama logs
+- Logs: journald, nginx logs, Docker logs, and Ollama logs. Uvicorn access
+  logging is disabled and `/ws` access logging is off; nginx error logs can
+  still contain request URIs (including WebSocket query tokens) on upstream
+  errors, so restrict access and retention.
 - Scanner availability: `GET /api/scanners/health`
 
 Recommended alerts:
@@ -339,6 +437,8 @@ Recommended alerts:
 5. Compose smoke test: starts MongoDB, backend, and frontend, then checks nginx
    health, API docs, security headers, and that backend port 8000 is not
    published on the host
+6. deployment-asset checks: shell syntax, nginx template syntax, and required
+   template placeholders
 
 GitHub Actions is verification, not the current deployment mechanism. The
 Jenkins pipeline is the current EC2 deployment path.

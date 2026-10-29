@@ -214,6 +214,7 @@ ONYX/
 │   ├── Dockerfile
 │   └── nginx.conf
 ├── Jenkinsfile                # Current EC2 deployment pipeline
+├── deploy/                    # EC2 host config, scripts, and operator runbook
 ├── docker-compose.yml         # Self-hosted alternative
 ├── .github/workflows/ci.yml
 └── docs/
@@ -229,6 +230,7 @@ ONYX/
 | [API Reference](docs/API.md) | Authentication, conventions, and route inventory |
 | [Architecture](docs/ARCHITECTURE.md) | Components, data flow, and design |
 | [Deployment](docs/DEPLOYMENT.md) | Jenkins/EC2 and Docker production paths |
+| [Deployment Runbook](deploy/README.md) | EC2/Jenkins operator handoff and host steps |
 | [User Guide](docs/USER_GUIDE.md) | End-user workflows and features |
 | [Security](SECURITY.md) | Security model and deployment checklist |
 | [Contributing](docs/CONTRIBUTING.md) | Development workflow and verification |

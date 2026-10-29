@@ -16,7 +16,7 @@
 | OpenAPI paths | 191 |
 | OpenAPI operations | 213 |
 | Scanner integrations | 13 |
-| Deployment pipeline | Jenkins on EC2 with rollback; Docker Compose alternative |
+| Deployment pipeline | Jenkins on EC2 with host bootstrap, systemd/nginx templates, and rollback; Docker Compose alternative |
 
 Metrics describe the repository at the verified commit, not a promise about any
 externally hosted instance.
@@ -81,8 +81,10 @@ externally hosted instance.
 - Docker Compose with internal MongoDB/backend and same-origin nginx proxy
 - GitHub Actions CI for backend, frontend, public and authenticated E2E, image
   builds, and a Compose runtime smoke test
-- Jenkins deployment pipeline with previous-commit tracking and a marker-gated
-  rollback script
+- Jenkins deployment pipeline with first-run bootstrap, frontend publishing,
+  last-successful-commit tracking, and a marker-gated rollback script
+- Reusable `deploy/` assets for systemd, nginx, production env examples,
+  preflight/smoke checks, and TLS
 - 940 backend and 413 frontend tests, plus public and authenticated E2E flows
 
 ---
@@ -92,8 +94,8 @@ externally hosted instance.
 - The current production deployment is not verified from this workspace.
   `onyx.ajuna.website` did not resolve during the documentation audit.
 - Jenkins rollback is implemented and shell-tested, but it has not been
-  exercised on the EC2 host. It restores code and services only; MongoDB data
-  still requires a separate backup.
+  exercised on the EC2 host. It restores code, services, and frontend assets;
+  MongoDB data still requires a separate backup.
 - E2E coverage now includes registration, login, dashboard, and sidebar
   navigation, but scan, WebSocket, and webhook flows are not authenticated E2E
   tests.
@@ -149,7 +151,8 @@ externally hosted instance.
 
 Priority items, in practical order:
 
-1. Verify the hosted deployment, DNS, TLS, systemd, nginx, and SCM callbacks.
+1. Run the EC2 deployment using `deploy/README.md`, then verify DNS, TLS,
+   systemd, nginx, and SCM callbacks.
 2. Exercise the Jenkins rollback on the EC2 host, including state-file
    permissions, a health-check failure, and a database backup drill.
 3. Expand authenticated E2E coverage to scans, WebSocket updates, and webhook

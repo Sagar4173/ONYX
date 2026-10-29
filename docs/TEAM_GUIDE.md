@@ -50,7 +50,7 @@ Primary ownership:
 - host capacity, logs, backups, and monitoring
 - environment configuration and secret handling
 
-Key files: `Jenkinsfile`, `docker-compose.yml`, `backend/Dockerfile`,
+Key files: `Jenkinsfile`, `deploy/`, `docker-compose.yml`, `backend/Dockerfile`,
 `frontend/Dockerfile`, `frontend/nginx.conf`, `.github/workflows/ci.yml`.
 
 ---
@@ -233,10 +233,12 @@ After deploying:
 - check backend and nginx logs
 - record the deployed commit
 
-The Jenkins pipeline records the previous commit and invokes
-`scripts/rollback.sh` when a post-restart failure occurs. Rollback restores code
-and services only; keep a database backup before changing production. Verify the
-rollback path on the EC2 host after pipeline changes.
+Use `deploy/README.md` for first-time EC2 setup, host verification, DNS/TLS, and
+the operator handoff checklist. The Jenkins pipeline records the last successful
+commit and invokes `scripts/rollback.sh` after a post-publish failure. Rollback
+restores code, services, and frontend assets only; keep a database backup before
+changing production. Verify the rollback path on the EC2 host after pipeline
+changes.
 
 ---
 

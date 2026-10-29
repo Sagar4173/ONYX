@@ -14,11 +14,14 @@ pipeline {
         BACKEND_DIR    = '/home/ec2-user/ONYX/backend'
         FRONTEND_DIR   = '/home/ec2-user/ONYX/frontend'
         VENV_DIR       = '/home/ec2-user/ONYX/backend/venv'
+        WEB_ROOT       = '/var/www/onyx'
+        PUBLIC_DOMAIN  = 'onyx.ajuna.website'
         GIT_REPO       = 'https://github.com/Sagar4173/ONYX.git'
+        DEPLOY_BRANCH  = 'master'
     }
 
     options {
-        timeout(time: 15, unit: 'MINUTES')
+        timeout(time: 30, unit: 'MINUTES')
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '5'))
         timestamps()
@@ -54,7 +57,7 @@ pipeline {
                     # Clear caches
                     rm -rf "$HOME/.cache/pip" 2>/dev/null || true
                     rm -rf "$HOME/.npm/_cacache" 2>/dev/null || true
-                    rm -rf /tmp/* 2>/dev/null || true
+                    rm -f /tmp/gitleaks.tgz 2>/dev/null || true
 
                     # Clear journal logs
                     sudo journalctl --vacuum-time=1d 2>/dev/null || true
@@ -97,24 +100,48 @@ pipeline {
         stage('Pull Code') {
             steps {
                 echo '📥 Pulling latest code from GitHub...'
-                checkout scm
                 sh '''
-                    cd /home/ec2-user/ONYX
+                    # This pipeline deploys a dedicated checkout, not the Jenkins
+                    # workspace. Keeping them separate prevents cleanWs from
+                    # deleting backend/.env or the backend virtual environment.
+                    if [ ! -d "$PROJECT_DIR/.git" ]; then
+                        if [ -e "$PROJECT_DIR" ] && [ -n "$(ls -A "$PROJECT_DIR" 2>/dev/null)" ]; then
+                            echo "ERROR: $PROJECT_DIR exists but is not a Git checkout."
+                            echo "Move it aside or repair it before running the pipeline."
+                            exit 1
+                        fi
+                        rm -rf "$PROJECT_DIR"
+                        git clone --branch "$DEPLOY_BRANCH" "$GIT_REPO" "$PROJECT_DIR"
+                        rm -f "$HOME/.onyx_previous_commit" "$HOME/.onyx_deployed_commit"
+                        rm -f "$HOME/.onyx_deploy_in_progress"
+                        echo "Fresh checkout created."
+                    else
+                        cd "$PROJECT_DIR"
+                        rm -f "$HOME/.onyx_deploy_in_progress"
 
-                    # Remember the commit that is currently deployed. This is
-                    # used by scripts/rollback.sh if the new deployment fails.
-                    if [ -d .git ]; then
-                        git rev-parse HEAD > "$HOME/.onyx_previous_commit"
-                        echo "Previous deployed commit: $(cat "$HOME/.onyx_previous_commit")"
+                        # Roll back to the last successfully deployed commit,
+                        # not a failed checkout left behind by an earlier run.
+                        if [ -f "$HOME/.onyx_deployed_commit" ] \
+                            && git rev-parse --verify "$(cat "$HOME/.onyx_deployed_commit")^0" >/dev/null 2>&1; then
+                            cp "$HOME/.onyx_deployed_commit" "$HOME/.onyx_previous_commit"
+                            echo "Last successful commit: $(cat "$HOME/.onyx_previous_commit")"
+                        else
+                            rm -f "$HOME/.onyx_previous_commit"
+                            echo "No last successful deployment recorded; rollback will be unavailable."
+                        fi
+
+                        # Treat every later failure, including test/build
+                        # failures before publish, as a deploy that must restore
+                        # the last successful checkout.
+                        touch "$HOME/.onyx_deploy_in_progress"
+
+                        git remote set-url origin "$GIT_REPO"
+                        git fetch --prune origin "$DEPLOY_BRANCH"
+                        git reset --hard "origin/$DEPLOY_BRANCH"
                     fi
-                    rm -f "$HOME/.onyx_deploy_in_progress"
 
-                    # Pull latest code (.env files are untracked/gitignored,
-                    # so git reset cannot touch them - no backup/restore needed)
-                    git fetch origin master
-                    git reset --hard origin/master
-
-                    echo "✅ Code pulled. Commit: $(git rev-parse --short HEAD)"
+                    echo "✅ Code pulled. Commit: $(git -C "$PROJECT_DIR" rev-parse --short HEAD)"
+                    echo "✅ Branch: $(git -C "$PROJECT_DIR" rev-parse --abbrev-ref HEAD)"
                 '''
             }
         }
@@ -126,16 +153,41 @@ pipeline {
             steps {
                 echo '🔐 Checking .env files...'
                 sh '''
-                    if [ ! -f /home/ec2-user/ONYX/backend/.env ]; then
+                    if [ ! -f "$BACKEND_DIR/.env" ]; then
                         echo "❌ backend/.env is MISSING!"
+                        echo "Create it from deploy/env/backend.production.env.example."
                         exit 1
                     fi
-                    if [ ! -f /home/ec2-user/ONYX/frontend/.env ]; then
+                    if [ ! -f "$FRONTEND_DIR/.env" ]; then
                         echo "❌ frontend/.env is MISSING!"
+                        echo "Create it from deploy/env/frontend.production.env.example."
                         exit 1
                     fi
-                    echo "✅ backend/.env exists"
+                    for env_file in "$BACKEND_DIR/.env" "$FRONTEND_DIR/.env"; do
+                        ENV_MODE=$(stat -c '%a' "$env_file" 2>/dev/null || echo unknown)
+                        case "$ENV_MODE" in
+                            600|400) ;;
+                            *)
+                                echo "❌ $env_file must be mode 600 or 400 (found $ENV_MODE)."
+                                exit 1
+                                ;;
+                        esac
+                    done
+                    if awk '!/^[[:space:]]*#/ && /REPLACE_WITH_/ { found = 1 } END { exit !found }' "$BACKEND_DIR/.env"; then
+                        echo "❌ backend/.env still contains REPLACE_WITH_ placeholders."
+                        exit 1
+                    fi
+                    if [ ! -f /etc/systemd/system/onyx-backend.service ]; then
+                        echo "❌ systemd unit missing; run deploy/scripts/install-host-config.sh."
+                        exit 1
+                    fi
+                    if [ ! -f /etc/nginx/conf.d/onyx.conf ]; then
+                        echo "❌ nginx site missing; run deploy/scripts/install-host-config.sh."
+                        exit 1
+                    fi
+                    echo "✅ backend/.env exists and is not a template"
                     echo "✅ frontend/.env exists"
+                    echo "✅ host systemd and nginx configuration installed"
                 '''
             }
         }
@@ -147,10 +199,31 @@ pipeline {
             steps {
                 echo '📦 Installing backend dependencies...'
                 sh '''
-                    cd /home/ec2-user/ONYX/backend
-                    source venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt --quiet --no-cache-dir
+                    cd "$BACKEND_DIR"
+
+                    if [ -x "$VENV_DIR/bin/python" ]; then
+                        if ! "$VENV_DIR/bin/python" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 13) else 1)'; then
+                            echo "❌ Existing venv uses $("$VENV_DIR/bin/python" --version 2>&1); remove it so Python 3.13+ can be used."
+                            exit 1
+                        fi
+                    else
+                        if command -v python3.13 >/dev/null 2>&1; then
+                            PYTHON_BIN=python3.13
+                        elif command -v python3 >/dev/null 2>&1; then
+                            PYTHON_BIN=python3
+                        else
+                            echo "❌ Python 3.13+ is required but was not found."
+                            exit 1
+                        fi
+                        if ! "$PYTHON_BIN" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 13) else 1)'; then
+                            echo "❌ $PYTHON_BIN is older than 3.13."
+                            exit 1
+                        fi
+                        "$PYTHON_BIN" -m venv "$VENV_DIR"
+                    fi
+
+                    "$VENV_DIR/bin/python" -m pip install --upgrade pip
+                    "$VENV_DIR/bin/python" -m pip install -r requirements.txt --quiet --no-cache-dir
                     echo "✅ Backend dependencies installed"
                 '''
             }
@@ -163,9 +236,8 @@ pipeline {
             steps {
                 echo 'Running backend tests...'
                 sh '''
-                    cd /home/ec2-user/ONYX/backend
-                    source venv/bin/activate
-                    python -m pytest -q
+                    cd "$BACKEND_DIR"
+                    "$VENV_DIR/bin/python" -m pytest -q
                 '''
             }
         }
@@ -177,17 +249,18 @@ pipeline {
             steps {
                 echo '🛠️ Installing security scanners...'
                 sh '''
-                    cd /home/ec2-user/ONYX/backend
-                    source venv/bin/activate
+                    cd "$BACKEND_DIR"
+                    VENV_BIN="$VENV_DIR/bin"
+                    export PATH="$VENV_BIN:$PATH"
 
                     echo "Installing Python scanners (bandit, safety, semgrep)..."
-                    pip install --quiet --no-cache-dir bandit safety semgrep || echo "⚠️ pip scanner install had issues"
+                    "$VENV_BIN/pip" install --quiet --no-cache-dir bandit safety semgrep || echo "⚠️ pip scanner install had issues"
 
                     echo "Installing Trivy..."
                     if command -v trivy >/dev/null 2>&1; then
                         echo "Trivy already installed"
                     else
-                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /home/ec2-user/ONYX/backend/venv/bin && echo "Trivy installed" || echo "⚠️ Trivy install failed"
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$VENV_BIN" && echo "Trivy installed" || echo "⚠️ Trivy install failed"
                     fi
 
                     echo "Installing Gitleaks..."
@@ -196,7 +269,7 @@ pipeline {
                     else
                         GL_VER=$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -o '"tag_name": *"v[^"]*"' | cut -d'"' -f4 | tr -d 'v')
                         curl -fsSL -o /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VER}/gitleaks_${GL_VER}_linux_x64.tar.gz" \
-                          && tar -xzf /tmp/gitleaks.tgz -C /home/ec2-user/ONYX/backend/venv/bin gitleaks \
+                          && tar -xzf /tmp/gitleaks.tgz -C "$VENV_BIN" gitleaks \
                           && rm -f /tmp/gitleaks.tgz \
                           && echo "Gitleaks v${GL_VER} installed" || echo "⚠️ Gitleaks install failed"
                     fi
@@ -311,8 +384,8 @@ pipeline {
             steps {
                 echo '🎨 Testing and building frontend...'
                 sh '''
-                    cd /home/ec2-user/ONYX/frontend
-                    npm install --legacy-peer-deps
+                    cd "$FRONTEND_DIR"
+                    npm ci --no-audit --no-fund
                     npm test -- --reporter=dot
                     npm run build
                     echo "✅ Frontend tests and build passed"
@@ -321,16 +394,31 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 9: Restart Services
+        // Stage 9: Publish Frontend
+        // =====================================================================
+        stage('Publish Frontend') {
+            steps {
+                echo '🚀 Publishing frontend build...'
+                sh '''
+                    # Mark the deploy as in progress before replacing live assets
+                    # so a later failure triggers scripts/rollback.sh.
+                    touch "$HOME/.onyx_deploy_in_progress"
+
+                    sudo install -d -m 0755 "$WEB_ROOT"
+                    sudo rsync -a --delete --chown=root:root "$FRONTEND_DIR/dist/" "$WEB_ROOT/"
+                    sudo chmod -R u=rwX,go=rX "$WEB_ROOT"
+                    echo "✅ Frontend published to $WEB_ROOT"
+                '''
+            }
+        }
+
+        // =====================================================================
+        // Stage 10: Restart Services
         // =====================================================================
         stage('Restart Services') {
             steps {
                 echo '🔄 Restarting services...'
                 sh '''
-                    # Mark the deploy as in progress so a later failure triggers
-                    # scripts/rollback.sh instead of only restarting broken code.
-                    touch "$HOME/.onyx_deploy_in_progress"
-
                     OLLAMA_BIN="$HOME/ollama/bin/ollama"
                     OLLAMA_PID_FILE="/tmp/ollama.pid"
                     if [ -f "$OLLAMA_BIN" ]; then
@@ -349,6 +437,7 @@ pipeline {
 
                     sleep 2
 
+                    sudo nginx -t
                     sudo systemctl restart onyx-backend
                     sleep 3
                     sudo systemctl reload nginx
@@ -359,7 +448,7 @@ pipeline {
         }
 
         // =====================================================================
-        // Stage 10: Health Check
+        // Stage 11: Health Check
         // =====================================================================
         stage('Health Check') {
             steps {
@@ -368,8 +457,8 @@ pipeline {
                     echo "--- Backend Health ---"
                     BACKEND_READY=0
                     for attempt in $(seq 1 20); do
-                        if curl -sf http://localhost:8000/health; then
-                            echo ""
+                        if curl -fsS http://127.0.0.1:8000/health 2>/dev/null | \
+                            grep -Eq '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
                             BACKEND_READY=1
                             break
                         fi
@@ -377,15 +466,37 @@ pipeline {
                     done
 
                     if [ "$BACKEND_READY" -ne 1 ]; then
-                        echo "ERROR: Backend not responding after 20 attempts"
+                        echo "ERROR: Backend did not report healthy after 20 attempts"
                         exit 1
                     fi
 
                     echo "--- Nginx ---"
-                    if curl -sf -o /dev/null http://localhost/; then
-                        echo "✅ Nginx responding"
-                    else
-                        echo "❌ Nginx not responding"
+                    # Prefer a local TLS check once certbot has installed a
+                    # certificate; fall back to HTTP on a host without TLS.
+                    BASE_URL="http://127.0.0.1"
+                    RESOLVE_OPT=""
+                    if curl -kfsS --max-time 5 --resolve "$PUBLIC_DOMAIN:443:127.0.0.1" \
+                        "https://$PUBLIC_DOMAIN/health" >/dev/null 2>&1; then
+                        BASE_URL="https://$PUBLIC_DOMAIN"
+                        RESOLVE_OPT="--resolve $PUBLIC_DOMAIN:443:127.0.0.1"
+                    fi
+
+                    for path in / /health /api/stats/public /docs /redoc; do
+                        CODE=$(curl -sS $RESOLVE_OPT -o /dev/null -w '%{http_code}' \
+                            --max-time 15 "$BASE_URL$path" || true)
+                        if [ "$CODE" = "200" ]; then
+                            echo "✅ $BASE_URL$path ($CODE)"
+                        else
+                            echo "❌ $BASE_URL$path returned ${CODE:-no response}"
+                            exit 1
+                        fi
+                    done
+
+                    NGINX_HEALTH=$(curl -sS $RESOLVE_OPT --max-time 15 \
+                        "$BASE_URL/health" 2>/dev/null || true)
+                    if ! printf '%s' "$NGINX_HEALTH" | \
+                        grep -Eq '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
+                        echo "❌ Nginx health proxy did not report healthy"
                         exit 1
                     fi
 
@@ -414,11 +525,14 @@ pipeline {
 
     post {
         success {
-            sh 'rm -f "$HOME/.onyx_deploy_in_progress"'
+            sh '''
+                git -C "$PROJECT_DIR" rev-parse HEAD > "$HOME/.onyx_deployed_commit"
+                rm -f "$HOME/.onyx_deploy_in_progress"
+            '''
             echo """
             ✅ ============================================
             ✅  DEPLOYMENT SUCCESSFUL
-            ✅  URL: https://onyx.ajuna.website
+            ✅  URL: https://${env.PUBLIC_DOMAIN}
             ✅  Build: #${env.BUILD_NUMBER}
             ✅ ============================================
             """
@@ -430,11 +544,11 @@ pipeline {
             ❌ ============================================
             """
             // Restore the last known-good commit when the failure happened
-            // after services were restarted. If no rollback script exists yet,
-            // fall back to restarting the current services.
+            // after the deploy marker was set. If no rollback script exists
+            // yet, fall back to restarting the current services.
             sh '''
-                if [ -f /home/ec2-user/ONYX/scripts/rollback.sh ]; then
-                    if bash /home/ec2-user/ONYX/scripts/rollback.sh; then
+                if [ -f "$PROJECT_DIR/scripts/rollback.sh" ]; then
+                    if bash "$PROJECT_DIR/scripts/rollback.sh"; then
                         echo "Deployment rollback completed"
                     else
                         echo "Rollback failed; restarting current services"
@@ -448,8 +562,39 @@ pipeline {
                 fi
             '''
         }
+        aborted {
+            echo """
+            ⚠️ ============================================
+            ⚠️  DEPLOYMENT ABORTED — Build #${env.BUILD_NUMBER}
+            ⚠️ ============================================
+            """
+            // Timeouts and manual aborts are reported as ABORTED, not FAILURE.
+            // Restore the last good deployment if the abort happened after the
+            // deploy marker was set.
+            sh '''
+                if [ -f "$PROJECT_DIR/scripts/rollback.sh" ]; then
+                    if bash "$PROJECT_DIR/scripts/rollback.sh"; then
+                        echo "Deployment rollback completed after abort"
+                    else
+                        echo "Rollback after abort failed; restarting current services"
+                        sudo systemctl restart onyx-backend || true
+                        sudo systemctl reload nginx || true
+                    fi
+                else
+                    echo "No rollback script found; restarting current services"
+                    sudo systemctl restart onyx-backend || true
+                    sudo systemctl reload nginx || true
+                fi
+            '''
+        }
         always {
-            cleanWs()
+            script {
+                if (env.WORKSPACE && env.WORKSPACE != env.PROJECT_DIR) {
+                    cleanWs()
+                } else {
+                    echo 'Skipping workspace cleanup for the deployment checkout.'
+                }
+            }
         }
     }
 }

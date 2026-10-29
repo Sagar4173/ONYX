@@ -22,11 +22,11 @@ coordination and sticky WebSocket routing.
                        WebSocket /ws?token=...
                                   |
                        nginx (TLS, static SPA)
-                       /api /ws /health /docs
+                       /api /ws /health /docs /redoc
                                   |
                        FastAPI application
                        JWT/API-token auth, CORS, rate limits
-                       OpenAPI at /docs and /openapi.json
+                       OpenAPI at /docs, /redoc, and /openapi.json
                                   |
         +-----------------+-------+-------+------------------+
         |                 |               |                  |
@@ -107,7 +107,7 @@ backend/
 │   └── triage/
 ├── knowledge/              # RAG corpus and ingestion instructions
 ├── data/                   # SQLite knowledge DB and runtime artifacts
-├── tests/                  # Pytest suite (938 verified tests)
+├── tests/                  # Pytest suite (940 verified tests)
 └── Dockerfile
 ```
 
@@ -273,8 +273,9 @@ See [SECURITY.md](../SECURITY.md) for the deployment checklist and limitations.
   the selected scanners and AI model.
 - External scanners and AI providers are optional dependencies; degraded mode
   must remain usable.
-- No automatic deployment rollback exists. Keep database and environment
-  backups before upgrades.
+- Jenkins automatically rolls back code and frontend assets after a failed
+  deployment. It does not restore MongoDB data, so keep database and
+  environment backups before upgrades.
 
 ---
 
